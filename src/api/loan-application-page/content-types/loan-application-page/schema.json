@@ -1,0 +1,156 @@
+{
+    "kind": "singleType",
+    "collectionName": "loan_application_pages",
+    "info": {
+        "singularName": "loan-application-page",
+        "pluralName": "loan-application-pages",
+        "displayName": "Loan Application Page",
+        "description": "CMS settings for labels and placeholders in the 5-step loan application form"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "pageTitle": {
+            "type": "string",
+            "default": "Loan Application"
+        },
+        "pageSubtitle": {
+            "type": "string",
+            "default": "Complete the steps below to submit your request."
+        },
+        "nextStepButtonLabel": {
+            "type": "string",
+            "default": "Next Step →"
+        },
+        "backButtonLabel": {
+            "type": "string",
+            "default": "Back"
+        },
+        "submitButtonLabel": {
+            "type": "string",
+            "default": "Submit Application"
+        },
+        "loanAmountLabel": {
+            "type": "string",
+            "default": "Loan Amount"
+        },
+        "loanTypeLabel": {
+            "type": "string",
+            "default": "Loan Type"
+        },
+        "loanTypePlaceholder": {
+            "type": "string",
+            "default": "Select Product"
+        },
+        "tenureLabel": {
+            "type": "string",
+            "default": "Tenure (Months)"
+        },
+        "adharLabel": {
+            "type": "string",
+            "default": "Adhar Card Number"
+        },
+        "adharPlaceholder": {
+            "type": "string",
+            "default": "XXXX XXXX XXXX"
+        },
+        "panLabel": {
+            "type": "string",
+            "default": "PAN Card Number"
+        },
+        "panPlaceholder": {
+            "type": "string",
+            "default": "ABCDE1234F"
+        },
+        "notificationsLabel": {
+            "type": "string",
+            "default": "Get Email Notifications for Lead Updated?"
+        },
+        "collateralCheckboxLabel": {
+            "type": "string",
+            "default": "I have collateral to offer"
+        },
+        "collateralTypeLabel": {
+            "type": "string",
+            "default": "Collateral Type"
+        },
+        "collateralTypePlaceholder": {
+            "type": "string",
+            "default": "Select Type"
+        },
+        "collateralValueLabel": {
+            "type": "string",
+            "default": "Estimated Value (₹)"
+        },
+        "collateralValuePlaceholder": {
+            "type": "string",
+            "default": "e.g., 5000000"
+        },
+        "businessNameLabel": {
+            "type": "string",
+            "default": "Business Name"
+        },
+        "businessNamePlaceholder": {
+            "type": "string",
+            "default": "e.g., Oscprofessionals"
+        },
+        "applicantNameLabel": {
+            "type": "string",
+            "default": "Applicant Name"
+        },
+        "applicantNamePlaceholder": {
+            "type": "string",
+            "default": "e.g., John Doe"
+        },
+        "emailLabel": {
+            "type": "string",
+            "default": "Email"
+        },
+        "emailPlaceholder": {
+            "type": "string",
+            "default": "e.g., john@example.com"
+        },
+        "phoneLabel": {
+            "type": "string",
+            "default": "Phone"
+        },
+        "phonePlaceholder": {
+            "type": "string",
+            "default": "e.g., 9876543210"
+        },
+        "docsInstructionText": {
+            "type": "string",
+            "default": "Please upload clear copies of the following documents. Supported formats: PDF, JPG, PNG."
+        },
+        "gstReturnsLabel": {
+            "type": "string",
+            "default": "GST Returns (Last 12 Months)"
+        },
+        "bankStatementsLabel": {
+            "type": "string",
+            "default": "Bank Statements (Last 6 Months)"
+        },
+        "itReturnsLabel": {
+            "type": "string",
+            "default": "Income Tax Returns (Last 2 Years)"
+        },
+        "otherDocsLabel": {
+            "type": "string",
+            "default": "Other document (Pan/Adhar etc)"
+        },
+        "fileUploadPlaceholder": {
+            "type": "string",
+            "default": "Click to browse or drag file here"
+        },
+        "summaryTitle": {
+            "type": "string",
+            "default": "Application Summary"
+        },
+        "declarationText": {
+            "type": "string",
+            "default": "I hereby declare that the information provided is true and correct. I authorize Scalex Finance and its partners to verify my details and check my credit score."
+        }
+    }
+}

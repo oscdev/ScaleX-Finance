@@ -1,0 +1,93 @@
+{
+    "kind": "collectionType",
+    "collectionName": "leads",
+    "info": {
+        "singularName": "lead",
+        "pluralName": "leads",
+        "displayName": "Lead",
+        "description": "Submitted Lead Applications from Frontend"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "fullName": {
+            "type": "string",
+            "required": true
+        },
+        "email": {
+            "type": "email",
+            "required": true
+        },
+        "requiredAmount": {
+            "type": "decimal",
+            "required": true
+        },
+        "monthlyIncome": {
+            "type": "decimal",
+            "required": true
+        },
+        "mobileNumber": {
+            "type": "string",
+            "required": true
+        },
+        "city": {
+            "type": "string",
+            "required": true
+        },
+        "creditScore": {
+            "type": "integer",
+            "required": true,
+            "min": 300,
+            "max": 900
+        },
+        "employmentType": {
+            "type": "enumeration",
+            "enum": [
+                "Salaried",
+                "Self Employed",
+                "Business"
+            ],
+            "required": true
+        },
+        "existingLoans": {
+            "type": "decimal",
+            "required": true
+        },
+        "advisorReferralId": {
+            "type": "string",
+            "required": false
+        },
+        "selectedProduct": {
+            "type": "string",
+            "required": false
+        },
+        "panCard": {
+            "type": "string",
+            "required": false
+        },
+        "pincode": {
+            "type": "string",
+            "required": false
+        },
+        "pinCode": {
+            "type": "string",
+            "required": false
+        },
+        "status": {
+            "type": "enumeration",
+            "enum": [
+                "NEW",
+                "UNDER_PROCESS",
+                "APPROVED",
+                "REJECTED",
+                "DISBURSED"
+            ],
+            "default": "NEW"
+        },
+        "remarks": {
+            "type": "json"
+        }
+    }
+}

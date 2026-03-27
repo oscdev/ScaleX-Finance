@@ -1,0 +1,40 @@
+{
+  "kind": "singleType",
+  "collectionName": "hdfc-bank-pages",
+  "info": {
+    "singularName": "hdfc-bank-page",
+    "pluralName": "hdfc-bank-pages",
+    "displayName": "HDFC Bank Page",
+    "description": "Dummy page for HDFC Bank lender redirection"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "heroTitle": {
+      "type": "string",
+      "default": "HDFC Bank Portal"
+    },
+    "heroSubtitle": {
+      "type": "text",
+      "default": "Trusted financial partner for your loan requirements."
+    },
+    "bankLogo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "applyButtonText": {
+      "type": "string",
+      "default": "Apply Now via HDFC"
+    },
+    "backToLendersText": {
+      "type": "string",
+      "default": "Return to Lenders List"
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+    "kind": "collectionType",
+    "collectionName": "advisors",
+    "info": {
+        "singularName": "advisor",
+        "pluralName": "advisors",
+        "displayName": "Advisor",
+        "description": "Submitted Advisor Registration Applications"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "fullName": {
+            "type": "string",
+            "required": true
+        },
+        "email": {
+            "type": "email",
+            "required": true,
+            "unique": true
+        },
+        "phoneNumber": {
+            "type": "string",
+            "required": true
+        },
+        "password": {
+            "type": "password",
+            "required": true
+        },
+        "state": {
+            "type": "string",
+            "required": true
+        },
+        "district": {
+            "type": "string",
+            "required": true
+        },
+        "pinCode": {
+            "type": "string",
+            "required": true
+        },
+        "license": {
+            "type": "string"
+        },
+        "panNumber": {
+            "type": "string",
+            "required": true
+        },
+        "specialization": {
+            "type": "string",
+            "required": true
+        },
+        "bankAccountNumber": {
+            "type": "string",
+            "required": true
+        },
+        "ifscCode": {
+            "type": "string",
+            "required": true
+        },
+        "bankName": {
+            "type": "string",
+            "required": true
+        },
+        "advisorStatus": {
+            "type": "enumeration",
+            "enum": [
+                "Approved",
+                "Disapproved"
+            ],
+            "default": "Disapproved"
+        }
+    }
+}

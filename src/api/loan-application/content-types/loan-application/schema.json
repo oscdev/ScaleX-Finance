@@ -1,0 +1,115 @@
+{
+    "kind": "collectionType",
+    "collectionName": "loan_applications",
+    "info": {
+        "singularName": "loan-application",
+        "pluralName": "loan-applications",
+        "displayName": "Loan Application",
+        "description": "User submitted loan applications with 5-step process"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "loanAmount": {
+            "type": "decimal",
+            "required": true
+        },
+        "loanType": {
+            "type": "string",
+            "required": true
+        },
+        "tenureMonths": {
+            "type": "enumeration",
+            "enum": [
+                "Months_12",
+                "Months_24",
+                "Months_36",
+                "Months_48",
+                "Months_60"
+            ],
+            "required": true
+        },
+        "adharNumber": {
+            "type": "string",
+            "required": true
+        },
+        "panNumber": {
+            "type": "string",
+            "required": true
+        },
+        "emailNotifications": {
+            "type": "boolean",
+            "default": true
+        },
+        "hasCollateral": {
+            "type": "boolean",
+            "default": false
+        },
+        "collateralType": {
+            "type": "enumeration",
+            "enum": [
+                "Property (Personal/Commercial)",
+                "Gold",
+                "Fixed Deposit",
+                "Machine/Vehicle"
+            ]
+        },
+        "collateralValue": {
+            "type": "decimal"
+        },
+        "businessName": {
+            "type": "string",
+            "required": true
+        },
+        "applicantName": {
+            "type": "string",
+            "required": true
+        },
+        "email": {
+            "type": "email",
+            "required": true
+        },
+        "phone": {
+            "type": "string",
+            "required": true
+        },
+        "gstReturns": {
+            "type": "media",
+            "multiple": true,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "bankStatements": {
+            "type": "media",
+            "multiple": true,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "itReturns": {
+            "type": "media",
+            "multiple": true,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "otherDocs": {
+            "type": "media",
+            "multiple": true,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "declarationAccepted": {
+            "type": "boolean",
+            "required": true
+        }
+    }
+}

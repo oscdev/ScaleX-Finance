@@ -1,0 +1,56 @@
+{
+  "kind": "collectionType",
+  "collectionName": "activity_logs",
+  "info": {
+    "singularName": "activity-log",
+    "pluralName": "activity-logs",
+    "displayName": "Activity Log",
+    "description": "Centralized system logs for ScaleX Finance"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "action": {
+      "type": "enumeration",
+      "enum": [
+        "LEAD_CREATED",
+        "EMAIL_DISPATCHED",
+        "EMAIL_FAILED",
+        "EMAIL_SKIPPED",
+        "ADVISOR_LOGIN_SUCCESS",
+        "ADVISOR_LOGIN_FAILURE",
+        "MAINTENANCE_TOGGLED",
+        "LOGS_PURGED",
+        "AI_MATCH_GENERATED",
+        "LOAN_STATUS_CHANGED"
+      ],
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "severity": {
+      "type": "enumeration",
+      "enum": [
+        "info",
+        "warning",
+        "error",
+        "critical"
+      ],
+      "default": "info"
+    },
+    "model": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "ipAddress": {
+      "type": "string"
+    },
+    "userId": {
+      "type": "string"
+    }
+  }
+}

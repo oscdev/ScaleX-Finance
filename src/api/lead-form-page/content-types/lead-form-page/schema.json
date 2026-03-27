@@ -1,0 +1,124 @@
+{
+    "kind": "singleType",
+    "collectionName": "lead_form_page",
+    "info": {
+        "singularName": "lead-form-page",
+        "pluralName": "lead-form-pages",
+        "displayName": "Lead Form Page",
+        "description": "Content for the Lead Form Page"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "heroTitle": {
+            "type": "string",
+            "default": "Apply for a Loan"
+        },
+        "heroSubtitle": {
+            "type": "text",
+            "default": "Please fill out the details below to proceed."
+        },
+        "fullNameLabel": {
+            "type": "string",
+            "default": "Full Name"
+        },
+        "fullNamePlaceholder": {
+            "type": "string",
+            "default": "e.g., John Doe"
+        },
+        "emailLabel": {
+            "type": "string",
+            "default": "Email Address"
+        },
+        "emailPlaceholder": {
+            "type": "string",
+            "default": "e.g., john@example.com"
+        },
+        "requiredAmountLabel": {
+            "type": "string",
+            "default": "Required Amount"
+        },
+        "requiredAmountPlaceholder": {
+            "type": "string",
+            "default": "e.g., 500000"
+        },
+        "monthlyIncomeLabel": {
+            "type": "string",
+            "default": "Monthly Income"
+        },
+        "monthlyIncomePlaceholder": {
+            "type": "string",
+            "default": "e.g., 75000"
+        },
+        "mobileNumberLabel": {
+            "type": "string",
+            "default": "Mobile Number"
+        },
+        "mobileNumberPlaceholder": {
+            "type": "string",
+            "default": "e.g., 9876543210"
+        },
+        "cityLabel": {
+            "type": "string",
+            "default": "City/District"
+        },
+        "cityPlaceholder": {
+            "type": "string",
+            "default": "e.g., Mumbai"
+        },
+        "creditScoreLabel": {
+            "type": "string",
+            "default": "Credit Score"
+        },
+        "creditScorePlaceholder": {
+            "type": "string",
+            "default": "e.g., 750"
+        },
+        "employmentTypeLabel": {
+            "type": "string",
+            "default": "Employment Type"
+        },
+        "employmentTypePlaceholder": {
+            "type": "string",
+            "default": "Select Employment Type"
+        },
+        "existingLoansLabel": {
+            "type": "string",
+            "default": "Existing Loans (Total monthly EMI)"
+        },
+        "existingLoansPlaceholder": {
+            "type": "string",
+            "default": "e.g., 5000"
+        },
+        "advisorReferralIdLabel": {
+            "type": "string",
+            "default": "Advisor Referral ID (Optional)"
+        },
+        "advisorReferralIdPlaceholder": {
+            "type": "string",
+            "default": "e.g., ADV123456"
+        },
+        "backButtonLabel": {
+            "type": "string",
+            "default": "Back"
+        },
+        "backButtonLink": {
+            "type": "string",
+            "default": "/products"
+        },
+        "pinCodeLabel": {
+            "type": "string",
+            "default": "Pin Code"
+        },
+        "pinCodePlaceholder": {
+            "type": "string",
+            "default": "e.g., 400001"
+        },
+        "submitButtonLabel": {
+            "type": "string",
+            "default": "Submit Application"
+        }
+    }
+}

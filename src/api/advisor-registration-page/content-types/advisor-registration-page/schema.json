@@ -1,0 +1,184 @@
+{
+    "kind": "singleType",
+    "collectionName": "advisor_registration_page",
+    "info": {
+        "singularName": "advisor-registration-page",
+        "pluralName": "advisor-registration-pages",
+        "displayName": "Advisor Registration Page",
+        "description": "Content for the Advisor Registration Page"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "logoImage": {
+            "type": "media",
+            "multiple": false,
+            "required": false,
+            "allowedTypes": [
+                "images"
+            ]
+        },
+        "heroTitle": {
+            "type": "string",
+            "default": "Become a Partner"
+        },
+        "heroSubtitle": {
+            "type": "text",
+            "default": "Join Scalex Finance and start earning commissions"
+        },
+        "step1Label": {
+            "type": "string",
+            "default": "Basic Info"
+        },
+        "step2Label": {
+            "type": "string",
+            "default": "Professional"
+        },
+        "step3Label": {
+            "type": "string",
+            "default": "Payout"
+        },
+        "fullNameLabel": {
+            "type": "string",
+            "default": "Full Name"
+        },
+        "fullNamePlaceholder": {
+            "type": "string",
+            "default": "John Doe"
+        },
+        "emailLabel": {
+            "type": "string",
+            "default": "Email Address"
+        },
+        "emailPlaceholder": {
+            "type": "string",
+            "default": "john@example.com"
+        },
+        "phoneNumberLabel": {
+            "type": "string",
+            "default": "Phone Number"
+        },
+        "phoneNumberPlaceholder": {
+            "type": "string",
+            "default": "+91 98765 43210"
+        },
+        "passwordLabel": {
+            "type": "string",
+            "default": "Create Password"
+        },
+        "passwordPlaceholder": {
+            "type": "string",
+            "default": "********"
+        },
+        "stateLabel": {
+            "type": "string",
+            "default": "State"
+        },
+        "statePlaceholder": {
+            "type": "string",
+            "default": "Maharashtra"
+        },
+        "districtLabel": {
+            "type": "string",
+            "default": "District"
+        },
+        "districtPlaceholder": {
+            "type": "string",
+            "default": "Mumbai"
+        },
+        "pinCodeLabel": {
+            "type": "string",
+            "default": "Pin Code"
+        },
+        "pinCodePlaceholder": {
+            "type": "string",
+            "default": "400001"
+        },
+        "licenseLabel": {
+            "type": "string",
+            "default": "Professional License (Optional)"
+        },
+        "licensePlaceholder": {
+            "type": "string",
+            "default": "CA/CS/ARN Number"
+        },
+        "panLabel": {
+            "type": "string",
+            "default": "PAN Number"
+        },
+        "panPlaceholder": {
+            "type": "string",
+            "default": "ABCDE1234F"
+        },
+        "specializationLabel": {
+            "type": "string",
+            "default": "Specialization"
+        },
+        "specializationOptions": {
+            "type": "text",
+            "default": "Lending,Wealth Management,Insurance"
+        },
+        "payoutAlertText": {
+            "type": "text",
+            "default": "We need your bank details to process your commission payouts. You can update this later."
+        },
+        "bankAccountLabel": {
+            "type": "string",
+            "default": "Bank Account Number"
+        },
+        "bankAccountPlaceholder": {
+            "type": "string",
+            "default": "1234567890"
+        },
+        "ifscLabel": {
+            "type": "string",
+            "default": "IFSC Code"
+        },
+        "ifscPlaceholder": {
+            "type": "string",
+            "default": "HDFC0001234"
+        },
+        "bankNameLabel": {
+            "type": "string",
+            "default": "Bank Name"
+        },
+        "bankNamePlaceholder": {
+            "type": "string",
+            "default": "HDFC Bank"
+        },
+        "nextButtonText": {
+            "type": "string",
+            "default": "Next Step"
+        },
+        "backButtonText": {
+            "type": "string",
+            "default": "Back"
+        },
+        "submitButtonText": {
+            "type": "string",
+            "default": "Submit Application"
+        },
+        "signInPromptText": {
+            "type": "string",
+            "default": "Already have an account?"
+        },
+        "signInLinkText": {
+            "type": "string",
+            "default": "Sign in"
+        },
+        "successTitle": {
+            "type": "string",
+            "default": "Registration Successful!"
+        },
+        "successMessage": {
+            "type": "text",
+            "default": "Welcome! Our team will review your application shortly."
+        },
+        "returnHomeButtonText": {
+            "type": "string",
+            "default": "Return Home"
+        }
+    }
+}

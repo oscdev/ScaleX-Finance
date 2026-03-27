@@ -1,0 +1,55 @@
+{
+    "kind": "singleType",
+    "collectionName": "homepage",
+    "info": {
+        "singularName": "homepage",
+        "pluralName": "homepages",
+        "displayName": "Homepage",
+        "description": "The Scalex MVP Homepage"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "heroTitle": {
+            "type": "string"
+        },
+        "heroSubtitle": {
+            "type": "text"
+        },
+        "heroBanner": {
+            "type": "media",
+            "multiple": false,
+            "required": false,
+            "allowedTypes": [
+                "images",
+                "videos"
+            ]
+        },
+        "valuePropositionTitle": {
+            "type": "string"
+        },
+        "valuePropositionContent": {
+            "type": "richtext"
+        },
+        "valuePropositionClientsContent": {
+            "type": "richtext"
+        },
+        "valuePropositionSecureContent": {
+            "type": "richtext"
+        },
+        "becomeAnAdvisorButtonText": {
+            "type": "string"
+        },
+        "becomeAnAdvisorButtonLink": {
+            "type": "string"
+        },
+        "applyNowButtonText": {
+            "type": "string"
+        },
+        "applyNowButtonLink": {
+            "type": "string"
+        }
+    }
+}

@@ -1,0 +1,52 @@
+{
+    "kind": "singleType",
+    "collectionName": "footers",
+    "info": {
+        "singularName": "footer",
+        "pluralName": "footers",
+        "displayName": "Footer",
+        "description": "Global Footer Content"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "logoText": {
+            "type": "string",
+            "default": "ScaleX Finance"
+        },
+        "logoImage": {
+            "type": "media",
+            "multiple": false,
+            "required": false,
+            "allowedTypes": [
+                "images"
+            ]
+        },
+        "description": {
+            "type": "text",
+            "default": "Democratizing complete Investment Banking & Debt services through technology and a trusted agent network."
+        },
+        "aboutUsLabel": {
+            "type": "string",
+            "default": "About Us"
+        },
+        "aboutUsLink": {
+            "type": "string",
+            "default": "/#about"
+        },
+        "contactPlatformLabel": {
+            "type": "string",
+            "default": "Contact Platform"
+        },
+        "contactPlatformLink": {
+            "type": "string",
+            "default": "/#contact"
+        },
+        "copyrightText": {
+            "type": "string",
+            "default": "© 2026 ScaleX Finance. All rights reserved."
+        }
+    }
+}

@@ -1,0 +1,40 @@
+{
+  "kind": "singleType",
+  "collectionName": "axis-bank-pages",
+  "info": {
+    "singularName": "axis-bank-page",
+    "pluralName": "axis-bank-pages",
+    "displayName": "Axis Bank Page",
+    "description": "Dummy page for Axis Bank lender redirection"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "heroTitle": {
+      "type": "string",
+      "default": "Welcome to Axis Bank"
+    },
+    "heroSubtitle": {
+      "type": "text",
+      "default": "Your preferred lender choice for financial solutions."
+    },
+    "bankLogo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "applyButtonText": {
+      "type": "string",
+      "default": "Proceed with Application"
+    },
+    "backToLendersText": {
+      "type": "string",
+      "default": "Back to Lenders"
+    }
+  }
+}

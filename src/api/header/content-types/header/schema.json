@@ -1,0 +1,76 @@
+{
+    "kind": "singleType",
+    "collectionName": "headers",
+    "info": {
+        "singularName": "header",
+        "pluralName": "headers",
+        "displayName": "Header",
+        "description": "Global Header Content"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "logoText": {
+            "type": "string",
+            "default": "ScaleX Finance"
+        },
+        "logoImage": {
+            "type": "media",
+            "multiple": false,
+            "required": false,
+            "allowedTypes": [
+                "images"
+            ]
+        },
+        "homeLabel": {
+            "type": "string",
+            "default": "Home"
+        },
+        "homeLink": {
+            "type": "string",
+            "default": "/"
+        },
+        "quickLoansLabel": {
+            "type": "string",
+            "default": "Quick Loans"
+        },
+        "quickLoansLink": {
+            "type": "string",
+            "default": "/products"
+        },
+        "aboutUsLabel": {
+            "type": "string",
+            "default": "About Us"
+        },
+        "aboutUsLink": {
+            "type": "string",
+            "default": "/about"
+        },
+        "contactUsLabel": {
+            "type": "string",
+            "default": "Contact Us"
+        },
+        "contactUsLink": {
+            "type": "string",
+            "default": "/contact"
+        },
+        "advisorRegistrationLabel": {
+            "type": "string",
+            "default": "Advisor Registration"
+        },
+        "advisorRegistrationLink": {
+            "type": "string",
+            "default": "/advisor-onboarding"
+        },
+        "advisorLoginLabel": {
+            "type": "string",
+            "default": "Advisor Login"
+        },
+        "advisorLoginLink": {
+            "type": "string",
+            "default": "/admin/auth/login"
+        }
+    }
+}

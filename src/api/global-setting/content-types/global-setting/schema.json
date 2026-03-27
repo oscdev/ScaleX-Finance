@@ -1,0 +1,36 @@
+{
+  "kind": "singleType",
+  "collectionName": "global_settings",
+  "info": {
+    "singularName": "global-setting",
+    "pluralName": "global-settings",
+    "displayName": "Global Setting",
+    "description": "Admin configuration for ScaleX Finance"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "loggingIsEnabled": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "maintenanceModeIsEnabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "retentionDays": {
+      "type": "integer",
+      "default": 30
+    },
+    "notificationsIsEnabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "emailsIsEnabled": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

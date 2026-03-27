@@ -4,6 +4,10 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Admin => 
   auth: {
     secret: env('ADMIN_JWT_SECRET'),
   },
+  rateLimit: {
+    interval: 60 * 60 * 1000, // 1 hour
+    max: 100, // allow 100 attempts per hour
+  },
   apiToken: {
     salt: env('API_TOKEN_SALT'),
   },

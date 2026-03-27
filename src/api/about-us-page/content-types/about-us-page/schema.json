@@ -1,0 +1,50 @@
+{
+  "kind": "singleType",
+  "collectionName": "about_us_pages",
+  "info": {
+    "singularName": "about-us-page",
+    "pluralName": "about-us-pages",
+    "displayName": "About Us Page",
+    "description": "Manage content for the About Us page"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "heroTitle": {
+      "type": "string",
+      "required": true,
+      "default": "About ScaleX Finance"
+    },
+    "heroSubtitle": {
+      "type": "text",
+      "default": "Empowering financial advisor to grow their business with cutting-edge technology and seamless lender integrations."
+    },
+    "content": {
+      "type": "richtext"
+    },
+    "missionTitle": {
+      "type": "string",
+      "default": "Our Mission"
+    },
+    "missionContent": {
+      "type": "text",
+      "default": "To bridge the gap between financial advisors and lenders through a transparent, efficient, and AI-driven platform."
+    },
+    "visionTitle": {
+      "type": "string",
+      "default": "Our Vision"
+    },
+    "visionContent": {
+      "type": "text",
+      "default": "To become the global standard for financial advisor empowerment and credit accessibility."
+    },
+    "heroBanner": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    }
+  }
+}
