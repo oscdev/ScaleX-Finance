@@ -12,86 +12,130 @@
     },
     "pluginOptions": {},
     "attributes": {
+        "leadId": {
+            "type": "integer"
+        },
         "loanAmount": {
-            "type": "decimal",
-            "required": true
-        },
-        "loanType": {
-            "type": "string",
-            "required": true
-        },
-        "tenureMonths": {
-            "type": "enumeration",
-            "enum": [
-                "Months_12",
-                "Months_24",
-                "Months_36",
-                "Months_48",
-                "Months_60"
-            ],
-            "required": true
-        },
-        "adharNumber": {
-            "type": "string",
-            "required": true
-        },
-        "panNumber": {
-            "type": "string",
-            "required": true
-        },
-        "emailNotifications": {
-            "type": "boolean",
-            "default": true
-        },
-        "hasCollateral": {
-            "type": "boolean",
-            "default": false
-        },
-        "collateralType": {
-            "type": "enumeration",
-            "enum": [
-                "Property (Personal/Commercial)",
-                "Gold",
-                "Fixed Deposit",
-                "Machine/Vehicle"
-            ]
-        },
-        "collateralValue": {
             "type": "decimal"
         },
+        "loanType": {
+            "type": "string"
+        },
+        "form_data": {
+            "type": "json"
+        },
+        "status": {
+            "type": "enumeration",
+            "enum": [
+                "Pending",
+                "Under Review",
+                "Approved",
+                "Rejected"
+            ],
+            "default": "Pending"
+        },
+        "remarks": {
+            "type": "json"
+        },
+        "aadharNumber": {
+            "type": "string"
+        },
+        "panNumber": {
+            "type": "string"
+        },
         "businessName": {
-            "type": "string",
-            "required": true
+            "type": "string"
         },
         "applicantName": {
-            "type": "string",
-            "required": true
+            "type": "string"
         },
         "email": {
-            "type": "email",
-            "required": true
+            "type": "string"
         },
         "phone": {
-            "type": "string",
-            "required": true
+            "type": "string"
         },
-        "gstReturns": {
+        "proprietorshipDoc": {
             "type": "media",
-            "multiple": true,
+            "multiple": false,
             "allowedTypes": [
                 "files",
                 "images"
             ]
         },
-        "bankStatements": {
+        "panCard": {
             "type": "media",
-            "multiple": true,
+            "multiple": false,
             "allowedTypes": [
                 "files",
                 "images"
             ]
         },
-        "itReturns": {
+        "aadharCardFront": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "aadharCardBack": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "businessRegProofDoc": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "bankStatement": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "propertyPapers": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "coAppPan": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "coAppAadharFront": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "coAppAadharBack": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "salarySlips": {
             "type": "media",
             "multiple": true,
             "allowedTypes": [
@@ -108,8 +152,7 @@
             ]
         },
         "declarationAccepted": {
-            "type": "boolean",
-            "required": true
+            "type": "boolean"
         }
     }
 }

@@ -46,7 +46,6 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                     if (typeof window === 'undefined') return '';
                     const sessionT = window.sessionStorage.getItem('jwtToken');
                     const localT = window.localStorage.getItem('jwtToken');
-
                     const getCookie = (name: string) => {
                         const value = `; ${document.cookie}`;
                         const parts = value.split(`; ${name}=`);
@@ -54,7 +53,6 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                         return null;
                     };
                     const cookieT = getCookie('jwtToken');
-
                     return (sessionT || localT || cookieT || '')?.replace(/"/g, '');
                 };
                 const token = getToken();
@@ -63,52 +61,69 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 };
 
-                // TRY 1: Content Manager API (Direct ID)
-                addLog('Trying Content Manager Direct ID...');
-                const cmRes = await fetch(`/content-manager/collection-types/api::lead.lead/${leadId}`, { headers });
-                if (cmRes.ok) {
-                    const data = await cmRes.json();
+                // STEP 0: Priority - Content Manager API (Direct ID)
+                addLog('Trying Content Manager (Lead)...');
+                const cmLeadRes = await fetch(`/content-manager/collection-types/api::lead.lead/${leadId}`, { headers });
+                if (cmLeadRes.ok) {
+                    const data = await cmLeadRes.json();
                     const obj = data.data || data;
                     if (obj && (obj.id || obj.documentId)) {
-                        addLog('Success: Found via Content Manager');
-                        setLead(obj);
+                        addLog('Found via Content Manager (Lead).');
+                        setLead({ ...obj, id: obj.id || leadId });
                         if (obj.status) setStatus(obj.status);
                         return;
                     }
                 }
-                addLog(`CM Direct ID failed: ${cmRes.status}`);
 
-                // TRY 2: Public API (Direct ID)
-                addLog('Trying Public API Direct ID...');
-                const publicRes = await fetch(`/api/leads/${leadId}?populate=*`);
-                if (publicRes.ok) {
-                    const data = await publicRes.json();
-                    const obj = data.data?.attributes || data.data || data;
-                    if (obj && (obj.id || obj.documentId)) {
-                        addLog('Success: Found via Public API');
-                        setLead(obj);
-                        if (obj.status) setStatus(obj.status);
-                        return;
+                addLog('Trying Content Manager (Loan App)...');
+                const cmLoanRes = await fetch(`/content-manager/collection-types/api::loan-application.loan-application/${leadId}`, { headers });
+                if (cmLoanRes.ok) {
+                    const loanData = await cmLoanRes.json();
+                    const loanObj = loanData.data || loanData;
+                    if (loanObj && loanObj.id) {
+                        addLog('Found via Content Manager (Loan App).');
+                        setLoanApp({ ...loanObj });
+                        if (loanObj.leadId) {
+                            addLog(`Fetching parent Lead (ID: ${loanObj.leadId})...`);
+                            const cmPLeadRes = await fetch(`/content-manager/collection-types/api::lead.lead/${loanObj.leadId}`, { headers });
+                            if (cmPLeadRes.ok) {
+                                const pLeadData = await cmPLeadRes.json();
+                                const pLeadObj = pLeadData.data || pLeadData;
+                                setLead({ ...pLeadObj, id: pLeadObj.id || loanObj.leadId });
+                                if (pLeadObj.status) setStatus(pLeadObj.status);
+                                return;
+                            }
+                        } else {
+                            addLog('Found Loan App but no leadId reference.');
+                             setLead({
+                                fullName: loanObj.applicantName,
+                                email: loanObj.email,
+                                mobileNumber: loanObj.phone,
+                                selectedProduct: loanObj.loanType,
+                                requiredAmount: loanObj.loanAmount,
+                                isVirtual: true
+                            });
+                            return;
+                        }
                     }
                 }
-                addLog(`Public API failed: ${publicRes.status}`);
 
-                // TRY 3: Search by ID (Filters)
-                addLog('Trying Filtered Search...');
+                // FALLBACK: Public REST API (Search)
+                addLog('Falling back to Filtered Search...');
                 const searchRes = await fetch(`/api/leads?filters[id][$eq]=${leadId}&populate=*`);
                 if (searchRes.ok) {
                     const data = await searchRes.json();
                     const items = data.data || [];
                     if (items.length > 0) {
                         const obj = items[0].attributes || items[0];
-                        addLog('Success: Found via Filtered Search');
+                        addLog('Found via Public Filtered Search');
                         setLead({ ...obj, id: items[0].id });
                         if (obj.status) setStatus(obj.status);
                         return;
                     }
                 }
-                addLog(`Filtered Search failed: ${searchRes.status}`);
-
+                
+                addLog('Failed to find matching record at all.');
             } catch (err: any) {
                 addLog(`Fatal Error: ${err.message}`);
             } finally {
@@ -155,16 +170,15 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                     return;
                 }
 
-                // TRY B: Search by Email or Phone matching the Lead
-                if (lead && (lead.email || lead.mobileNumber)) {
-                    // console.log('[Dashboard] Direct ID fetch failed, searching by Email/Phone...');
-                    const searchQuery = `/api/loan-applications?filters[$or][0][email][$eq]=${lead.email}&filters[$or][1][phone][$eq]=${lead.mobileNumber}&populate=*`;
+                // TRY B: Search by leadId, Email or Phone matching the Lead
+                if (lead) {
+                    const lId = lead.id || lead.documentId;
+                    const searchQuery = `/api/loan-applications?filters[$or][0][leadId][$eq]=${lId}&filters[$or][1][email][$eq]=${lead.email}&filters[$or][2][phone][$eq]=${lead.mobileNumber}&populate=*`;
                     const searchRes = await fetch(searchQuery);
                     if (searchRes.ok) {
                         const searchData = await searchRes.json();
                         const found = searchData.data?.[0]?.attributes || searchData.data?.[0];
                         if (found) {
-                            // console.log('[Dashboard] Found Loan App via Search:', found);
                             setLoanApp({ ...found, id: searchData.data[0].id });
                             return;
                         }
@@ -414,9 +428,10 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                             { label: 'Customer Full Name', val: lead.fullName || 'N/A' },
                             { label: 'Customer Mobile', val: lead.mobileNumber || 'N/A' },
                             { label: 'Customer Email', val: lead.email || 'N/A' },
-                            { label: 'Aadhar Card', val: loanApp?.adharNumber || loanApp?.adhar_number || 'N/A' },
-                            { label: 'Pan Card', val: loanApp?.panNumber || loanApp?.pan_number || 'N/A' },
+                            { label: 'Aadhar Card', val: loanApp?.aadharNumber || loanApp?.adharNumber || loanApp?.aadhar_number || lead.aadharCard || lead.adharCard || 'N/A' },
+                            { label: 'Pan Card', val: loanApp?.panNumber || loanApp?.pan_number || lead.panCard || 'N/A' },
                             { label: 'Pin Code', val: lead.pinCode || lead.pincode || 'N/A' },
+                            { label: 'Employment Type', val: lead.employmentType || lead.occupation || 'N/A' },
                             {
                                 label: 'Get Email Notifications?',
                                 val: (loanApp?.emailNotifications === true || loanApp?.email_notifications === true || loanApp?.emailNotifications === 't') ? 'Yes' :
@@ -543,179 +558,255 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                 </Box>
             </div>
 
-            {/* 1. Business Details */}
-            <Box marginBottom={6}>
-                <Typography variant="delta" fontWeight="bold" textColor="primary600" marginBottom={2} display="block">1. Business Details</Typography>
-                <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '16px' }}>
-                        {[
-                            { label: 'Business Name', val: loanApp?.businessName || 'N/A' }
-                        ].map((d, i) => (
-                            <Box key={i}>
-                                <Typography variant="pi" textColor="neutral600" display="block" fontWeight="bold">{d.label}</Typography>
-                                <Typography variant="pi" textColor="neutral800">{d.val}</Typography>
+            {/* Step-wise Application Details */}
+            {loanApp ? (
+                <>
+                    {/* 1. Business Info (If Business Loan) */}
+                    {(lead.selectedProduct === 'Business Loan' || loanApp.loanType === 'Business Loan') && (
+                        <Box marginBottom={6}>
+                            <Typography variant="delta" fontWeight="bold" textColor="primary600" marginBottom={2} display="block">Step 1: Business Details</Typography>
+                            <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                                    {[
+                                        { label: 'Business Name', val: loanApp.businessDetails?.name || loanApp.businessName || 'N/A' },
+                                        { label: 'Premises', val: loanApp.businessDetails?.premises || 'N/A' },
+                                        { label: 'Type', val: loanApp.businessDetails?.type || 'N/A' },
+                                        { label: 'Turnover', val: loanApp.businessDetails?.turnover || 'N/A' },
+                                        { label: 'Age', val: loanApp.businessDetails?.age || 'N/A' },
+                                        { label: 'Reg Proof', val: loanApp.businessDetails?.regProof || 'N/A' }
+                                    ].map((d, i) => (
+                                        <Box key={i}>
+                                            <Typography variant="pi" textColor="neutral600" display="block" fontWeight="bold">{d.label}</Typography>
+                                            <Typography variant="pi" textColor="neutral800">{d.val}</Typography>
+                                        </Box>
+                                    ))}
+                                </div>
+                                <Box marginTop={4}>
+                                    <Typography variant="pi" textColor="neutral600" display="block" fontWeight="bold">Business Address</Typography>
+                                    <Typography variant="pi" textColor="neutral800">{loanApp.businessDetails?.address || 'N/A'}</Typography>
+                                </Box>
                             </Box>
-                        ))}
-                    </div>
-                </Box>
-            </Box>
+                        </Box>
+                    )}
 
-            {/* 2. Client Details */}
-            <Box marginBottom={6}>
-                <Typography variant="delta" fontWeight="bold" textColor="primary600" marginBottom={2} display="block">2. Client Details</Typography>
-                <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-                        {[
-                            { label: 'Applicant Name', val: loanApp?.applicantName || 'N/A' },
-                            { label: 'Mobile Number', val: loanApp?.phone || lead.mobileNumber || 'N/A' },
-                            { label: 'Email Address', val: loanApp?.email || lead.email || 'N/A' },
-                            { label: 'Pan Card', val: loanApp?.panNumber || lead.panCard || 'N/A' },
-                            { label: 'Aadhar Card', val: loanApp?.adharNumber || 'N/A' },
-                            { label: 'Employment Type', val: lead.employmentType || 'N/A' },
-                            { label: 'Monthly Income', val: lead.monthlyIncome ? `₹ ${lead.monthlyIncome.toLocaleString()}` : 'N/A' },
-                            { label: 'Credit Score', val: lead.creditScore || 'N/A' },
-                            { label: 'Pin Code', val: lead.pinCode || lead.pincode || 'N/A' }
-                        ].map((d, i) => (
-                            <Box key={i} marginBottom={2}>
-                                <Typography variant="pi" textColor="neutral600" display="block" fontWeight="bold">{d.label}</Typography>
-                                <Typography variant="pi" textColor="neutral800">{d.val}</Typography>
-                            </Box>
-                        ))}
-                    </div>
-                </Box>
-            </Box>
+                    {/* 2. Personal Info */}
+                    <Box marginBottom={6}>
+                        <Typography variant="delta" fontWeight="bold" textColor="primary600" marginBottom={2} display="block">Step: Personal Details</Typography>
+                        <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                                {[
+                                    { label: 'Full Name', val: loanApp.personalDetails?.name || loanApp.applicantName || lead.fullName || 'N/A' },
+                                    { label: 'DOB', val: loanApp.personalDetails?.dob || 'N/A' },
+                                    { label: 'Marital Status', val: loanApp.personalDetails?.maritalStatus || 'N/A' },
+                                    { label: 'Mother Name', val: loanApp.personalDetails?.motherName || 'N/A' },
+                                    { label: 'Spouse Name', val: loanApp.personalDetails?.spouseName || 'N/A' },
+                                    { label: 'Alternate Phone', val: loanApp.personalDetails?.alternateNumber || 'N/A' },
+                                    { label: 'Dependents', val: loanApp.personalDetails?.dependents || 'N/A' }
+                                ].map((d, i) => (
+                                    <Box key={i}>
+                                        <Typography variant="pi" textColor="neutral600" display="block" fontWeight="bold">{d.label}</Typography>
+                                        <Typography variant="pi" textColor="neutral800">{d.val}</Typography>
+                                    </Box>
+                                ))}
+                            </div>
+                        </Box>
+                    </Box>
 
-            {/* 3. Address */}
-            <Box marginBottom={6}>
-                <Typography variant="delta" fontWeight="bold" textColor="primary600" marginBottom={2} display="block">3. Address</Typography>
-                <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '16px' }}>
-                        {[
-                            { label: 'City', val: lead.city || 'N/A' },
-                            { label: 'Pin Code', val: lead.pinCode || lead.pincode || 'N/A' }
-                        ].map((d, i) => (
-                            <Box key={i}>
-                                <Typography variant="pi" textColor="neutral600" display="block" fontWeight="bold">{d.label}</Typography>
-                                <Typography variant="pi" textColor="neutral800">{d.val}</Typography>
-                            </Box>
-                        ))}
-                    </div>
-                </Box>
-            </Box>
+                    {/* 3. Address Info */}
+                    <Box marginBottom={6}>
+                        <Typography variant="delta" fontWeight="bold" textColor="primary600" marginBottom={2} display="block">Step: Address Details</Typography>
+                        <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px', marginBottom: '16px' }}>
+                                <Typography variant="pi"><span style={{ fontWeight: 600 }}>Line 1:</span> {loanApp.addressDetails?.line1 || 'N/A'}</Typography>
+                                <Typography variant="pi"><span style={{ fontWeight: 600 }}>Line 2:</span> {loanApp.addressDetails?.line2 || 'N/A'}</Typography>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                                {[
+                                    { label: 'City', val: loanApp.addressDetails?.city || lead.city || 'N/A' },
+                                    { label: 'District', val: loanApp.addressDetails?.district || 'N/A' },
+                                    { label: 'State', val: loanApp.addressDetails?.state || 'N/A' },
+                                    { label: 'Pincode', val: lead.pincode || lead.pinCode || 'N/A' },
+                                    { label: 'Residence Type', val: loanApp.addressDetails?.residenceType || 'N/A' }
+                                ].map((d, i) => (
+                                    <Box key={i}>
+                                        <Typography variant="pi" textColor="neutral600" display="block" fontWeight="bold">{d.label}</Typography>
+                                        <Typography variant="pi" textColor="neutral800">{d.val}</Typography>
+                                    </Box>
+                                ))}
+                            </div>
+                        </Box>
+                    </Box>
 
-            {/* 4. Other Details */}
-            <Box marginBottom={6}>
-                <Typography variant="delta" fontWeight="bold" textColor="primary600" marginBottom={2} display="block">4. Other Details</Typography>
-                <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }}>
-                        {[
-                            { label: 'Tenure', val: loanApp?.tenureMonths?.replace('Months_', '') ? `${loanApp.tenureMonths.replace('Months_', '')} Months` : 'N/A' },
-                            { label: 'Has Collateral', val: loanApp?.hasCollateral ? 'Yes' : 'No' },
-                            { label: 'Collateral Type', val: loanApp?.collateralType || 'N/A' },
-                            { label: 'Collateral Value', val: loanApp?.collateralValue ? `₹ ${loanApp.collateralValue.toLocaleString()}` : 'N/A' },
-                            { label: 'Existing Loans', val: lead.existingLoans ? `₹ ${lead.existingLoans.toLocaleString()}` : 'N/A' },
-                            { label: 'Email Notifications', val: loanApp?.emailNotifications ? 'Enabled' : 'Disabled' }
-                        ].map((d, i) => (
-                            <Box key={i}>
-                                <Typography variant="pi" textColor="neutral600" display="block" fontWeight="bold">{d.label}</Typography>
-                                <Typography variant="pi" textColor="neutral800">{d.val}</Typography>
+                    {/* 4. Property (For LAP/Home Loan) */}
+                    {(lead.selectedProduct === 'LAP' || lead.selectedProduct === 'Home Loan') && (
+                        <Box marginBottom={6}>
+                            <Typography variant="delta" fontWeight="bold" textColor="primary600" marginBottom={2} display="block">Step: Property Details</Typography>
+                            <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                                    {[
+                                        { label: 'Property Type', val: loanApp.propertyDetails?.type || 'N/A' },
+                                        { label: 'Current Status', val: loanApp.propertyDetails?.status || 'N/A' },
+                                        { label: 'Value', val: loanApp.propertyDetails?.value || 'N/A' },
+                                        { label: 'Property Pincode', val: loanApp.addressDetails?.propertyAddressPincode || 'N/A' }
+                                    ].map((d, i) => (
+                                        <Box key={i}>
+                                            <Typography variant="pi" textColor="neutral600" display="block" fontWeight="bold">{d.label}</Typography>
+                                            <Typography variant="pi" textColor="neutral800">{d.val}</Typography>
+                                        </Box>
+                                    ))}
+                                </div>
                             </Box>
-                        ))}
-                    </div>
+                        </Box>
+                    )}
+
+                    {/* 5. Income Info */}
+                    <Box marginBottom={6}>
+                        <Typography variant="delta" fontWeight="bold" textColor="primary600" marginBottom={2} display="block">Step: Income Details</Typography>
+                        <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                                {[
+                                    { label: 'Company', val: loanApp.incomeDetails?.companyName || 'N/A' },
+                                    { label: 'Designation', val: loanApp.incomeDetails?.designation || 'N/A' },
+                                    { label: 'Salary (Net)', val: loanApp.incomeDetails?.netSalary ? `₹ ${loanApp.incomeDetails.netSalary.toLocaleString()}` : 'N/A' },
+                                    { label: 'Salary Mode', val: loanApp.incomeDetails?.salaryMode || 'N/A' },
+                                    { label: 'Job Stability', val: loanApp.incomeDetails?.jobStability || 'N/A' }
+                                ].map((d, i) => (
+                                    <Box key={i}>
+                                        <Typography variant="pi" textColor="neutral600" display="block" fontWeight="bold">{d.label}</Typography>
+                                        <Typography variant="pi" textColor="neutral800">{d.val}</Typography>
+                                    </Box>
+                                ))}
+                            </div>
+                        </Box>
+                    </Box>
+
+                    {/* 6. Running Loans */}
+                    <Box marginBottom={6}>
+                        <Typography variant="delta" fontWeight="bold" textColor="primary600" marginBottom={2} display="block">Step: Running Loans</Typography>
+                        <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
+                            {loanApp.otherDetails?.runningLoans?.length > 0 ? (
+                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                    <thead>
+                                        <tr style={{ background: '#f6f6f9', textAlign: 'left' }}>
+                                            <th style={{ padding: '8px' }}>Type</th>
+                                            <th style={{ padding: '8px' }}>Bank</th>
+                                            <th style={{ padding: '8px' }}>Amount</th>
+                                            <th style={{ padding: '8px' }}>EMI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {loanApp.otherDetails.runningLoans.map((l: any, i: number) => (
+                                            <tr key={i} style={{ borderBottom: '1px solid #f1f1f1' }}>
+                                                <td style={{ padding: '8px' }}>{l.type}</td>
+                                                <td style={{ padding: '8px' }}>{l.bank}</td>
+                                                <td style={{ padding: '8px' }}>{l.amount}</td>
+                                                <td style={{ padding: '8px' }}>{l.emi}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <Typography variant="pi" textColor="neutral600">No running loans reported.</Typography>
+                            )}
+                        </Box>
+                    </Box>
+                </>
+            ) : (
+                <Box padding={8} background="neutral0" shadow="filterShadow" borderRadius="8px" marginBottom={6} textAlign="center">
+                    <Typography variant="pi" textColor="neutral600">Application not fully submitted yet. Only Lead details available.</Typography>
                 </Box>
-            </Box>
+            )}
 
             {/* Document Details Table */}
             <Box marginBottom={6}>
-                <Typography variant="delta" fontWeight="bold" textColor="primary600" marginBottom={2} display="block">Document Details</Typography>
+                <Typography variant="delta" fontWeight="bold" textColor="primary600" marginBottom={2} display="block">Step: Document Details</Typography>
                 <Box background="neutral0" shadow="filterShadow" borderRadius="8px" overflow="hidden">
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ background: '#f6f6f9', textAlign: 'left', borderBottom: '1px solid #dcdce4' }}>
-                                <th style={{ padding: '12px' }}><Typography variant="pi" fontWeight="bold">Document ID</Typography></th>
-                                <th style={{ padding: '12px' }}><Typography variant="pi" fontWeight="bold">File Format</Typography></th>
-                                <th style={{ padding: '12px' }}><Typography variant="pi" fontWeight="bold">Document Type</Typography></th>
-                                <th style={{ padding: '12px' }}><Typography variant="pi" fontWeight="bold">Date</Typography></th>
-                                <th style={{ padding: '12px' }}><Typography variant="pi" fontWeight="bold">View</Typography></th>
+                                <th style={{ padding: '12px' }}><Typography variant="pi" fontWeight="bold">Document Name</Typography></th>
+                                <th style={{ padding: '12px' }}><Typography variant="pi" fontWeight="bold">Type</Typography></th>
+                                <th style={{ padding: '12px' }}><Typography variant="pi" fontWeight="bold">Password</Typography></th>
+                                <th style={{ padding: '12px' }}><Typography variant="pi" fontWeight="bold">Action</Typography></th>
                             </tr>
                         </thead>
                         <tbody>
                             {(() => {
                                 const docs: any[] = [];
-                                const addDocs = (list: any, type: string) => {
-                                    if (!list) return;
-                                    const array = Array.isArray(list) ? list : [list];
-                                    array.forEach(d => {
-                                        if (d && (d.url || d.attributes?.url)) {
-                                            docs.push({ ...d, type });
-                                        }
-                                    });
-                                };
-                                addDocs(loanApp?.gstReturns, 'GST Returns');
-                                addDocs(loanApp?.bankStatements, 'Bank Statements');
-                                addDocs(loanApp?.itReturns, 'IT Returns');
-                                addDocs(loanApp?.otherDocs, 'Other Document');
+                                if (loanApp?.documents) {
+                                    const dMap = loanApp.documents;
+                                    const pdfPw = dMap.pdfPasswords || {};
 
-                                if (docs.length === 0) return <tr><td colSpan={5} style={{ padding: '20px', textAlign: 'center' }}>No documents uploaded.</td></tr>;
+                                    const addDoc = (val: any, label: string) => {
+                                        if (!val) return;
+                                        const items = Array.isArray(val) ? val : [val];
+                                        items.forEach((id: any) => {
+                                            docs.push({ id, label, pw: pdfPw[label] || 'N/A' });
+                                        });
+                                    };
 
-                                return docs.map((doc, idx) => {
-                                    const fileUrl = doc.url || doc.attributes?.url;
-                                    const fileName = doc.name || doc.attributes?.name || 'document';
-                                    const fileExt = doc.ext || doc.attributes?.ext || '.pdf';
-                                    const fileDate = doc.createdAt || doc.attributes?.createdAt || '';
+                                    addDoc(dMap.proprietorshipDoc, 'Proprietorship');
+                                    addDoc(dMap.panCard, 'Applicant PAN');
+                                    addDoc(dMap.aadharCardFront, 'Aadhar Front');
+                                    addDoc(dMap.aadharCardBack, 'Aadhar Back');
+                                    addDoc(dMap.bankStatement, 'Bank Statement');
+                                    addDoc(dMap.salarySlips, 'Salary Slips');
+                                    addDoc(dMap.coAppPan, 'Co-App PAN');
+                                    addDoc(dMap.otherDocs, 'Other Docs');
+                                }
 
-                                    return (
-                                        <tr key={idx} style={{ borderBottom: '1px solid #f6f6f9' }}>
-                                            <td style={{ padding: '12px' }}><Typography variant="pi">{doc.id}</Typography></td>
-                                            <td style={{ padding: '12px' }}>
-                                                {fileExt.includes('pdf') ? '📄' : '🖼️'}
-                                            </td>
-                                            <td style={{ padding: '12px' }}><Typography variant="pi">{doc.type}</Typography></td>
-                                            <td style={{ padding: '12px' }}>
-                                                <Typography variant="pi">{fileDate ? new Date(fileDate).toLocaleDateString() : 'N/A'}</Typography>
-                                            </td>
-                                            <td style={{ padding: '12px' }}>
-                                                <a href={fileUrl} target="_blank" download={fileName} style={{ display: 'inline-flex', padding: '6px', background: '#4945ff', color: 'white', borderRadius: '4px', textDecoration: 'none' }}>
-                                                    ⬇️
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    );
-                                });
+                                if (docs.length === 0) return <tr><td colSpan={4} style={{ padding: '20px', textAlign: 'center' }}>No documents uploaded.</td></tr>;
+
+                                return docs.map((doc, idx) => (
+                                    <tr key={idx} style={{ borderBottom: '1px solid #f6f6f9' }}>
+                                        <td style={{ padding: '12px' }}><Typography variant="pi">{doc.label}</Typography></td>
+                                        <td style={{ padding: '12px' }}><Typography variant="pi">{(doc.label === 'Applicant PAN' || doc.label === 'Aadhar Front') ? 'Identity' : 'Supporting'}</Typography></td>
+                                        <td style={{ padding: '12px' }}><Typography variant="pi" textColor="danger600">{doc.pw}</Typography></td>
+                                        <td style={{ padding: '12px' }}>
+                                            <Typography variant="pi">ID: {doc.id}</Typography>
+                                        </td>
+                                    </tr>
+                                ));
                             })()}
                         </tbody>
                     </table>
                 </Box>
             </Box>
 
-            {/* Journey Timeline */}
+            {/* Journey Timeline - Audit Trail from Remarks */}
             <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
-                <Typography variant="delta" fontWeight="bold" marginBottom={4} display="block">Process Journey</Typography>
-                <Box paddingLeft={4} style={{ borderLeft: '2px solid #e2e8f0' }}>
+                <Typography variant="delta" fontWeight="bold" marginBottom={4} display="block">Process Journey (Audit Trail)</Typography>
+                <Box paddingLeft={4} style={{ borderLeft: '2px solid #2563eb' }}>
+                    {/* Initial Entry */}
                     <Box marginBottom={6} position="relative">
-                        <Box position="absolute" left="-23px" top="0" width="12px" height="12px" background="primary600" borderRadius="50%" style={{ border: '2px solid white' }} />
-                        <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr' }}>
-                            <Typography variant="pi" fontWeight="bold" textColor="primary600">
+                        <Box position="absolute" left="-23px" top="0" width="14px" height="14px" background="primary600" borderRadius="50%" style={{ border: '3px solid white' }} />
+                        <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr' }}>
+                            <Typography variant="pi" fontWeight="bold" textColor="primary700">
                                 {lead.createdAt ? new Date(lead.createdAt).toLocaleString() : 'N/A'}
                             </Typography>
                             <Box>
-                                <Typography variant="pi" fontWeight="bold" display="block">LEAD OBTAINED</Typography>
-                                <Typography variant="pi" textColor="neutral600">System captured initial lead data</Typography>
+                                <Typography variant="pi" fontWeight="bold" display="block">LEAD GENERATED</Typography>
+                                <Typography variant="pi" textColor="neutral600">Initial lead captured via Frontend Form</Typography>
                             </Box>
                         </div>
                     </Box>
-                    <Box marginBottom={6} position="relative">
-                        <Box position="absolute" left="-23px" top="0" width="12px" height="12px" background="primary600" borderRadius="50%" style={{ border: '2px solid white' }} />
-                        <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr' }}>
-                            <Typography variant="pi" fontWeight="bold" textColor="primary600">
-                                {lead.updatedAt ? new Date(lead.updatedAt).toLocaleString() : 'N/A'}
-                            </Typography>
-                            <Box>
-                                <Typography variant="pi" fontWeight="bold" display="block">{currentStatusLabel}</Typography>
-                                <Typography variant="pi" textColor="neutral600">Latest status update recorded</Typography>
-                            </Box>
-                        </div>
-                    </Box>
+
+                    {/* History Entries */}
+                    {Array.isArray(lead.remarks) && lead.remarks.map((entry: any, i: number) => (
+                        <Box key={i} marginBottom={6} position="relative">
+                            <Box position="absolute" left="-23px" top="0" width="14px" height="14px" background="success600" borderRadius="50%" style={{ border: '3px solid white' }} />
+                            <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr' }}>
+                                <Typography variant="pi" fontWeight="bold" textColor="success700">
+                                    {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : 'N/A'}
+                                </Typography>
+                                <Box>
+                                    <Typography variant="pi" fontWeight="bold" display="block">STATUS UPDATE: {entry.status}</Typography>
+                                    <Typography variant="pi" textColor="neutral800" fontWeight="bold" display="block" marginTop={1}>{entry.text}</Typography>
+                                    <Typography variant="pi" textColor="neutral500">Author: {entry.author || 'N/A'}</Typography>
+                                </Box>
+                            </div>
+                        </Box>
+                    ))}
                 </Box>
             </Box>
         </Box>

@@ -46,7 +46,7 @@
         },
         "aboutUsLink": {
             "type": "string",
-            "default": "/about"
+            "default": "/about-us"
         },
         "contactUsLabel": {
             "type": "string",

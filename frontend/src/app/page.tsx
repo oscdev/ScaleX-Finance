@@ -3,6 +3,7 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 import { strapiInternalApi, withStrapiPublicUrl } from '@/lib/strapi';
+import './Homepage.css';
 
 async function getHomepageData() {
   try {
@@ -14,14 +15,12 @@ async function getHomepageData() {
     });
 
     if (!res.ok) {
-      // console.error("Failed to fetch homepage data");
       return null;
     }
 
     const json = await res.json();
     return json.data;
   } catch (error) {
-    // console.error("Fetch error:", error);
     return null;
   }
 }
@@ -58,7 +57,6 @@ export default async function Homepage() {
   if (bannerObj?.url) {
     bannerUrl = withStrapiPublicUrl(bannerObj.url);
   } else {
-    // Fallback beautiful gradient placeholder if no image
     bannerUrl = null;
   }
 
@@ -83,7 +81,7 @@ export default async function Homepage() {
               <img src={bannerUrl} alt="Hero Banner" className="banner-image" />
             </div>
           ) : (
-            <div className="banner-container delay-300" style={{ height: '400px', background: 'linear-gradient(45deg, var(--primary), var(--secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+            <div className="banner-container banner-fallback delay-300">
               <h2>Awesome Platform Interface Preview</h2>
             </div>
           )}
@@ -97,21 +95,21 @@ export default async function Homepage() {
           <div className="card-grid">
             <div className="card">
               <h3>For Advisors</h3>
-              <div className="rich-text" style={{ marginTop: '1rem' }}>
+              <div className="rich-text rich-text-container">
                 {parseBlocks(vpContent)}
               </div>
             </div>
 
             <div className="card">
               <h3>For Clients</h3>
-              <div className="rich-text" style={{ marginTop: '1rem' }}>
+              <div className="rich-text rich-text-container">
                 {parseBlocks(vpClientsContent)}
               </div>
             </div>
 
             <div className="card">
               <h3>Secure & Reliable</h3>
-              <div className="rich-text" style={{ marginTop: '1rem' }}>
+              <div className="rich-text rich-text-container">
                 {parseBlocks(vpSecureContent)}
               </div>
             </div>

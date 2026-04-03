@@ -1,0 +1,350 @@
+
+.loan-app-section {
+    min-height: 60vh;
+    padding-bottom: 4rem;
+}
+
+.loan-app-profile-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    font-size: 0.9rem;
+}
+
+.profile-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-label {
+    opacity: 0.6;
+    margin-bottom: 0.25rem;
+}
+
+.profile-value {
+    font-weight: 600;
+}
+
+.step-nav {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 0rem;
+    padding: 1.5rem 1rem;
+    background: #fff;
+    border-top: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e40af;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 999px;
+}
+
+.step-item.active {
+    background: #3c3b8a;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(60, 59, 138, 0.2);
+}
+
+.step-item .step-number {
+    font-weight: 700;
+}
+
+.loan-app-header-container {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px 12px 0 0;
+    margin-bottom: 0;
+    overflow: hidden;
+    position: relative;
+    z-index: 10;
+}
+
+.status-success-bar {
+    background: #dcfce7;
+    border-bottom: 1px solid #bbf7d0;
+    padding: 1.25rem 1.5rem;
+    color: #166534;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+
+.loan-app-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.loan-app-footer-profile {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-top: 2rem;
+}
+
+.footer-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 1rem;
+}
+
+.footer-profile-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.footer-details-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1.2fr;
+    gap: 1rem;
+    align-items: center;
+}
+
+.footer-contact-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.footer-contact-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+}
+
+.footer-contact-item {
+    font-size: 0.85rem;
+    color: #1e40af;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.footer-loan-col {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.loan-badge {
+    background: #0ea5e9;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.footer-loan-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1e3a8a;
+}
+
+.footer-amount-col {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+.footer-amount-box {
+    text-align: right;
+}
+
+.footer-amount-label {
+    font-size: 0.7rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.footer-amount-value {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #10b981;
+}
+
+/* Specific Field Layouts */
+.business-address-container {
+    grid-column: 1 / -1;
+}
+
+.loan-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.loan-list-table th {
+    padding: 0.75rem;
+    text-align: left;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.loan-list-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.doc-upload-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.doc-card {
+    background: #f8fafc;
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.doc-status-uploaded {
+    color: #10b981;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.doc-password-input {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+}
+
+.summary-card {
+    padding: 1.5rem;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.summary-card.primary {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-color: #bfdbfe;
+    grid-column: 1 / -1;
+}
+
+.summary-header {
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5rem;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+.summary-card.primary .summary-header {
+    color: #1e40af;
+    border-color: #bfdbfe;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.summary-label {
+    opacity: 0.6;
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.summary-value {
+    font-weight: 700;
+}
+
+.summary-value.large {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #111827;
+}
+
+.validation-error-banner {
+    background: #fce4ec;
+    color: #d81b60;
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    border: 1px solid #f8bbd0;
+}
+
+.validation-error-item {
+    background: #fff9e6;
+    border: 1px solid #ffeeba;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #856404;
+}
+
+.success-banner {
+    color: #065f46;
+    background-color: #ecfdf5;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #a7f3d0;
+    margin-bottom: 2.5rem;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.declaration-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #475569;
+    margin-bottom: 2rem;
+}
+
+.required-star {
+    color: #ef4444 !important;
+    margin-left: 2px;
+}

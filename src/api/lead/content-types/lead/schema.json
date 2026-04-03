@@ -24,35 +24,8 @@
             "type": "decimal",
             "required": true
         },
-        "monthlyIncome": {
-            "type": "decimal",
-            "required": true
-        },
         "mobileNumber": {
             "type": "string",
-            "required": true
-        },
-        "city": {
-            "type": "string",
-            "required": true
-        },
-        "creditScore": {
-            "type": "integer",
-            "required": true,
-            "min": 300,
-            "max": 900
-        },
-        "employmentType": {
-            "type": "enumeration",
-            "enum": [
-                "Salaried",
-                "Self Employed",
-                "Business"
-            ],
-            "required": true
-        },
-        "existingLoans": {
-            "type": "decimal",
             "required": true
         },
         "advisorReferralId": {
@@ -64,16 +37,36 @@
             "required": false
         },
         "panCard": {
-            "type": "string",
-            "required": false
+            "type": "string"
         },
-        "pincode": {
-            "type": "string",
-            "required": false
+        "aadharCard": {
+            "type": "string"
+        },
+        "propertyType": {
+            "type": "string"
+        },
+        "propertyStatus": {
+            "type": "string"
+        },
+        "propertyValue": {
+            "type": "decimal"
+        },
+        "employmentType": {
+            "type": "enumeration",
+            "enum": [
+                "Salaried",
+                "Self Employed"
+            ]
+        },
+        "leadType": {
+            "type": "string"
+        },
+        "getEmailNotification": {
+            "type": "boolean",
+            "default": false
         },
         "pinCode": {
-            "type": "string",
-            "required": false
+            "type": "string"
         },
         "status": {
             "type": "enumeration",

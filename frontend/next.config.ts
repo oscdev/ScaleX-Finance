@@ -13,11 +13,11 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/upload',
-        destination: 'http://127.0.0.1:1337/upload',
+        source: '/strapi-api/upload',
+        destination: 'http://127.0.0.1:1337/api/upload',
       },
       {
-        source: '/api/:path*',
+        source: '/strapi-api/:path*',
         destination: 'http://127.0.0.1:1337/api/:path*',
       },
       {

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { strapiPublicApi } from '@/lib/strapi';
+import './AdvisorDashboard.css';
 
 interface Lead {
     id: number;
@@ -32,7 +33,6 @@ export default function AdvisorDashboard() {
 
     const checkAuth = async () => {
         try {
-            // Get JWT token from localStorage
             const token = localStorage.getItem('advisorToken');
 
             if (!token) {
@@ -40,7 +40,6 @@ export default function AdvisorDashboard() {
                 return;
             }
 
-            // Verify token and get advisor data
             const userRes = await fetch(strapiPublicApi('/api/users/me'), {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -53,7 +52,6 @@ export default function AdvisorDashboard() {
 
             const userData = await userRes.json();
 
-            // Get advisor profile linked to this user
             const advisorRes = await fetch(strapiPublicApi(`/api/advisors?filters[user][id][$eq]=${userData.id}&populate=*`), {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -76,7 +74,6 @@ export default function AdvisorDashboard() {
             }
 
         } catch (err: any) {
-            // console.error('Auth error:', err);
             setError(err.message);
             localStorage.removeItem('advisorToken');
             router.push('/advisor-login');
@@ -85,7 +82,6 @@ export default function AdvisorDashboard() {
 
     const fetchLeads = async (advisorId: string, token: string) => {
         try {
-            // Fetch leads where advisorReferralId matches this advisor's ID
             const res = await fetch(strapiPublicApi(`/api/leads?filters[advisorReferralId][$eq]=${advisorId}&sort=createdAt:desc`), {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -101,7 +97,6 @@ export default function AdvisorDashboard() {
             setLoading(false);
 
         } catch (err: any) {
-            // console.error('Fetch leads error:', err);
             setError(err.message);
             setLoading(false);
         }
@@ -113,7 +108,6 @@ export default function AdvisorDashboard() {
     };
 
     const handleAddNewLead = () => {
-        // Store advisor ID in sessionStorage to auto-populate lead form
         if (advisor) {
             sessionStorage.setItem('advisorReferralId', advisor.id);
         }
@@ -122,8 +116,8 @@ export default function AdvisorDashboard() {
 
     if (loading) {
         return (
-            <section className="form-section" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div className="container" style={{ textAlign: 'center' }}>
+            <section className="form-section centered-view">
+                <div className="container">
                     <h2>Loading...</h2>
                 </div>
             </section>
@@ -132,9 +126,9 @@ export default function AdvisorDashboard() {
 
     if (error) {
         return (
-            <section className="form-section" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div className="container" style={{ textAlign: 'center' }}>
-                    <h2 style={{ color: 'var(--secondary)' }}>Error</h2>
+            <section className="form-section centered-view">
+                <div className="container">
+                    <h2 className="error-title">Error</h2>
                     <p>{error}</p>
                     <button className="btn btn-primary" onClick={() => router.push('/')}>
                         Go Home
@@ -148,12 +142,12 @@ export default function AdvisorDashboard() {
         <>
             <section className="hero-section" style={{ padding: '4rem 0 2rem 0' }}>
                 <div className="container">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                    <div className="dashboard-header">
                         <div>
-                            <h1 className="hero-title" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+                            <h1 className="dashboard-title">
                                 Welcome, {advisor?.attributes?.fullName || 'Advisor'}
                             </h1>
-                            <p style={{ opacity: 0.8, fontSize: '1.1rem' }}>
+                            <p className="dashboard-subtitle">
                                 Advisor ID: {advisor?.id}
                             </p>
                         </div>
@@ -162,7 +156,7 @@ export default function AdvisorDashboard() {
                         </button>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                    <div className="dashboard-actions">
                         <button className="btn btn-primary" onClick={handleAddNewLead}>
                             + Add New Lead
                         </button>
@@ -175,43 +169,43 @@ export default function AdvisorDashboard() {
                     <h2 style={{ fontSize: '2rem', marginBottom: '2rem' }}>My Leads ({leads.length})</h2>
 
                     {leads.length === 0 ? (
-                        <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
-                            <p style={{ opacity: 0.7, fontSize: '1.1rem' }}>No leads found. Click "Add New Lead" to get started.</p>
+                        <div className="card no-leads-message">
+                            <p>No leads found. Click "Add New Lead" to get started.</p>
                         </div>
                     ) : (
-                        <div style={{ display: 'grid', gap: '1rem' }}>
+                        <div className="leads-container">
                             {leads.map((lead) => (
-                                <div key={lead.id} className="card" style={{ padding: '1.5rem' }}>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                                <div key={lead.id} className="card lead-card">
+                                    <div className="lead-grid">
                                         <div>
-                                            <div style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '0.25rem' }}>Customer Name</div>
-                                            <div style={{ fontWeight: 600 }}>{lead.attributes.fullName}</div>
+                                            <div className="lead-item-label">Customer Name</div>
+                                            <div className="lead-item-value">{lead.attributes.fullName}</div>
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '0.25rem' }}>Email</div>
-                                            <div>{lead.attributes.email}</div>
+                                            <div className="lead-item-label">Email</div>
+                                            <div className="lead-item-value">{lead.attributes.email}</div>
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '0.25rem' }}>Mobile</div>
-                                            <div>{lead.attributes.mobileNumber}</div>
+                                            <div className="lead-item-label">Mobile</div>
+                                            <div className="lead-item-value">{lead.attributes.mobileNumber}</div>
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '0.25rem' }}>Required Amount</div>
-                                            <div style={{ fontWeight: 600, color: 'var(--primary)' }}>
+                                            <div className="lead-item-label">Required Amount</div>
+                                            <div className="lead-item-value lead-amount">
                                                 ₹{lead.attributes.requiredAmount.toLocaleString('en-IN')}
                                             </div>
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '0.25rem' }}>Credit Score</div>
-                                            <div>{lead.attributes.creditScore}</div>
+                                            <div className="lead-item-label">Credit Score</div>
+                                            <div className="lead-item-value">{lead.attributes.creditScore}</div>
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '0.25rem' }}>Employment Type</div>
-                                            <div>{lead.attributes.employmentType}</div>
+                                            <div className="lead-item-label">Employment Type</div>
+                                            <div className="lead-item-value">{lead.attributes.employmentType}</div>
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '0.25rem' }}>Submitted Date</div>
-                                            <div>{new Date(lead.attributes.createdAt).toLocaleDateString('en-IN')}</div>
+                                            <div className="lead-item-label">Submitted Date</div>
+                                            <div className="lead-item-value">{new Date(lead.attributes.createdAt).toLocaleDateString('en-IN')}</div>
                                         </div>
                                     </div>
                                 </div>

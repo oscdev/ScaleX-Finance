@@ -5,92 +5,128 @@
         "singularName": "lead-form-page",
         "pluralName": "lead-form-pages",
         "displayName": "Lead Form Page",
-        "description": "Content for the Lead Form Page"
+        "description": "Content and configuration for the Lead Form Page"
     },
     "options": {
         "draftAndPublish": true
     },
     "pluginOptions": {},
     "attributes": {
-        "heroTitle": {
-            "type": "string",
-            "default": "Apply for a Loan"
-        },
-        "heroSubtitle": {
-            "type": "text",
-            "default": "Please fill out the details below to proceed."
-        },
         "fullNameLabel": {
             "type": "string",
-            "default": "Full Name"
+            "default": "Customer Name*"
         },
         "fullNamePlaceholder": {
             "type": "string",
-            "default": "e.g., John Doe"
+            "default": "Enter Customer Name"
         },
         "emailLabel": {
             "type": "string",
-            "default": "Email Address"
+            "default": "Customer Email*"
         },
         "emailPlaceholder": {
             "type": "string",
-            "default": "e.g., john@example.com"
+            "default": "customer@example.com"
         },
-        "requiredAmountLabel": {
+        "loanRequirementLabel": {
             "type": "string",
-            "default": "Required Amount"
+            "default": "Loan Requirement*"
         },
-        "requiredAmountPlaceholder": {
+        "loanRequirementPlaceholder": {
             "type": "string",
-            "default": "e.g., 500000"
-        },
-        "monthlyIncomeLabel": {
-            "type": "string",
-            "default": "Monthly Income"
-        },
-        "monthlyIncomePlaceholder": {
-            "type": "string",
-            "default": "e.g., 75000"
+            "default": "500000"
         },
         "mobileNumberLabel": {
             "type": "string",
-            "default": "Mobile Number"
+            "default": "Customer Mobile*"
         },
         "mobileNumberPlaceholder": {
             "type": "string",
-            "default": "e.g., 9876543210"
+            "default": "9876543210"
         },
-        "cityLabel": {
+        "pinCodeLabel": {
             "type": "string",
-            "default": "City/District"
+            "default": "Pincode*"
         },
-        "cityPlaceholder": {
+        "pinCodePlaceholder": {
             "type": "string",
-            "default": "e.g., Mumbai"
+            "default": "400001"
         },
-        "creditScoreLabel": {
+        "aadharCardLabel": {
             "type": "string",
-            "default": "Credit Score"
+            "default": "Aadhar Card*"
         },
-        "creditScorePlaceholder": {
+        "aadharCardPlaceholder": {
             "type": "string",
-            "default": "e.g., 750"
+            "default": "1234 5678 9012"
+        },
+        "panCardLabel": {
+            "type": "string",
+            "default": "Pan Card*"
+        },
+        "panCardPlaceholder": {
+            "type": "string",
+            "default": "ABCDE1234F"
+        },
+        "leadTypeLabel": {
+            "type": "string",
+            "default": "Lead Type*"
+        },
+        "leadTypePlaceholder": {
+            "type": "string",
+            "default": "Select Lead Type"
+        },
+        "leadTypeOptions": {
+            "type": "string",
+            "default": "Fresh (New Lead), BT (Balance Transfer)"
+        },
+        "propertyTypeLabel": {
+            "type": "string",
+            "default": "Property Type*"
+        },
+        "propertyTypePlaceholder": {
+            "type": "string",
+            "default": "Select Property Type"
+        },
+        "propertyTypeOptions": {
+            "type": "string",
+            "default": "Residential, Commercial, Industrial"
+        },
+        "propertyStatusLabel": {
+            "type": "string",
+            "default": "Property Current Status*"
+        },
+        "propertyStatusPlaceholder": {
+            "type": "string",
+            "default": "Select Status"
+        },
+        "propertyStatusOptions": {
+            "type": "string",
+            "default": "Constructed, Plot, Boundaries"
+        },
+        "propertyValueLabel": {
+            "type": "string",
+            "default": "Property Value*"
+        },
+        "propertyValuePlaceholder": {
+            "type": "string",
+            "default": "5000000"
         },
         "employmentTypeLabel": {
             "type": "string",
-            "default": "Employment Type"
+            "default": "Occupation*"
         },
         "employmentTypePlaceholder": {
             "type": "string",
-            "default": "Select Employment Type"
+            "default": "Select Occupation"
         },
-        "existingLoansLabel": {
+        "employmentTypeOptions": {
             "type": "string",
-            "default": "Existing Loans (Total monthly EMI)"
+            "default": "Salaried, Self Employed"
         },
-        "existingLoansPlaceholder": {
+        "getEmailNotificationLabel": {
             "type": "string",
-            "default": "e.g., 5000"
+            "default": "Get Email Notification for Lead Updated?*"
         },
         "advisorReferralIdLabel": {
             "type": "string",
@@ -98,7 +134,7 @@
         },
         "advisorReferralIdPlaceholder": {
             "type": "string",
-            "default": "e.g., ADV123456"
+            "default": "ADV123456"
         },
         "backButtonLabel": {
             "type": "string",
@@ -108,17 +144,9 @@
             "type": "string",
             "default": "/products"
         },
-        "pinCodeLabel": {
-            "type": "string",
-            "default": "Pin Code"
-        },
-        "pinCodePlaceholder": {
-            "type": "string",
-            "default": "e.g., 400001"
-        },
         "submitButtonLabel": {
             "type": "string",
-            "default": "Submit Application"
+            "default": "Loan Application"
         }
     }
 }

@@ -35,19 +35,9 @@ export default async function LeadFormPage() {
         pageInfo = pageResponse.attributes || pageResponse;
     }
 
-    const heroTitle = pageInfo.heroTitle || 'Apply for a Loan';
-    const heroSubtitle = pageInfo.heroSubtitle || 'Please fill out the details below to proceed.';
-
     return (
-        <>
-            <section className="hero-section" style={{ padding: '6rem 0 4rem 0' }}>
-                <div className="container animate-fade-in">
-                    <h1 className="hero-title" style={{ fontSize: '3rem' }}>{heroTitle}</h1>
-                    <p className="hero-subtitle delay-100">{heroSubtitle}</p>
-                </div>
-            </section>
-
+        <div style={{ paddingTop: '5rem' }}>
             <LeadForm pageInfo={pageInfo} />
-        </>
+        </div>
     );
 }

@@ -8,7 +8,7 @@
         "description": "CMS settings for labels and placeholders in the 5-step loan application form"
     },
     "options": {
-        "draftAndPublish": false
+        "draftAndPublish": true
     },
     "pluginOptions": {},
     "attributes": {
@@ -30,63 +30,15 @@
         },
         "submitButtonLabel": {
             "type": "string",
-            "default": "Submit Application"
+            "default": "Save & Submit Lead"
         },
-        "loanAmountLabel": {
-            "type": "string",
-            "default": "Loan Amount"
+        "allStepsCompletedText": {
+            "type": "text",
+            "default": "All required fields completed! Please review your summary below before final submission."
         },
-        "loanTypeLabel": {
-            "type": "string",
-            "default": "Loan Type"
-        },
-        "loanTypePlaceholder": {
-            "type": "string",
-            "default": "Select Product"
-        },
-        "tenureLabel": {
-            "type": "string",
-            "default": "Tenure (Months)"
-        },
-        "adharLabel": {
-            "type": "string",
-            "default": "Adhar Card Number"
-        },
-        "adharPlaceholder": {
-            "type": "string",
-            "default": "XXXX XXXX XXXX"
-        },
-        "panLabel": {
-            "type": "string",
-            "default": "PAN Card Number"
-        },
-        "panPlaceholder": {
-            "type": "string",
-            "default": "ABCDE1234F"
-        },
-        "notificationsLabel": {
-            "type": "string",
-            "default": "Get Email Notifications for Lead Updated?"
-        },
-        "collateralCheckboxLabel": {
-            "type": "string",
-            "default": "I have collateral to offer"
-        },
-        "collateralTypeLabel": {
-            "type": "string",
-            "default": "Collateral Type"
-        },
-        "collateralTypePlaceholder": {
-            "type": "string",
-            "default": "Select Type"
-        },
-        "collateralValueLabel": {
-            "type": "string",
-            "default": "Estimated Value (₹)"
-        },
-        "collateralValuePlaceholder": {
-            "type": "string",
-            "default": "e.g., 5000000"
+        "validationErrorText": {
+            "type": "text",
+            "default": "Please fill all required fields in all tabs to submit the lead for further processing."
         },
         "businessNameLabel": {
             "type": "string",
@@ -94,63 +46,487 @@
         },
         "businessNamePlaceholder": {
             "type": "string",
-            "default": "e.g., Oscprofessionals"
+            "default": "Enter Business Name"
         },
-        "applicantNameLabel": {
+        "businessPremisesLabel": {
             "type": "string",
-            "default": "Applicant Name"
+            "default": "Business Premises"
         },
-        "applicantNamePlaceholder": {
+        "businessPremisesOptions": {
             "type": "string",
-            "default": "e.g., John Doe"
+            "default": "Owned, Rented, Lease"
         },
-        "emailLabel": {
+        "businessTypeLabel": {
             "type": "string",
-            "default": "Email"
+            "default": "Business Type"
         },
-        "emailPlaceholder": {
+        "businessTypeOptions": {
             "type": "string",
-            "default": "e.g., john@example.com"
+            "default": "Proprietorship, Partnership, Private Limited"
         },
-        "phoneLabel": {
+        "annualTurnoverLabel": {
             "type": "string",
-            "default": "Phone"
+            "default": "Annual Turnover"
         },
-        "phonePlaceholder": {
+        "annualTurnoverOptions": {
             "type": "string",
-            "default": "e.g., 9876543210"
+            "default": "20 Lakh, 50 Lakh, 80 Lakh, 1 Crore+, 2 Crore+, 3 Crore+, 5 Crore+"
         },
-        "docsInstructionText": {
+        "businessAgeLabel": {
             "type": "string",
+            "default": "Business Age"
+        },
+        "businessAgeOptions": {
+            "type": "string",
+            "default": "6 Months, 1 years, 2 Years, 3 Years+"
+        },
+        "businessRegProofLabel": {
+            "type": "string",
+            "default": "Business Registration Proof"
+        },
+        "businessRegProofOptions": {
+            "type": "text",
+            "default": "GST, TIN, MSME, Shop Establishment Certificate, Trade License, Fssai License, Udyam Certificate, Gumasta Certificate"
+        },
+        "businessAddressLabel": {
+            "type": "string",
+            "default": "Business Address"
+        },
+        "businessAddressPlaceholder": {
+            "type": "string",
+            "default": "Enter full business address"
+        },
+        "dobLabel": {
+            "type": "string",
+            "default": "Date of Birth"
+        },
+        "maritalStatusLabel": {
+            "type": "string",
+            "default": "Marital Status"
+        },
+        "maritalStatusOptions": {
+            "type": "string",
+            "default": "Single, Married, Divorced, Widowed"
+        },
+        "spouseNameLabel": {
+            "type": "string",
+            "default": "Spouse Name"
+        },
+        "spouseNamePlaceholder": {
+            "type": "string",
+            "default": "Enter Spouse Name"
+        },
+        "motherNameLabel": {
+            "type": "string",
+            "default": "Mother Name"
+        },
+        "motherNamePlaceholder": {
+            "type": "string",
+            "default": "Enter Mother Name"
+        },
+        "alternateNumberLabel": {
+            "type": "string",
+            "default": "Alternate Number"
+        },
+        "alternateNumberPlaceholder": {
+            "type": "string",
+            "default": "Enter Alternate Mobile"
+        },
+        "dependentsLabel": {
+            "type": "string",
+            "default": "Dependent"
+        },
+        "dependentsPlaceholder": {
+            "type": "string",
+            "default": "Enter number of dependents"
+        },
+        "addressLine1Label": {
+            "type": "string",
+            "default": "Address Line 1"
+        },
+        "addressLine1Placeholder": {
+            "type": "string",
+            "default": "Enter address"
+        },
+        "addressLine2Label": {
+            "type": "string",
+            "default": "Address Line 2"
+        },
+        "addressLine2Placeholder": {
+            "type": "string",
+            "default": "Enter address line 2"
+        },
+        "landmarkLabel": {
+            "type": "string",
+            "default": "Landmark"
+        },
+        "landmarkPlaceholder": {
+            "type": "string",
+            "default": "Enter landmark"
+        },
+        "stateLabel": {
+            "type": "string",
+            "default": "State"
+        },
+        "districtLabel": {
+            "type": "string",
+            "default": "District"
+        },
+        "cityLabel": {
+            "type": "string",
+            "default": "City"
+        },
+        "cityPlaceholder": {
+            "type": "string",
+            "default": "Enter city"
+        },
+        "residenceTypeLabel": {
+            "type": "string",
+            "default": "Residence Type"
+        },
+        "residenceTypeOptions": {
+            "type": "string",
+            "default": "Owned, Rented, Parental, Company Accommodation"
+        },
+        "propertyTypeLabel": {
+            "type": "string",
+            "default": "Property Type"
+        },
+        "propertyTypeOptions": {
+            "type": "string",
+            "default": "Residential, Commercial, Industrial"
+        },
+        "propertyStatusLabel": {
+            "type": "string",
+            "default": "Property Current Status"
+        },
+        "propertyStatusOptions": {
+            "type": "string",
+            "default": "Constructed, Plot, Boundries"
+        },
+        "propertyValueLabel": {
+            "type": "string",
+            "default": "Property Value"
+        },
+        "propertyValueOptions": {
+            "type": "string",
+            "default": "20L, 50L, 75L, 1Cr, 1.5Cr, 2Cr, 3Cr, 4Cr, 5Cr, 5Cr+"
+        },
+        "propertyAddressPincodeLabel": {
+            "type": "string",
+            "default": "Property Address With Pincode"
+        },
+        "propertyAddressPincodePlaceholder": {
+            "type": "string",
+            "default": "Enter full property address with pincode"
+        },
+        "companyNameLabel": {
+            "type": "string",
+            "default": "Company Name"
+        },
+        "companyNamePlaceholder": {
+            "type": "string",
+            "default": "Enter company name"
+        },
+        "designationLabel": {
+            "type": "string",
+            "default": "Designation"
+        },
+        "designationPlaceholder": {
+            "type": "string",
+            "default": "Enter designation"
+        },
+        "companyAddressLabel": {
+            "type": "string",
+            "default": "Company Address"
+        },
+        "companyAddressPlaceholder": {
+            "type": "string",
+            "default": "Enter company address"
+        },
+        "netSalaryLabel": {
+            "type": "string",
+            "default": "Net Salary (Per Month)"
+        },
+        "netSalaryPlaceholder": {
+            "type": "string",
+            "default": "Enter net salary"
+        },
+        "salaryModeLabel": {
+            "type": "string",
+            "default": "Salary Mode"
+        },
+        "salaryModeOptions": {
+            "type": "string",
+            "default": "Account Transfer, Cheque, Cash"
+        },
+        "jobStabilityLabel": {
+            "type": "string",
+            "default": "Current Job Stability"
+        },
+        "jobStabilityOptions": {
+            "type": "string",
+            "default": "6 Months, 1 year, 2 year, 3 year+"
+        },
+        "runningLoanTitle": {
+            "type": "string",
+            "default": "Running Loan (If Any)"
+        },
+        "runningLoanSubtitle": {
+            "type": "text",
+            "default": "Please enter all your running loan details including credit card, Gold loan, Auto loan and any other running loan"
+        },
+        "runningLoanTypeLabel": {
+            "type": "string",
+            "default": "Loan Type"
+        },
+        "runningLoanTypeOptions": {
+            "type": "text",
+            "default": "Personal Loan, Business Loan, Home Loan, Loan Against Property, Credit Card, Auto Loan, Bike Loan, Consumer Loan, Gold Loan, Education Loan, Over Draft, Other"
+        },
+        "runningLoanBankLabel": {
+            "type": "string",
+            "default": "Bank Name"
+        },
+        "runningLoanBankPlaceholder": {
+            "type": "string",
+            "default": "Enter bank name"
+        },
+        "runningLoanAmountLabel": {
+            "type": "string",
+            "default": "Loan Amount"
+        },
+        "runningLoanAmountPlaceholder": {
+            "type": "string",
+            "default": "Enter loan amount"
+        },
+        "runningLoanEmiLabel": {
+            "type": "string",
+            "default": "EMI amount"
+        },
+        "runningLoanEmiPlaceholder": {
+            "type": "string",
+            "default": "Enter EMI amount"
+        },
+        "runningLoanPaidEmiLabel": {
+            "type": "string",
+            "default": "No of Paid EMI"
+        },
+        "runningLoanPaidEmiPlaceholder": {
+            "type": "string",
+            "default": "Enter number of paid EMIs"
+        },
+        "addLoanButtonLabel": {
+            "type": "string",
+            "default": "+ Add Loan"
+        },
+        "docsTitle": {
+            "type": "string",
+            "default": "Documents"
+        },
+        "docsSubtitle": {
+            "type": "text",
             "default": "Please upload clear copies of the following documents. Supported formats: PDF, JPG, PNG."
         },
-        "gstReturnsLabel": {
+        "panCardLabel": {
             "type": "string",
-            "default": "GST Returns (Last 12 Months)"
+            "default": "Pan Card"
         },
-        "bankStatementsLabel": {
+        "adharFrontLabel": {
             "type": "string",
-            "default": "Bank Statements (Last 6 Months)"
+            "default": "Aadhar Card Front"
         },
-        "itReturnsLabel": {
+        "adharBackLabel": {
             "type": "string",
-            "default": "Income Tax Returns (Last 2 Years)"
+            "default": "Aadhar Card Back"
         },
-        "otherDocsLabel": {
+        "coAppPanLabel": {
             "type": "string",
-            "default": "Other document (Pan/Adhar etc)"
+            "default": "Co-Applicant Pan Card"
         },
-        "fileUploadPlaceholder": {
+        "coAppAadharFrontLabel": {
             "type": "string",
-            "default": "Click to browse or drag file here"
+            "default": "Co-Applicant Aadhar Card Front"
+        },
+        "coAppAadharBackLabel": {
+            "type": "string",
+            "default": "Co-Applicant Aadhar Card Back"
+        },
+        "salarySlipsLabel": {
+            "type": "string",
+            "default": "Salary Slip 1 year"
+        },
+        "bankStatementLabel": {
+            "type": "string",
+            "default": "6 Month Bank Statement"
+        },
+        "propertyPapersLabel": {
+            "type": "string",
+            "default": "Property Papers"
+        },
+        "otherDocsTitle": {
+            "type": "string",
+            "default": "Other Documents"
+        },
+        "otherDocsSubtitle": {
+            "type": "text",
+            "default": "( If there is any additional documents )"
+        },
+        "docTypeLabel": {
+            "type": "string",
+            "default": "Document Type"
+        },
+        "docTypeOptions": {
+            "type": "text",
+            "default": "Pan Card, Aadhar Card Front, Aadhar Card Back, Salary Slip 1, Salary Slip 2, Salary Slip 3, 6 Month Bank Statement, Form 16 - 1, Form 16 - 2, Office ID Card Front, Office ID Card Back, Passport Size Photo, Co-Applicant Pan Card, Co-Applicant Aadhar Card Front, Co-Applicant Aadhar Card Back, Property Papers, Other Documents (if any)"
+        },
+        "uploadButtonLabel": {
+            "type": "string",
+            "default": "Upload Document"
+        },
+        "uploadingButtonLabel": {
+            "type": "string",
+            "default": "Uploading..."
+        },
+        "uploadedStatusText": {
+            "type": "string",
+            "default": "✔ UPLOADED"
+        },
+        "pendingStatusText": {
+            "type": "string",
+            "default": "⏳ PENDING"
+        },
+        "uploadedSuccessfullyText": {
+            "type": "string",
+            "default": "Uploaded Successfully"
+        },
+        "pdfPasswordLabel": {
+            "type": "string",
+            "default": "PDF Password (If any)"
+        },
+        "pdfPasswordPlaceholder": {
+            "type": "string",
+            "default": "Enter password if PDF is protected"
         },
         "summaryTitle": {
             "type": "string",
             "default": "Application Summary"
         },
-        "declarationText": {
+        "summaryOverviewTitle": {
             "type": "string",
-            "default": "I hereby declare that the information provided is true and correct. I authorize Scalex Finance and its partners to verify my details and check my credit score."
+            "default": "📋 Primary Application Overview"
+        },
+        "summaryPersonalAddressTitle": {
+            "type": "string",
+            "default": "Personal & Address"
+        },
+        "summaryBusinessTitle": {
+            "type": "string",
+            "default": "Business Details"
+        },
+        "summaryIncomePropertyTitle": {
+            "type": "string",
+            "default": "Income & Property"
+        },
+        "summaryPropertyTitle": {
+            "type": "string",
+            "default": "Property Details"
+        },
+        "summaryRunningLoansTitle": {
+            "type": "string",
+            "default": "Running Loans Summary"
+        },
+        "summaryLoanAmountLabel": {
+            "type": "string",
+            "default": "Expected Loan Amount"
+        },
+        "summaryPhoneLabel": {
+            "type": "string",
+            "default": "Mobile Number"
+        },
+        "summaryEmailLabel": {
+            "type": "string",
+            "default": "Email Address"
+        },
+        "summaryPanLabel": {
+            "type": "string",
+            "default": "PAN Card Number"
+        },
+        "summaryAadharLabel": {
+            "type": "string",
+            "default": "Aadhar Card Number"
+        },
+        "docTableIdHeader": {
+            "type": "string",
+            "default": "Document ID"
+        },
+        "docTableTypeHeader": {
+            "type": "string",
+            "default": "Document Type"
+        },
+        "docTableFormatHeader": {
+            "type": "string",
+            "default": "File Format"
+        },
+        "docTablePasswordHeader": {
+            "type": "string",
+            "default": "Password"
+        },
+        "docTableDateHeader": {
+            "type": "string",
+            "default": "Date"
+        },
+        "docTableStatusHeader": {
+            "type": "string",
+            "default": "Status"
+        },
+        "docTableActionHeader": {
+            "type": "string",
+            "default": "View"
+        },
+        "loanTableIdHeader": {
+            "type": "string",
+            "default": "Loan ID"
+        },
+        "loanTableTypeHeader": {
+            "type": "string",
+            "default": "Loan Type"
+        },
+        "loanTableAmountHeader": {
+            "type": "string",
+            "default": "Loan Amount"
+        },
+        "loanTableBankHeader": {
+            "type": "string",
+            "default": "Bank Name"
+        },
+        "loanTableEmiHeader": {
+            "type": "string",
+            "default": "EMI Amount"
+        },
+        "loanTablePaidEmiHeader": {
+            "type": "string",
+            "default": "No of Paid EMI"
+        },
+        "viewButtonLabel": {
+            "type": "string",
+            "default": "👁 View"
+        },
+        "noDocsUploadedText": {
+            "type": "string",
+            "default": "No documents uploaded yet."
+        },
+        "declarationText": {
+            "type": "text",
+            "default": "I hereby declare that the information provided is true and correct."
+        },
+        "selectFileLabel": {
+            "type": "string",
+            "default": "☁️ Select File"
+        },
+        "submittingButtonLabel": {
+            "type": "string",
+            "default": "Submitting..."
         }
     }
 }

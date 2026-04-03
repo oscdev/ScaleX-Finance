@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import './ContactForm.css';
 
 export default function ContactForm() {
     const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
@@ -26,36 +27,15 @@ export default function ContactForm() {
         }, 1500);
     };
 
-    const inputStyle: React.CSSProperties = {
-        width: '100%',
-        padding: '1rem 1.25rem',
-        background: 'rgba(255, 255, 255, 0.03)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        borderRadius: '0.75rem',
-        color: '#fff',
-        fontSize: '1rem',
-        transition: 'all 0.3s ease',
-        marginBottom: '1.5rem',
-        outline: 'none'
-    };
-
-    const labelStyle: React.CSSProperties = {
-        display: 'block',
-        marginBottom: '0.5rem',
-        fontSize: '0.9rem',
-        fontWeight: 500,
-        opacity: 0.8
-    };
-
     if (status === 'success') {
         return (
-            <div style={{ textAlign: 'center', padding: '2rem' }}>
-                <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>🎉</div>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>Message Sent!</h3>
-                <p style={{ opacity: 0.7 }}>Thank you for reaching out. Our team will contact you soon.</p>
+            <div className="contact-success-container">
+                <div className="contact-success-icon">🎉</div>
+                <h3 className="contact-success-title">Message Sent!</h3>
+                <p className="contact-success-description">Thank you for reaching out. Our team will contact you soon.</p>
                 <button 
                     onClick={() => setStatus('idle')}
-                    style={{ marginTop: '2rem', background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}
+                    className="contact-success-reset"
                 >
                     Send another message
                 </button>
@@ -65,9 +45,9 @@ export default function ContactForm() {
 
     return (
         <form onSubmit={handleSubmit}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div className="contact-form-grid">
                 <div>
-                    <label style={labelStyle}>Full Name</label>
+                    <label className="contact-form-label">Full Name</label>
                     <input 
                         type="text" 
                         name="name" 
@@ -75,11 +55,11 @@ export default function ContactForm() {
                         required 
                         value={formData.name}
                         onChange={handleChange}
-                        style={inputStyle} 
+                        className="contact-form-input" 
                     />
                 </div>
                 <div>
-                    <label style={labelStyle}>Email Address</label>
+                    <label className="contact-form-label">Email Address</label>
                     <input 
                         type="email" 
                         name="email" 
@@ -87,13 +67,13 @@ export default function ContactForm() {
                         required 
                         value={formData.email}
                         onChange={handleChange}
-                        style={inputStyle} 
+                        className="contact-form-input" 
                     />
                 </div>
             </div>
 
             <div>
-                <label style={labelStyle}>Subject</label>
+                <label className="contact-form-label">Subject</label>
                 <input 
                     type="text" 
                     name="subject" 
@@ -101,12 +81,12 @@ export default function ContactForm() {
                     required 
                     value={formData.subject}
                     onChange={handleChange}
-                    style={inputStyle} 
+                    className="contact-form-input" 
                 />
             </div>
 
             <div>
-                <label style={labelStyle}>Message</label>
+                <label className="contact-form-label">Message</label>
                 <textarea 
                     name="message" 
                     rows={5} 
@@ -114,22 +94,14 @@ export default function ContactForm() {
                     required 
                     value={formData.message}
                     onChange={handleChange}
-                    style={{ ...inputStyle, resize: 'none' }}
+                    className="contact-form-input contact-form-textarea"
                 ></textarea>
             </div>
 
             <button 
                 type="submit" 
                 disabled={status === 'submitting'}
-                className="btn btn-primary" 
-                style={{ 
-                    width: '100%', 
-                    padding: '1.25rem', 
-                    fontSize: '1.1rem', 
-                    fontWeight: 700,
-                    cursor: status === 'submitting' ? 'not-allowed' : 'pointer',
-                    opacity: status === 'submitting' ? 0.7 : 1
-                }}
+                className="btn btn-primary contact-form-submit" 
             >
                 {status === 'submitting' ? 'Sending...' : 'Send Message'}
             </button>

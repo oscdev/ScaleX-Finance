@@ -39,6 +39,8 @@ async function getFooterData() {
     }
 }
 
+import './Footer.css';
+
 export default async function Footer() {
     const data = await getFooterData();
 
@@ -60,47 +62,35 @@ export default async function Footer() {
     const copyrightText = footerInfo.copyrightText || '© 2026 ScaleX Finance. All rights reserved.';
 
     return (
-        <footer style={{
-            background: 'var(--background)',
-            borderTop: '1px solid var(--border-color)',
-            padding: '4rem 0 2rem 0',
-            marginTop: 'auto'
-        }}>
+        <footer className="main-footer">
             <div className="container">
-                <div style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    justifyContent: 'space-between',
-                    gap: '3rem',
-                    marginBottom: '3rem'
-                }}>
-
+                <div className="footer-content">
                     {/* Brand Section */}
-                    <div style={{ flex: '1 1 300px', maxWidth: '400px' }}>
-                        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: 700, fontSize: '1.5rem', fontFamily: 'var(--font-display)', marginBottom: '1rem' }}>
+                    <div className="footer-brand">
+                        <Link href="/" className="footer-logo">
                             {fullLogoUrl ? (
-                                <img src={fullLogoUrl} alt={logoText} style={{ height: '40px', objectFit: 'contain' }} />
+                                <img src={fullLogoUrl} alt={logoText} className="footer-logo-img" />
                             ) : (
-                                <div style={{ background: 'var(--primary)', color: 'white', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '1.2rem', lineHeight: 1 }}>SX</div>
+                                <div className="footer-logo-fallback">SX</div>
                             )}
                             {logoText}
                         </Link>
-                        <p style={{ opacity: 0.7, fontSize: '0.95rem', lineHeight: 1.6 }}>
+                        <p className="footer-description">
                             {description}
                         </p>
                     </div>
 
                     {/* Links Section */}
-                    <div style={{ flex: '1 1 200px' }}>
-                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', color: 'var(--primary)' }}>Platform</h4>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div className="footer-links-section">
+                        <h4 className="footer-links-title">Platform</h4>
+                        <ul className="footer-links-list">
                             <li>
-                                <Link href={aboutUsLink} style={{ opacity: 0.8, transition: 'opacity 0.3s ease' }}>
+                                <Link href={aboutUsLink} className="footer-link">
                                     {aboutUsLabel}
                                 </Link>
                             </li>
                             <li>
-                                <Link href={contactPlatformLink} style={{ opacity: 0.8, transition: 'opacity 0.3s ease' }}>
+                                <Link href={contactPlatformLink} className="footer-link">
                                     {contactPlatformLabel}
                                 </Link>
                             </li>
@@ -108,13 +98,7 @@ export default async function Footer() {
                     </div>
                 </div>
 
-                <div style={{
-                    borderTop: '1px solid var(--border-color)',
-                    paddingTop: '2rem',
-                    textAlign: 'center',
-                    opacity: 0.5,
-                    fontSize: '0.9rem'
-                }}>
+                <div className="footer-bottom">
                     {copyrightText}
                 </div>
             </div>

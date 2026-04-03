@@ -8,7 +8,7 @@
         "description": "Products for the Product page"
     },
     "options": {
-        "draftAndPublish": true
+        "draftAndPublish": false
     },
     "pluginOptions": {},
     "attributes": {

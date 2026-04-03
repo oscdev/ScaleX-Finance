@@ -16,10 +16,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <body>
         <MaintenanceShield />
         <Header />
-        <main style={{ flex: '1 0 auto' }}>
+        <main className="main-content">
           {children}
         </main>
         <Footer />

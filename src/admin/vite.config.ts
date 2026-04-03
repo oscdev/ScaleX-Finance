@@ -9,7 +9,7 @@ export default (config: UserConfig) => {
             },
         },
         server: {
-            allowedHosts: ['scalex.m2web.dev', 'localhost'],
+            allowedHosts: ['scalex.local', 'localhost'],
         },
     });
 };

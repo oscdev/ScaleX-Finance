@@ -1,6 +1,12 @@
 import type { Core } from '@strapi/strapi';
 
 const config = ({ env }: { env: any }) => ({
+    upload: {
+        config: {
+            sizeLimit: 300 * 1024 * 1024, // 300MB
+        },
+    },
+
     email: {
         config: {
             provider: 'nodemailer',
@@ -11,11 +17,11 @@ const config = ({ env }: { env: any }) => ({
                     user: env('SMTP_USERNAME'),
                     pass: env('SMTP_PASSWORD'),
                 },
-                secure: true, // Port 465 usually implies SSL
+                secure: true,
             },
             settings: {
-                defaultFrom: env('SMTP_DEFAULT_FROM', 'parminder@oscprofessionals.in'),
-                defaultReplyTo: env('SMTP_DEFAULT_REPLY_TO', 'parminder@oscprofessionals.in'),
+                defaultFrom: env('SMTP_DEFAULT_FROM'),
+                defaultReplyTo: env('SMTP_DEFAULT_REPLY_TO'),
             },
         },
     },

@@ -1,9 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
-import { strapiPublicApi } from '@/lib/strapi';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { strapiPublicApi } from '@/lib/strapi';
 import { logEvent } from '@/lib/logger';
+import './LeadForm.css';
+import BusinessLoanFunnel from './funnels/BusinessLoanFunnel';
+import PersonalLoanFunnel from './funnels/PersonalLoanFunnel';
+import HomeLoanFunnel from './funnels/HomeLoanFunnel';
+import LAPFunnel from './funnels/LAPFunnel';
+import { AdvisorReferralField } from './LeadFields';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,19 +20,22 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
-        requiredAmount: '',
-        monthlyIncome: '',
+        requiredAmount: '', // renamed to Loan Requirement in UI
         mobileNumber: '',
-        city: '',
-        creditScore: '',
-        employmentType: '',
-        existingLoans: '',
         advisorReferralId: '',
         selectedProduct: '',
-        pinCode: ''
+        pinCode: '',
+        aadharCard: '',
+        panCard: '',
+        propertyType: '',
+        propertyStatus: '',
+        propertyValue: '',
+        employmentType: '',
+        leadType: '',
+        getEmailNotification: 'No'
     });
 
-    React.useEffect(() => {
+    useEffect(() => {
         const savedProduct = sessionStorage.getItem('selectedProduct');
         if (savedProduct) {
             setFormData(prev => ({ ...prev, selectedProduct: savedProduct }));
@@ -43,6 +52,7 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
     const [errors, setErrors] = useState<any>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -56,59 +66,50 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
 
     const validate = () => {
         const newErrors: any = {};
-        if (!formData.fullName.trim()) newErrors.fullName = 'Full Name is required';
+        const product = formData.selectedProduct;
 
+        // Universal fields
+        if (!formData.requiredAmount) newErrors.requiredAmount = 'Loan Requirement is required';
+        if (!formData.fullName.trim()) newErrors.fullName = 'Customer Name is required';
+        if (!formData.mobileNumber) {
+            newErrors.mobileNumber = 'Mobile Number is required';
+        } else if (!/^\d{10}$/.test(formData.mobileNumber.replace(/\D/g, ''))) {
+            newErrors.mobileNumber = 'Please enter a valid 10-digit mobile number';
+        }
+        if (!formData.pinCode) {
+            newErrors.pinCode = 'Pin Code is required';
+        } else if (!/^\d{6}$/.test(formData.pinCode.replace(/\D/g, ''))) {
+            newErrors.pinCode = 'Please enter a valid 6-digit pin code';
+        }
         if (!formData.email) {
             newErrors.email = 'Email Address is required';
         } else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.email)) {
             newErrors.email = 'Invalid email address';
         }
 
-        if (!formData.requiredAmount) {
-            newErrors.requiredAmount = 'Required Amount is required';
-        } else if (isNaN(Number(formData.requiredAmount)) || Number(formData.requiredAmount) <= 0) {
-            newErrors.requiredAmount = 'Required Amount must be a positive number';
+        // Aadhar and Pan for all
+        if (!formData.aadharCard) newErrors.aadharCard = 'Aadhar Card is required';
+        else if (!/^\d{12}$/.test(formData.aadharCard.replace(/\s/g, ''))) newErrors.aadharCard = 'Invalid Aadhar Card';
+
+        if (!formData.panCard) newErrors.panCard = 'Pan Card is required';
+        else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCard.toUpperCase())) newErrors.panCard = 'Invalid Pan Card';
+
+        // Conditional fields
+        if (product?.includes('LAP')) {
+            if (!formData.propertyType) newErrors.propertyType = 'Property Type is required';
+            if (!formData.propertyStatus) newErrors.propertyStatus = 'Property Status is required';
+            if (!formData.propertyValue) newErrors.propertyValue = 'Property Value is required';
+            if (!formData.employmentType) newErrors.employmentType = 'Occupation is required';
         }
 
-        if (!formData.monthlyIncome) {
-            newErrors.monthlyIncome = 'Monthly Income is required';
-        } else if (isNaN(Number(formData.monthlyIncome)) || Number(formData.monthlyIncome) <= 0) {
-            newErrors.monthlyIncome = 'Monthly Income must be a positive number';
-        }
-
-        if (!formData.mobileNumber) {
-            newErrors.mobileNumber = 'Mobile Number is required';
-        } else if (!/^\d{10}$/.test(formData.mobileNumber.replace(/\D/g, ''))) {
-            newErrors.mobileNumber = 'Please enter a valid 10-digit mobile number';
-        }
-
-        if (!formData.city.trim()) newErrors.city = 'City/District is required';
-
-        if (!formData.creditScore) {
-            newErrors.creditScore = 'Credit Score is required';
-        } else if (isNaN(Number(formData.creditScore)) || Number(formData.creditScore) < 300 || Number(formData.creditScore) > 900) {
-            newErrors.creditScore = 'Credit score must be between 300 and 900';
-        }
-
-        if (!formData.employmentType) newErrors.employmentType = 'Employment Type is required';
-
-        if (!formData.existingLoans) {
-            newErrors.existingLoans = 'Existing Loans info is required';
-        } else if (isNaN(Number(formData.existingLoans)) || Number(formData.existingLoans) < 0) {
-            newErrors.existingLoans = 'Must be zero or a positive number';
-        }
-
-        if (!formData.pinCode) {
-            newErrors.pinCode = 'Pin Code is required';
-        } else if (!/^\d{6}$/.test(formData.pinCode.replace(/\D/g, ''))) {
-            newErrors.pinCode = 'Please enter a valid 6-digit pin code';
+        if (product === 'Home Loan') {
+            if (!formData.leadType) newErrors.leadType = 'Lead Type is required';
+            if (!formData.employmentType) newErrors.employmentType = 'Occupation is required';
         }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
-
-    const [submitError, setSubmitError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -122,15 +123,18 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
                         fullName: formData.fullName,
                         email: formData.email,
                         requiredAmount: parseFloat(formData.requiredAmount),
-                        monthlyIncome: parseFloat(formData.monthlyIncome),
                         mobileNumber: formData.mobileNumber,
-                        city: formData.city,
-                        creditScore: parseInt(formData.creditScore, 10),
-                        employmentType: formData.employmentType,
-                        existingLoans: parseFloat(formData.existingLoans),
+                        pinCode: formData.pinCode,
                         advisorReferralId: formData.advisorReferralId || null,
                         selectedProduct: formData.selectedProduct || null,
-                        pinCode: formData.pinCode
+                        aadharCard: formData.aadharCard,
+                        panCard: formData.panCard,
+                        propertyType: formData.propertyType || null,
+                        propertyStatus: formData.propertyStatus || null,
+                        propertyValue: formData.propertyValue ? parseFloat(formData.propertyValue) : null,
+                        employmentType: formData.employmentType || null,
+                        leadType: formData.leadType || null,
+                        getEmailNotification: formData.getEmailNotification === 'Yes'
                     }
                 };
 
@@ -163,19 +167,25 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
                     action: 'LEAD_SUBMISSION_SUCCESS',
                     description: `New lead submitted successfully: ${formData.fullName}`,
                     severity: 'info',
-                    metadata: { leadId, email: formData.email }
+                    metadata: { leadId, email: formData.email, product: formData.selectedProduct }
                 });
 
-                // Save required amount for loan application pre-population
+                // Save lead details for loan application pre-population
                 sessionStorage.setItem('requiredAmount', formData.requiredAmount);
+                sessionStorage.setItem('getEmailNotification', formData.getEmailNotification);
+                sessionStorage.setItem('leadName', formData.fullName);
+                sessionStorage.setItem('leadEmail', formData.email);
+                sessionStorage.setItem('leadPhone', formData.mobileNumber);
+                sessionStorage.setItem('leadAadhar', formData.aadharCard);
+                sessionStorage.setItem('leadPan', formData.panCard);
+                sessionStorage.setItem('leadOccupation', formData.employmentType);
+
                 if (leadId) {
                     sessionStorage.setItem('lastLeadId', leadId.toString());
-                    // console.log('Lead created with ID:', leadId);
                 }
 
                 setIsSuccess(true);
             } catch (err: any) {
-                // console.error('Submission Error:', err);
                 setSubmitError(err.message || 'An unexpected error occurred. Please try again later.');
             } finally {
                 setIsSubmitting(false);
@@ -183,33 +193,17 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
         }
     };
 
-    const {
-        fullNameLabel = "Full Name", fullNamePlaceholder = "John Doe",
-        emailLabel = "Email Address", emailPlaceholder = "john@example.com",
-        requiredAmountLabel = "Required Amount", requiredAmountPlaceholder = "500000",
-        monthlyIncomeLabel = "Monthly Income", monthlyIncomePlaceholder = "75000",
-        mobileNumberLabel = "Mobile Number", mobileNumberPlaceholder = "9876543210",
-        cityLabel = "City/District", cityPlaceholder = "Mumbai",
-        creditScoreLabel = "Credit Score", creditScorePlaceholder = "750",
-        employmentTypeLabel = "Employment Type", employmentTypePlaceholder = "Select Employment Type",
-        existingLoansLabel = "Existing Loans (Total Monthly EMI)", existingLoansPlaceholder = "5000",
-        pinCodeLabel = "Pin Code", pinCodePlaceholder = "400001",
-        advisorReferralIdLabel = "Advisor Referral ID (Optional)", advisorReferralIdPlaceholder = "ADV123456",
-        backButtonLabel = "Back", backButtonLink = "/products",
-        submitButtonLabel = "Loan Application"
-    } = pageInfo;
-
     if (isSuccess) {
         return (
-            <section className="form-section" style={{ minHeight: '60vh', paddingBottom: '4rem' }}>
-                <div className="container animate-fade-in delay-200" style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
-                    <div className="card" style={{ padding: '4rem 2rem' }}>
-                        <h2 style={{ color: 'var(--primary)', marginBottom: '1rem' }}>Lead Submitted!</h2>
-                        <p style={{ opacity: 0.8, marginBottom: '2rem' }}>Thank you for submitting your lead application. Please proceed to fill the loan application form.</p>
+            <section className="lead-form-section">
+                <div className="lead-form-success-container animate-fade-in delay-200">
+                    <div className="lead-form-card lead-form-success-card">
+                        <h2 className="lead-form-success-title">{formData.selectedProduct} Submitted!</h2>
+                        <p className="lead-form-success-text">Thank you for submitting your lead application for <strong>{formData.selectedProduct}</strong>. Please proceed to fill out the detailed loan application form.</p>
                         <button
                             className="btn btn-primary"
                             onClick={() => router.push('/loan-application')}>
-                            Loan Application
+                            Continue to Loan Application
                         </button>
                     </div>
                 </div>
@@ -217,231 +211,60 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
         );
     }
 
-    const inputStyle = {
-        width: '100%',
-        padding: '1rem',
-        borderRadius: '8px',
-        border: '1px solid var(--border-color)',
-        background: 'rgba(255,255,255,0.05)',
-        color: 'inherit',
-        fontSize: '1rem',
-        marginTop: '0.5rem',
-        marginBottom: '0.25rem',
-        fontFamily: 'inherit',
-        outline: 'none',
-        transition: 'border-color 0.3s ease'
-    };
+    const backButtonLabel = pageInfo.backButtonLabel ?? "Back";
+    const backButtonLink = pageInfo.backButtonLink ?? "/products";
+    const submitButtonLabel = pageInfo.submitButtonLabel ?? "Loan Application";
 
-    const labelStyle = {
-        fontWeight: 500,
-        fontSize: '0.9rem',
-        opacity: 0.9,
-        display: 'block',
-        marginTop: '1.5rem'
-    };
-
-    const errorStyle = {
-        color: 'var(--secondary)',
-        fontSize: '0.8rem',
-        marginTop: '0.2rem'
+    const renderFunnelFields = () => {
+        const product = formData.selectedProduct;
+        if (product?.includes('LAP')) {
+            return <LAPFunnel formData={formData} errors={errors} handleChange={handleChange} pageInfo={pageInfo} />;
+        }
+        if (product === 'Home Loan') {
+            return <HomeLoanFunnel formData={formData} errors={errors} handleChange={handleChange} pageInfo={pageInfo} />;
+        }
+        if (product === 'Personal Loan') {
+            return <PersonalLoanFunnel formData={formData} errors={errors} handleChange={handleChange} pageInfo={pageInfo} />;
+        }
+        return <BusinessLoanFunnel formData={formData} errors={errors} handleChange={handleChange} pageInfo={pageInfo} />;
     };
 
     return (
-        <section className="form-section" style={{ minHeight: '60vh', paddingBottom: '4rem' }}>
-            <div className="container animate-fade-in delay-200" style={{ maxWidth: '800px', margin: '0 auto' }}>
-                <form className="card" onSubmit={handleSubmit} style={{ padding: '3rem' }}>
+        <section className="lead-form-section">
+            <div className="lead-form-container animate-fade-in delay-200">
+                <h2 className="lead-form-title">
+                    {formData.selectedProduct ? `${formData.selectedProduct} Lead Form` : 'Lead Form'}
+                </h2>
+                <form className="lead-form-card" onSubmit={handleSubmit}>
+                    
+                    {renderFunnelFields()}
 
-                    <div className="card-grid-2" style={{ gap: '0 2rem' }}>
-                        <div>
-                            <label style={labelStyle}>{fullNameLabel}</label>
-                            <input
-                                style={{ ...inputStyle, borderColor: errors.fullName ? 'var(--secondary)' : 'var(--border-color)' }}
-                                type="text"
-                                name="fullName"
-                                placeholder={fullNamePlaceholder}
-                                value={formData.fullName}
-                                onChange={handleChange}
-                            />
-                            {errors.fullName && <div style={errorStyle}>{errors.fullName}</div>}
-                        </div>
+                    <AdvisorReferralField 
+                        formData={formData} 
+                        handleChange={handleChange} 
+                        isAutoPopulated={isAdvisorAutoPopulated} 
+                    />
 
-                        <div>
-                            <label style={labelStyle}>{mobileNumberLabel}</label>
-                            <input
-                                style={{ ...inputStyle, borderColor: errors.mobileNumber ? 'var(--secondary)' : 'var(--border-color)' }}
-                                type="tel"
-                                name="mobileNumber"
-                                placeholder={mobileNumberPlaceholder}
-                                value={formData.mobileNumber}
-                                onChange={handleChange}
-                            />
-                            {errors.mobileNumber && <div style={errorStyle}>{errors.mobileNumber}</div>}
-                        </div>
-
-                        <div>
-                            <label style={labelStyle}>{emailLabel}</label>
-                            <input
-                                style={{ ...inputStyle, borderColor: errors.email ? 'var(--secondary)' : 'var(--border-color)' }}
-                                type="email"
-                                name="email"
-                                placeholder={emailPlaceholder}
-                                value={formData.email}
-                                onChange={handleChange}
-                            />
-                            {errors.email && <div style={errorStyle}>{errors.email}</div>}
-                        </div>
-
-                        <div>
-                            <label style={labelStyle}>{cityLabel}</label>
-                            <input
-                                style={{ ...inputStyle, borderColor: errors.city ? 'var(--secondary)' : 'var(--border-color)' }}
-                                type="text"
-                                name="city"
-                                placeholder={cityPlaceholder}
-                                value={formData.city}
-                                onChange={handleChange}
-                            />
-                            {errors.city && <div style={errorStyle}>{errors.city}</div>}
-                        </div>
-
-                        <div>
-                            <label style={labelStyle}>{requiredAmountLabel}</label>
-                            <input
-                                style={{ ...inputStyle, borderColor: errors.requiredAmount ? 'var(--secondary)' : 'var(--border-color)' }}
-                                type="number"
-                                name="requiredAmount"
-                                placeholder={requiredAmountPlaceholder}
-                                value={formData.requiredAmount}
-                                onChange={handleChange}
-                            />
-                            {errors.requiredAmount && <div style={errorStyle}>{errors.requiredAmount}</div>}
-                        </div>
-
-                        <div>
-                            <label style={labelStyle}>{creditScoreLabel}</label>
-                            <input
-                                style={{ ...inputStyle, borderColor: errors.creditScore ? 'var(--secondary)' : 'var(--border-color)' }}
-                                type="number"
-                                name="creditScore"
-                                placeholder={creditScorePlaceholder}
-                                value={formData.creditScore}
-                                onChange={handleChange}
-                                min="300"
-                                max="900"
-                            />
-                            {errors.creditScore && <div style={errorStyle}>{errors.creditScore}</div>}
-                        </div>
-
-                        <div>
-                            <label style={labelStyle}>{monthlyIncomeLabel}</label>
-                            <input
-                                style={{ ...inputStyle, borderColor: errors.monthlyIncome ? 'var(--secondary)' : 'var(--border-color)' }}
-                                type="number"
-                                name="monthlyIncome"
-                                placeholder={monthlyIncomePlaceholder}
-                                value={formData.monthlyIncome}
-                                onChange={handleChange}
-                            />
-                            {errors.monthlyIncome && <div style={errorStyle}>{errors.monthlyIncome}</div>}
-                        </div>
-
-                        <div>
-                            <label style={labelStyle}>{employmentTypeLabel}</label>
-                            <select
-                                style={{ ...inputStyle, borderColor: errors.employmentType ? 'var(--secondary)' : 'var(--border-color)' }}
-                                name="employmentType"
-                                value={formData.employmentType}
-                                onChange={handleChange}
-                            >
-                                <option value="" disabled hidden>{employmentTypePlaceholder}</option>
-                                <option value="Select" style={{ color: '#000' }}>Select Employment Type</option>
-                                <option value="Salaried" style={{ color: '#000' }}>Salaried</option>
-                                <option value="Self Employed" style={{ color: '#000' }}>Self Employed</option>
-                                <option value="Business" style={{ color: '#000' }}>Business</option>
-                            </select>
-                            {errors.employmentType && <div style={errorStyle}>{errors.employmentType}</div>}
-                        </div>
-                    </div>
-
-                    <div className="card-grid-2" style={{ gap: '0 2rem' }}>
-                        <div>
-                            <label style={labelStyle}>{existingLoansLabel}</label>
-                            <input
-                                style={{ ...inputStyle, borderColor: errors.existingLoans ? 'var(--secondary)' : 'var(--border-color)' }}
-                                type="number"
-                                name="existingLoans"
-                                placeholder={existingLoansPlaceholder}
-                                value={formData.existingLoans}
-                                onChange={handleChange}
-                            />
-                            {errors.existingLoans && <div style={errorStyle}>{errors.existingLoans}</div>}
-                        </div>
-
-                        <div>
-                            <label style={labelStyle}>{pinCodeLabel}</label>
-                            <input
-                                style={{ ...inputStyle, borderColor: errors.pinCode ? 'var(--secondary)' : 'var(--border-color)' }}
-                                type="text"
-                                name="pinCode"
-                                placeholder={pinCodePlaceholder}
-                                value={formData.pinCode}
-                                onChange={handleChange}
-                                maxLength={6}
-                            />
-                            {errors.pinCode && <div style={errorStyle}>{errors.pinCode}</div>}
-                        </div>
-                    </div>
-
-                    <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={{ ...labelStyle, color: 'inherit', opacity: 0.9 }}>{advisorReferralIdLabel}</label>
-                        <input
-                            style={{
-                                ...inputStyle,
-                                borderColor: 'var(--border-color)',
-                                opacity: isAdvisorAutoPopulated ? 0.6 : 1,
-                                cursor: isAdvisorAutoPopulated ? 'not-allowed' : 'text'
-                            }}
-                            type="text"
-                            name="advisorReferralId"
-                            placeholder={advisorReferralIdPlaceholder}
-                            value={formData.advisorReferralId}
-                            onChange={handleChange}
-                            readOnly={isAdvisorAutoPopulated}
-                            disabled={isAdvisorAutoPopulated}
-                        />
-                    </div>
-
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        marginTop: '3rem',
-                        paddingTop: '2rem',
-                        position: 'relative'
-                    }}>
+                    <div className="lead-form-footer">
                         {submitError && (
-                            <div style={{ position: 'absolute', top: 0, left: 0, color: 'var(--secondary)', fontSize: '0.9rem' }}>
+                            <div className="lead-form-submit-error">
                                 {submitError}
                             </div>
                         )}
                         <button
                             type="button"
                             className="btn btn-secondary"
-                            onClick={() => router.push(backButtonLink || '/products')}
+                            onClick={() => router.push(backButtonLink)}
                         >
-                            {backButtonLabel || 'Back'}
+                            {backButtonLabel}
                         </button>
 
                         <button
                             type="submit"
-                            className="btn btn-primary"
+                            className={`btn btn-primary ${isSubmitting ? 'btn-disabled' : ''}`}
                             disabled={isSubmitting}
-                            style={{
-                                opacity: isSubmitting ? 0.7 : 1,
-                                cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                                pointerEvents: isSubmitting ? 'none' : 'auto'
-                            }}
                         >
-                            {isSubmitting ? 'Submitting...' : (submitButtonLabel || 'Loan Application')}
+                            {isSubmitting ? 'Submitting...' : submitButtonLabel}
                         </button>
                     </div>
 

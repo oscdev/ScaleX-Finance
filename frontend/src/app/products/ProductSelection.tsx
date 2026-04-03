@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { withStrapiPublicUrl } from '@/lib/strapi';
 import { useRouter } from 'next/navigation';
+import './ProductSelection.css';
 
 export default function ProductSelection({ products, buttonConfig }: { products: any[], buttonConfig: any }) {
     const router = useRouter();
@@ -17,7 +18,7 @@ export default function ProductSelection({ products, buttonConfig }: { products:
     };
 
     return (
-        <section className="value-props-section" style={{ minHeight: '60vh', paddingBottom: '4rem' }}>
+        <section className="product-selection-section value-props-section">
             <div className="container animate-fade-in delay-200">
                 <div className="card-grid-2">
                     {products && products.length > 0 ? (
@@ -28,35 +29,28 @@ export default function ProductSelection({ products, buttonConfig }: { products:
 
                             return (
                                 <div
-                                    className={`card ${isSelected ? 'selected' : ''}`}
+                                    className={`card product-card ${isSelected ? 'selected' : ''}`}
                                     key={product.id || index}
                                     onClick={() => setSelectedProduct(product.id)}
-                                    style={{
-                                        cursor: 'pointer',
-                                        // When selected, mimic the .card:hover styles from globals.css
-                                        borderColor: isSelected ? 'var(--primary)' : undefined,
-                                        transform: isSelected ? 'translateY(-10px)' : undefined,
-                                        boxShadow: isSelected ? '0 20px 40px rgba(0, 0, 0, 0.1)' : undefined,
-                                    }}
                                 >
-                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                                    <div className="product-card-header">
                                         {logoUrl && (
                                             <img
                                                 src={withStrapiPublicUrl(logoUrl)}
                                                 alt={content.title}
-                                                style={{ width: '40px', height: '40px', objectFit: 'contain', marginRight: '1rem' }}
+                                                className="product-card-logo"
                                             />
                                         )}
-                                        <h3 style={{ margin: 0 }}>{content.title}</h3>
+                                        <h3 className="product-card-title">{content.title}</h3>
                                     </div>
-                                    <div className="rich-text" style={{ marginTop: '1rem' }}>
+                                    <div className="rich-text product-card-description">
                                         {parseBlocks(content.description)}
                                     </div>
                                 </div>
                             );
                         })
                     ) : (
-                        <div style={{ textAlign: 'center', gridColumn: '1 / -1', padding: '3rem' }}>
+                        <div className="products-empty">
                             <h3>No products available yet.</h3>
                             <p style={{ opacity: 0.7 }}>Add new incremental products via your Strapi Admin panel.</p>
                         </div>
@@ -64,12 +58,7 @@ export default function ProductSelection({ products, buttonConfig }: { products:
                 </div>
 
                 {/* Buttons container */}
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    marginTop: '4rem',
-                    paddingTop: '2rem'
-                }}>
+                <div className="products-footer">
                     <button
                         className="btn btn-secondary"
                         onClick={() => router.push(buttonConfig.backLink)}
@@ -78,18 +67,13 @@ export default function ProductSelection({ products, buttonConfig }: { products:
                     </button>
 
                     <button
-                        className="btn btn-primary"
+                        className="btn btn-primary btn-continue"
                         disabled={!selectedProduct}
                         onClick={() => {
                             const productObj = products.find(p => p.id === selectedProduct);
                             const title = productObj?.attributes?.title || productObj?.title || 'Unknown Product';
                             sessionStorage.setItem('selectedProduct', title);
                             router.push(buttonConfig.continueLink);
-                        }}
-                        style={{
-                            opacity: selectedProduct ? 1 : 0.5,
-                            cursor: selectedProduct ? 'pointer' : 'not-allowed',
-                            pointerEvents: selectedProduct ? 'auto' : 'none'
                         }}
                     >
                         {buttonConfig.continueLabel}

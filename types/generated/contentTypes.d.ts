@@ -532,6 +532,10 @@ export interface ApiActivityLogActivityLog extends Struct.CollectionTypeSchema {
         'ADVISOR_LOGIN_FAILURE',
         'MAINTENANCE_TOGGLED',
         'LOGS_PURGED',
+        'LOG_CLEANUP_CRON',
+        'LEAD_SUBMISSION_SUCCESS',
+        'LEAD_SUBMISSION_FAILURE',
+        'LEAD_STATUS_CHANGED',
         'AI_MATCH_GENERATED',
         'LOAN_STATUS_CHANGED',
       ]
@@ -775,7 +779,7 @@ export interface ApiContactUsPageContactUsPage extends Struct.SingleTypeSchema {
       Schema.Attribute.Private;
     email: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'support@scalexfinance.com'>;
-    googleMapUrl: Schema.Attribute.String &
+    googleMapUrl: Schema.Attribute.Text &
       Schema.Attribute.DefaultTo<'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d113228.47161208035!2d72.8222384!3d19.0760906!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c6306644edc1%3A0x5da4ed8f8d648c69!2sMumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1711181234567!5m2!1sen!2sin'>;
     heroBanner: Schema.Attribute.Media<'images'>;
     heroSubtitle: Schema.Attribute.Text &
@@ -813,11 +817,11 @@ export interface ApiFooterFooter extends Struct.SingleTypeSchema {
     aboutUsLabel: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'About Us'>;
     aboutUsLink: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'/#about'>;
+      Schema.Attribute.DefaultTo<'/about-us'>;
     contactPlatformLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Contact Platform'>;
+      Schema.Attribute.DefaultTo<'Contact Us'>;
     contactPlatformLink: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'/#contact'>;
+      Schema.Attribute.DefaultTo<'/contact'>;
     copyrightText: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'\u00A9 2026 ScaleX Finance. All rights reserved.'>;
     createdAt: Schema.Attribute.DateTime;
@@ -850,7 +854,7 @@ export interface ApiGlobalSettingGlobalSetting extends Struct.SingleTypeSchema {
     singularName: 'global-setting';
   };
   options: {
-    draftAndPublish: false;
+    draftAndPublish: true;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -930,7 +934,8 @@ export interface ApiHeaderHeader extends Struct.SingleTypeSchema {
   attributes: {
     aboutUsLabel: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'About Us'>;
-    aboutUsLink: Schema.Attribute.String & Schema.Attribute.DefaultTo<'/about'>;
+    aboutUsLink: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'/about-us'>;
     advisorLoginLabel: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Advisor Login'>;
     advisorLoginLink: Schema.Attribute.String &
@@ -980,16 +985,22 @@ export interface ApiHomepageHomepage extends Struct.SingleTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
-    applyNowButtonLink: Schema.Attribute.String;
-    applyNowButtonText: Schema.Attribute.String;
-    becomeAnAdvisorButtonLink: Schema.Attribute.String;
-    becomeAnAdvisorButtonText: Schema.Attribute.String;
+    applyNowButtonLink: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'/products'>;
+    applyNowButtonText: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Apply Now'>;
+    becomeAnAdvisorButtonLink: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'/advisor-onboarding'>;
+    becomeAnAdvisorButtonText: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Become an Advisor'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     heroBanner: Schema.Attribute.Media<'images' | 'videos'>;
-    heroSubtitle: Schema.Attribute.Text;
-    heroTitle: Schema.Attribute.String;
+    heroSubtitle: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'Smart lending solutions and a powerful advisor network to help you achieve your financial goals.'>;
+    heroTitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Scale Your Financial Growth with ScaleX'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1000,17 +1011,21 @@ export interface ApiHomepageHomepage extends Struct.SingleTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    valuePropositionClientsContent: Schema.Attribute.RichText;
-    valuePropositionContent: Schema.Attribute.RichText;
-    valuePropositionSecureContent: Schema.Attribute.RichText;
-    valuePropositionTitle: Schema.Attribute.String;
+    valuePropositionClientsContent: Schema.Attribute.RichText &
+      Schema.Attribute.DefaultTo<'Trusted by over 10,000+ happy clients across the country.'>;
+    valuePropositionContent: Schema.Attribute.RichText &
+      Schema.Attribute.DefaultTo<'We bring together borrowers, lenders, and expert advisors on a single secure platform to streamline the loan process.'>;
+    valuePropositionSecureContent: Schema.Attribute.RichText &
+      Schema.Attribute.DefaultTo<'Your data is secured with bank-grade encryption and privacy protocols.'>;
+    valuePropositionTitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Why Choose ScaleX Finance?'>;
   };
 }
 
 export interface ApiLeadFormPageLeadFormPage extends Struct.SingleTypeSchema {
   collectionName: 'lead_form_page';
   info: {
-    description: 'Content for the Lead Form Page';
+    description: 'Content and configuration for the Lead Form Page';
     displayName: 'Lead Form Page';
     pluralName: 'lead-form-pages';
     singularName: 'lead-form-page';
@@ -1019,45 +1034,47 @@ export interface ApiLeadFormPageLeadFormPage extends Struct.SingleTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    aadharCardLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Aadhar Card*'>;
+    aadharCardPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'1234 5678 9012'>;
     advisorReferralIdLabel: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Advisor Referral ID (Optional)'>;
     advisorReferralIdPlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., ADV123456'>;
+      Schema.Attribute.DefaultTo<'ADV123456'>;
     backButtonLabel: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Back'>;
     backButtonLink: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'/products'>;
-    cityLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'City/District'>;
-    cityPlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., Mumbai'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    creditScoreLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Credit Score'>;
-    creditScorePlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., 750'>;
     emailLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Email Address'>;
+      Schema.Attribute.DefaultTo<'Customer Email*'>;
     emailPlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., john@example.com'>;
+      Schema.Attribute.DefaultTo<'customer@example.com'>;
     employmentTypeLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Employment Type'>;
+      Schema.Attribute.DefaultTo<'Occupation*'>;
+    employmentTypeOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Salaried, Self Employed'>;
     employmentTypePlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Select Employment Type'>;
-    existingLoansLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Existing Loans (Total monthly EMI)'>;
-    existingLoansPlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., 5000'>;
+      Schema.Attribute.DefaultTo<'Select Occupation'>;
     fullNameLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Full Name'>;
+      Schema.Attribute.DefaultTo<'Customer Name*'>;
     fullNamePlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., John Doe'>;
-    heroSubtitle: Schema.Attribute.Text &
-      Schema.Attribute.DefaultTo<'Please fill out the details below to proceed.'>;
-    heroTitle: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Apply for a Loan'>;
+      Schema.Attribute.DefaultTo<'Enter Customer Name'>;
+    getEmailNotificationLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Get Email Notification for Lead Updated?*'>;
+    leadTypeLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Lead Type*'>;
+    leadTypeOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Fresh (New Lead), BT (Balance Transfer)'>;
+    leadTypePlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Select Lead Type'>;
+    loanRequirementLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Loan Requirement*'>;
+    loanRequirementPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'500000'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1065,24 +1082,36 @@ export interface ApiLeadFormPageLeadFormPage extends Struct.SingleTypeSchema {
     > &
       Schema.Attribute.Private;
     mobileNumberLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Mobile Number'>;
+      Schema.Attribute.DefaultTo<'Customer Mobile*'>;
     mobileNumberPlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., 9876543210'>;
-    monthlyIncomeLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Monthly Income'>;
-    monthlyIncomePlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., 75000'>;
+      Schema.Attribute.DefaultTo<'9876543210'>;
+    panCardLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Pan Card*'>;
+    panCardPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'ABCDE1234F'>;
     pinCodeLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Pin Code'>;
+      Schema.Attribute.DefaultTo<'Pincode*'>;
     pinCodePlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., 400001'>;
+      Schema.Attribute.DefaultTo<'400001'>;
+    propertyStatusLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Property Current Status*'>;
+    propertyStatusOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Constructed, Plot, Boundaries'>;
+    propertyStatusPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Select Status'>;
+    propertyTypeLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Property Type*'>;
+    propertyTypeOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Residential, Commercial, Industrial'>;
+    propertyTypePlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Select Property Type'>;
+    propertyValueLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Property Value*'>;
+    propertyValuePlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'5000000'>;
     publishedAt: Schema.Attribute.DateTime;
-    requiredAmountLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Required Amount'>;
-    requiredAmountPlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., 500000'>;
     submitButtonLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Submit Application'>;
+      Schema.Attribute.DefaultTo<'Loan Application'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1101,35 +1130,26 @@ export interface ApiLeadLead extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    aadharCard: Schema.Attribute.String;
     advisorReferralId: Schema.Attribute.String;
-    city: Schema.Attribute.String & Schema.Attribute.Required;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    creditScore: Schema.Attribute.Integer &
-      Schema.Attribute.Required &
-      Schema.Attribute.SetMinMax<
-        {
-          max: 900;
-          min: 300;
-        },
-        number
-      >;
     email: Schema.Attribute.Email & Schema.Attribute.Required;
-    employmentType: Schema.Attribute.Enumeration<
-      ['Salaried', 'Self Employed', 'Business']
-    > &
-      Schema.Attribute.Required;
-    existingLoans: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    employmentType: Schema.Attribute.Enumeration<['Salaried', 'Self Employed']>;
     fullName: Schema.Attribute.String & Schema.Attribute.Required;
+    getEmailNotification: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    leadType: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::lead.lead'> &
       Schema.Attribute.Private;
     mobileNumber: Schema.Attribute.String & Schema.Attribute.Required;
-    monthlyIncome: Schema.Attribute.Decimal & Schema.Attribute.Required;
     panCard: Schema.Attribute.String;
-    pincode: Schema.Attribute.String;
     pinCode: Schema.Attribute.String;
+    propertyStatus: Schema.Attribute.String;
+    propertyType: Schema.Attribute.String;
+    propertyValue: Schema.Attribute.Decimal;
     publishedAt: Schema.Attribute.DateTime;
     remarks: Schema.Attribute.JSON;
     requiredAmount: Schema.Attribute.Decimal & Schema.Attribute.Required;
@@ -1153,7 +1173,7 @@ export interface ApiLenderLender extends Struct.CollectionTypeSchema {
     singularName: 'lender';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     applyUrl: Schema.Attribute.String & Schema.Attribute.DefaultTo<'#'>;
@@ -1194,7 +1214,7 @@ export interface ApiLendersPageLendersPage extends Struct.SingleTypeSchema {
     singularName: 'lenders-page';
   };
   options: {
-    draftAndPublish: false;
+    draftAndPublish: true;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -1227,90 +1247,278 @@ export interface ApiLoanApplicationPageLoanApplicationPage
     singularName: 'loan-application-page';
   };
   options: {
-    draftAndPublish: false;
+    draftAndPublish: true;
   };
   attributes: {
-    adharLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Adhar Card Number'>;
-    adharPlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'XXXX XXXX XXXX'>;
-    applicantNameLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Applicant Name'>;
-    applicantNamePlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., John Doe'>;
+    addLoanButtonLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'+ Add Loan'>;
+    addressLine1Label: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Address Line 1'>;
+    addressLine1Placeholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter address'>;
+    addressLine2Label: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Address Line 2'>;
+    addressLine2Placeholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter address line 2'>;
+    adharBackLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Aadhar Card Back'>;
+    adharFrontLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Aadhar Card Front'>;
+    allStepsCompletedText: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'All required fields completed! Please review your summary below before final submission.'>;
+    alternateNumberLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Alternate Number'>;
+    alternateNumberPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter Alternate Mobile'>;
+    annualTurnoverLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Annual Turnover'>;
+    annualTurnoverOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'20 Lakh, 50 Lakh, 80 Lakh, 1 Crore+, 2 Crore+, 3 Crore+, 5 Crore+'>;
     backButtonLabel: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Back'>;
-    bankStatementsLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Bank Statements (Last 6 Months)'>;
+    bankStatementLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'6 Month Bank Statement'>;
+    businessAddressLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Business Address'>;
+    businessAddressPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter full business address'>;
+    businessAgeLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Business Age'>;
+    businessAgeOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'6 Months, 1 years, 2 Years, 3 Years+'>;
     businessNameLabel: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Business Name'>;
     businessNamePlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., Oscprofessionals'>;
-    collateralCheckboxLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'I have collateral to offer'>;
-    collateralTypeLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Collateral Type'>;
-    collateralTypePlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Select Type'>;
-    collateralValueLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Estimated Value (\u20B9)'>;
-    collateralValuePlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., 5000000'>;
+      Schema.Attribute.DefaultTo<'Enter Business Name'>;
+    businessPremisesLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Business Premises'>;
+    businessPremisesOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Owned, Rented, Lease'>;
+    businessRegProofLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Business Registration Proof'>;
+    businessRegProofOptions: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'GST, TIN, MSME, Shop Establishment Certificate, Trade License, Fssai License, Udyam Certificate, Gumasta Certificate'>;
+    businessTypeLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Business Type'>;
+    businessTypeOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Proprietorship, Partnership, Private Limited'>;
+    cityLabel: Schema.Attribute.String & Schema.Attribute.DefaultTo<'City'>;
+    cityPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter city'>;
+    coAppAadharBackLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Co-Applicant Aadhar Card Back'>;
+    coAppAadharFrontLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Co-Applicant Aadhar Card Front'>;
+    coAppPanLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Co-Applicant Pan Card'>;
+    companyAddressLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Company Address'>;
+    companyAddressPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter company address'>;
+    companyNameLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Company Name'>;
+    companyNamePlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter company name'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    declarationText: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'I hereby declare that the information provided is true and correct. I authorize Scalex Finance and its partners to verify my details and check my credit score.'>;
-    docsInstructionText: Schema.Attribute.String &
+    declarationText: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'I hereby declare that the information provided is true and correct.'>;
+    dependentsLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Dependent'>;
+    dependentsPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter number of dependents'>;
+    designationLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Designation'>;
+    designationPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter designation'>;
+    districtLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'District'>;
+    dobLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Date of Birth'>;
+    docsSubtitle: Schema.Attribute.Text &
       Schema.Attribute.DefaultTo<'Please upload clear copies of the following documents. Supported formats: PDF, JPG, PNG.'>;
-    emailLabel: Schema.Attribute.String & Schema.Attribute.DefaultTo<'Email'>;
-    emailPlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., john@example.com'>;
-    fileUploadPlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Click to browse or drag file here'>;
-    gstReturnsLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'GST Returns (Last 12 Months)'>;
-    itReturnsLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Income Tax Returns (Last 2 Years)'>;
-    loanAmountLabel: Schema.Attribute.String &
+    docsTitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Documents'>;
+    docTableActionHeader: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'View'>;
+    docTableDateHeader: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Date'>;
+    docTableFormatHeader: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'File Format'>;
+    docTableIdHeader: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Document ID'>;
+    docTablePasswordHeader: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Password'>;
+    docTableStatusHeader: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Status'>;
+    docTableTypeHeader: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Document Type'>;
+    docTypeLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Document Type'>;
+    docTypeOptions: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'Pan Card, Aadhar Card Front, Aadhar Card Back, Salary Slip 1, Salary Slip 2, Salary Slip 3, 6 Month Bank Statement, Form 16 - 1, Form 16 - 2, Office ID Card Front, Office ID Card Back, Passport Size Photo, Co-Applicant Pan Card, Co-Applicant Aadhar Card Front, Co-Applicant Aadhar Card Back, Property Papers, Other Documents (if any)'>;
+    jobStabilityLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Current Job Stability'>;
+    jobStabilityOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'6 Months, 1 year, 2 year, 3 year+'>;
+    landmarkLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Landmark'>;
+    landmarkPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter landmark'>;
+    loanTableAmountHeader: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Loan Amount'>;
-    loanTypeLabel: Schema.Attribute.String &
+    loanTableBankHeader: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Bank Name'>;
+    loanTableEmiHeader: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'EMI Amount'>;
+    loanTableIdHeader: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Loan ID'>;
+    loanTablePaidEmiHeader: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'No of Paid EMI'>;
+    loanTableTypeHeader: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Loan Type'>;
-    loanTypePlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Select Product'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::loan-application-page.loan-application-page'
     > &
       Schema.Attribute.Private;
+    maritalStatusLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Marital Status'>;
+    maritalStatusOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Single, Married, Divorced, Widowed'>;
+    motherNameLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Mother Name'>;
+    motherNamePlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter Mother Name'>;
+    netSalaryLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Net Salary (Per Month)'>;
+    netSalaryPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter net salary'>;
     nextStepButtonLabel: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Next Step \u2192'>;
-    notificationsLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Get Email Notifications for Lead Updated?'>;
-    otherDocsLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Other document (Pan/Adhar etc)'>;
+    noDocsUploadedText: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'No documents uploaded yet.'>;
+    otherDocsSubtitle: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'( If there is any additional documents )'>;
+    otherDocsTitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Other Documents'>;
     pageSubtitle: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Complete the steps below to submit your request.'>;
     pageTitle: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Loan Application'>;
-    panLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'PAN Card Number'>;
-    panPlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'ABCDE1234F'>;
-    phoneLabel: Schema.Attribute.String & Schema.Attribute.DefaultTo<'Phone'>;
-    phonePlaceholder: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'e.g., 9876543210'>;
+    panCardLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Pan Card'>;
+    pdfPasswordLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'PDF Password (If any)'>;
+    pdfPasswordPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter password if PDF is protected'>;
+    pendingStatusText: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'\u23F3 PENDING'>;
+    propertyAddressPincodeLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Property Address With Pincode'>;
+    propertyAddressPincodePlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter full property address with pincode'>;
+    propertyPapersLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Property Papers'>;
+    propertyStatusLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Property Current Status'>;
+    propertyStatusOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Constructed, Plot, Boundries'>;
+    propertyTypeLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Property Type'>;
+    propertyTypeOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Residential, Commercial, Industrial'>;
+    propertyValueLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Property Value'>;
+    propertyValueOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'20L, 50L, 75L, 1Cr, 1.5Cr, 2Cr, 3Cr, 4Cr, 5Cr, 5Cr+'>;
     publishedAt: Schema.Attribute.DateTime;
+    residenceTypeLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Residence Type'>;
+    residenceTypeOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Owned, Rented, Parental, Company Accommodation'>;
+    runningLoanAmountLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Loan Amount'>;
+    runningLoanAmountPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter loan amount'>;
+    runningLoanBankLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Bank Name'>;
+    runningLoanBankPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter bank name'>;
+    runningLoanEmiLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'EMI amount'>;
+    runningLoanEmiPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter EMI amount'>;
+    runningLoanPaidEmiLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'No of Paid EMI'>;
+    runningLoanPaidEmiPlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter number of paid EMIs'>;
+    runningLoanSubtitle: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'Please enter all your running loan details including credit card, Gold loan, Auto loan and any other running loan'>;
+    runningLoanTitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Running Loan (If Any)'>;
+    runningLoanTypeLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Loan Type'>;
+    runningLoanTypeOptions: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'Personal Loan, Business Loan, Home Loan, Loan Against Property, Credit Card, Auto Loan, Bike Loan, Consumer Loan, Gold Loan, Education Loan, Over Draft, Other'>;
+    salaryModeLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Salary Mode'>;
+    salaryModeOptions: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Account Transfer, Cheque, Cash'>;
+    salarySlipsLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Salary Slip 1 year'>;
+    selectFileLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'\u2601\uFE0F Select File'>;
+    spouseNameLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Spouse Name'>;
+    spouseNamePlaceholder: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Enter Spouse Name'>;
+    stateLabel: Schema.Attribute.String & Schema.Attribute.DefaultTo<'State'>;
     submitButtonLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Submit Application'>;
+      Schema.Attribute.DefaultTo<'Save & Submit Lead'>;
+    submittingButtonLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Submitting...'>;
+    summaryAadharLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Aadhar Card Number'>;
+    summaryBusinessTitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Business Details'>;
+    summaryEmailLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Email Address'>;
+    summaryIncomePropertyTitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Income & Property'>;
+    summaryLoanAmountLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Expected Loan Amount'>;
+    summaryOverviewTitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'\uD83D\uDCCB Primary Application Overview'>;
+    summaryPanLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'PAN Card Number'>;
+    summaryPersonalAddressTitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Personal & Address'>;
+    summaryPhoneLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Mobile Number'>;
+    summaryPropertyTitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Property Details'>;
+    summaryRunningLoansTitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Running Loans Summary'>;
     summaryTitle: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Application Summary'>;
-    tenureLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Tenure (Months)'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    uploadButtonLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Upload Document'>;
+    uploadedStatusText: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'\u2714 UPLOADED'>;
+    uploadedSuccessfullyText: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Uploaded Successfully'>;
+    uploadingButtonLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Uploading...'>;
+    validationErrorText: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'Please fill all required fields in all tabs to submit the lead for further processing.'>;
+    viewButtonLabel: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'\uD83D\uDC41 View'>;
   };
 }
 
@@ -1327,31 +1535,25 @@ export interface ApiLoanApplicationLoanApplication
     draftAndPublish: false;
   };
   attributes: {
-    adharNumber: Schema.Attribute.String & Schema.Attribute.Required;
-    applicantName: Schema.Attribute.String & Schema.Attribute.Required;
-    bankStatements: Schema.Attribute.Media<'files' | 'images', true>;
-    businessName: Schema.Attribute.String & Schema.Attribute.Required;
-    collateralType: Schema.Attribute.Enumeration<
-      [
-        'Property (Personal/Commercial)',
-        'Gold',
-        'Fixed Deposit',
-        'Machine/Vehicle',
-      ]
-    >;
-    collateralValue: Schema.Attribute.Decimal;
+    aadharCardBack: Schema.Attribute.Media<'files' | 'images'>;
+    aadharCardFront: Schema.Attribute.Media<'files' | 'images'>;
+    aadharNumber: Schema.Attribute.String;
+    applicantName: Schema.Attribute.String;
+    bankStatement: Schema.Attribute.Media<'files' | 'images'>;
+    businessName: Schema.Attribute.String;
+    businessRegProofDoc: Schema.Attribute.Media<'files' | 'images'>;
+    coAppAadharBack: Schema.Attribute.Media<'files' | 'images'>;
+    coAppAadharFront: Schema.Attribute.Media<'files' | 'images'>;
+    coAppPan: Schema.Attribute.Media<'files' | 'images'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    declarationAccepted: Schema.Attribute.Boolean & Schema.Attribute.Required;
-    email: Schema.Attribute.Email & Schema.Attribute.Required;
-    emailNotifications: Schema.Attribute.Boolean &
-      Schema.Attribute.DefaultTo<true>;
-    gstReturns: Schema.Attribute.Media<'files' | 'images', true>;
-    hasCollateral: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
-    itReturns: Schema.Attribute.Media<'files' | 'images', true>;
-    loanAmount: Schema.Attribute.Decimal & Schema.Attribute.Required;
-    loanType: Schema.Attribute.String & Schema.Attribute.Required;
+    declarationAccepted: Schema.Attribute.Boolean;
+    email: Schema.Attribute.String;
+    form_data: Schema.Attribute.JSON;
+    leadId: Schema.Attribute.Integer;
+    loanAmount: Schema.Attribute.Decimal;
+    loanType: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1359,13 +1561,18 @@ export interface ApiLoanApplicationLoanApplication
     > &
       Schema.Attribute.Private;
     otherDocs: Schema.Attribute.Media<'files' | 'images', true>;
-    panNumber: Schema.Attribute.String & Schema.Attribute.Required;
-    phone: Schema.Attribute.String & Schema.Attribute.Required;
+    panCard: Schema.Attribute.Media<'files' | 'images'>;
+    panNumber: Schema.Attribute.String;
+    phone: Schema.Attribute.String;
+    propertyPapers: Schema.Attribute.Media<'files' | 'images'>;
+    proprietorshipDoc: Schema.Attribute.Media<'files' | 'images'>;
     publishedAt: Schema.Attribute.DateTime;
-    tenureMonths: Schema.Attribute.Enumeration<
-      ['Months_12', 'Months_24', 'Months_36', 'Months_48', 'Months_60']
+    remarks: Schema.Attribute.JSON;
+    salarySlips: Schema.Attribute.Media<'files' | 'images', true>;
+    status: Schema.Attribute.Enumeration<
+      ['Pending', 'Under Review', 'Approved', 'Rejected']
     > &
-      Schema.Attribute.Required;
+      Schema.Attribute.DefaultTo<'Pending'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1389,12 +1596,16 @@ export interface ApiProductPageProductPage extends Struct.SingleTypeSchema {
     backButtonLink: Schema.Attribute.String & Schema.Attribute.DefaultTo<'/'>;
     continueButtonLabel: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Continue'>;
-    continueButtonLink: Schema.Attribute.String;
+    continueButtonLink: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'/lead-form'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    heroSubtitle: Schema.Attribute.Text;
-    heroTitle: Schema.Attribute.String & Schema.Attribute.Required;
+    heroSubtitle: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'Our diverse range of financial products is designed to scale with your specific needs.'>;
+    heroTitle: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'Choose Your Lending Solution'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1417,7 +1628,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     singularName: 'product';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
