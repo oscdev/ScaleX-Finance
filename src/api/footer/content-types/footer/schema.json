@@ -34,15 +34,15 @@
         },
         "aboutUsLink": {
             "type": "string",
-            "default": "/#about"
+            "default": "/about-us"
         },
         "contactPlatformLabel": {
             "type": "string",
-            "default": "Contact Platform"
+            "default": "Contact Us"
         },
         "contactPlatformLink": {
             "type": "string",
-            "default": "/#contact"
+            "default": "/contact"
         },
         "copyrightText": {
             "type": "string",

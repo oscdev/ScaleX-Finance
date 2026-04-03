@@ -40,6 +40,7 @@
     "**/*.test.*",
     // Do not include plugins in the server compilation
     "src/plugins/**",
-    "frontend/"
+    "frontend/",
+    "public/"
   ]
 }

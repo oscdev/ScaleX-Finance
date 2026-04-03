@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { strapiPublicApi } from '@/lib/strapi';
 
 import { logEvent } from '@/lib/logger';
+import './AdvisorLogin.css';
 
 export default function AdvisorLoginForm() {
     const router = useRouter();
@@ -27,7 +28,6 @@ export default function AdvisorLoginForm() {
         setIsSubmitting(true);
 
         try {
-            // Authenticate with Strapi
             const res = await fetch(strapiPublicApi('/api/auth/local'), {
                 method: 'POST',
                 headers: {
@@ -43,7 +43,6 @@ export default function AdvisorLoginForm() {
                 const errorData = await res.json();
                 const failMsg = errorData?.error?.message || 'Invalid email or password';
 
-                // 🛑 Audit Log: Failed Login
                 await logEvent({
                     action: 'ADVISOR_LOGIN_FAILURE',
                     description: `Failed login attempt for ${formData.email}`,
@@ -56,7 +55,6 @@ export default function AdvisorLoginForm() {
 
             const data = await res.json();
 
-            // 🟢 Audit Log: Successful Login
             await logEvent({
                 action: 'ADVISOR_LOGIN_SUCCESS',
                 description: `Successful login for ${formData.email}`,
@@ -65,61 +63,27 @@ export default function AdvisorLoginForm() {
                 metadata: { email: formData.email }
             });
 
-            // Store JWT token
             localStorage.setItem('advisorToken', data.jwt);
-
-            // Redirect to advisor dashboard
             router.push('/advisor-dashboard');
 
         } catch (err: any) {
-            // console.error('Login error:', err);
             setError(err.message || 'Login failed. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const inputStyle = {
-        width: '100%',
-        padding: '1rem',
-        borderRadius: '8px',
-        border: '1px solid var(--border-color)',
-        background: 'rgba(255,255,255,0.05)',
-        color: 'inherit',
-        fontSize: '1rem',
-        marginTop: '0.5rem',
-        marginBottom: '0.25rem',
-        fontFamily: 'inherit',
-        outline: 'none',
-        transition: 'border-color 0.3s ease'
-    };
-
-    const labelStyle = {
-        fontWeight: 500,
-        fontSize: '0.9rem',
-        opacity: 0.9,
-        display: 'block',
-        marginTop: '1.5rem'
-    };
-
-    const errorStyle = {
-        color: 'var(--secondary)',
-        fontSize: '0.9rem',
-        marginBottom: '1rem',
-        textAlign: 'center' as const
-    };
-
     return (
-        <section className="form-section" style={{ minHeight: '60vh', paddingBottom: '4rem' }}>
-            <div className="container animate-fade-in delay-200" style={{ maxWidth: '500px', margin: '0 auto' }}>
-                <form className="card" onSubmit={handleSubmit} style={{ padding: '3rem' }}>
+        <section className="login-section">
+            <div className="login-container animate-fade-in delay-200">
+                <form className="card login-card" onSubmit={handleSubmit}>
 
-                    {error && <div style={errorStyle}>{error}</div>}
+                    {error && <div className="login-error">{error}</div>}
 
                     <div>
-                        <label style={labelStyle}>Email Address</label>
+                        <label className="login-label">Email Address</label>
                         <input
-                            style={inputStyle}
+                            className="login-input"
                             type="email"
                             name="email"
                             placeholder="Enter your email"
@@ -130,9 +94,9 @@ export default function AdvisorLoginForm() {
                     </div>
 
                     <div>
-                        <label style={labelStyle}>Password</label>
+                        <label className="login-label">Password</label>
                         <input
-                            style={inputStyle}
+                            className="login-input"
                             type="password"
                             name="password"
                             placeholder="Enter your password"
@@ -144,20 +108,15 @@ export default function AdvisorLoginForm() {
 
                     <button
                         type="submit"
-                        className="btn btn-primary"
+                        className={`btn btn-primary login-submit-btn ${isSubmitting ? 'btn-disabled' : ''}`}
                         disabled={isSubmitting}
-                        style={{
-                            width: '100%',
-                            marginTop: '2rem',
-                            opacity: isSubmitting ? 0.7 : 1,
-                            cursor: isSubmitting ? 'not-allowed' : 'pointer'
-                        }}
+                        style={{ marginTop: '2rem' }}
                     >
                         {isSubmitting ? 'Logging in...' : 'Login'}
                     </button>
 
-                    <div style={{ textAlign: 'center', marginTop: '1.5rem', opacity: 0.8 }}>
-                        Don't have an account? <a href="/advisor-onboarding" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Register here</a>
+                    <div className="login-footer">
+                        Don't have an account? <a href="/advisor-onboarding" className="login-link">Register here</a>
                     </div>
 
                 </form>

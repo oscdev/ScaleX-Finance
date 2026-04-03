@@ -374,12 +374,13 @@ export default {
           return;
         }
 
-        // ✉️ 1. Send Welcome Email to Lead
+        // ✉️ 1. Send Welcome Email to Lead (Only if opted in)
         try {
-          if (result.email) {
+          if (result.email && result.getEmailNotification === true) {
             const welcomeHtml = getEmailTemplate('welcome-lead', {
               fullName: result.fullName,
               requiredAmount: result.requiredAmount || 'TBD',
+              productType: result.selectedProduct || 'TBD',
               leadId: result.id
             });
 
@@ -397,6 +398,15 @@ export default {
                 severity: 'info',
                 model: 'email-service',
                 metadata: { template: 'welcome-lead', recipient: result.email, status: 'success', subject }
+              });
+            }
+          } else if (result.email && result.getEmailNotification === false) {
+             if (logger) {
+              await logger.logEvent({
+                action: 'EMAIL_SKIPPED',
+                description: `Lead opted out of email notifications: ${result.fullName}`,
+                severity: 'info',
+                model: 'lead'
               });
             }
           }
@@ -424,8 +434,9 @@ export default {
                 advisorName: advisor.fullName || 'Advisor',
                 leadName: result.fullName,
                 amount: result.requiredAmount || 'N/A',
+                productType: result.selectedProduct || 'TBD',
                 mobile: result.mobileNumber || 'N/A',
-                city: result.cityDistrict || 'N/A'
+                city: result.pinCode || 'N/A'
               });
 
               const subject = `New Lead Assigned: ${result.fullName}`;
@@ -560,6 +571,77 @@ export default {
       }
     });
 
+    // 7. Robust Maintenance: Ensure Single Types are unique and published
+    const repairSingleTypes = async () => {
+      const singleTypes = [
+        'api::lead-form-page.lead-form-page',
+        'api::loan-application-page.loan-application-page',
+        'api::homepage.homepage',
+        'api::product-page.product-page',
+        'api::lenders-page.lenders-page',
+        'api::about-us-page.about-us-page',
+        'api::contact-us-page.contact-us-page',
+        'api::advisor-registration-page.advisor-registration-page',
+        'api::axis-bank-page.axis-bank-page',
+        'api::hdfc-bank-page.hdfc-bank-page',
+        'api::footer.footer',
+        'api::header.header',
+        'api::global-setting.global-setting'
+      ];
+
+      for (const uid of singleTypes) {
+        try {
+          const entries = await strapi.db.query(uid).findMany({
+            orderBy: { id: 'asc' }
+          });
+
+          if (entries.length > 1) {
+            // Only keep the oldest entry (id 1 usually)
+            const [bestEntry, ...toDelete] = entries;
+            const idsToDelete = toDelete.map((e: any) => e.id);
+            await strapi.db.query(uid).deleteMany({
+              where: { id: { $in: idsToDelete } }
+            });
+            console.log(`[Repair] Purged ${idsToDelete.length} duplicates for ${uid}. Kept ID: ${bestEntry.id}`);
+            
+            // Ensure bestEntry is published
+            if (!bestEntry.publishedAt) {
+               await strapi.db.query(uid).update({
+                  where: { id: bestEntry.id },
+                  data: { publishedAt: new Date() }
+               });
+            }
+          } else if (entries.length === 1) {
+             const entry = entries[0];
+             if (!entry.publishedAt) {
+                await strapi.db.query(uid).update({
+                   where: { id: entry.id },
+                   data: { publishedAt: new Date() }
+                });
+                console.log(`[Repair] Published existing draft for ${uid}`);
+             }
+          } else if (entries.length === 0) {
+             // Create initial record ONLY if it really is missing
+             const contentType = strapi.contentType(uid as any);
+             const defaults: any = {};
+             for (const [key, attr] of Object.entries(contentType?.attributes || {})) {
+               if ((attr as any).default !== undefined) defaults[key] = (attr as any).default;
+             }
+             await strapi.db.query(uid).create({
+                data: { ...defaults, publishedAt: new Date() }
+             });
+             console.log(`[Repair] Re-initialized missing entry for ${uid}`);
+          }
+        } catch (err: any) {
+          console.error(`[Repair Error] Failed to sync ${uid}:`, err.message);
+        }
+      }
+    };
+
+    await repairSingleTypes();
     // console.log('[Bootstrap] Initialization completed.');
+
+    // console.log('[Bootstrap] Initialization completed.');
+    // Force sync v2
   },
 };

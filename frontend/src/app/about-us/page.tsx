@@ -1,6 +1,7 @@
 import React from 'react';
 export const dynamic = 'force-dynamic';
 import { strapiInternalApi, withStrapiPublicUrl } from '@/lib/strapi';
+import './AboutUs.css';
 
 async function getAboutUsPageData() {
     try {
@@ -56,77 +57,56 @@ export default async function AboutUsPage() {
     }
 
     return (
-        <main style={{ minHeight: '100vh', background: '#0a0a0a', color: '#fff' }}>
+        <main className="about-us-main">
             {/* Hero Section */}
-            <section style={{
-                padding: '12rem 0 8rem 0',
-                background: 'radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent 50%), radial-gradient(circle at bottom left, rgba(147, 51, 234, 0.1), transparent 50%)',
-                position: 'relative',
-                overflow: 'hidden'
-            }}>
+            <section className="about-us-hero">
                 <div className="container animate-fade-in text-center">
-                    <h1 style={{ fontSize: '4rem', fontWeight: 900, marginBottom: '2rem', background: 'linear-gradient(to right, #fff, rgba(255,255,255,0.7))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                    <h1 className="about-us-title">
                         {heroTitle}
                     </h1>
-                    <p style={{ fontSize: '1.25rem', color: 'rgba(255,255,255,0.8)', maxWidth: '800px', margin: '0 auto', lineHeight: '1.8' }}>
+                    <p className="about-us-subtitle">
                         {heroSubtitle}
                     </p>
                 </div>
 
                 {/* Decorative Elements */}
-                <div style={{ position: 'absolute', top: '10%', left: '5%', width: '300px', height: '300px', background: 'var(--primary)', filter: 'blur(150px)', opacity: 0.1, zIndex: 0 }}></div>
+                <div className="about-us-blob"></div>
             </section>
 
             {/* Mission & Vision Cards */}
-            <section style={{ padding: '4rem 0' }}>
+            <section className="mv-section">
                 <div className="container">
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                        gap: '3rem',
-                        marginTop: '-4rem'
-                    }}>
-                        <div className="card animate-fade-in delay-100" style={{ padding: '3rem', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(10px)' }}>
-                            <div style={{ fontSize: '2.5rem', marginBottom: '1.5rem' }}>🎯</div>
-                            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--primary)' }}>{missionTitle}</h3>
-                            <p style={{ opacity: 0.8, lineHeight: '1.6' }}>{missionContent}</p>
+                    <div className="mv-grid">
+                        <div className="card mv-card animate-fade-in delay-100">
+                            <div className="mv-icon">🎯</div>
+                            <h3 className="mv-title" style={{ color: 'var(--primary)' }}>{missionTitle}</h3>
+                            <p className="mv-content">{missionContent}</p>
                         </div>
 
-                        <div className="card animate-fade-in delay-200" style={{ padding: '3rem', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(10px)' }}>
-                            <div style={{ fontSize: '2.5rem', marginBottom: '1.5rem' }}>🔭</div>
-                            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--secondary)' }}>{visionTitle}</h3>
-                            <p style={{ opacity: 0.8, lineHeight: '1.6' }}>{visionContent}</p>
+                        <div className="card mv-card animate-fade-in delay-200">
+                            <div className="mv-icon">🔭</div>
+                            <h3 className="mv-title" style={{ color: 'var(--secondary)' }}>{visionTitle}</h3>
+                            <p className="mv-content">{visionContent}</p>
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* Main Content Section */}
-            <section style={{ padding: '6rem 0 10rem 0' }}>
+            <section className="content-section">
                 <div className="container">
-                    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+                    <div className="content-container">
                         {bannerUrl && (
                             <img
                                 src={bannerUrl}
                                 alt="About Us Banner"
-                                style={{
-                                    width: '100%',
-                                    borderRadius: '2rem',
-                                    marginBottom: '4rem',
-                                    boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
-                                    border: '1px solid rgba(255,255,255,0.1)'
-                                }}
+                                className="about-us-banner"
                             />
                         )}
 
-                        <div className="rich-text animate-fade-in delay-300" style={{
-                            fontSize: '1.15rem',
-                            lineHeight: '2',
-                            opacity: 0.9,
-                            color: '#e5e7eb'
-                        }}>
+                        <div className="rich-text about-us-rich-text animate-fade-in delay-300">
                             {pageInfo.content ? parseBlocks(pageInfo.content) : (
-                                <p style={{ textAlign: 'center', fontStyle: 'italic', opacity: 0.5 }}>
+                                <p className="content-placeholder">
                                     Main content will appear here once published in Strapi.
                                 </p>
                             )}

@@ -1,0 +1,90 @@
+
+.contact-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 640px) {
+    .contact-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.contact-form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.contact-form-input {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    color: #fff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+    outline: none;
+    font-family: inherit;
+}
+
+.contact-form-input:focus {
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.contact-form-textarea {
+    resize: none;
+    min-height: 150px;
+}
+
+.contact-form-submit {
+    width: 100%;
+    padding: 1.25rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.contact-form-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.contact-success-container {
+    text-align: center;
+    padding: 2rem;
+}
+
+.contact-success-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+}
+
+.contact-success-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.contact-success-description {
+    opacity: 0.7;
+}
+
+.contact-success-reset {
+    margin-top: 2rem;
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-weight: 600;
+    transition: opacity 0.3s ease;
+}
+
+.contact-success-reset:hover {
+    opacity: 0.8;
+}

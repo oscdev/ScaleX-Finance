@@ -2,6 +2,7 @@ import React from 'react';
 export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { strapiInternalApi, withStrapiPublicUrl } from '@/lib/strapi';
+import './Lenders.css';
 
 async function getLendersPageData() {
     try {
@@ -60,70 +61,51 @@ export default async function LendersPage() {
     }) : [];
 
     return (
-        <main style={{ minHeight: '100vh', background: '#f8fafc', padding: '4rem 0' }}>
-            <div className="container" style={{ maxWidth: '800px', margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: '#111827', marginBottom: '1rem' }}>
+        <main className="lenders-main">
+            <div className="container lenders-container">
+                <div className="lenders-header">
+                    <h1 className="lenders-title">
                         {title} ({lenders.length})
                     </h1>
-                    <p style={{ color: '#6b7280', fontSize: '1.1rem' }}>
+                    <p className="lenders-subtitle">
                         {description}
                     </p>
                 </div>
 
-                <div style={{ display: 'grid', gap: '1.5rem' }}>
+                <div className="lenders-grid">
                     {lenders.length > 0 ? lenders.map((lender: any) => (
-                        <div key={lender.id} className="card" style={{
-                            padding: '1.5rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            background: 'white',
-                            borderRadius: '12px',
-                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                                <div style={{
-                                    width: '60px',
-                                    height: '60px',
-                                    background: '#f3f4f6',
-                                    borderRadius: '8px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontWeight: 'bold',
-                                    color: '#3b82f6',
-                                    overflow: 'hidden'
-                                }}>
+                        <div key={lender.id} className="lender-card">
+                            <div className="lender-info">
+                                <div className="lender-logo-container">
                                     {lender.logo ? (
-                                        <img src={lender.logo} alt={lender.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                        <img src={lender.logo} alt={lender.name} className="lender-logo-img" />
                                     ) : (
                                         <span>{lender.initials}</span>
                                     )}
                                 </div>
                                 <div>
-                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827' }}>{lender.name}</h3>
-                                    <p style={{ color: '#4b5563', marginTop: '0.25rem' }}>{lender.interestRate}</p>
+                                    <h3 className="lender-name">{lender.name}</h3>
+                                    <p className="lender-rate">{lender.interestRate}</p>
                                 </div>
                             </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{ color: '#059669', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                            <div className="lender-match">
+                                <div className="match-percentage">
                                     {lender.matchPercentage}% Match
                                 </div>
-                                <a href={lender.applyUrl} className="btn btn-primary" style={{ padding: '0.5rem 1.5rem', textDecoration: 'none', display: 'inline-block' }}>
+                                <a href={lender.applyUrl} className="btn btn-primary">
                                     Apply Now
                                 </a>
                             </div>
                         </div>
                     )) : (
-                        <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                        <div className="lenders-empty">
                             No matched lenders found at the moment.
                         </div>
                     )}
                 </div>
 
-                <div style={{ marginTop: '3rem', textAlign: 'center' }}>
-                    <Link href="/" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 500 }}>
+                <div className="lenders-footer">
+                    <Link href="/" className="back-link">
                         ← Back to Homepage
                     </Link>
                 </div>

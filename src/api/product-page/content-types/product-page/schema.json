@@ -1,4 +1,3 @@
-
 {
     "kind": "singleType",
     "collectionName": "product_page",
@@ -15,10 +14,12 @@
     "attributes": {
         "heroTitle": {
             "type": "string",
-            "required": true
+            "required": true,
+            "default": "Choose Your Lending Solution"
         },
         "heroSubtitle": {
-            "type": "text"
+            "type": "text",
+            "default": "Our diverse range of financial products is designed to scale with your specific needs."
         },
         "backButtonLabel": {
             "type": "string",
@@ -33,7 +34,8 @@
             "default": "Continue"
         },
         "continueButtonLink": {
-            "type": "string"
+            "type": "string",
+            "default": "/lead-form"
         }
     }
 }

@@ -1,0 +1,65 @@
+
+.maintenance-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #f8fafc;
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+}
+
+.maintenance-card {
+    max-width: 500px;
+    background: white;
+    padding: 3rem;
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e2e8f0;
+}
+
+.maintenance-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.maintenance-title {
+    color: #1e293b;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.maintenance-description {
+    color: #64748b;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.maintenance-btn {
+    background-color: #2563eb;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.maintenance-btn:hover {
+    background-color: #1d4ed8;
+}
+
+.maintenance-footer {
+    margin-top: 2rem;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}

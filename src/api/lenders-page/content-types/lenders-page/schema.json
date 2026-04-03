@@ -8,7 +8,7 @@
         "description": "CMS settings for the Matched Lenders results page"
     },
     "options": {
-        "draftAndPublish": false
+        "draftAndPublish": true
     },
     "pluginOptions": {},
     "attributes": {

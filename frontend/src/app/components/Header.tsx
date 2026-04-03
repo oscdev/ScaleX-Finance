@@ -24,6 +24,8 @@ async function getHeaderData() {
     }
 }
 
+import './Header.css';
+
 export default async function Header() {
     const data = await getHeaderData();
 
@@ -50,40 +52,28 @@ export default async function Header() {
     const fullLogoUrl = logoImageUrl ? withStrapiPublicUrl(logoImageUrl) : null;
 
     return (
-        <header style={{
-            background: 'var(--card-bg)',
-            backdropFilter: 'blur(10px)',
-            borderBottom: '1px solid var(--border-color)',
-            position: 'sticky',
-            top: 0,
-            zIndex: 100
-        }}>
-            <div className="container" style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                height: '80px'
-            }}>
-                <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: 700, fontSize: '1.5rem', fontFamily: 'var(--font-display)' }}>
+        <header className="main-header">
+            <div className="container header-container">
+                <Link href="/" className="header-logo">
                     {fullLogoUrl ? (
-                        <img src={fullLogoUrl} alt={logoText} style={{ height: '40px', objectFit: 'contain' }} />
+                        <img src={fullLogoUrl} alt={logoText} className="header-logo-img" />
                     ) : (
-                        <div style={{ background: 'var(--primary)', color: 'white', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '1.2rem', lineHeight: 1 }}>SX</div>
+                        <div className="header-logo-fallback">SX</div>
                     )}
                     {logoText}
                 </Link>
 
-                <nav style={{ display: 'flex', gap: '2rem', alignItems: 'center', fontSize: '1rem', fontWeight: 500 }}>
-                    <Link href={homeLink} style={{ transition: 'color 0.3s ease' }} className="nav-link">
+                <nav className="header-nav">
+                    <Link href={homeLink} className="nav-link">
                         {homeLabel}
                     </Link>
-                    <Link href={quickLoansLink} style={{ transition: 'color 0.3s ease' }} className="nav-link">
+                    <Link href={quickLoansLink} className="nav-link">
                         {quickLoansLabel}
                     </Link>
-                    <Link href={aboutUsLink} style={{ transition: 'color 0.3s ease' }} className="nav-link">
+                    <Link href={aboutUsLink} className="nav-link">
                         {aboutUsLabel}
                     </Link>
-                    <Link href={contactUsLink} style={{ transition: 'color 0.3s ease' }} className="nav-link">
+                    <Link href={contactUsLink} className="nav-link">
                         {contactUsLabel}
                     </Link>
                     <Link href={advisorRegistrationLink} className="btn btn-primary">

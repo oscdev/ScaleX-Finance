@@ -2,6 +2,7 @@ import React from 'react';
 export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { strapiInternalApi, withStrapiPublicUrl } from '@/lib/strapi';
+import '../DummyPages.css';
 
 async function getHdfcBankPageData() {
     try {
@@ -33,31 +34,31 @@ export default async function HdfcBankPage() {
     const logoUrl = pageInfo?.bankLogo?.data?.attributes?.url || pageInfo?.bankLogo?.url;
 
     return (
-        <main style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', padding: '4rem 0' }}>
-            <div className="container" style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
-                <div className="card animate-fade-in" style={{ padding: '3rem', background: 'white', borderRadius: '16px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}>
-                    <div style={{ marginBottom: '2rem' }}>
+        <main className="dummy-page-main">
+            <div className="container dummy-container">
+                <div className="card dummy-card animate-fade-in">
+                    <div className="dummy-logo-container">
                         {logoUrl ? (
-                            <img src={withStrapiPublicUrl(logoUrl)} alt="HDFC Bank" style={{ height: '60px', margin: '0 auto' }} />
+                            <img src={withStrapiPublicUrl(logoUrl)} alt="HDFC Bank" className="dummy-logo-img" />
                         ) : (
-                            <div style={{ fontSize: '3rem' }}>💸</div>
+                            <div className="dummy-logo-fallback">💸</div>
                         )}
                     </div>
 
-                    <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#111827', marginBottom: '1rem' }}>
+                    <h1 className="dummy-title">
                         {heroTitle}
                     </h1>
 
-                    <p style={{ color: '#4b5563', fontSize: '1.1rem', marginBottom: '2.5rem', lineHeight: '1.6' }}>
+                    <p className="dummy-subtitle">
                         {heroSubtitle}
                     </p>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <button className="btn btn-primary" style={{ width: '100%', padding: '1rem' }}>
+                    <div className="dummy-actions">
+                        <button className="btn btn-primary dummy-submit-btn">
                             {applyButtonText}
                         </button>
 
-                        <Link href="/lenders" style={{ color: '#6b7280', textDecoration: 'none', fontWeight: 500, marginTop: '1rem' }}>
+                        <Link href="/lenders" className="dummy-back-link">
                             ← {backToLendersText}
                         </Link>
                     </div>

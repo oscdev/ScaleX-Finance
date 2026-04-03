@@ -1,0 +1,14 @@
+
+.banner-fallback {
+    height: 400px;
+    background: linear-gradient(45deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    border-radius: 20px;
+}
+
+.rich-text-container {
+    margin-top: 1rem;
+}
