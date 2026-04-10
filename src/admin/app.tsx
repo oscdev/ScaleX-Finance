@@ -214,8 +214,18 @@ export default {
 
                 // 1. Leads Filtering
                 if (path.includes('api::lead.lead') && !path.includes('configurations')) {
+                    // Check if it's an Edit Page (URL ends with an ID/digit, not the model name)
+                    const pathParts = path.split('/');
+                    const lastPart = pathParts[pathParts.length - 1];
+                    const isEditPage = lastPart !== 'api::lead.lead' && /^\d+$/.test(lastPart);
+
+                    if (isEditPage) {
+                        // console.log('%c [Advisor Session] Blocking Edit Page access...', 'color: #ef4444;');
+                        window.location.href = '/admin/content-manager/collection-types/api::lead.lead';
+                        return;
+                    }
+
                     if (!search.includes('filters[advisorReferralId][$eq]=') || !search.includes(advisorId)) {
-                        // console.log('%c [Advisor Session] Enforcing Lead Filters...', 'color: #2563eb;');
                         window.location.href = `${path}?filters[advisorReferralId][$eq]=${advisorId}&sort=id:DESC`;
                     }
                 }
@@ -438,6 +448,35 @@ export default {
                                 #advisor-leads-submenu span:hover {
                                     padding-left: 14px !important;
                                     background-color: #2563eb !important;
+                                }
+
+                                /* Hide default Strapi edit/action buttons in Lead Overview and Single Types */
+                                [aria-label*="Actions"],
+                                td:last-child button:not(.custom-ai-match):not(.custom-view-lead),
+                                [role="gridcell"] button:not(.custom-ai-match):not(.custom-view-lead),
+                                button[aria-label*="Configure the view"],
+                                button[aria-label*="Edit"] {
+                                   display: none !important;
+                                }
+
+                                /* PREVENT ROW CLICK: Disable navigation to edit page from Leads Overview */
+                                [data-strapi-header*="Lead"] ~ div table tr,
+                                table tr:has(.custom-ai-match) {
+                                    cursor: default !important;
+                                }
+                                
+                                [data-strapi-header*="Lead"] ~ div table td,
+                                table tr:has(.custom-ai-match) td {
+                                    pointer-events: none !important;
+                                }
+
+                                /* RE-ENABLE CLICK for our custom buttons only */
+                                .custom-ai-match, 
+                                .custom-view-lead,
+                                .custom-view-lead *,
+                                .custom-ai-match * {
+                                    pointer-events: auto !important;
+                                    cursor: pointer !important;
                                 }
                             `;
                             document.head.appendChild(style);
