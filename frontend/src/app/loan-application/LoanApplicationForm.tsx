@@ -235,17 +235,14 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                 format: currentFile.name.split('.').pop()?.toUpperCase() || 'UNKNOWN',
                 password: prev.pdfPasswords[fieldKey] || 'No',
                 date: new Date().toLocaleDateString('en-IN'),
-                status: 'Uploaded'
+                status: 'Staged'
             };
-
-            const isArrayField = fieldKey === 'salarySlips' || fieldKey === 'otherDocs';
 
             return {
                 ...prev,
                 uploadedFields: { ...prev.uploadedFields, [fieldKey]: true },
-                addedDocs: [...prev.addedDocs, newDoc],
-                [fieldKey]: isArrayField ? [] : null,
-                pdfPasswords: { ...prev.pdfPasswords, [fieldKey]: '' } // Clear password on success
+                addedDocs: [...prev.addedDocs, newDoc]
+                // We DO NOT clear the file or password here, because they are need for final sequential submit
             };
         });
     };
@@ -348,12 +345,14 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                 }
             }
 
+            const cleanLeadId = (leadId && leadId !== 'N/A') ? parseInt(leadId, 10) : null;
+            const cleanLoanAmount = parseFloat(String(formData.loanAmount)) || 0;
+
             const payload = {
                 data: {
-                    id: leadId ? parseInt(leadId, 10) : undefined,
-                    leadId: leadId ? parseInt(leadId, 10) : null,
+                    leadId: cleanLeadId,
                     loanType,
-                    loanAmount: formData.loanAmount,
+                    loanAmount: cleanLoanAmount,
                     applicantName: sessionStorage.getItem('leadName') || formData.applicantName || 'Applicant',
                     email: sessionStorage.getItem('leadEmail') || '',
                     phone: sessionStorage.getItem('leadPhone') || '',
@@ -394,6 +393,8 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                     declarationAccepted: formData.declarationAccepted
                 }
             };
+
+            console.log('Sending Loan Application Payload:', JSON.stringify(payload, null, 2));
 
             const res = await fetch(strapiPublicApi('/strapi-api/loan-applications'), {
                 method: 'POST',
