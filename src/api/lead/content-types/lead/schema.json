@@ -68,7 +68,7 @@
         "pinCode": {
             "type": "string"
         },
-        "status": {
+        "leadStatus": {
             "type": "enumeration",
             "enum": [
                 "NEW",

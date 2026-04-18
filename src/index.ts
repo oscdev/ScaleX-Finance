@@ -473,20 +473,20 @@ export default {
         const { params } = event;
         const { where, data } = params;
 
-        if (data.status) {
+        if (data.leadStatus) {
           const oldLead = await strapi.db.query('api::lead.lead').findOne({ where });
-          if (oldLead && oldLead.status !== data.status) {
+          if (oldLead && oldLead.leadStatus !== data.leadStatus) {
             const logger: any = strapi.service('api::activity-log.activity-log');
             if (logger) {
               await logger.logEvent({
                 action: 'LEAD_STATUS_CHANGED',
-                description: `Lead status updated from ${oldLead.status} to ${data.status} for ${oldLead.fullName}`,
+                description: `Lead status updated from ${oldLead.leadStatus} to ${data.leadStatus} for ${oldLead.fullName}`,
                 severity: 'info',
                 model: 'api::lead.lead',
                 metadata: {
                   leadId: oldLead.id,
-                  oldStatus: oldLead.status,
-                  newStatus: data.status
+                  oldStatus: oldLead.leadStatus,
+                  newStatus: data.leadStatus
                 }
               });
             }
