@@ -1140,6 +1140,10 @@ export interface ApiLeadLead extends Struct.CollectionTypeSchema {
     fullName: Schema.Attribute.String & Schema.Attribute.Required;
     getEmailNotification: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
+    leadStatus: Schema.Attribute.Enumeration<
+      ['NEW', 'UNDER_PROCESS', 'APPROVED', 'REJECTED', 'DISBURSED']
+    > &
+      Schema.Attribute.DefaultTo<'NEW'>;
     leadType: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::lead.lead'> &
@@ -1154,10 +1158,6 @@ export interface ApiLeadLead extends Struct.CollectionTypeSchema {
     remarks: Schema.Attribute.JSON;
     requiredAmount: Schema.Attribute.Decimal & Schema.Attribute.Required;
     selectedProduct: Schema.Attribute.String;
-    status: Schema.Attribute.Enumeration<
-      ['NEW', 'UNDER_PROCESS', 'APPROVED', 'REJECTED', 'DISBURSED']
-    > &
-      Schema.Attribute.DefaultTo<'NEW'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
