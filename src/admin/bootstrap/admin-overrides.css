@@ -1,0 +1,211 @@
+/* Dashboard-mode cloak: hide default content and show custom dashboard */
+body.dashboard-mode main[role="main"] > * { display: none !important; }
+body.dashboard-mode #custom-dashboard-root {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 306px;
+    background: #f6f6f9;
+    z-index: 10;
+    overflow: auto;
+    display: block !important;
+    visibility: visible !important;
+    border-left: 1px solid #dcdce4;
+}
+
+/* Sidebar Leads toggle */
+#leads-toggle {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: transparent;
+    color: #4b5563;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    margin: 4px 0;
+    transition: all 0.2s;
+}
+#leads-toggle.active {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+#leads-toggle:hover,
+#leads-toggle.active {
+    background-color: #2563eb !important;
+    color: #fff !important;
+    border-radius: 6px !important;
+}
+#leads-toggle.active *,
+#leads-toggle:hover * {
+    color: #fff !important;
+    stroke: #fff !important;
+    fill: #fff !important;
+}
+
+/* Sidebar Leads submenu */
+#advisor-leads-submenu {
+    display: none;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding-left: 1.5rem;
+    border-left: 2px solid #2563eb;
+    margin-left: 1rem;
+    list-style: none;
+}
+#advisor-leads-submenu.is-expanded {
+    display: flex;
+}
+
+/* Lead list table headers and Actions column */
+thead th {
+    background-color: #f8fafc !important;
+    border-bottom: 2px solid #2563eb !important;
+}
+thead th span {
+    color: #2563eb !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    font-size: 11px !important;
+}
+.custom-actions-header {
+    min-width: 220px;
+    width: 220px;
+    vertical-align: middle;
+}
+.custom-actions-label {
+    color: #2563eb;
+    font-weight: 800;
+    font-size: 11px;
+}
+.custom-actions-cell {
+    pointer-events: auto !important;
+    min-width: 220px !important;
+    width: 220px;
+    text-align: right;
+    padding: 8px;
+    vertical-align: middle;
+}
+.custom-action-btn {
+    padding: 6px 12px;
+    background-color: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+/* Hide native Strapi row actions and Configure-view button */
+tbody button[aria-haspopup="menu"],
+tbody button[aria-label*="Edit"],
+button[aria-label*="Configure the view"],
+button[aria-label*="Create new entry"],
+a[href*="create"] {
+    display: none !important;
+}
+
+/* Communication icons inside Customer Info / Advisor cells */
+.custom-comm-icon {
+    font-size: 18px !important;
+    cursor: pointer !important;
+    transition: transform 0.2s;
+    display: inline-block;
+    text-decoration: none !important;
+    pointer-events: auto !important;
+}
+.custom-comm-icon:hover {
+    transform: scale(1.2);
+}
+
+/* Filter popover buttons — default black, hover blue */
+[data-radix-popper-content-wrapper] button,
+[role="dialog"] button {
+    color: #000000 !important;
+}
+[data-radix-popper-content-wrapper] button span,
+[data-radix-popper-content-wrapper] button p,
+[role="dialog"] button span,
+[role="dialog"] button p {
+    color: #000000 !important;
+}
+[data-radix-popper-content-wrapper] button:hover,
+[role="dialog"] button:hover {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #ffffff !important;
+}
+[data-radix-popper-content-wrapper] button:hover span,
+[data-radix-popper-content-wrapper] button:hover p,
+[role="dialog"] button:hover span,
+[role="dialog"] button:hover p {
+    color: #ffffff !important;
+}
+[data-radix-popper-content-wrapper] button:disabled,
+[role="dialog"] button:disabled {
+    color: #000000 !important;
+    opacity: 0.5 !important;
+}
+
+/* Active filter chips & Selected Displayed Fields — white text on blue background */
+[data-testid="filter-tag"],
+div[class*="FilterTag"],
+div[class*="filter-tag"],
+span[class*="FilterTag"],
+span[class*="filter-tag"],
+div:has(> button[aria-label*="Delete"]),
+div:has(> button[aria-label*="Remove"]),
+[role="menuitem"]:has(input[type="checkbox"]:checked),
+[role="option"]:has(input[type="checkbox"]:checked),
+label:has(input[type="checkbox"]:checked) {
+    color: #ffffff !important;
+}
+div:has(> button[aria-label*="Delete"]) span,
+div:has(> button[aria-label*="Delete"]) p,
+div:has(> button[aria-label*="Remove"]) span,
+div:has(> button[aria-label*="Remove"]) p,
+[role="menuitem"]:has(input[type="checkbox"]:checked) span,
+[role="option"]:has(input[type="checkbox"]:checked) span,
+label:has(input[type="checkbox"]:checked) span {
+    color: #ffffff !important;
+}
+
+/* Custom notifications bell (top-right of admin topbar) */
+#admin-notifications-root {
+    position: fixed;
+    top: 4px;
+    right: 240px;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+}
+#admin-notifications-root * {
+    color: #1e293b !important; /* Force all notification text to Dark Slate */
+}
+#admin-notifications-root svg {
+    color: #475569 !important; /* Darker grey for the bell icon */
+    stroke: #475569 !important;
+}
+#admin-notifications-root [class*="Badge"] span,
+#admin-notifications-root [class*="Badge"] {
+    color: #ffffff !important; /* Keep badge numbers white if background is dark */
+}
+#admin-notifications-root button:hover {
+    background-color: #f1f5f9 !important;
+}
+
+/* Debug banner indicating custom script is active */
+#strapi-custom-debug {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #2563eb;
+    color: #ffffff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 99999;
+}

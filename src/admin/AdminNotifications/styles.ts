@@ -38,6 +38,7 @@ export const styles: Record<string, CSSProperties> = {
     dropdownTitle: {
         marginBottom: '12px',
         display: 'block',
+        color: '#1e293b', // Explicit Dark Slate
     },
     notifRow: {
         borderBottom: '1px solid #f6f6f9',
@@ -49,10 +50,12 @@ export const styles: Record<string, CSSProperties> = {
     },
     timeText: {
         fontSize: '10px',
+        color: '#64748b', // Slate Grey
     },
     descText: {
         fontSize: '12px',
         fontWeight: 500,
+        color: '#1e293b', // Explicit Dark Slate
     },
     viewAllBox: {
         textAlign: 'center',
