@@ -38,7 +38,7 @@ export const AdminNotifications = () => {
                 >
                     <Typography
                         variant="sigma"
-                        textColor="neutral600"
+                        textColor="neutral800"
                         style={styles.dropdownTitle}
                     >
                         Recent Activity
@@ -65,13 +65,17 @@ export const AdminNotifications = () => {
                                         </Badge>
                                         <Typography
                                             variant="pi"
-                                            textColor="neutral400"
+                                            textColor="neutral500"
                                             style={styles.timeText}
                                         >
                                             {new Date(notif.createdAt).toLocaleTimeString()}
                                         </Typography>
                                     </Box>
-                                    <Typography variant="omega" style={styles.descText}>
+                                    <Typography 
+                                        variant="omega" 
+                                        textColor="neutral800"
+                                        style={styles.descText}
+                                    >
                                         {notif.description}
                                     </Typography>
                                 </Flex>

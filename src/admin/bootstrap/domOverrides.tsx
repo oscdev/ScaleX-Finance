@@ -5,6 +5,18 @@ import { LeadDetailDashboard } from '../LeadViewDashboard';
 import { LeadOverviewDashboard } from '../LeadOverview';
 import { AdminNotifications } from '../AdminNotifications';
 import { enforceDefaultListSettings } from '../LeadOverview/enforceListSettings';
+import './admin-overrides.css';
+
+type StatusBadgeColor = { bg: string; text: string; border: string };
+
+const statusBadgeColors: Record<string, StatusBadgeColor> = {
+    NEW: { bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
+    UNDER_PROCESS: { bg: '#fef3c7', text: '#92400e', border: '#fde68a' },
+    'UNDER PROCESS': { bg: '#fef3c7', text: '#92400e', border: '#fde68a' },
+    APPROVED: { bg: '#dcfce7', text: '#166534', border: '#bbf7d0' },
+    REJECTED: { bg: '#fee2e2', text: '#991b1b', border: '#fecaca' },
+    DISBURSED: { bg: '#f3e8ff', text: '#6b21a8', border: '#e9d5ff' },
+};
 
 const reactRoots = new Map<string, Root>();
 
@@ -14,7 +26,7 @@ const unmountAndRemove = (id: string) => {
         queueMicrotask(() => {
             try {
                 root.unmount();
-            } catch {}
+            } catch { }
         });
         reactRoots.delete(id);
     }
@@ -86,25 +98,14 @@ const initOverrides = () => {
                             (window as any).leadStatusMap[l.documentId] = l.leadStatus || 'NEW';
                     });
                 })
-                .catch(() => {});
+                .catch(() => { });
         }
 
-        let cloak = document.getElementById('dashboard-layout-style');
         if (isDashboard && isLoanPage) {
-            if (!cloak) {
-                cloak = document.createElement('style');
-                cloak.id = 'dashboard-layout-style';
-                cloak.innerHTML = `
-                    main[role="main"] > * { display: none !important; }
-                    #custom-dashboard-root {
-                        position: fixed; top: 0; right: 0; bottom: 0; left: 306px;
-                        background: #f6f6f9; z-index: 10; overflow: auto; display: block !important;
-                        visibility: visible !important; border-left: 1px solid #dcdce4;
-                    }
-                `;
-                document.head.appendChild(cloak);
-            }
-        } else if (cloak) cloak.remove();
+            document.body.classList.add('dashboard-mode');
+        } else {
+            document.body.classList.remove('dashboard-mode');
+        }
 
         if (isDashboard && leadId && isLoanPage) {
             let dashboardRoot = document.getElementById('custom-dashboard-root');
@@ -181,115 +182,22 @@ const initOverrides = () => {
                 const iconHtml =
                     (leadsLink as HTMLElement).innerHTML.match(/<svg.*<\/svg>/)?.[0] || '';
 
-                if (!document.getElementById('custom-admin-styles')) {
-                    const style = document.createElement('style');
-                    style.id = 'custom-admin-styles';
-                    style.innerHTML = `
-                        #leads-toggle:hover, #leads-toggle.active { background-color: #2563eb !important; color: #fff !important; border-radius: 6px !important; }
-                        #leads-toggle.active *, #leads-toggle:hover * { color: #fff !important; stroke: #fff !important; fill: #fff !important; }
-                        .custom-actions-cell { pointer-events: auto !important; min-width: 220px !important; }
-                        thead th { background-color: #f8fafc !important; border-bottom: 2px solid #2563eb !important; }
-                        thead th span { color: #2563eb !important; font-weight: 800 !important; text-transform: uppercase !important; font-size: 11px !important; }
-
-                        /* Hide Strapi ellipsis and other action buttons */
-                        tbody button[aria-haspopup="menu"],
-                        tbody button[aria-label*="Edit"],
-                        button[aria-label*="Configure the view"] {
-                            display: none !important;
-                        }
-
-                        /* Proper icon visibility and clickability */
-                        .custom-comm-icon {
-                            font-size: 18px !important;
-                            cursor: pointer !important;
-                            transition: transform 0.2s;
-                            display: inline-block;
-                            text-decoration: none !important;
-                            pointer-events: auto !important;
-                        }
-                        .custom-comm-icon:hover { transform: scale(1.2); }
-
-                        /* Filter popover buttons — default: black text, no override bg */
-                        [data-radix-popper-content-wrapper] button,
-                        [role="dialog"] button {
-                            color: #000000 !important;
-                        }
-                        [data-radix-popper-content-wrapper] button span,
-                        [data-radix-popper-content-wrapper] button p,
-                        [role="dialog"] button span,
-                        [role="dialog"] button p {
-                            color: #000000 !important;
-                        }
-                        /* Hover — blue bg, white text */
-                        [data-radix-popper-content-wrapper] button:hover,
-                        [role="dialog"] button:hover {
-                            background-color: #2563eb !important;
-                            border-color: #2563eb !important;
-                            color: #ffffff !important;
-                        }
-                        [data-radix-popper-content-wrapper] button:hover span,
-                        [data-radix-popper-content-wrapper] button:hover p,
-                        [role="dialog"] button:hover span,
-                        [role="dialog"] button:hover p {
-                            color: #ffffff !important;
-                        }
-                        /* Disabled state */
-                        [data-radix-popper-content-wrapper] button:disabled,
-                        [role="dialog"] button:disabled {
-                            color: #000000 !important;
-                            opacity: 0.5 !important;
-                        }
-
-                        /* Active filter chip — white text */
-                        [data-testid="filter-tag"],
-                        div[class*="FilterTag"],
-                        div[class*="filter-tag"],
-                        span[class*="FilterTag"],
-                        span[class*="filter-tag"],
-                        div:has(> button[aria-label*="Delete"]),
-                        div:has(> button[aria-label*="Remove"]) {
-                            color: #ffffff !important;
-                        }
-                        div:has(> button[aria-label*="Delete"]) span,
-                        div:has(> button[aria-label*="Delete"]) p,
-                        div:has(> button[aria-label*="Remove"]) span,
-                        div:has(> button[aria-label*="Remove"]) p {
-                            color: #ffffff !important;
-                        }
-                    `;
-                    document.head.appendChild(style);
-                }
-
                 const customToggle = document.createElement('div');
                 customToggle.id = 'leads-toggle';
                 const isLeadsActive =
                     window.location.pathname.includes('api::lead.lead') ||
                     window.location.pathname.includes('api::loan-application.loan-application');
                 if (isLeadsActive) customToggle.classList.add('active');
-                customToggle.setAttribute(
-                    'style',
-                    `cursor: pointer; display: flex; justify-content: space-between; align-items: center; background-color: ${
-                        isLeadsActive ? '#2563eb' : 'transparent'
-                    }; color: ${
-                        isLeadsActive ? 'white' : '#4b5563'
-                    }; padding: 10px 16px; border-radius: 6px; font-weight: bold; margin: 4px 0; transition: all 0.2s;`
-                );
 
                 const isExpanded =
                     sessionStorage.getItem('leads-menu-expanded') === 'true' || isLeadsActive;
-                customToggle.innerHTML = `<div style="display: flex; align-items: center; gap: 10px;">${iconHtml}<span>LEADS</span></div><svg width="12" height="12" style="transform: rotate(${
-                    isExpanded ? '180deg' : '0deg'
-                });"><polyline points="6 9 12 15 18 9" stroke="currentColor" fill="none"></polyline></svg>`;
+                customToggle.innerHTML = `<div style="display: flex; align-items: center; gap: 10px;">${iconHtml}<span>LEADS</span></div><svg width="12" height="12" style="transform: rotate(${isExpanded ? '180deg' : '0deg'
+                    });"><polyline points="6 9 12 15 18 9" stroke="currentColor" fill="none"></polyline></svg>`;
                 listItem.prepend(customToggle);
 
                 const subMenu = document.createElement('ul');
                 subMenu.id = 'advisor-leads-submenu';
-                subMenu.setAttribute(
-                    'style',
-                    `display: ${
-                        isExpanded ? 'flex' : 'none'
-                    }; flex-direction: column; gap: 0.6rem; padding-left: 1.5rem; border-left: 2px solid #2563eb; margin-left: 1rem; list-style: none;`
-                );
+                if (isExpanded) subMenu.classList.add('is-expanded');
                 subMenu.innerHTML = `
                     <li><span id="custom-add-lead-link" style="color: #4b5563; cursor: pointer;">Add New Lead</span></li>
                     <li><span id="custom-my-leads-link" style="color: inherit; cursor: pointer;">Leads Overview</span></li>
@@ -324,16 +232,18 @@ const initOverrides = () => {
 
                 headers.forEach((th) => {
                     const raw = (th.textContent || '').trim().toLowerCase();
-                    if (raw.includes('fullname')) th.id = 'col-customer-info';
-                    if (raw.includes('mobile')) th.id = 'col-mobile';
-                    if (raw.includes('email')) th.id = 'col-email';
-                    if (raw.includes('selectedproduct')) th.id = 'col-product';
-                    if (raw.includes('requiredamount')) th.id = 'col-amount';
-                    if (raw.includes('createdat')) th.id = 'col-added';
-                    if (raw.includes('updatedat')) th.id = 'col-updated';
-                    if (raw.includes('leadstatus') || raw.trim() === 'status') th.id = 'col-status';
-                    if (raw.includes('advisor')) th.id = 'col-advisor';
-                    if (raw.includes('remarks')) th.id = 'col-remarks';
+                    // Identify columns by technical name OR our professional labels
+                    if (raw.includes('fullname') || raw.includes('customer info')) th.id = 'col-customer-info';
+                    if (raw.includes('mobile') || raw.includes('mobile')) th.id = 'col-mobile';
+                    if (raw.includes('email') || raw.includes('email')) th.id = 'col-email';
+                    if (raw.includes('selectedproduct') || raw.includes('product')) th.id = 'col-product';
+                    if (raw.includes('requiredamount') || raw.includes('amount')) th.id = 'col-amount';
+                    if (raw.includes('createdat') || raw.includes('added')) th.id = 'col-added';
+                    if (raw.includes('updatedat') || raw.includes('updated')) th.id = 'col-updated';
+                    if (raw.includes('leadstatus') || raw.includes('status')) th.id = 'col-status';
+                    if (raw.includes('advisor') || raw.includes('advisor')) th.id = 'col-advisor';
+                    if (raw.includes('remarks') || raw.includes('remarks')) th.id = 'col-remarks';
+                    if (raw.includes('notification') || raw.includes('notifications')) th.id = 'col-notifications';
                     if (raw === 'id' || raw.startsWith('id')) th.id = 'col-id';
                 });
 
@@ -356,6 +266,7 @@ const initOverrides = () => {
                     employmenttype: 'EMPLOYMENT',
                     leadtype: 'LEAD TYPE',
                     getemailnotification: 'EMAIL NOTIFICATIONS',
+                    getEmailNotification: 'EMAIL NOTIFICATIONS',
                     pincode: 'PINCODE',
                     remarks: 'REMARKS',
                     locale: 'LOCALE',
@@ -366,13 +277,17 @@ const initOverrides = () => {
 
                 headers.forEach((th) => {
                     const raw = th.textContent?.trim().toLowerCase() || '';
+
+                    // Specific exclusion: DO NOT hide the Notifications column title
+                    if (th.id === 'col-notifications' || raw.includes('notification')) {
+                        return;
+                    }
+
                     if (
                         th.id === 'col-mobile' ||
                         th.id === 'col-email' ||
                         th.id === 'col-added' ||
-                        raw.includes('mobile') ||
-                        raw.includes('email') ||
-                        raw.includes('added') ||
+                        (raw === 'mobile' || raw === 'email' || raw === 'added') ||
                         raw.includes('publication') ||
                         raw.includes('published')
                     ) {
@@ -380,17 +295,24 @@ const initOverrides = () => {
                         return;
                     }
 
-                    for (const [key, label] of Object.entries(labelMap)) {
-                        if (raw.includes(key)) {
+                    // Priority labeling: match longest keys first to avoid "id" matching "advisorReferralId"
+                    const sortedKeys = Object.keys(labelMap).sort((a, b) => b.length - a.length);
+
+                    for (const key of sortedKeys) {
+                        const label = labelMap[key];
+                        const cleanLabel = label.toLowerCase();
+                        if (raw === key || raw === cleanLabel) {
                             const slot = (th.querySelector('span') || th) as HTMLElement;
                             if (slot.textContent !== label) {
-                                slot.textContent = label as string;
+                                slot.textContent = label;
                             }
                             if (slot.style) {
                                 slot.style.fontWeight = '800';
                                 slot.style.color = '#2563eb';
                                 slot.style.fontSize = '11px';
+                                slot.style.setProperty('color', '#2563eb', 'important');
                             }
+                            break;
                         }
                     }
                 });
@@ -398,11 +320,20 @@ const initOverrides = () => {
                 if (!document.getElementById('custom-actions-header')) {
                     const th = document.createElement('th');
                     th.id = 'custom-actions-header';
-                    th.setAttribute('aria-colindex', (headerRow.children.length + 1).toString());
-                    th.setAttribute('style', 'min-width: 220px; width: 220px; vertical-align: middle;');
-                    th.innerHTML =
-                        '<span style="color: #2563eb; font-weight: 800; font-size: 11px;">ACTIONS</span>';
+                    th.className = 'custom-actions-header';
+                    th.innerHTML = '<span class="custom-actions-label">ACTIONS</span>';
                     headerRow.appendChild(th);
+                }
+
+                const existingActionsHeader = headerRow.querySelector('#custom-actions-header');
+                if (existingActionsHeader && headerRow.lastElementChild !== existingActionsHeader) {
+                    headerRow.appendChild(existingActionsHeader);
+                }
+                if (existingActionsHeader) {
+                    existingActionsHeader.setAttribute(
+                        'aria-colindex',
+                        headerRow.children.length.toString()
+                    );
                 }
 
                 const allElements = document.querySelectorAll('span, button, label, li, p, div');
@@ -414,7 +345,45 @@ const initOverrides = () => {
                     );
 
                 allElements.forEach((el) => {
+                    const text = (el.textContent || '').trim().toLowerCase();
+
+                    // Specifically handle "Configure the view" button inside portals
+                    if (
+                        (text === 'configure the view' || text === 'configure the fields') &&
+                        (el.tagName === 'SPAN' || el.tagName === 'BUTTON' || el.tagName === 'A')
+                    ) {
+                        const btn = el.closest('button') || el.closest('a') || el;
+                        if (btn && !(btn as any)._custom_styled) {
+                            (btn as any)._custom_styled = true;
+                            const btnEl = btn as HTMLElement;
+                            
+                            const setWhite = () => {
+                                btnEl.style.setProperty('background-color', '#ffffff', 'important');
+                                btnEl.style.setProperty('color', '#2563eb', 'important');
+                                btnEl.style.setProperty('border', '1px solid #2563eb', 'important');
+                                btnEl.querySelectorAll('span, p, div').forEach((child: any) => {
+                                    child.style.setProperty('color', '#2563eb', 'important');
+                                });
+                            };
+                            const setBlue = () => {
+                                btnEl.style.setProperty('background-color', '#2563eb', 'important');
+                                btnEl.style.setProperty('color', '#ffffff', 'important');
+                                btnEl.style.setProperty('border', '1px solid #2563eb', 'important');
+                                btnEl.querySelectorAll('span, p, div').forEach((child: any) => {
+                                    child.style.setProperty('color', '#ffffff', 'important');
+                                });
+                            };
+
+                            setWhite();
+                            btnEl.onmouseenter = setBlue;
+                            btnEl.onmouseleave = setWhite;
+                        }
+                    }
+
                     if (isInsideRadixPortal(el)) return;
+                    if (el.closest('#admin-notifications-root')) return;
+                    if (el.id === 'admin-notifications-root') return;
+                    
                     if (el.textContent === 'Displayed fields') {
                         const parent = el.closest('div');
                         if (parent && parent.parentElement) {
@@ -426,31 +395,6 @@ const initOverrides = () => {
                             }
                         }
                     }
-
-                    const text = (el.textContent || '').trim().toLowerCase();
-
-                    if (
-                        text === 'configure the view' &&
-                        (el.tagName === 'SPAN' || el.tagName === 'BUTTON' || el.tagName === 'A')
-                    ) {
-                        const btn = el.closest('button') || el.closest('a') || el;
-                        if (btn) {
-                            (el as HTMLElement).style.setProperty('color', '#ffffff', 'important');
-                            (btn as HTMLElement).style.setProperty(
-                                'background-color',
-                                '#2563eb',
-                                'important'
-                            );
-                            (btn as HTMLElement).style.setProperty('border', 'none', 'important');
-                            (btn as HTMLElement).style.setProperty('color', '#ffffff', 'important');
-
-                            const children = btn.querySelectorAll('span, p, div');
-                            children.forEach((child: any) => {
-                                child.style.setProperty('color', '#ffffff', 'important');
-                            });
-                        }
-                    }
-
                 });
 
                 // Active filter chips — white text
@@ -459,6 +403,7 @@ const initOverrides = () => {
                     .querySelectorAll('button')
                     .forEach((btn) => {
                         if (isInsideRadixPortal(btn)) return;
+                        if (btn.closest('#admin-notifications-root')) return;
                         const label = (btn.getAttribute('aria-label') || '').toLowerCase();
                         const isCloseBtn =
                             label.includes('clear') ||
@@ -481,24 +426,51 @@ const initOverrides = () => {
                         }
                     });
 
-                // 2) Find chips by blue background-color (inline or computed)
-                document.querySelectorAll('span, div').forEach((el) => {
-                    if (isInsideRadixPortal(el)) return;
+                // 2) Find chips and selected menu items by blue background-color (inline or computed)
+                document.querySelectorAll('span, div, label, button').forEach((el) => {
                     const htmlEl = el as HTMLElement;
+                    
+                    // Specific exclusion: DO NOT touch the notifications root
+                    if (htmlEl.closest('#admin-notifications-root')) return;
+
                     const bg = htmlEl.style.backgroundColor || window.getComputedStyle(htmlEl).backgroundColor;
+                    
                     // Match #2563eb → rgb(37, 99, 235) and similar blue tones
                     if (
                         bg === 'rgb(37, 99, 235)' ||
                         bg === 'rgb(29, 78, 216)' ||
+                        bg === 'rgb(73, 69, 255)' || // Strapi default blue
                         htmlEl.style.backgroundColor?.includes('#2563eb') ||
-                        htmlEl.style.backgroundColor?.includes('#1d4ed8')
+                        htmlEl.style.backgroundColor?.includes('#1d4ed8') ||
+                        htmlEl.style.backgroundColor?.includes('#4945ff')
                     ) {
                         htmlEl.style.setProperty('color', '#ffffff', 'important');
-                        htmlEl.querySelectorAll('span, p, a, button').forEach((child) => {
+                        htmlEl.querySelectorAll('span, p, a, button, label').forEach((child) => {
                             (child as HTMLElement).style.setProperty('color', '#ffffff', 'important');
                         });
                     }
                 });
+
+                // Relabel camelCase field names inside Displayed fields / Filters popovers
+                // using nodeValue mutation so React's text-node refs stay intact.
+                document
+                    .querySelectorAll(
+                        '[data-radix-popper-content-wrapper], [role="dialog"], [data-radix-popover-content]'
+                    )
+                    .forEach((portal) => {
+                        const walker = document.createTreeWalker(portal, NodeFilter.SHOW_TEXT);
+                        let node: Node | null = walker.nextNode();
+                        while (node) {
+                            const raw = (node.nodeValue || '').trim().toLowerCase();
+                            if (raw) {
+                                const mapped = (labelMap as any)[raw];
+                                if (mapped && node.nodeValue !== mapped) {
+                                    node.nodeValue = mapped;
+                                }
+                            }
+                            node = walker.nextNode();
+                        }
+                    });
 
                 if (popoverContainer && isInsideRadixPortal(popoverContainer)) {
                     popoverContainer = null;
@@ -519,8 +491,7 @@ const initOverrides = () => {
                     container.style.transition = 'background-color 0.2s';
 
                     container.innerHTML = `
-                        <input type="checkbox" ${
-                            hasRemarks ? 'checked' : ''
+                        <input type="checkbox" ${hasRemarks ? 'checked' : ''
                         } style="cursor: pointer; width: 16px; height: 16px; pointer-events: none;" />
                         <span style="font-size: 13px; font-weight: 500; color: #32324d; user-select: none;">REMARKS</span>
                     `;
@@ -579,6 +550,7 @@ const initOverrides = () => {
                     const upIdx = currentHeaders.findIndex((th) => th.id === 'col-updated');
                     const addIdx = currentHeaders.findIndex((th) => th.id === 'col-added');
                     const rIdx = currentHeaders.findIndex((th) => th.id === 'col-remarks');
+                    const ntfIdx = currentHeaders.findIndex((th) => th.id === 'col-notifications');
 
                     cells.forEach((td) => {
                         const text = td.textContent?.toLowerCase() || '';
@@ -604,24 +576,21 @@ const initOverrides = () => {
                                 <div class="custom-comm-container" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 4px 0;">
                                     <span style="font-weight: 600; color: #1e293b; font-size: 13px;">${nameText}</span>
                                     <div style="display: flex; gap: 12px; margin-top: 2px;">
-                                        ${
-                                            mobileVal
-                                                ? `<a href="tel:${mobileVal}" title="Call: ${mobileVal}" class="custom-comm-icon" style="color: #2563eb; text-decoration: none; font-size: 16px;">📞</a>`
-                                                : ''
-                                        }
-                                        ${
-                                            mobileVal
-                                                ? `<a href="https://wa.me/${mobileVal.replace(
-                                                      /\D/g,
-                                                      ''
-                                                  )}" target="_blank" title="WhatsApp: ${mobileVal}" class="custom-comm-icon" style="color: #22c55e; text-decoration: none; font-size: 16px;">💬</a>`
-                                                : ''
-                                        }
-                                        ${
-                                            emailVal
-                                                ? `<a href="mailto:${emailVal}" title="Email: ${emailVal}" class="custom-comm-icon" style="color: #2563eb; text-decoration: none; font-size: 16px;">✉️</a>`
-                                                : ''
-                                        }
+                                        ${mobileVal
+                                    ? `<a href="tel:${mobileVal}" title="Call: ${mobileVal}" class="custom-comm-icon" style="color: #2563eb; text-decoration: none; font-size: 16px;">📞</a>`
+                                    : ''
+                                }
+                                        ${mobileVal
+                                    ? `<a href="https://wa.me/${mobileVal.replace(
+                                        /\D/g,
+                                        ''
+                                    )}" target="_blank" title="WhatsApp: ${mobileVal}" class="custom-comm-icon" style="color: #22c55e; text-decoration: none; font-size: 16px;">💬</a>`
+                                    : ''
+                                }
+                                        ${emailVal
+                                    ? `<a href="mailto:${emailVal}" title="Email: ${emailVal}" class="custom-comm-icon" style="color: #2563eb; text-decoration: none; font-size: 16px;">✉️</a>`
+                                    : ''
+                                }
                                     </div>
                                 </div>
                             `;
@@ -637,30 +606,25 @@ const initOverrides = () => {
                         if (advData && !advCell.querySelector('.custom-advisor-container')) {
                             advCell.innerHTML = `
                                 <div class="custom-advisor-container" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 4px 0;">
-                                    <span style="font-weight: 600; color: #1e293b; font-size: 13px;">${
-                                        advData.name
-                                    } / #${advData.id}</span>
+                                    <span style="font-weight: 600; color: #1e293b; font-size: 13px;">${advData.name
+                                } / #${advData.id}</span>
                                     <div style="display: flex; gap: 12px; margin-top: 2px;">
-                                        ${
-                                            advData.phone
-                                                ? `<a href="tel:${advData.phone}" title="Call: ${advData.phone}" class="custom-comm-icon" style="color: #2563eb; text-decoration: none; font-size: 16px;">📞</a>`
-                                                : ''
-                                        }
-                                        ${
-                                            advData.phone
-                                                ? `<a href="https://wa.me/${advData.phone.replace(
-                                                      /\D/g,
-                                                      ''
-                                                  )}" target="_blank" title="WhatsApp: ${
-                                                      advData.phone
-                                                  }" class="custom-comm-icon" style="color: #22c55e; text-decoration: none; font-size: 16px;">💬</a>`
-                                                : ''
-                                        }
-                                        ${
-                                            advData.email
-                                                ? `<a href="mailto:${advData.email}" title="Email: ${advData.email}" class="custom-comm-icon" style="color: #2563eb; text-decoration: none; font-size: 16px;">✉️</a>`
-                                                : ''
-                                        }
+                                        ${advData.phone
+                                    ? `<a href="tel:${advData.phone}" title="Call: ${advData.phone}" class="custom-comm-icon" style="color: #2563eb; text-decoration: none; font-size: 16px;">📞</a>`
+                                    : ''
+                                }
+                                        ${advData.phone
+                                    ? `<a href="https://wa.me/${advData.phone.replace(
+                                        /\D/g,
+                                        ''
+                                    )}" target="_blank" title="WhatsApp: ${advData.phone
+                                    }" class="custom-comm-icon" style="color: #22c55e; text-decoration: none; font-size: 16px;">💬</a>`
+                                    : ''
+                                }
+                                        ${advData.email
+                                    ? `<a href="mailto:${advData.email}" title="Email: ${advData.email}" class="custom-comm-icon" style="color: #2563eb; text-decoration: none; font-size: 16px;">✉️</a>`
+                                    : ''
+                                }
                                     </div>
                                 </div>
                             `;
@@ -690,24 +654,7 @@ const initOverrides = () => {
                             statusCell.innerHTML = '';
 
                             if (val) {
-                                const colors: any = {
-                                    NEW: { bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
-                                    UNDER_PROCESS: {
-                                        bg: '#fef3c7',
-                                        text: '#92400e',
-                                        border: '#fde68a',
-                                    },
-                                    'UNDER PROCESS': {
-                                        bg: '#fef3c7',
-                                        text: '#92400e',
-                                        border: '#fde68a',
-                                    },
-                                    APPROVED: { bg: '#dcfce7', text: '#166534', border: '#bbf7d0' },
-                                    REJECTED: { bg: '#fee2e2', text: '#991b1b', border: '#fecaca' },
-                                    DISBURSED: { bg: '#f3e8ff', text: '#6b21a8', border: '#e9d5ff' },
-                                };
-
-                                const style = colors[val] || colors['NEW'];
+                                const style = statusBadgeColors[val] || statusBadgeColors['NEW'];
                                 statusCell.innerHTML = `
                                     <div class="custom-status-badge" style="
                                         background: ${style.bg};
@@ -749,6 +696,16 @@ const initOverrides = () => {
                     if (addIdx !== -1 && cells[addIdx]) cells[addIdx].style.display = 'none';
                     if (pubIdx !== -1 && cells[pubIdx]) cells[pubIdx].style.display = 'none';
 
+                    if (ntfIdx !== -1 && cells[ntfIdx]) {
+                        const ntfCell = cells[ntfIdx];
+                        const val = ntfCell.textContent?.trim().toLowerCase();
+                        if (val === 'true' || val === 'yes' || val === '1') {
+                            ntfCell.innerHTML = '<span style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;">YES</span>';
+                        } else if (val === 'false' || val === 'no' || val === '0') {
+                            ntfCell.innerHTML = '<span style="background: #f1f5f9; color: #64748b; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;">NO</span>';
+                        }
+                    }
+
                     (row as HTMLElement).style.cursor = 'default';
                     (row as HTMLElement).onclick = (e) => {
                         const target = e.target as HTMLElement;
@@ -763,11 +720,6 @@ const initOverrides = () => {
                         actTd = document.createElement('td');
                         actTd.className =
                             'custom-actions-cell sc-bdnAzI cbXjmK sc-dkuEPC iJOdyj sc-eQxoQn eUabAw';
-                        actTd.setAttribute('aria-colindex', '8');
-                        actTd.setAttribute(
-                            'style',
-                            'min-width: 220px; width: 220px; text-align: right; padding: 8px; pointer-events: auto; vertical-align: middle;'
-                        );
 
                         const container = document.createElement('div');
                         container.style.display = 'flex';
@@ -775,12 +727,8 @@ const initOverrides = () => {
                         container.style.justifyContent = 'flex-end';
 
                         const aiBtn = document.createElement('button');
-                        aiBtn.className = 'custom-ai-match';
+                        aiBtn.className = 'custom-ai-match custom-action-btn';
                         aiBtn.innerHTML = 'AI Match';
-                        aiBtn.setAttribute(
-                            'style',
-                            'padding: 6px 12px; background-color: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 800;'
-                        );
                         aiBtn.onclick = (e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -788,12 +736,8 @@ const initOverrides = () => {
                         };
 
                         const viewBtn = document.createElement('button');
-                        viewBtn.className = 'custom-view-lead';
+                        viewBtn.className = 'custom-view-lead custom-action-btn';
                         viewBtn.innerHTML = 'View Lead';
-                        viewBtn.setAttribute(
-                            'style',
-                            'padding: 6px 12px; background-color: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 800;'
-                        );
                         viewBtn.onclick = (e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -812,8 +756,12 @@ const initOverrides = () => {
                         container.appendChild(aiBtn);
                         actTd.appendChild(container);
                         row.appendChild(actTd);
-                        actTd.setAttribute('aria-colindex', row.children.length.toString());
                     }
+
+                    if (row.lastElementChild !== actTd) {
+                        row.appendChild(actTd);
+                    }
+                    actTd.setAttribute('aria-colindex', row.children.length.toString());
                 });
             }
         } else {
@@ -823,10 +771,6 @@ const initOverrides = () => {
         if (!document.getElementById('admin-notifications-root')) {
             const notifyRoot = document.createElement('div');
             notifyRoot.id = 'admin-notifications-root';
-            notifyRoot.setAttribute(
-                'style',
-                'position: fixed; top: 4px; right: 240px; z-index: 999999; display: flex; align-items: center;'
-            );
             document.body.appendChild(notifyRoot);
             const notifyReactRoot = createRoot(notifyRoot);
             reactRoots.set('admin-notifications-root', notifyReactRoot);
@@ -840,10 +784,6 @@ const initOverrides = () => {
         if (!document.getElementById('strapi-custom-debug')) {
             const debugDiv = document.createElement('div');
             debugDiv.id = 'strapi-custom-debug';
-            debugDiv.setAttribute(
-                'style',
-                'position: fixed; top: 10px; right: 10px; background: #2563eb; color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; z-index: 99999;'
-            );
             debugDiv.textContent = 'Strapi Custom Script Active';
             document.body.prepend(debugDiv);
         }
@@ -862,11 +802,18 @@ const isCollectionTypePath = (url: string) => {
 };
 
 const cleanUrlForHistory = (url: string): string => {
-    if (!isCollectionTypePath(url)) return url;
     try {
-        return url.startsWith('http')
-            ? new URL(url).pathname
-            : url.split('?')[0];
+        const urlStr = url.toString();
+        if (!urlStr.includes('/content-manager/collection-types/')) return urlStr;
+
+        const urlObj = new URL(urlStr.startsWith('http') ? urlStr : `http://x${urlStr}`);
+        // NEVER strip if it has a 'view' (dashboard) or 'id' (detail)
+        if (urlObj.searchParams.has('view') || urlObj.searchParams.has('id')) {
+            return urlStr;
+        }
+
+        // Only strip technical query params for the main list view to keep it clean
+        return urlObj.pathname;
     } catch {
         return url;
     }

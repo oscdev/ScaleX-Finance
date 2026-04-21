@@ -67,16 +67,15 @@ export const registerClickHandlers = () => {
                     'advisor-leads-submenu'
                 ) as HTMLElement | null;
                 if (subMenu) {
-                    const isHidden = subMenu.style.display === 'none';
-                    const newState = isHidden ? 'flex' : 'none';
-                    subMenu.style.display = newState;
-                    sessionStorage.setItem('leads-menu-expanded', isHidden ? 'true' : 'false');
+                    const willExpand = !subMenu.classList.contains('is-expanded');
+                    subMenu.classList.toggle('is-expanded', willExpand);
+                    sessionStorage.setItem('leads-menu-expanded', willExpand ? 'true' : 'false');
 
                     const arrow = document.getElementById(
                         'leads-toggle-arrow'
                     ) as HTMLElement | null;
                     if (arrow) {
-                        arrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+                        arrow.style.transform = willExpand ? 'rotate(180deg)' : 'rotate(0deg)';
                     }
                 }
             }

@@ -66,8 +66,15 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
     return (
         <Box padding={6} background="neutral100" style={styles.rootBox}>
             {/* Header / Breadcrumbs */}
-            <Flex gap={2} marginBottom={4}>
-                <Typography variant="pi" textColor="neutral600">Dashboard</Typography>
+            <Flex gap={2} marginBottom={4} alignItems="center">
+                <Button 
+                    variant="ghost" 
+                    size="S" 
+                    onClick={() => window.open('/admin/content-manager/collection-types/api::lead.lead', '_self')}
+                    style={{ padding: '0 4px' }}
+                >
+                    <Typography variant="pi" textColor="primary600" fontWeight="bold">← BACK TO LEADS</Typography>
+                </Button>
                 <span>/</span>
                 <Typography variant="pi" textColor="neutral600">{productType}</Typography>
                 <span>/</span>
