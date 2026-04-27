@@ -10,7 +10,7 @@ import { getStrapiToken } from './strapiToken';
 const tagAdvisorHeaders = (headers: Element[]) => {
     headers.forEach((th) => {
         const raw = (th.textContent || '').trim().toLowerCase();
-        if (raw.includes('advisorid') || raw.includes('advisor code')) th.id = 'adv-col-id';
+        if (raw === 'id' || raw === 'advisorid' || raw.includes('advisor code')) th.id = 'adv-col-id';
         if (raw.includes('createdat') || raw.includes('joining date')) th.id = 'adv-col-joining';
         if (raw.includes('fullname') || raw.includes('advisor name')) th.id = 'adv-col-name';
         if (raw.includes('phonenumber') || raw.includes('mobile') || raw.includes('advisor contact')) th.id = 'adv-col-phone';
@@ -82,8 +82,16 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
         const idCell = cells[idIdx];
         const rawVal = idCell.textContent?.trim() || '';
         if (rawVal && !idCell.querySelector('.custom-adv-id')) {
-            const display = /^\d+$/.test(rawVal) ? `ADV${rawVal}` : rawVal;
-            idCell.innerHTML = `<span class="custom-adv-id">${display}</span>`;
+            // Check if it's already ADV-prefixed
+            if (rawVal.toUpperCase().startsWith('ADV')) {
+                idCell.innerHTML = `<span class="custom-adv-id">${rawVal.toUpperCase()}</span>`;
+            } else if (/^\d+$/.test(rawVal)) {
+                // It's a numeric ID, add the ADV prefix
+                idCell.innerHTML = `<span class="custom-adv-id">ADV${rawVal}</span>`;
+            } else {
+                // It's a string ID (documentId), leave it as is but wrap it
+                idCell.innerHTML = `<span class="custom-adv-id">${rawVal}</span>`;
+            }
         }
     }
 
