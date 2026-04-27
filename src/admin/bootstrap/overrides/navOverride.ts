@@ -1,40 +1,68 @@
 export const applyNavOverride = () => {
     const navLinks = Array.from(document.querySelectorAll('nav a'));
-    const leadsLink = navLinks.find((a) => a.getAttribute('href')?.endsWith('api::lead.lead'));
+    // Select the Leads link more carefully
+    const leadsLink = navLinks.find((a) => {
+        const href = a.getAttribute('href') || '';
+        return href.includes('api::lead.lead') && !a.id.includes('custom');
+    });
+    
     const loanAppLink = navLinks.find((a) =>
-        a.getAttribute('href')?.endsWith('api::loan-application.loan-application')
+        a.getAttribute('href')?.includes('api::loan-application.loan-application')
     );
 
-    if (loanAppLink) {
-        (loanAppLink as HTMLElement).style.display = 'none';
-        loanAppLink.id = 'original-loan-apps-link';
-    }
+    const loanAppLinks = navLinks.filter((a) =>
+        a.getAttribute('href')?.includes('loan-application')
+    );
+
+    loanAppLinks.forEach((link) => {
+        (link as HTMLElement).style.display = 'none';
+    });
 
     if (leadsLink && !document.getElementById('custom-add-lead-li')) {
         const listItem = leadsLink.closest('li');
         if (listItem && listItem.parentElement) {
             const currentPath = window.location.pathname;
             const currentSearch = window.location.search;
-            const isLeadsActive =
-                currentPath.includes('api::lead.lead') ||
-                currentPath.includes('api::loan-application.loan-application');
+            
             const originalLiClasses = listItem.className || '';
-            const startExpanded =
-                isLeadsActive && sessionStorage.getItem('leads-menu-expanded') !== 'false';
-            const isOverviewActive = currentPath.includes('api::lead.lead');
+            const startExpanded = sessionStorage.getItem('leads-menu-expanded') !== 'false';
+            const isOverviewActive = 
+                currentPath.includes('api::lead.lead') || 
+                currentPath.includes('api::loan-application.loan-application');
+            
             const isAddLeadActive =
                 currentPath === '/products' ||
                 (currentPath.includes('api::lead.lead') && currentSearch.includes('create'));
+
+            // FIX: Ensure parent text exists (sometimes lost in production builds)
+            const textSpan = (leadsLink as HTMLElement).querySelector('span');
+            if (textSpan) {
+                textSpan.textContent = 'Leads';
+                textSpan.style.color = 'inherit';
+            } else if (!(leadsLink as HTMLElement).textContent?.trim()) {
+                (leadsLink as HTMLElement).innerHTML = `<span style="color:inherit; font-weight:500; font-size:13px; margin-left: 8px;">Leads</span>`;
+            }
+
+            // Standardize parent link style
+            (leadsLink as HTMLElement).style.display = 'flex';
+            (leadsLink as HTMLElement).style.alignItems = 'center';
+            (leadsLink as HTMLElement).style.padding = '8px 12px';
+            (leadsLink as HTMLElement).style.textDecoration = 'none';
+            (leadsLink as HTMLElement).style.borderRadius = '4px';
 
             // "Add New Lead" child item
             const addLeadLi = document.createElement('li');
             addLeadLi.id = 'custom-add-lead-li';
             addLeadLi.className = `${originalLiClasses} leads-submenu-item`;
-            addLeadLi.setAttribute('data-lead-child', 'true');
-            if (!startExpanded) addLeadLi.style.display = 'none';
+            Object.assign(addLeadLi.style, {
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+                display: startExpanded ? 'block' : 'none'
+            });
             addLeadLi.innerHTML = `
                 <a id="custom-add-lead-link" href="/products" title="Add New Lead"
-                   class="leads-submenu-link${isAddLeadActive ? ' active' : ''}">
+                   style="display:block; padding: 10px 16px 10px 32px; color: ${isAddLeadActive ? '#ffffff' : '#32324d'} !important; background-color: ${isAddLeadActive ? '#1d4ed8' : 'transparent'} !important; text-decoration: none; font-size: 13px; font-weight: 500; border-radius: 4px; margin: 2px 0;">
                     Add New Lead
                 </a>
             `;
@@ -43,37 +71,51 @@ export const applyNavOverride = () => {
             const overviewLi = document.createElement('li');
             overviewLi.id = 'custom-my-leads-li';
             overviewLi.className = `${originalLiClasses} leads-submenu-item`;
-            overviewLi.setAttribute('data-lead-child', 'true');
-            if (!startExpanded) overviewLi.style.display = 'none';
+            Object.assign(overviewLi.style, {
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+                display: startExpanded ? 'block' : 'none'
+            });
             overviewLi.innerHTML = `
                 <a id="custom-my-leads-link" href="/admin/content-manager/collection-types/api::lead.lead" title="Leads Overview"
-                   class="leads-submenu-link${isOverviewActive && !isAddLeadActive ? ' active' : ''}">
+                   style="display:block; padding: 10px 16px 10px 32px; color: ${isOverviewActive ? '#ffffff' : '#32324d'} !important; background-color: ${isOverviewActive ? '#1d4ed8' : 'transparent'} !important; text-decoration: none; font-size: 13px; font-weight: 500; border-radius: 4px; margin: 2px 0;">
                     Leads Overview
                 </a>
             `;
 
             if (isAddLeadActive || isOverviewActive) {
-                (leadsLink as HTMLElement).classList.add('active');
+                (leadsLink as HTMLElement).style.backgroundColor = '#1d4ed8';
+                (leadsLink as HTMLElement).style.color = '#ffffff';
             }
 
             listItem.insertAdjacentElement('afterend', overviewLi);
             listItem.insertAdjacentElement('afterend', addLeadLi);
 
-            // Parent li — CSS class handles position:relative
-            listItem.classList.add('leads-parent-nav-item');
-
-            // Chevron toggle — CSS handles all static positioning/sizing
+            // Chevron toggle
+            listItem.style.position = 'relative';
             const chevron = document.createElement('button');
             chevron.id = 'leads-chevron-toggle';
             chevron.type = 'button';
-            chevron.setAttribute('aria-label', 'Toggle leads submenu');
-            chevron.innerHTML = `<svg width="10" height="10" style="transition:transform 0.2s;transform:rotate(${startExpanded ? '180deg' : '0deg'});"><polyline points="1 3 5 7 9 3" stroke="currentColor" fill="none" stroke-width="2"></polyline></svg>`;
+            Object.assign(chevron.style, {
+                background: 'transparent',
+                border: 'none',
+                padding: '4px',
+                cursor: 'pointer',
+                color: (isAddLeadActive || isOverviewActive) ? '#ffffff' : '#32324d',
+                position: 'absolute',
+                right: '8px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: '20'
+            });
+            chevron.innerHTML = `<svg width="14" height="14" style="transition:transform 0.2s;transform:rotate(${startExpanded ? '180deg' : '0deg'});"><polyline points="3 5 7 9 11 5" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>`;
             listItem.appendChild(chevron);
 
             const toggleChildren = () => {
                 const nowExpanded = addLeadLi.style.display === 'none';
-                addLeadLi.style.display = nowExpanded ? '' : 'none';
-                overviewLi.style.display = nowExpanded ? '' : 'none';
+                addLeadLi.style.display = nowExpanded ? 'block' : 'none';
+                overviewLi.style.display = nowExpanded ? 'block' : 'none';
                 sessionStorage.setItem('leads-menu-expanded', nowExpanded ? 'true' : 'false');
                 const svg = chevron.querySelector('svg') as SVGElement | null;
                 if (svg) svg.style.transform = `rotate(${nowExpanded ? '180deg' : '0deg'})`;
@@ -85,43 +127,28 @@ export const applyNavOverride = () => {
                 toggleChildren();
             };
 
-            // Parent "Leads" link only toggles the submenu — no navigation
-            (leadsLink as HTMLElement).addEventListener(
-                'click',
-                (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleChildren();
-                },
-                true
-            );
+            (leadsLink as HTMLElement).addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleChildren();
+            }, true);
 
-            const addLeadBtn = addLeadLi.querySelector('#custom-add-lead-link') as HTMLAnchorElement | null;
-            if (addLeadBtn) {
-                addLeadBtn.onclick = (e) => {
-                    e.preventDefault();
-                    window.history.pushState(null, '', '/products');
-                    window.dispatchEvent(new PopStateEvent('popstate'));
-                };
-            }
+            // Client-side navigation handlers
+            const addBtn = addLeadLi.querySelector('#custom-add-lead-link') as HTMLAnchorElement | null;
+            if (addBtn) addBtn.onclick = (e) => {
+                e.preventDefault();
+                window.history.pushState(null, '', '/products');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+                setTimeout(updateNavActiveStates, 50);
+            };
 
-            const myLeadsBtn = overviewLi.querySelector('#custom-my-leads-link') as HTMLAnchorElement | null;
-            if (myLeadsBtn) {
-                myLeadsBtn.onclick = (e) => {
-                    e.preventDefault();
-                    const original = document.getElementById('original-leads-link');
-                    if (original) {
-                        (original as HTMLElement).click();
-                    } else {
-                        window.history.pushState(
-                            null,
-                            '',
-                            '/admin/content-manager/collection-types/api::lead.lead'
-                        );
-                        window.dispatchEvent(new PopStateEvent('popstate'));
-                    }
-                };
-            }
+            const ovBtn = overviewLi.querySelector('#custom-my-leads-link') as HTMLAnchorElement | null;
+            if (ovBtn) ovBtn.onclick = (e) => {
+                e.preventDefault();
+                window.history.pushState(null, '', '/admin/content-manager/collection-types/api::lead.lead');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+                setTimeout(updateNavActiveStates, 50);
+            };
         }
     }
 };
@@ -129,16 +156,26 @@ export const applyNavOverride = () => {
 export const updateNavActiveStates = () => {
     const currentPath = window.location.pathname;
     const currentSearch = window.location.search;
-    const isAddLeadActive =
-        currentPath === '/products' ||
-        (currentPath.includes('api::lead.lead') && currentSearch.includes('create'));
+    const isAddLeadActive = currentPath === '/products' || (currentPath.includes('api::lead.lead') && currentSearch.includes('create'));
     const isOverviewActive = currentPath.includes('api::lead.lead') && !currentSearch.includes('create');
 
-    const addLeadLink = document.getElementById('custom-add-lead-link');
-    const overviewLink = document.getElementById('custom-my-leads-link');
-    const leadsParent = document.querySelector('nav a[href*="api::lead.lead"]');
+    const addLink = document.getElementById('custom-add-lead-link');
+    const ovLink = document.getElementById('custom-my-leads-link');
+    const leadsP = document.querySelector('nav a[href*="api::lead.lead"]:not([id*="custom"])') as HTMLElement | null;
+    const chevron = document.getElementById('leads-chevron-toggle');
 
-    if (addLeadLink) addLeadLink.classList.toggle('active', isAddLeadActive);
-    if (overviewLink) overviewLink.classList.toggle('active', isOverviewActive);
-    if (leadsParent) leadsParent.classList.toggle('active', isAddLeadActive || isOverviewActive);
+    if (addLink) {
+        addLink.style.color = isAddLeadActive ? '#ffffff !important' : '#32324d !important';
+        addLink.style.backgroundColor = isAddLeadActive ? '#1d4ed8 !important' : 'transparent !important';
+    }
+    if (ovLink) {
+        ovLink.style.color = isOverviewActive ? '#ffffff !important' : '#32324d !important';
+        ovLink.style.backgroundColor = isOverviewActive ? '#1d4ed8 !important' : 'transparent !important';
+    }
+    if (leadsP) {
+        const isActive = isAddLeadActive || isOverviewActive;
+        leadsP.style.backgroundColor = isActive ? '#1d4ed8' : 'transparent';
+        leadsP.style.color = isActive ? '#ffffff' : '#32324d';
+        if (chevron) chevron.style.color = isActive ? '#ffffff' : '#32324d';
+    }
 };

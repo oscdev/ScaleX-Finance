@@ -273,10 +273,10 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
         cells[nameIdx].innerHTML = `
             <div class="custom-comm-container">
                 <span class="custom-comm-name">${nameText}</span>
-                <div class="custom-comm-icons">
-                    ${mobileVal ? `<a href="tel:${mobileVal}" onclick="event.stopPropagation()" title="Call: ${mobileVal}" class="custom-comm-icon">📞</a>` : ''}
-                    ${mobileVal ? `<a href="https://wa.me/${mobileVal.replace(/\D/g, '')}" target="_blank" onclick="event.stopPropagation()" title="WhatsApp: ${mobileVal}" class="custom-comm-icon">💬</a>` : ''}
-                    ${emailVal ? `<a href="mailto:${emailVal}" onclick="event.stopPropagation()" title="Email: ${emailVal}" class="custom-comm-icon">✉️</a>` : ''}
+                <div class="custom-comm-icons" style="margin-top: 4px;">
+                    ${mobileVal ? `<a href="tel:${mobileVal}" onclick="event.stopPropagation()" title="Call: ${mobileVal}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">📞</a>` : ''}
+                    ${mobileVal ? `<a href="https://wa.me/${mobileVal.replace(/\D/g, '')}" target="_blank" onclick="event.stopPropagation()" title="WhatsApp: ${mobileVal}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">💬</a>` : ''}
+                    ${emailVal ? `<a href="mailto:${emailVal}" onclick="event.stopPropagation()" title="Email: ${emailVal}" class="custom-comm-icon" style="text-decoration: none;">✉️</a>` : ''}
                 </div>
             </div>
         `;
@@ -291,11 +291,11 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
         if (advData && !advCell.querySelector('.custom-advisor-container')) {
             advCell.innerHTML = `
                 <div class="custom-advisor-container">
-                    <span class="custom-advisor-name">${advData.name} / #${advData.id}</span>
-                    <div class="custom-comm-icons">
-                        ${advData.phone ? `<a href="tel:${advData.phone}" onclick="event.stopPropagation()" title="Call: ${advData.phone}" class="custom-comm-icon">📞</a>` : ''}
-                        ${advData.phone ? `<a href="https://wa.me/${advData.phone.replace(/\D/g, '')}" target="_blank" onclick="event.stopPropagation()" title="WhatsApp: ${advData.phone}" class="custom-comm-icon">💬</a>` : ''}
-                        ${advData.email ? `<a href="mailto:${advData.email}" onclick="event.stopPropagation()" title="Email: ${advData.email}" class="custom-comm-icon">✉️</a>` : ''}
+                    <span class="custom-advisor-name">${advData.name} / ADV${advData.id}</span>
+                    <div class="custom-comm-icons" style="margin-top: 4px;">
+                        ${advData.phone ? `<a href="tel:${advData.phone}" onclick="event.stopPropagation()" title="Call: ${advData.phone}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">📞</a>` : ''}
+                        ${advData.phone ? `<a href="https://wa.me/${advData.phone.replace(/\D/g, '')}" target="_blank" onclick="event.stopPropagation()" title="WhatsApp: ${advData.phone}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">💬</a>` : ''}
+                        ${advData.email ? `<a href="mailto:${advData.email}" onclick="event.stopPropagation()" title="Email: ${advData.email}" class="custom-comm-icon" style="text-decoration: none;">✉️</a>` : ''}
                     </div>
                 </div>
             `;
@@ -366,10 +366,14 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
     // so no tr.onclick is needed here. All React events (including checkbox onChange)
     // flow naturally to React's root listener.
 
-    // Remove Strapi's built-in empty actions td (sc-hZpJae) that misaligns columns on first load
+    // Hide Strapi's built-in empty/ghost cells instead of removing them (prevents React insertBefore crash)
     row.querySelectorAll('td').forEach((td) => {
-        if (!td.classList.contains('custom-actions-cell') && td.classList.contains('sc-hZpJae')) {
-            td.remove();
+        if (!td.classList.contains('custom-actions-cell') && td.children.length === 0 && td.textContent?.trim() === '') {
+            (td as HTMLElement).style.display = 'none';
+        }
+        // Specific catch for the production sc-eQxoQn classes if they are empty
+        if (!td.classList.contains('custom-actions-cell') && td.classList.contains('sc-eQxoQn') && td.children.length === 0) {
+            (td as HTMLElement).style.display = 'none';
         }
     });
 
@@ -377,14 +381,32 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
     let actTd = row.querySelector('.custom-actions-cell') as HTMLElement;
     if (!actTd) {
         actTd = document.createElement('td');
-        actTd.className = 'custom-actions-cell sc-bdnAzI cbXjmK sc-dkuEPC iJOdyj sc-eQxoQn eUabAw';
+        actTd.className = 'custom-actions-cell';
+        actTd.style.padding = '12px 16px';
+        actTd.style.verticalAlign = 'middle';
 
         const container = document.createElement('div');
         container.className = 'custom-actions-btn-row';
+        container.style.display = 'flex';
+        container.style.gap = '8px';
+        container.style.justifyContent = 'flex-end';
+        container.style.alignItems = 'center';
+        container.style.minWidth = '220px';
 
         const aiBtn = document.createElement('button');
         aiBtn.className = 'custom-ai-match custom-action-btn';
         aiBtn.textContent = 'AI Match';
+        Object.assign(aiBtn.style, {
+            padding: '6px 14px',
+            backgroundColor: '#1d4ed8',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '12px',
+            fontWeight: '700',
+            transition: 'background 0.2s'
+        });
         aiBtn.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -394,6 +416,17 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
         const viewBtn = document.createElement('button');
         viewBtn.className = 'custom-view-lead custom-action-btn';
         viewBtn.textContent = 'View Lead';
+        Object.assign(viewBtn.style, {
+            padding: '6px 14px',
+            backgroundColor: '#1d4ed8',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '12px',
+            fontWeight: '700',
+            transition: 'background 0.2s'
+        });
         viewBtn.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();

@@ -2,11 +2,41 @@
    ScaleX Finance CRM - Core UI Overrides
    --------------------------------------------------------- */
 
-/* Dashboard Cloak: Hides default Strapi content while Dashboard is active */
-body.dashboard-mode [data-strapi-main],
-body.dashboard-mode main>div:last-child {
+/* Dashboard Cloak: JS sets data-dashboard-hidden on elements to hide;
+   CSS class selectors are kept as fallback for environments where JS runs late. */
+
+/* JS-driven hiding — works regardless of Strapi DOM structure */
+[data-dashboard-hidden="true"] {
+    display: none !important;
     visibility: hidden !important;
     pointer-events: none !important;
+}
+
+/* CSS fallback: hide Strapi content while Dashboard is active */
+body.dashboard-mode [data-strapi-main],
+body.dashboard-mode main,
+/* Hide Strapi's default header/top-bar/profile area in dashboard mode */
+body.dashboard-mode header,
+body.dashboard-mode [data-strapi-header],
+body.dashboard-mode div:has(> [data-strapi-header]),
+body.dashboard-mode div:has(> [aria-label="Notifications"]),
+body.dashboard-mode [aria-label="Notifications"],
+body.dashboard-mode [role="banner"],
+body.dashboard-mode .fUuMxb,
+body.dashboard-mode #app > div > div:nth-child(n+2),
+body.dashboard-mode #root > div > div:nth-child(n+2) {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Ensure the sidebar column remains visible (first child of the flex row) */
+body.dashboard-mode #app > div > div:first-child,
+body.dashboard-mode #root > div > div:first-child {
+    display: flex !important;
+    visibility: visible !important;
 }
 
 /* Sidebar & Navigation Visibility */
@@ -25,6 +55,15 @@ body.dashboard-mode #custom-dashboard-root {
     display: block !important; visibility: visible !important;
     border-left: 1px solid #dcdce4;
     pointer-events: auto !important;
+}
+
+/* Force list style none for all sidebar items (removes 1., 2. numbers) */
+nav li, 
+nav ol, 
+nav ul,
+.leads-submenu-item {
+    list-style: none !important;
+    list-style-type: none !important;
 }
 
 @media (max-width: 1200px) {

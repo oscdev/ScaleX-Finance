@@ -77,6 +77,36 @@ const prefetchLeadsData = (token: string, commonHeaders: Record<string, string>)
 
 // ─── Lead detail dashboard (loan-application page with a lead selected) ───────
 
+const DASHBOARD_HIDDEN_ATTR = 'data-dashboard-hidden';
+
+// Explicitly mark Strapi's native page elements for hiding via CSS attribute selector.
+// CSS class selectors (body.dashboard-mode #app > ...) only work when the server's
+// Strapi DOM matches local exactly. This JS traversal works regardless of structure.
+const hideStrapiFrame = () => {
+    // Semantic elements always present in Strapi's admin
+    document.querySelectorAll('header, main, [data-strapi-header], [data-strapi-main]').forEach((el) => {
+        (el as HTMLElement).setAttribute(DASHBOARD_HIDDEN_ATTR, 'true');
+    });
+
+    // Strapi mounts under #app or #root — hide the main content column (all siblings
+    // after the first child, which is the sidebar/nav column) inside its flex wrapper.
+    for (const rootSel of ['#app', '#root', '#strapi']) {
+        const appRoot = document.querySelector(rootSel);
+        const flexRow = appRoot?.firstElementChild;
+        if (!flexRow) continue;
+        const cols = Array.from(flexRow.children);
+        // cols[0] = sidebar (keep), cols[1+] = main content area (hide)
+        cols.slice(1).forEach((col) => (col as HTMLElement).setAttribute(DASHBOARD_HIDDEN_ATTR, 'true'));
+        break;
+    }
+};
+
+const showStrapiFrame = () => {
+    document.querySelectorAll(`[${DASHBOARD_HIDDEN_ATTR}]`).forEach((el) => {
+        (el as HTMLElement).removeAttribute(DASHBOARD_HIDDEN_ATTR);
+    });
+};
+
 const applyLeadDashboardOverride = (token: string) => {
     const isLoanPage = window.location.pathname.includes('api::loan-application.loan-application');
 
@@ -91,8 +121,10 @@ const applyLeadDashboardOverride = (token: string) => {
 
     if (isDashboard) {
         document.body.classList.add('dashboard-mode');
+        hideStrapiFrame();
     } else {
         document.body.classList.remove('dashboard-mode');
+        showStrapiFrame();
     }
 
     if (isDashboard && leadId) {
