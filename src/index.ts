@@ -99,15 +99,61 @@ export default {
       // console.error('[Advisor Sync] Failed to query approved advisors:', err);
     }
 
+    // 2.5 Backfill advisorId for all advisors missing it
+    try {
+      const advisorsToBackfill = await strapi.db.query('api::advisor.advisor').findMany({
+        where: {
+          $or: [
+            { advisorId: null },
+            { advisorId: '' }
+          ]
+        }
+      });
+
+      if (advisorsToBackfill.length > 0) {
+        console.log(`[Advisor Sync] Backfilling advisorId for ${advisorsToBackfill.length} records...`);
+        for (const adv of advisorsToBackfill) {
+          await strapi.db.query('api::advisor.advisor').update({
+            where: { id: adv.id },
+            data: { advisorId: `ADV${adv.id}` }
+          });
+        }
+      }
+    } catch (err) {
+      console.error('[Advisor Sync] Backfill failed:', err);
+    }
+
     // 3. Register Global Lifecycle
     strapi.db.lifecycles.subscribe({
       models: ['api::advisor.advisor'],
       async afterCreate(event) {
         const { result } = event;
+
+        // Auto-generate advisorId if missing
+        if (!result.advisorId) {
+          try {
+            await strapi.db.query('api::advisor.advisor').update({
+              where: { id: result.id },
+              data: { advisorId: `ADV${result.id}` }
+            });
+          } catch (e) {}
+        }
+
         await createAdminUserFromAdvisor(strapi, result, (event.params as any)?.data?.password);
       },
       async afterUpdate(event) {
         const { result } = event;
+
+        // Ensure advisorId is present
+        if (!result.advisorId) {
+           try {
+            await strapi.db.query('api::advisor.advisor').update({
+              where: { id: result.id },
+              data: { advisorId: `ADV${result.id}` }
+            });
+          } catch (e) {}
+        }
+
         await createAdminUserFromAdvisor(strapi, result, (event.params as any)?.data?.password);
       },
     });
