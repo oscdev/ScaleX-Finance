@@ -202,16 +202,39 @@ export const getAppSteps = (loanType: string, occupation: string) => {
 
 const getToken = () => {
     if (typeof window === 'undefined') return '';
-    const sessionT = window.sessionStorage.getItem('jwtToken');
-    const localT = window.localStorage.getItem('jwtToken');
-    const getCookie = (name: string) => {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop()?.split(';').shift();
-        return null;
-    };
-    const cookieT = getCookie('jwtToken');
-    return (sessionT || localT || cookieT || '')?.replace(/"/g, '');
+    try {
+        // 1. Priority: Globally captured token from fetch interceptor
+        const captured = (window as any)._strapi_last_token;
+        if (captured && typeof captured === 'string') {
+            return captured.replace('Bearer ', '').trim();
+        }
+
+        // 2. Standard Strapi keys
+        const sessionT = window.sessionStorage.getItem('jwtToken');
+        const localT = window.localStorage.getItem('jwtToken');
+        if (sessionT || localT) return (sessionT || localT || '')?.replace(/"/g, '');
+
+        // 3. Fallback: Scan storage for JWT prefix 'ey'
+        for (let i = 0; i < window.localStorage.length; i++) {
+            const key = window.localStorage.key(i);
+            if (key) {
+                const val = window.localStorage.getItem(key);
+                if (val && (val.startsWith('ey') || (val.startsWith('"ey') && val.endsWith('"')))) {
+                    return val.replace(/^"|"$/g, '');
+                }
+            }
+        }
+        for (let i = 0; i < window.sessionStorage.length; i++) {
+            const key = window.sessionStorage.key(i);
+            if (key) {
+                const val = window.sessionStorage.getItem(key);
+                if (val && (val.startsWith('ey') || (val.startsWith('"ey') && val.endsWith('"')))) {
+                    return val.replace(/^"|"$/g, '');
+                }
+            }
+        }
+    } catch (e) {}
+    return '';
 };
 
 const authHeaders = (): Record<string, string> => {

@@ -113,13 +113,13 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
             <div class="adv-contact-container">
                 ${phoneVal ? `
                 <div class="adv-contact-row">
-                    <a href="tel:${phoneVal}" onclick="event.stopPropagation()" title="Call: ${phoneVal}" class="adv-contact-link adv-contact-link--phone">📞</a>
+                    <a href="tel:${phoneVal}" onclick="event.stopPropagation()" title="Call: ${phoneVal}" class="adv-contact-link adv-contact-link--phone" style="text-decoration: none;">📞</a>
                     <span class="adv-contact-phone-text">${phoneVal}</span>
-                    <a href="https://wa.me/${phoneVal.replace(/\D/g, '')}" target="_blank" onclick="event.stopPropagation()" title="WhatsApp: ${phoneVal}" class="adv-contact-link adv-contact-link--whatsapp">💬</a>
+                    <a href="https://wa.me/${phoneVal.replace(/\D/g, '')}" target="_blank" onclick="event.stopPropagation()" title="WhatsApp: ${phoneVal}" class="adv-contact-link adv-contact-link--whatsapp" style="text-decoration: none;">💬</a>
                 </div>` : ''}
                 ${emailVal ? `
                 <div class="adv-contact-row">
-                    <a href="mailto:${emailVal}" onclick="event.stopPropagation()" title="Email: ${emailVal}" class="adv-contact-link adv-contact-link--email">✉️</a>
+                    <a href="mailto:${emailVal}" onclick="event.stopPropagation()" title="Email: ${emailVal}" class="adv-contact-link adv-contact-link--email" style="text-decoration: none;">✉️</a>
                     <span class="adv-contact-email-text">${emailVal}</span>
                 </div>` : ''}
             </div>`;
@@ -170,10 +170,14 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
     // so no tr.onclick is needed here. All React events (including checkbox onChange)
     // flow naturally to React's root listener.
 
-    // Remove Strapi's built-in empty actions td (sc-hZpJae) that misaligns columns on first load
+    // Hide Strapi's built-in empty/ghost cells instead of removing them (prevents React insertBefore crash)
     row.querySelectorAll('td').forEach((td) => {
-        if (!td.classList.contains('adv-actions-cell') && td.classList.contains('sc-hZpJae')) {
-            td.remove();
+        if (!td.classList.contains('adv-actions-cell') && td.children.length === 0 && td.textContent?.trim() === '') {
+            (td as HTMLElement).style.display = 'none';
+        }
+        // Specific catch for the production sc-eQxoQn classes if they are empty
+        if (!td.classList.contains('adv-actions-cell') && td.classList.contains('sc-eQxoQn') && td.children.length === 0) {
+            (td as HTMLElement).style.display = 'none';
         }
     });
 
@@ -181,15 +185,36 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
     let actTd = row.querySelector('.adv-actions-cell') as HTMLElement;
     if (!actTd) {
         actTd = document.createElement('td');
-        actTd.className = 'adv-actions-cell sc-bdnAzI cbXjmK sc-dkuEPC iJOdyj sc-eQxoQn eUabAw';
+        // Use only our custom class and standard Strapi-like padding
+        actTd.className = 'adv-actions-cell';
+        actTd.style.padding = '12px 16px';
+        actTd.style.verticalAlign = 'middle';
 
         const container = document.createElement('div');
         container.className = 'adv-actions-btn-row';
+        // Force flex layout to prevent mashed buttons on server
+        container.style.display = 'flex';
+        container.style.gap = '8px';
+        container.style.justifyContent = 'flex-end';
+        container.style.alignItems = 'center';
+        container.style.minWidth = '150px';
 
         // View button — opens Strapi edit page for this advisor
         const viewBtn = document.createElement('button');
         viewBtn.className = 'custom-action-btn adv-view-btn';
         viewBtn.textContent = 'View';
+        // Apply inline styles to ensure server consistency
+        Object.assign(viewBtn.style, {
+            padding: '6px 14px',
+            backgroundColor: '#1d4ed8',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '12px',
+            fontWeight: '700',
+            transition: 'background 0.2s'
+        });
         viewBtn.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -210,6 +235,18 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
         const loginBtn = document.createElement('button');
         loginBtn.className = 'custom-action-btn adv-login-btn';
         loginBtn.textContent = 'Login';
+        // Apply inline styles to ensure server consistency
+        Object.assign(loginBtn.style, {
+            padding: '6px 14px',
+            backgroundColor: '#ffffff',
+            color: '#1d4ed8',
+            border: '1px solid #1d4ed8',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '12px',
+            fontWeight: '700',
+            transition: 'all 0.2s'
+        });
         loginBtn.onclick = async (e) => {
             e.preventDefault();
             e.stopPropagation();
