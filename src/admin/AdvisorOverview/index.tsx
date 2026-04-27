@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Flex, Button, Loader } from '@strapi/design-system';
-import { useLeadOverview } from './useLeadOverview';
+import { useAdvisorOverview } from './useAdvisorOverview';
 import { styles, cardBorderStyle } from './styles';
 
 const StatCard = ({
@@ -42,8 +42,8 @@ const StatCard = ({
     </Box>
 );
 
-export const LeadOverviewDashboard = () => {
-    const { stats, loading } = useLeadOverview();
+export const AdvisorOverviewDashboard = () => {
+    const { stats, loading } = useAdvisorOverview();
 
     if (loading) {
         return (
@@ -66,10 +66,10 @@ export const LeadOverviewDashboard = () => {
             <Flex justifyContent="space-between" alignItems="center" marginBottom={6}>
                 <Box>
                     <Typography variant="beta" fontWeight="bold" textColor="primary600">
-                        LEADS OVERVIEW
+                        ADVISORS OVERVIEW
                     </Typography>
                     <Typography variant="pi" textColor="neutral600" display="block">
-                        Real-time performance metrics
+                        Real-time advisor metrics
                     </Typography>
                 </Box>
                 <Button
@@ -82,12 +82,9 @@ export const LeadOverviewDashboard = () => {
             </Flex>
 
             <div style={styles.metricsGrid}>
-                <StatCard label="Total Leads" value={stats.total} color="#1d4ed8" icon="📊" />
-                <StatCard label="New" value={stats.new} color="#0ea5e9" icon="🆕" />
-                <StatCard label="Processing" value={stats.underProcess} color="#f59e0b" icon="⏳" />
-                <StatCard label="Approved" value={stats.approved} color="#10b981" icon="✅" />
-                <StatCard label="Rejected" value={stats.rejected} color="#ef4444" icon="❌" />
-                <StatCard label="Disbursed" value={stats.disbursed} color="#8b5cf6" icon="💰" />
+                <StatCard label="Total Advisors" value={stats.total} color="#1d4ed8" icon="👥" />
+                <StatCard label="Active Advisors" value={stats.active} color="#10b981" icon="✅" />
+                <StatCard label="Inactive Advisors" value={stats.inactive} color="#ef4444" icon="🚫" />
             </div>
         </Box>
     );

@@ -10,6 +10,12 @@ export default (config: UserConfig) => {
         },
         server: {
             allowedHosts: ['scalex.local', 'localhost'],
+            strictPort: true,
+            hmr: {
+                protocol: 'ws',
+                host: 'localhost',
+                port: 5173,
+            },
         },
     });
 };

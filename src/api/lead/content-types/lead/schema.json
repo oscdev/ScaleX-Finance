@@ -4,7 +4,7 @@
     "info": {
         "singularName": "lead",
         "pluralName": "leads",
-        "displayName": "Lead",
+        "displayName": "Leads",
         "description": "Submitted Lead Applications from Frontend"
     },
     "options": {

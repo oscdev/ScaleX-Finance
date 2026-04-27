@@ -140,7 +140,7 @@ export const styles: Record<string, CSSProperties> = {
         padding: '8px',
     },
     timelineBorder: {
-        borderLeft: '2px solid #2563eb',
+        borderLeft: '2px solid #1d4ed8',
     },
     timelineDotInitial: {
         border: '3px solid white',
