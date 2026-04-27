@@ -3,64 +3,54 @@ export const registerClickHandlers = () => {
         'click',
         (e) => {
             const target = e.target as HTMLElement;
-            if (target && target.id === 'custom-partner-link') {
+            if (!target) return;
+
+            // 1. Handle custom links
+            if (target.id === 'custom-partner-link') {
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
                 window.location.href = '/advisor-onboarding';
             }
-            if (target && target.id === 'custom-add-lead-link') {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                window.location.href = '/products';
-            }
 
-            if (
-                target &&
-                (target.id === 'custom-my-leads-link' || target.closest('#custom-my-leads-link'))
-            ) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                const originalLink = document.getElementById(
-                    'original-leads-link'
-                ) as HTMLElement | null;
-                if (originalLink) {
-                    originalLink.click();
+            // 2. Block row navigation for Advisor and Lead list pages
+            const path = window.location.pathname;
+            const isGuardedPage = path.includes('api::advisor.advisor') || path.includes('api::lead.lead');
+            
+            if (isGuardedPage) {
+                const row = target.closest('tr');
+                const isBodyRow = row && row.closest('tbody');
+                
+                if (isBodyRow) {
+                    // 1. COMPLETELY EXEMPT the checkbox cell (first column)
+                    if (target.closest('td:first-child')) {
+                        return; // Let Strapi handle the checkbox cell natively
+                    }
+
+                    // 2. Identify interactive elements in other cells
+                    const isViewBtn = target.closest('.adv-view-btn') || target.closest('.custom-view-lead');
+                    const isInteractive = 
+                        target.closest('button') || 
+                        target.closest('a') || 
+                        target.closest('input') || 
+                        target.closest('label');
+
+                    if (!isInteractive) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        return;
+                    }
+
+                    // 3. For non-view interactive elements (icons), block bubbling
+                    if (!isViewBtn) {
+                        target.addEventListener('click', (ev) => ev.stopPropagation(), { once: true });
+                    }
                 }
             }
 
-            if (
-                target &&
-                (target.id === 'custom-loan-apps-link' || target.closest('#custom-loan-apps-link'))
-            ) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                const originalLink = document.getElementById(
-                    'original-loan-apps-link'
-                ) as HTMLElement | null;
-                if (originalLink) {
-                    originalLink.click();
-                }
-            }
-
-            const leadRow = target.closest('tr');
-            if (
-                leadRow &&
-                (leadRow.querySelector('.custom-ai-match') || leadRow.querySelector('.custom-view-lead'))
-            ) {
-                const isCustomBtn =
-                    target.closest('.custom-ai-match') || target.closest('.custom-view-lead');
-                if (!isCustomBtn) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-                }
-            }
-
-            if (target && target.closest('#leads-toggle')) {
+            // 4. Handle leads menu toggle
+            if (target.closest('#leads-toggle')) {
                 e.preventDefault();
                 e.stopPropagation();
                 const subMenu = document.getElementById(

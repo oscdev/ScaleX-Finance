@@ -2,6 +2,21 @@ export const installFetchInterceptor = () => {
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
         const url = typeof args[0] === 'string' ? args[0] : (args[0] as any)?.url || '';
+        
+        // --- Token Capture Strategy ---
+        const options = args[1] || {};
+        const headers = options.headers || {};
+        let token = '';
+        if (headers instanceof Headers) {
+            token = headers.get('Authorization') || '';
+        } else if (typeof headers === 'object') {
+            token = (headers as any)['Authorization'] || (headers as any)['authorization'] || '';
+        }
+        if (token && token.startsWith('Bearer ')) {
+            (window as any)._strapi_last_token = token;
+        }
+        // ------------------------------
+
         const response = await originalFetch(...args);
 
         const labelMap: Record<string, string> = {
@@ -29,6 +44,38 @@ export const installFetchInterceptor = () => {
             locale: 'LOCALE',
             documentid: 'DOC ID',
         };
+
+        const advisorLabelMap: Record<string, string> = {
+            advisorid: 'ADVISOR CODE',
+            createdat: 'JOINING DATE',
+            fullname: 'ADVISOR NAME',
+            phonenumber: 'MOBILE',
+            email: 'EMAIL',
+            emailverified: 'EMAIL VERIFY STATUS',
+            earnings: 'EARNINGS',
+            advisorstatus: 'ADVISOR STATUS',
+            password: 'PASSWORD',
+            state: 'STATE',
+            district: 'DISTRICT',
+            pincode: 'PIN CODE',
+            license: 'LICENSE',
+            pannumber: 'PAN NUMBER',
+            bankaccountnumber: 'BANK ACCOUNT',
+            ifsccode: 'IFSC CODE',
+            bankname: 'BANK NAME',
+            specialization: 'SPECIALIZATION',
+        };
+
+        const advisorSequence = [
+            'advisorId',
+            'createdAt',
+            'fullName',
+            'phoneNumber',
+            'email',
+            'emailVerified',
+            'earnings',
+            'advisorStatus',
+        ];
 
         if (
             url.includes('/content-manager/content-types') ||
@@ -105,7 +152,7 @@ export const installFetchInterceptor = () => {
                              customDefaultSequence.forEach(f => {
                                  if (leadCT.metadatas[f]) {
                                      if (!leadCT.metadatas[f].list) leadCT.metadatas[f].list = {};
-                                     leadCT.metadatas[f].list.visible = true; // Auto-select it
+                                     leadCT.metadatas[f].list.visible = true;
                                      const cleanKey = f.toLowerCase();
                                      if (labelMap[cleanKey]) {
                                          leadCT.metadatas[f].list.label = labelMap[cleanKey];
@@ -114,6 +161,58 @@ export const installFetchInterceptor = () => {
                                  }
                              });
                              if (leadCT.metadatas.locale) leadCT.metadatas.locale.list.visible = false;
+                        }
+                    }
+
+                    // Advisor content type
+                    const advisorCT = data.find((ct: any) => ct.uid === 'api::advisor.advisor');
+                    if (advisorCT) {
+                        if (advisorCT.layouts && advisorCT.layouts.list) {
+                            advisorCT.layouts.list = advisorSequence;
+                            modified = true;
+                        }
+                        if (advisorCT.metadatas) {
+                            advisorSequence.forEach(f => {
+                                if (advisorCT.metadatas[f]) {
+                                    if (!advisorCT.metadatas[f].list) advisorCT.metadatas[f].list = {};
+                                    advisorCT.metadatas[f].list.visible = true;
+                                    const cleanKey = f.toLowerCase();
+                                    if (advisorLabelMap[cleanKey]) {
+                                        advisorCT.metadatas[f].list.label = advisorLabelMap[cleanKey];
+                                    }
+                                    modified = true;
+                                }
+                            });
+                        }
+                    }
+                }
+
+                // 3. Intercept advisor configuration endpoint
+                if (url.includes('configuration') && url.includes('api::advisor.advisor')) {
+                    if (json?.data) {
+                        const target = json.data.contentType || json.data;
+                        if (target.layouts && target.layouts.list) {
+                            target.layouts.list = advisorSequence;
+                            modified = true;
+                        }
+                        if (target.metadatas) {
+                            Object.keys(target.metadatas).forEach(f => {
+                                const cleanKey = f.toLowerCase();
+                                if (advisorLabelMap[cleanKey]) {
+                                    if (!target.metadatas[f].list) target.metadatas[f].list = { visible: true };
+                                    target.metadatas[f].list.label = advisorLabelMap[cleanKey];
+                                    if (!target.metadatas[f].edit) target.metadatas[f].edit = {};
+                                    target.metadatas[f].edit.label = advisorLabelMap[cleanKey];
+                                    modified = true;
+                                }
+                            });
+                            advisorSequence.forEach(f => {
+                                if (target.metadatas[f]) {
+                                    if (!target.metadatas[f].list) target.metadatas[f].list = {};
+                                    target.metadatas[f].list.visible = true;
+                                    modified = true;
+                                }
+                            });
                         }
                     }
                 }

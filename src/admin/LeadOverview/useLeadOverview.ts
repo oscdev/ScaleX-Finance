@@ -18,11 +18,35 @@ const initialStats: LeadStats = {
     disbursed: 0,
 };
 
-const getToken = () => {
-    const sessionT = window.sessionStorage.getItem('jwtToken');
-    const localT = window.localStorage.getItem('jwtToken');
-    const cookieT = `; ${document.cookie}`.split('; jwtToken=').pop()?.split(';').shift();
-    return (sessionT || localT || cookieT || '')?.replace(/"/g, '');
+const getToken = (): string => {
+    // 1. Use token captured by the fetch interceptor (most reliable)
+    const captured = (window as any)._strapi_last_token;
+    if (captured && typeof captured === 'string') {
+        return captured.replace('Bearer ', '').trim();
+    }
+    try {
+        // 2. Scan all localStorage keys for any JWT (starts with 'ey')
+        for (let i = 0; i < window.localStorage.length; i++) {
+            const key = window.localStorage.key(i);
+            if (key) {
+                const val = window.localStorage.getItem(key);
+                if (val && (val.startsWith('ey') || (val.startsWith('"ey') && val.endsWith('"')))) {
+                    return val.replace(/^"|"$/g, '');
+                }
+            }
+        }
+        // 3. Scan all sessionStorage keys for any JWT
+        for (let i = 0; i < window.sessionStorage.length; i++) {
+            const key = window.sessionStorage.key(i);
+            if (key) {
+                const val = window.sessionStorage.getItem(key);
+                if (val && (val.startsWith('ey') || (val.startsWith('"ey') && val.endsWith('"')))) {
+                    return val.replace(/^"|"$/g, '');
+                }
+            }
+        }
+        return '';
+    } catch { return ''; }
 };
 
 export const useLeadOverview = () => {

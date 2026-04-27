@@ -686,6 +686,7 @@ export interface ApiAdvisorAdvisor extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    advisorId: Schema.Attribute.String & Schema.Attribute.Unique;
     advisorStatus: Schema.Attribute.Enumeration<['Approved', 'Disapproved']> &
       Schema.Attribute.DefaultTo<'Disapproved'>;
     bankAccountNumber: Schema.Attribute.String & Schema.Attribute.Required;
@@ -694,9 +695,11 @@ export interface ApiAdvisorAdvisor extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     district: Schema.Attribute.String & Schema.Attribute.Required;
+    earnings: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     email: Schema.Attribute.Email &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
+    emailVerified: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     fullName: Schema.Attribute.String & Schema.Attribute.Required;
     ifscCode: Schema.Attribute.String & Schema.Attribute.Required;
     license: Schema.Attribute.String;
@@ -707,7 +710,7 @@ export interface ApiAdvisorAdvisor extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     panNumber: Schema.Attribute.String & Schema.Attribute.Required;
-    password: Schema.Attribute.Password & Schema.Attribute.Required;
+    password: Schema.Attribute.String & Schema.Attribute.Required;
     phoneNumber: Schema.Attribute.String & Schema.Attribute.Required;
     pinCode: Schema.Attribute.String & Schema.Attribute.Required;
     publishedAt: Schema.Attribute.DateTime;
@@ -1122,7 +1125,7 @@ export interface ApiLeadLead extends Struct.CollectionTypeSchema {
   collectionName: 'leads';
   info: {
     description: 'Submitted Lead Applications from Frontend';
-    displayName: 'Lead';
+    displayName: 'Leads';
     pluralName: 'leads';
     singularName: 'lead';
   };

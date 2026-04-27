@@ -12,6 +12,10 @@
     },
     "pluginOptions": {},
     "attributes": {
+        "advisorId": {
+            "type": "string",
+            "unique": true
+        },
         "fullName": {
             "type": "string",
             "required": true
@@ -26,7 +30,7 @@
             "required": true
         },
         "password": {
-            "type": "password",
+            "type": "string",
             "required": true
         },
         "state": {
@@ -71,6 +75,14 @@
                 "Disapproved"
             ],
             "default": "Disapproved"
+        },
+        "emailVerified": {
+            "type": "boolean",
+            "default": false
+        },
+        "earnings": {
+            "type": "decimal",
+            "default": 0
         }
     }
 }
