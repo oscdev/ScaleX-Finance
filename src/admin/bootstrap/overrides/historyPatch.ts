@@ -7,28 +7,12 @@ export const isCollectionTypePath = (url: string): boolean => {
     }
 };
 
-const cleanUrlForHistory = (url: string): string => {
-    try {
-        const urlStr = url.toString();
-        if (!urlStr.includes('/content-manager/collection-types/')) return urlStr;
-
-        const urlObj = new URL(urlStr.startsWith('http') ? urlStr : `http://x${urlStr}`);
-        // Never strip view (dashboard) or id (detail) params
-        if (urlObj.searchParams.has('view') || urlObj.searchParams.has('id')) return urlStr;
-
-        // Strip technical query params on the main list view to keep URLs clean
-        return urlObj.pathname;
-    } catch {
-        return url;
-    }
-};
-
 // Collection types whose list-page row clicks should never navigate to an edit page.
 // Our custom View/Login buttons use window.location.href / window.open which bypass pushState,
 // so they are unaffected by this block.
 const ROW_CLICK_GUARDED_TYPES = ['api::lead.lead', 'api::advisor.advisor'];
 
-const isRowClickNavigation = (currentPath: string, newUrl: string): boolean => {
+const isRowClickNavigation = (newUrl: string): boolean => {
     try {
         const urlStr = newUrl.toString();
         const newPath = urlStr.startsWith('http') ? new URL(urlStr).pathname : urlStr.split('?')[0];
@@ -61,19 +45,17 @@ export const patchHistoryMethods = () => {
 
     history.pushState = (state: any, title: string, url?: string | URL | null) => {
         const urlStr = url ? url.toString() : '';
-        if (urlStr && isRowClickNavigation(window.location.pathname, urlStr)) {
+        if (urlStr && isRowClickNavigation(urlStr)) {
             return;
         }
-        const clean = url ? cleanUrlForHistory(urlStr) : url;
-        origPush(state, title, clean);
+        origPush(state, title, url);
     };
 
     history.replaceState = (state: any, title: string, url?: string | URL | null) => {
         const urlStr = url ? url.toString() : '';
-        if (urlStr && isRowClickNavigation(window.location.pathname, urlStr)) {
+        if (urlStr && isRowClickNavigation(urlStr)) {
             return;
         }
-        const clean = url ? cleanUrlForHistory(urlStr) : url;
-        origReplace(state, title, clean);
+        origReplace(state, title, url);
     };
 };

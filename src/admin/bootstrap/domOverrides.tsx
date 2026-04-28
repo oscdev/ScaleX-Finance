@@ -12,68 +12,119 @@ import { applyAdminUserOverride } from './overrides/adminUserOverride';
 import { applyButtonHardening } from './overrides/buttonHardening';
 import { applyLeadTableOverride } from './overrides/leadTableOverride';
 import { applyAdvisorTableOverride } from './overrides/advisorTableOverride';
-import './admin-overrides.css';
+import adminOverridesCss from './admin-overrides.css?inline';
+
+if (typeof document !== 'undefined' && !document.getElementById('scalex-admin-overrides')) {
+    const style = document.createElement('style');
+    style.id = 'scalex-admin-overrides';
+    style.textContent = adminOverridesCss;
+    document.head.appendChild(style);
+}
 
 // ─── Data prefetch helpers ────────────────────────────────────────────────────
 
-const prefetchAdvisorStatusMap = (commonHeaders: Record<string, string>) => {
+// Authenticated fetch with cookie credentials + Bearer token from any source we
+// can find. Strapi v5 in some setups (incognito sessions, cookie-auth proxies)
+// won't expose the JWT to localStorage early, so we always send credentials too.
+const authedFetch = (url: string): Promise<Response> => {
+    const captured = (window as any)._strapi_last_token as string | undefined;
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (captured) {
+        headers.Authorization = captured.startsWith('Bearer ') ? captured : `Bearer ${captured}`;
+    }
+    return fetch(url, { headers, credentials: 'include' });
+};
+
+// Polls until the fetch interceptor has captured a Bearer token, then runs cb.
+// Strapi's own React app makes its first authenticated request shortly after
+// mount; we just wait for that and piggy-back on the token it carries.
+const whenAuthed = (cb: () => void) => {
+    if ((window as any)._strapi_last_token) {
+        cb();
+        return;
+    }
+    let tries = 0;
+    const id = setInterval(() => {
+        tries++;
+        if ((window as any)._strapi_last_token) {
+            clearInterval(id);
+            cb();
+        } else if (tries > 50) {
+            // ~10s of waiting — fall through and try anyway with cookies only
+            clearInterval(id);
+            cb();
+        }
+    }, 200);
+};
+
+const prefetchAdvisorStatusMap = () => {
     if ((window as any)._advisor_status_loaded) return;
     (window as any)._advisor_status_loaded = true;
     (window as any).advisorStatusMap = (window as any).advisorStatusMap || {};
     (window as any).advisorDocumentIdMap = (window as any).advisorDocumentIdMap || {};
 
-    fetch('/content-manager/collection-types/api::advisor.advisor?pageSize=100', {
-        headers: commonHeaders,
-    })
-        .then((r) => r.json())
-        .then((data) => {
-            const advisors = data.results || data.data || [];
-            advisors.forEach((adv: any) => {
-                if (adv.id) (window as any).advisorStatusMap[adv.id] = adv.advisorStatus || 'Disapproved';
-                if (adv.documentId) (window as any).advisorStatusMap[adv.documentId] = adv.advisorStatus || 'Disapproved';
-                if (adv.id && adv.documentId) (window as any).advisorDocumentIdMap[adv.id] = adv.documentId;
-            });
-        })
-        .catch(() => { (window as any)._advisor_status_loaded = false; });
+    whenAuthed(() => {
+        authedFetch('/content-manager/collection-types/api::advisor.advisor?pageSize=100')
+            .then((r) => {
+                if (!r.ok) throw new Error(`status ${r.status}`);
+                return r.json();
+            })
+            .then((data) => {
+                const advisors = data.results || data.data || [];
+                advisors.forEach((adv: any) => {
+                    if (adv.id) (window as any).advisorStatusMap[adv.id] = adv.advisorStatus || 'Disapproved';
+                    if (adv.documentId) (window as any).advisorStatusMap[adv.documentId] = adv.advisorStatus || 'Disapproved';
+                    if (adv.id && adv.documentId) (window as any).advisorDocumentIdMap[adv.id] = adv.documentId;
+                });
+                setTimeout(initOverrides, 0);
+            })
+            .catch(() => { (window as any)._advisor_status_loaded = false; });
+    });
 };
 
-const prefetchLeadsData = (token: string, commonHeaders: Record<string, string>) => {
+const prefetchLeadsData = () => {
     if ((window as any)._advisors_loaded) return;
     (window as any)._advisors_loaded = true;
     (window as any).advisorMap = (window as any).advisorMap || {};
-
-    fetch('/content-manager/collection-types/api::advisor.advisor?pageSize=100', {
-        headers: commonHeaders,
-    })
-        .then((r) => r.json())
-        .then((data) => {
-            const advisors = data.results || data.data || [];
-            advisors.forEach((adv: any) => {
-                (window as any).advisorMap[adv.id] = {
-                    name: adv.fullName,
-                    id: adv.id,
-                    email: adv.email,
-                    phone: adv.phoneNumber,
-                };
-            });
-        })
-        .catch(() => { (window as any)._advisors_loaded = false; });
-
     (window as any).leadStatusMap = (window as any).leadStatusMap || {};
     (window as any).leadDocMap = (window as any).leadDocMap || {};
-    fetch('/content-manager/collection-types/api::lead.lead?pageSize=100', {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
-        .then((r) => r.json())
-        .then((data) => {
-            const leads = data.results || data.data || [];
-            leads.forEach((l: any) => {
-                if (l.id) (window as any).leadStatusMap[l.id] = l.leadStatus || 'NEW';
-                if (l.id && l.documentId) (window as any).leadDocMap[l.id] = l.documentId;
-                if (l.documentId) (window as any).leadStatusMap[l.documentId] = l.leadStatus || 'NEW';
-            });
-        })
-        .catch(() => { });
+
+    whenAuthed(() => {
+        authedFetch('/content-manager/collection-types/api::advisor.advisor?pageSize=100')
+            .then((r) => {
+                if (!r.ok) throw new Error(`status ${r.status}`);
+                return r.json();
+            })
+            .then((data) => {
+                const advisors = data.results || data.data || [];
+                advisors.forEach((adv: any) => {
+                    (window as any).advisorMap[adv.id] = {
+                        name: adv.fullName,
+                        id: adv.id,
+                        email: adv.email,
+                        phone: adv.phoneNumber,
+                    };
+                });
+                setTimeout(initOverrides, 0);
+            })
+            .catch(() => { (window as any)._advisors_loaded = false; });
+
+        authedFetch('/content-manager/collection-types/api::lead.lead?pageSize=100')
+            .then((r) => {
+                if (!r.ok) throw new Error(`status ${r.status}`);
+                return r.json();
+            })
+            .then((data) => {
+                const leads = data.results || data.data || [];
+                leads.forEach((l: any) => {
+                    if (l.id) (window as any).leadStatusMap[l.id] = l.leadStatus || 'NEW';
+                    if (l.id && l.documentId) (window as any).leadDocMap[l.id] = l.documentId;
+                    if (l.documentId) (window as any).leadStatusMap[l.documentId] = l.leadStatus || 'NEW';
+                });
+                setTimeout(initOverrides, 0);
+            })
+            .catch(() => { (window as any)._advisors_loaded = false; });
+    });
 };
 
 // ─── Lead detail dashboard (loan-application page with a lead selected) ───────
@@ -267,8 +318,8 @@ const initOverrides = () => {
         const token = getStrapiToken();
         const commonHeaders = getCommonHeaders();
 
-        if (isAdvisorsPage) safe(() => prefetchAdvisorStatusMap(commonHeaders));
-        if (isLeadsPage) safe(() => prefetchLeadsData(token, commonHeaders));
+        if (isAdvisorsPage) safe(() => prefetchAdvisorStatusMap());
+        if (isLeadsPage) safe(() => prefetchLeadsData());
 
         safe(() => applyAdminUserOverride(commonHeaders));
         safe(() => applyLeadDashboardOverride(token));
@@ -298,26 +349,67 @@ export const startDomOverrides = () => {
     let debounceTimer: any;
     const debouncedOverrides = () => {
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(initOverrides, 200);
+        debounceTimer = setTimeout(initOverrides, 150);
     };
 
-    const observer = new MutationObserver((mutations) => {
-        if (mutations.some((m) => (m.target as HTMLElement).id?.includes('custom'))) return;
+    // Re-run when the URL changes (SPA navigation) or when Strapi finishes rendering
+    // a route. We watch history events + a narrowly-scoped observer on the main
+    // content area only, so we don't thrash on every nested DOM mutation.
+    let lastPath = window.location.pathname + window.location.search;
+    const onUrlChange = () => {
+        const now = window.location.pathname + window.location.search;
+        if (now === lastPath) return;
+        lastPath = now;
+        // Strapi's list page renders the table asynchronously after the URL
+        // changes. Re-apply at a few checkpoints so we don't miss late renders.
         debouncedOverrides();
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
+        setTimeout(initOverrides, 400);
+        setTimeout(initOverrides, 1000);
+    };
 
-    // Instantly re-apply after user clicks to eliminate visual delays
-    document.addEventListener('click', () => {
-        setTimeout(initOverrides, 10);
-        setTimeout(initOverrides, 50); // Double-catch after Strapi React render cycle
-    });
+    window.addEventListener('popstate', onUrlChange);
+    const origPush = history.pushState;
+    const origReplace = history.replaceState;
+    history.pushState = function (...args: any[]) {
+        const r = origPush.apply(this, args as any);
+        onUrlChange();
+        return r;
+    };
+    history.replaceState = function (...args: any[]) {
+        const r = origReplace.apply(this, args as any);
+        onUrlChange();
+        return r;
+    };
 
-    // Run immediately, then burst-fire during the first 3 seconds to catch Strapi's
-    // async React render completing at unpredictable times
+    // Watch the main content column for child-list changes so we re-apply once
+    // Strapi finishes rendering a list/edit page. Scope is much narrower than
+    // observing the entire body subtree.
+    const watchMain = () => {
+        const main = document.querySelector('main') || document.querySelector('[data-strapi-main]');
+        if (!main) {
+            setTimeout(watchMain, 200);
+            return;
+        }
+        // Subtree:true is required because Strapi renders the table deep inside
+        // <main>, not as a direct child. We filter mutations originating from our
+        // own injected nodes (id contains 'custom' or '-overview-root') so our
+        // own DOM edits don't retrigger us.
+        const observer = new MutationObserver((mutations) => {
+            const fromOurs = mutations.every((m) => {
+                const t = m.target as HTMLElement;
+                if (!t || t.nodeType !== 1) return false;
+                const id = t.id || '';
+                return id.includes('custom') || id.endsWith('-overview-root') || !!t.closest('[id*="custom"], [id$="-overview-root"]');
+            });
+            if (fromOurs) return;
+            debouncedOverrides();
+        });
+        observer.observe(main, { childList: true, subtree: true });
+    };
+    watchMain();
+
+    // Initial run + a couple of follow-ups to catch Strapi's async first render
     initOverrides();
-    [100, 300, 600, 1000, 1500, 2500, 3500].forEach((ms) => setTimeout(initOverrides, ms));
-
-    // After initial burst, keep a steady heartbeat
-    setInterval(debouncedOverrides, 2000);
+    setTimeout(initOverrides, 300);
+    setTimeout(initOverrides, 1000);
 };
