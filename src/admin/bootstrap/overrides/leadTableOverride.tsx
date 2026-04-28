@@ -314,18 +314,29 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
     }
 
     // Status badge — CSS modifier class per status value
-    if (sIdx !== -1 && cells[sIdx] && idIdx !== -1 && cells[idIdx]) {
+    if (sIdx !== -1 && cells[sIdx]) {
         const statusCell = cells[sIdx];
-        const rowId = cells[idIdx].textContent?.trim();
+        // Resolve the row id robustly: prefer the col-id header if tagged,
+        // otherwise scan for any cell containing a pure numeric value (same
+        // strategy the View-Lead button uses).
+        let rowId = idIdx !== -1 && cells[idIdx] ? cells[idIdx].textContent?.trim() : '';
+        if (!rowId || !/^\d+$/.test(rowId)) {
+            const numCell = cells.find((c) => /^\d+$/.test(c.textContent?.trim() || ''));
+            rowId = numCell?.textContent?.trim() || '';
+        }
         const statusMap = (window as any).leadStatusMap || {};
         const val = rowId ? statusMap[rowId] : null;
         const hasGhost = statusCell.textContent?.toLowerCase().includes('published');
+        const hasBadge = !!statusCell.querySelector('.custom-status-badge');
 
-        if (hasGhost || !statusCell.querySelector('.custom-status-badge')) {
+        // Only mutate the cell if we have a value to render, or if we need to
+        // strip ghost text. Don't clear an empty cell when val is undefined —
+        // leave it untouched so a later pass (after the prefetch resolves) can
+        // fill it in without us churning the DOM.
+        if (val && (hasGhost || !hasBadge)) {
+            statusCell.innerHTML = `<div class="custom-status-badge ${statusBadgeClass(val)}">${val.replace('_', ' ')}</div>`;
+        } else if (hasGhost && !val) {
             statusCell.innerHTML = '';
-            if (val) {
-                statusCell.innerHTML = `<div class="custom-status-badge ${statusBadgeClass(val)}">${val.replace('_', ' ')}</div>`;
-            }
         }
     }
 
