@@ -6,10 +6,6 @@ export const applyNavOverride = () => {
         return href.includes('api::lead.lead') && !a.id.includes('custom');
     });
     
-    const loanAppLink = navLinks.find((a) =>
-        a.getAttribute('href')?.includes('api::loan-application.loan-application')
-    );
-
     const loanAppLinks = navLinks.filter((a) =>
         a.getAttribute('href')?.includes('loan-application')
     );
@@ -153,29 +149,28 @@ export const applyNavOverride = () => {
     }
 };
 
+const setLinkActive = (el: HTMLElement, active: boolean) => {
+    el.style.setProperty('background-color', active ? '#1d4ed8' : 'transparent', 'important');
+    el.style.setProperty('color', active ? '#ffffff' : '#32324d', 'important');
+};
+
 export const updateNavActiveStates = () => {
     const currentPath = window.location.pathname;
     const currentSearch = window.location.search;
     const isAddLeadActive = currentPath === '/products' || (currentPath.includes('api::lead.lead') && currentSearch.includes('create'));
     const isOverviewActive = currentPath.includes('api::lead.lead') && !currentSearch.includes('create');
 
-    const addLink = document.getElementById('custom-add-lead-link');
-    const ovLink = document.getElementById('custom-my-leads-link');
+    const addLink = document.getElementById('custom-add-lead-link') as HTMLElement | null;
+    const ovLink = document.getElementById('custom-my-leads-link') as HTMLElement | null;
     const leadsP = document.querySelector('nav a[href*="api::lead.lead"]:not([id*="custom"])') as HTMLElement | null;
-    const chevron = document.getElementById('leads-chevron-toggle');
+    const chevron = document.getElementById('leads-chevron-toggle') as HTMLElement | null;
 
-    if (addLink) {
-        addLink.style.color = isAddLeadActive ? '#ffffff !important' : '#32324d !important';
-        addLink.style.backgroundColor = isAddLeadActive ? '#1d4ed8 !important' : 'transparent !important';
-    }
-    if (ovLink) {
-        ovLink.style.color = isOverviewActive ? '#ffffff !important' : '#32324d !important';
-        ovLink.style.backgroundColor = isOverviewActive ? '#1d4ed8 !important' : 'transparent !important';
-    }
+    if (addLink) setLinkActive(addLink, isAddLeadActive);
+    if (ovLink) setLinkActive(ovLink, isOverviewActive);
     if (leadsP) {
         const isActive = isAddLeadActive || isOverviewActive;
-        leadsP.style.backgroundColor = isActive ? '#1d4ed8' : 'transparent';
-        leadsP.style.color = isActive ? '#ffffff' : '#32324d';
+        leadsP.style.setProperty('background-color', isActive ? '#1d4ed8' : 'transparent', 'important');
+        leadsP.style.setProperty('color', isActive ? '#ffffff' : '#32324d', 'important');
         if (chevron) chevron.style.color = isActive ? '#ffffff' : '#32324d';
     }
 };

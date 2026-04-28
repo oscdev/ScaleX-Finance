@@ -12,29 +12,31 @@
     pointer-events: none !important;
 }
 
-/* CSS fallback: hide Strapi content while Dashboard is active */
+/* CSS fallback: hide Strapi main content while Dashboard is active.
+   Never target aside/nav or the sidebar's header — those contain "Content Manager" nav. */
 body.dashboard-mode [data-strapi-main],
 body.dashboard-mode main,
-/* Hide Strapi's default header/top-bar/profile area in dashboard mode */
-body.dashboard-mode header,
-body.dashboard-mode [data-strapi-header],
-body.dashboard-mode div:has(> [data-strapi-header]),
-body.dashboard-mode div:has(> [aria-label="Notifications"]),
-body.dashboard-mode [aria-label="Notifications"],
-body.dashboard-mode [role="banner"],
-body.dashboard-mode .fUuMxb,
 body.dashboard-mode #app > div > div:nth-child(n+2),
 body.dashboard-mode #root > div > div:nth-child(n+2) {
     display: none !important;
     visibility: hidden !important;
     pointer-events: none !important;
-    height: 0 !important;
-    overflow: hidden !important;
 }
 
-/* Ensure the sidebar column remains visible (first child of the flex row) */
+/* Hide main-area headers only — not the sidebar's "Content Manager" header */
+body.dashboard-mode [data-strapi-header],
+body.dashboard-mode div:has(> [data-strapi-header]) {
+    display: none !important;
+}
+
+/* Sidebar column: fixed to viewport so nothing bleeds below the fold */
 body.dashboard-mode #app > div > div:first-child,
 body.dashboard-mode #root > div > div:first-child {
+    position: fixed !important;
+    top: 0 !important; left: 0 !important; bottom: 0 !important;
+    width: 300px !important;
+    overflow: hidden !important;
+    z-index: 1000 !important;
     display: flex !important;
     visibility: visible !important;
 }
@@ -48,22 +50,53 @@ body.dashboard-mode aside * {
     pointer-events: auto !important;
 }
 
+/* Lock body scroll so the Strapi content behind the overlay is unreachable */
+body.dashboard-mode {
+    overflow: hidden !important;
+    height: 100vh !important;
+}
+
+/* Unconditional: element only exists during dashboard mode, always must be fixed */
+#custom-dashboard-root,
 body.dashboard-mode #custom-dashboard-root {
-    position: fixed;
-    top: 0; right: 0; bottom: 0; left: 300px;
-    background: #f6f6f9; z-index: 999; overflow: auto;
+    position: fixed !important;
+    top: 0 !important; right: 0 !important; bottom: 0 !important; left: 300px !important;
+    background: #f6f6f9 !important; z-index: 999 !important;
+    overflow-y: auto !important; overflow-x: hidden !important;
     display: block !important; visibility: visible !important;
     border-left: 1px solid #dcdce4;
     pointer-events: auto !important;
+    padding-bottom: 40px;
 }
 
+
 /* Force list style none for all sidebar items (removes 1., 2. numbers) */
-nav li, 
-nav ol, 
+nav li,
+nav ol,
 nav ul,
+aside li,
+aside ol,
+aside ul,
 .leads-submenu-item {
     list-style: none !important;
     list-style-type: none !important;
+    counter-reset: none !important;
+    counter-increment: none !important;
+}
+
+nav li::marker,
+nav ol::marker,
+nav ul::marker,
+aside li::marker,
+aside ol::marker,
+aside ul::marker {
+    content: none !important;
+}
+
+nav li::before,
+aside li::before {
+    content: none !important;
+    display: none !important;
 }
 
 @media (max-width: 1200px) {

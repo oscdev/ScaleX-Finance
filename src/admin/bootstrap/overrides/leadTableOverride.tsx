@@ -427,19 +427,46 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
             fontWeight: '700',
             transition: 'background 0.2s'
         });
-        viewBtn.onclick = (e) => {
+        viewBtn.onclick = async (e) => {
             e.preventDefault();
             e.stopPropagation();
+            
             const rIdCell = Array.from(row.querySelectorAll('td')).find((c) =>
                 /^\d+$/.test(c.textContent?.trim() || '')
             );
             const rId = rIdCell?.textContent?.trim();
-            if (rId) {
-                window.open(
-                    `/admin/content-manager/collection-types/api::loan-application.loan-application?view=dashboard&id=${rId}`,
-                    '_self'
-                );
+            if (!rId) return;
+
+            let docId = (window as any).leadDocMap?.[rId];
+            
+            // If not in cache, try a quick lookup to get the Document ID
+            if (!docId) {
+                try {
+                    const token = (window as any)._strapi_last_token;
+                    const res = await fetch(
+                        `/content-manager/collection-types/api::lead.lead?filters[id][$eq]=${rId}`,
+                        { headers: token ? { Authorization: token } : {} }
+                    );
+                    if (res.ok) {
+                        const data = await res.json();
+                        const results = data.results || data.data || [];
+                        if (results.length > 0 && results[0].documentId) {
+                            docId = results[0].documentId;
+                            if (!(window as any).leadDocMap) (window as any).leadDocMap = {};
+                            (window as any).leadDocMap[rId] = docId;
+                        }
+                    }
+                } catch (err) {
+                    console.error('DocID lookup failed', err);
+                }
             }
+
+            const targetId = docId || rId;
+            // id= must be a query param — applyLeadDashboardOverride reads window.location.search
+            window.open(
+                `/admin/content-manager/collection-types/api::loan-application.loan-application?view=dashboard&id=${targetId}`,
+                '_self'
+            );
         };
 
         container.appendChild(viewBtn);

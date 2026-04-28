@@ -1,4 +1,3 @@
-import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { DesignSystemProvider } from '@strapi/design-system';
 import { LeadDetailDashboard } from '../LeadViewDashboard';
@@ -61,6 +60,7 @@ const prefetchLeadsData = (token: string, commonHeaders: Record<string, string>)
         .catch(() => { (window as any)._advisors_loaded = false; });
 
     (window as any).leadStatusMap = (window as any).leadStatusMap || {};
+    (window as any).leadDocMap = (window as any).leadDocMap || {};
     fetch('/content-manager/collection-types/api::lead.lead?pageSize=100', {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
@@ -69,6 +69,7 @@ const prefetchLeadsData = (token: string, commonHeaders: Record<string, string>)
             const leads = data.results || data.data || [];
             leads.forEach((l: any) => {
                 if (l.id) (window as any).leadStatusMap[l.id] = l.leadStatus || 'NEW';
+                if (l.id && l.documentId) (window as any).leadDocMap[l.id] = l.documentId;
                 if (l.documentId) (window as any).leadStatusMap[l.documentId] = l.leadStatus || 'NEW';
             });
         })
@@ -82,32 +83,73 @@ const DASHBOARD_HIDDEN_ATTR = 'data-dashboard-hidden';
 // Explicitly mark Strapi's native page elements for hiding via CSS attribute selector.
 // CSS class selectors (body.dashboard-mode #app > ...) only work when the server's
 // Strapi DOM matches local exactly. This JS traversal works regardless of structure.
-const hideStrapiFrame = () => {
-    // Semantic elements always present in Strapi's admin
-    document.querySelectorAll('header, main, [data-strapi-header], [data-strapi-main]').forEach((el) => {
-        (el as HTMLElement).setAttribute(DASHBOARD_HIDDEN_ATTR, 'true');
-    });
+const hideEl = (el: HTMLElement) => {
+    el.setAttribute(DASHBOARD_HIDDEN_ATTR, 'true');
+    el.style.setProperty('display', 'none', 'important');
+};
 
-    // Strapi mounts under #app or #root — hide the main content column (all siblings
-    // after the first child, which is the sidebar/nav column) inside its flex wrapper.
+const showEl = (el: HTMLElement) => {
+    el.removeAttribute(DASHBOARD_HIDDEN_ATTR);
+    el.style.removeProperty('display');
+};
+
+const hideStrapiFrame = () => {
+    // Identify the sidebar (first child of Strapi's flex layout row) so we can
+    // skip its descendants — it contains "Content Manager" header/nav that must stay visible.
+    let sidebarEl: Element | null = null;
     for (const rootSel of ['#app', '#root', '#strapi']) {
         const appRoot = document.querySelector(rootSel);
         const flexRow = appRoot?.firstElementChild;
         if (!flexRow) continue;
-        const cols = Array.from(flexRow.children);
-        // cols[0] = sidebar (keep), cols[1+] = main content area (hide)
-        cols.slice(1).forEach((col) => (col as HTMLElement).setAttribute(DASHBOARD_HIDDEN_ATTR, 'true'));
+        const cols = Array.from(flexRow.children) as HTMLElement[];
+        if (cols.length >= 1) sidebarEl = cols[0];
+        // Pin sidebar column to top-left via inline style — CSS selector may not match on all servers
+        const sidebar = cols[0] as HTMLElement | undefined;
+        if (sidebar?.style) {
+            Object.assign(sidebar.style, {
+                position: 'fixed',
+                top: '0',
+                left: '0',
+                bottom: '0',
+                width: '300px',
+                overflow: 'hidden',
+                zIndex: '1000',
+            });
+        }
+        // Hide the main content column(s) — everything after the sidebar
+        cols.slice(1).forEach(hideEl);
+        break;
+    }
+
+    // Hide semantic page elements, but never touch anything inside the sidebar
+    document.querySelectorAll<HTMLElement>('header, main, [data-strapi-header], [data-strapi-main]').forEach((el) => {
+        if (sidebarEl && sidebarEl.contains(el)) return;
+        hideEl(el);
+    });
+};
+
+const showStrapiFrame = () => {
+    document.querySelectorAll<HTMLElement>(`[${DASHBOARD_HIDDEN_ATTR}]`).forEach(showEl);
+    // Restore sidebar column to normal flow
+    for (const rootSel of ['#app', '#root', '#strapi']) {
+        const appRoot = document.querySelector(rootSel);
+        const flexRow = appRoot?.firstElementChild;
+        if (!flexRow) continue;
+        const sidebar = flexRow.children[0] as HTMLElement | undefined;
+        if (sidebar) {
+            sidebar.style.removeProperty('position');
+            sidebar.style.removeProperty('top');
+            sidebar.style.removeProperty('left');
+            sidebar.style.removeProperty('bottom');
+            sidebar.style.removeProperty('width');
+            sidebar.style.removeProperty('overflow');
+            sidebar.style.removeProperty('z-index');
+        }
         break;
     }
 };
 
-const showStrapiFrame = () => {
-    document.querySelectorAll(`[${DASHBOARD_HIDDEN_ATTR}]`).forEach((el) => {
-        (el as HTMLElement).removeAttribute(DASHBOARD_HIDDEN_ATTR);
-    });
-};
-
-const applyLeadDashboardOverride = (token: string) => {
+const applyLeadDashboardOverride = (_token: string) => {
     const isLoanPage = window.location.pathname.includes('api::loan-application.loan-application');
 
     if (isLoanPage && window.location.search) {
@@ -135,7 +177,23 @@ const applyLeadDashboardOverride = (token: string) => {
             dashboardRoot = document.createElement('div');
             dashboardRoot.id = 'custom-dashboard-root';
             dashboardRoot.setAttribute('data-lead-id', leadId);
+            // Force fixed layout inline — CSS alone may not apply in time or may be overridden
+            Object.assign(dashboardRoot.style, {
+                position: 'fixed',
+                top: '0',
+                right: '0',
+                bottom: '0',
+                left: '300px',
+                background: '#f6f6f9',
+                zIndex: '999',
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                display: 'block',
+                visibility: 'visible',
+                paddingBottom: '40px',
+            });
             document.body.prepend(dashboardRoot);
+            dashboardRoot.scrollTop = 0;
             const root = createRoot(dashboardRoot);
             reactRoots.set('custom-dashboard-root', root);
             root.render(
@@ -181,33 +239,52 @@ const initOverrides = () => {
     if ((window as any)._is_running_overrides) return;
     (window as any)._is_running_overrides = true;
 
+    const safe = (fn: () => void) => { try { fn(); } catch (e) { console.warn('[ScaleX override error]', e); } };
+
     try {
+        const path = window.location.pathname;
+        const isAdvisorsPage = path.includes('api::advisor.advisor');
+        const isLeadsPage = path.includes('api::lead.lead');
+        const isLoanPage = path.includes('api::loan-application.loan-application');
+        const isDashboardMode = isLoanPage && (new URLSearchParams(window.location.search).get('view') === 'dashboard' || sessionStorage.getItem('currentLeadId'));
+
+        // If we are NOT on a page we customize, ensure we are NOT in dashboard mode and return early.
+        // This is the most critical fix to prevent breaking pages like Activity Log.
+        if (!isAdvisorsPage && !isLeadsPage && !isLoanPage) {
+            if (document.body.classList.contains('dashboard-mode')) {
+                document.body.classList.remove('dashboard-mode');
+                showStrapiFrame();
+            }
+            // Still run these global ones that don't affect other pages' layouts
+            safe(() => applyLoginPageOverride());
+            safe(() => applyNavOverride());
+            safe(() => updateNavActiveStates());
+            return;
+        }
+
         // Token must be exposed on window before any module that needs it runs
         (window as any).getStrapiToken = getStrapiToken;
         const token = getStrapiToken();
         const commonHeaders = getCommonHeaders();
 
-        const isAdvisorsPage = window.location.pathname.includes('api::advisor.advisor');
-        const isLeadsPage = window.location.pathname.includes('api::lead.lead');
+        if (isAdvisorsPage) safe(() => prefetchAdvisorStatusMap(commonHeaders));
+        if (isLeadsPage) safe(() => prefetchLeadsData(token, commonHeaders));
 
-        if (isAdvisorsPage) prefetchAdvisorStatusMap(commonHeaders);
-        if (isLeadsPage) prefetchLeadsData(token, commonHeaders);
+        safe(() => applyAdminUserOverride(commonHeaders));
+        safe(() => applyLeadDashboardOverride(token));
 
-        applyAdminUserOverride(commonHeaders);
-        applyLeadDashboardOverride(token);
+        safe(() => enforceDefaultListSettings());
 
-        enforceDefaultListSettings();
+        safe(() => applyLoginPageOverride());
+        safe(() => applyNavOverride());
+        safe(() => updateNavActiveStates());
+        safe(() => applyButtonHardening());
 
-        applyLoginPageOverride();
-        applyNavOverride();
-        updateNavActiveStates();
-        applyButtonHardening();
+        safe(() => applyLeadTableOverride());
+        safe(() => applyAdvisorTableOverride());
 
-        applyLeadTableOverride();
-        applyAdvisorTableOverride();
-
-        ensureAdminNotifications();
-        ensureDebugBadge();
+        safe(() => ensureAdminNotifications());
+        safe(() => ensureDebugBadge());
     } finally {
         (window as any)._is_running_overrides = false;
     }
@@ -236,6 +313,11 @@ export const startDomOverrides = () => {
         setTimeout(initOverrides, 50); // Double-catch after Strapi React render cycle
     });
 
-    setInterval(debouncedOverrides, 2000);
+    // Run immediately, then burst-fire during the first 3 seconds to catch Strapi's
+    // async React render completing at unpredictable times
     initOverrides();
+    [100, 300, 600, 1000, 1500, 2500, 3500].forEach((ms) => setTimeout(initOverrides, ms));
+
+    // After initial burst, keep a steady heartbeat
+    setInterval(debouncedOverrides, 2000);
 };
