@@ -2,7 +2,7 @@ import { CSSProperties } from 'react';
 
 export const styles: Record<string, CSSProperties> = {
     rootBox: {
-        minHeight: '100vh',
+        minHeight: 'unset',
     },
     identityIcon: {
         width: '40px',

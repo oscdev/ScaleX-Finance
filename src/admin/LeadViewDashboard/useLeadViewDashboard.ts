@@ -270,87 +270,118 @@ export const useLeadViewDashboard = (leadId: string) => {
 
             try {
                 const headers = authHeaders();
+                const idNum = parseInt(leadId);
+                const isNumeric = !isNaN(idNum) && /^\d+$/.test(leadId);
 
-                addLog('Trying Content Manager (Lead)...');
-                const cmLeadRes = await fetch(
-                    `/content-manager/collection-types/api::lead.lead/${leadId}`,
-                    { headers }
-                );
-                if (cmLeadRes.ok) {
-                    const data = await cmLeadRes.json();
-                    const obj = data.data || data;
-                    if (obj && (obj.id || obj.documentId)) {
-                        addLog('Found via Content Manager (Lead).');
-                        setLead({ ...obj, id: obj.id || leadId });
-                        if (obj.leadStatus) setStatus(obj.leadStatus);
-                        return;
+                // Helper to try fetching by ID or searching by ID filter
+                const fetchWithFallback = async (uid: string, id: string) => {
+                    const isIdNumeric = !isNaN(parseInt(id)) && /^\d+$/.test(id);
+
+                    // 1. Try direct fetch from Content Manager ONLY if it's NOT numeric (likely a Document ID)
+                    if (!isIdNumeric) {
+                        try {
+                            const res = await fetch(`/content-manager/collection-types/${uid}/${id}`, { headers });
+                            if (res.ok) {
+                                const json = await res.json();
+                                // Strapi v5 CM wraps single-record responses in { data: {...} }
+                                return json?.data ?? json;
+                            }
+                        } catch (e) {}
                     }
+
+                    // 2. Fallback: Search Content Manager list (works for numerical IDs in Strapi 5)
+                    try {
+                        // In Strapi 5 CM, filters usually follow this structure
+                        const searchRes = await fetch(
+                            `/content-manager/collection-types/${uid}?pageSize=10&page=1&filters[id][$eq]=${id}`,
+                            { headers }
+                        );
+                        if (searchRes.ok) {
+                            const searchData = await searchRes.json();
+                            const results = searchData.results || searchData.data || [];
+                            if (results.length > 0) return results[0];
+                        }
+                    } catch (e) {}
+
+                    // 3. Last resort: Try simple query param (some versions of Strapi CM support this)
+                    try {
+                        const qRes = await fetch(`/content-manager/collection-types/${uid}?id=${id}`, { headers });
+                        if (qRes.ok) {
+                            const qData = await qRes.json();
+                            const results = qData.results || qData.data || [];
+                            if (results.length > 0) return results[0];
+                        }
+                    } catch (e) {}
+
+                    return null;
+                };
+
+                addLog('Searching for Lead...');
+                const leadObj = await fetchWithFallback('api::lead.lead', leadId);
+                if (leadObj) {
+                    addLog('Found Lead.');
+                    setLead({ ...leadObj, id: leadObj.id || leadId });
+                    if (leadObj.leadStatus) setStatus(leadObj.leadStatus);
+                    setIsLoading(false);
+                    return;
                 }
 
-                addLog('Trying Content Manager (Loan App)...');
-                const cmLoanRes = await fetch(
-                    `/content-manager/collection-types/api::loan-application.loan-application/${leadId}`,
-                    { headers }
-                );
-                if (cmLoanRes.ok) {
-                    const loanData = await cmLoanRes.json();
-                    const loanObj = loanData.data || loanData;
-                    if (loanObj && loanObj.id) {
-                        addLog('Found via Content Manager (Loan App).');
-                        setLoanApp({ ...loanObj });
-                        if (loanObj.leadId) {
-                            addLog(`Fetching parent Lead (ID: ${loanObj.leadId})...`);
-                            const cmPLeadRes = await fetch(
-                                `/content-manager/collection-types/api::lead.lead/${loanObj.leadId}`,
-                                { headers }
-                            );
-                            if (cmPLeadRes.ok) {
-                                const pLeadData = await cmPLeadRes.json();
-                                const pLeadObj = pLeadData.data || pLeadData;
-                                setLead({
-                                    ...pLeadObj,
-                                    id: pLeadObj.id || loanObj.leadId,
-                                });
-                                if (pLeadObj.leadStatus) setStatus(pLeadObj.leadStatus);
-                                return;
-                            }
-                        } else {
-                            addLog('Found Loan App but no leadId reference.');
-                            setLead({
-                                fullName: loanObj.applicantName,
-                                email: loanObj.email,
-                                mobileNumber: loanObj.phone,
-                                selectedProduct: loanObj.loanType,
-                                requiredAmount: loanObj.loanAmount,
-                                isVirtual: true,
-                            });
+                addLog('Searching for Loan Application...');
+                const loanObj = await fetchWithFallback('api::loan-application.loan-application', leadId);
+                if (loanObj) {
+                    addLog('Found Loan App.');
+                    setLoanApp({ ...loanObj });
+                    
+                    const parentId = loanObj.leadId || (loanObj.lead && (loanObj.lead.id || loanObj.lead.documentId));
+                    if (parentId) {
+                        addLog(`Fetching parent Lead (ID: ${parentId})...`);
+                        const pLeadObj = await fetchWithFallback('api::lead.lead', String(parentId));
+                        if (pLeadObj) {
+                            setLead({ ...pLeadObj, id: pLeadObj.id || parentId });
+                            if (pLeadObj.leadStatus) setStatus(pLeadObj.leadStatus);
+                            setIsLoading(false);
                             return;
                         }
-                    }
-                }
-
-                addLog('Falling back to Filtered Search...');
-                const searchRes = await fetch(
-                    `/api/leads?filters[id][$eq]=${leadId}&populate=*`
-                );
-                if (searchRes.ok) {
-                    const data = await searchRes.json();
-                    const items = data.data || [];
-                    if (items.length > 0) {
-                        const obj = items[0].attributes || items[0];
-                        addLog('Found via Public Filtered Search');
-                        setLead({ ...obj, id: items[0].id });
-                        if (obj.leadStatus) setStatus(obj.leadStatus);
+                    } else {
+                        addLog('Found Loan App but no parent lead reference.');
+                        setLead({
+                            fullName: loanObj.applicantName || loanObj.fullName || 'N/A',
+                            id: 'N/A',
+                            selectedProduct: loanObj.loanType
+                        });
+                        setIsLoading(false);
                         return;
                     }
+                } else {
+                    addLog('Record not found in Leads or Loan Applications.');
                 }
-
-                addLog('Failed to find matching record at all.');
             } catch (err: any) {
-                addLog(`Fatal Error: ${err.message}`);
-            } finally {
-                setIsLoading(false);
+                addLog(`Initial fetch error: ${err.message}`);
             }
+
+            // Final fallback to public API if content-manager fails
+            if (!lead && !loanApp) {
+                try {
+                    addLog('Falling back to Filtered Search...');
+                    const searchRes = await fetch(
+                        `/api/leads?filters[id][$eq]=${leadId}&populate=*`
+                    );
+                    if (searchRes.ok) {
+                        const data = await searchRes.json();
+                        const items = data.data || [];
+                        if (items.length > 0) {
+                            const obj = items[0].attributes || items[0];
+                            addLog('Found via Public Filtered Search');
+                            setLead({ ...obj, id: items[0].id });
+                            if (obj.leadStatus) setStatus(obj.leadStatus);
+                        }
+                    }
+                } catch (err: any) {
+                    addLog(`Fallback error: ${err.message}`);
+                }
+            }
+
+            setIsLoading(false);
         };
 
         if (leadId) fetchData();
@@ -359,12 +390,19 @@ export const useLeadViewDashboard = (leadId: string) => {
     // 2. Fetch Loan Application separately once Lead is found
     useEffect(() => {
         const fetchLoan = async () => {
-            if (!leadId) return;
+            if (!leadId || !lead) return;
             try {
                 const headers = authHeaders();
 
+                // lead.id may be a numeric integer OR a documentId string depending on how the
+                // lead was fetched (Strapi v5 CM single-record returns {data:{...}} which
+                // fetchWithFallback might not unwrap). Extract only the actual numeric ID.
+                const rawId = lead?.id ?? null;
                 const numericLId =
-                    lead?.id || (!isNaN(parseInt(leadId)) ? parseInt(leadId) : null);
+                    (rawId !== null && /^\d+$/.test(String(rawId)) ? parseInt(String(rawId)) : null) ||
+                    (!isNaN(parseInt(leadId)) && /^\d+$/.test(leadId) ? parseInt(leadId) : null);
+
+                // 1. Public API filter by numeric leadId field
                 if (numericLId) {
                     const pubRes = await fetch(
                         `/api/loan-applications?filters[leadId][$eq]=${numericLId}&populate=*`
@@ -380,27 +418,21 @@ export const useLeadViewDashboard = (leadId: string) => {
                     }
                 }
 
-                const res = await fetch(
-                    `/content-manager/collection-types/api::loan-application.loan-application/${leadId}?populate=*`,
-                    { headers }
-                );
-                if (res.ok) {
-                    const data = await res.json();
-                    const obj = data.data || data;
-                    if (obj && obj.id) {
-                        setLoanApp(obj);
-                        return;
-                    }
-                }
+                // 2. CM search by leadId (numeric) and optionally by email/phone.
+                // NOTE: we intentionally skip the direct /loan-application/${leadId} fetch because
+                // leadId here is the LEAD's documentId — it is not a loan-application documentId.
+                // Only include email/phone filters when those fields are actually populated.
+                const orFilters: string[] = [];
+                if (numericLId) orFilters.push(`filters[$or][0][leadId][$eq]=${numericLId}`);
+                if (lead.email) orFilters.push(`filters[$or][1][email][$eq]=${encodeURIComponent(lead.email)}`);
+                if (lead.mobileNumber) orFilters.push(`filters[$or][2][phone][$eq]=${encodeURIComponent(lead.mobileNumber)}`);
 
-                if (lead) {
-                    const lId = lead.id || lead.documentId;
-                    const cmSearchQuery = `/content-manager/collection-types/api::loan-application.loan-application?filters[$or][0][leadId][$eq]=${lId}&filters[$or][1][email][$eq]=${lead.email}&filters[$or][2][phone][$eq]=${lead.mobileNumber}&populate=*`;
+                if (orFilters.length > 0) {
+                    const cmSearchQuery = `/content-manager/collection-types/api::loan-application.loan-application?${orFilters.join('&')}&populate=*`;
                     const cmSearchRes = await fetch(cmSearchQuery, { headers });
                     if (cmSearchRes.ok) {
                         const cmSearchData = await cmSearchRes.json();
-                        const found =
-                            cmSearchData.results?.[0] || cmSearchData.data?.[0];
+                        const found = cmSearchData.results?.[0] || cmSearchData.data?.[0];
                         if (found) {
                             setLoanApp(found);
                             return;

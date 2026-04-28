@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Box, Typography, Button, Flex, Badge, Textarea } from '@strapi/design-system';
 import {
     LEAD_STATUS_OPTIONS,
@@ -25,6 +25,11 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
         errorLogs,
         handleUpdateStatus,
     } = useLeadViewDashboard(leadId);
+
+    useEffect(() => {
+        const root = document.getElementById('custom-dashboard-root');
+        if (root) root.scrollTop = 0;
+    }, [leadId]);
 
     if (isLoading) {
         return <Box padding={8} background="neutral100">Loading Lead Detail Dashboard...</Box>;

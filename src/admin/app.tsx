@@ -1,3 +1,4 @@
+import './bootstrap/injectEarlyCSS'; // runs at module eval time — before React renders
 import type { StrapiApp } from '@strapi/strapi/admin';
 import { appConfig } from './bootstrap/appConfig';
 import { installFetchInterceptor } from './bootstrap/fetchInterceptor';
