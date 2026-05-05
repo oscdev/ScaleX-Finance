@@ -79,13 +79,13 @@ export default async function AboutUsPage() {
                     <div className="mv-grid">
                         <div className="card mv-card animate-fade-in delay-100">
                             <div className="mv-icon">🎯</div>
-                            <h3 className="mv-title" style={{ color: 'var(--primary)' }}>{missionTitle}</h3>
+                            <h3 className="mv-title mv-title-primary">{missionTitle}</h3>
                             <p className="mv-content">{missionContent}</p>
                         </div>
 
                         <div className="card mv-card animate-fade-in delay-200">
                             <div className="mv-icon">🔭</div>
-                            <h3 className="mv-title" style={{ color: 'var(--secondary)' }}>{visionTitle}</h3>
+                            <h3 className="mv-title mv-title-secondary">{visionTitle}</h3>
                             <p className="mv-content">{visionContent}</p>
                         </div>
                     </div>

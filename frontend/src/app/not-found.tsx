@@ -1,15 +1,16 @@
 import React from 'react';
 import Link from 'next/link';
+import './not-found.css';
 
 export const dynamic = 'force-dynamic';
 
 export default function NotFound() {
   return (
-    <main style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
-      <div style={{ textAlign: 'center', padding: '3rem' }}>
-        <h1 style={{ fontSize: '6rem', fontWeight: 900, color: 'var(--primary)', marginBottom: '1rem' }}>404</h1>
-        <h2 style={{ fontSize: '2rem', fontWeight: 700, color: '#111827', marginBottom: '1.5rem' }}>Page Not Found</h2>
-        <p style={{ color: '#6b7280', fontSize: '1.1rem', marginBottom: '2.5rem' }}>
+    <main className="not-found-page">
+      <div className="not-found-content">
+        <h1 className="not-found-code">404</h1>
+        <h2 className="not-found-title">Page Not Found</h2>
+        <p className="not-found-message">
           Sorry, we couldn't find the page you're looking for.
         </p>
         <Link href="/" className="btn btn-primary">

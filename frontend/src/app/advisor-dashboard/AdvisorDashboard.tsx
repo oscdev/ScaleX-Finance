@@ -140,7 +140,7 @@ export default function AdvisorDashboard() {
 
     return (
         <>
-            <section className="hero-section" style={{ padding: '4rem 0 2rem 0' }}>
+            <section className="hero-section hero-section-dashboard">
                 <div className="container">
                     <div className="dashboard-header">
                         <div>
@@ -164,9 +164,9 @@ export default function AdvisorDashboard() {
                 </div>
             </section>
 
-            <section className="form-section" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
+            <section className="form-section form-section-dashboard">
                 <div className="container">
-                    <h2 style={{ fontSize: '2rem', marginBottom: '2rem' }}>My Leads ({leads.length})</h2>
+                    <h2 className="leads-heading">My Leads ({leads.length})</h2>
 
                     {leads.length === 0 ? (
                         <div className="card no-leads-message">

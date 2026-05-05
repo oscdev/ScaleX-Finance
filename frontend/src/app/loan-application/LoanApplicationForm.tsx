@@ -577,9 +577,9 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                     </div>
                 </div>
 
-                <div className="card shadow-sm" style={{ padding: '3rem', borderTop: 'none', borderRadius: '0 0 12px 12px' }}>
-                    <div style={{ marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>{STEPS[currentStep - 1].name} Details</h2>
+                <div className="card shadow-sm loan-form-card">
+                    <div className="loan-step-header">
+                        <h2 className="loan-step-title">{STEPS[currentStep - 1].name} Details</h2>
                     </div>
 
                     {renderStep()}
@@ -588,7 +588,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                     {currentStep < STEPS.length && (
                         <div className="loan-app-footer-profile shadow-sm">
                             <div className="footer-profile-header">
-                                <span style={{ fontSize: '1.2rem', color: '#10b981' }}>👤</span>
+                                <span className="loan-profile-icon">👤</span>
                                 <span className="footer-profile-name">{loanProfile.name}</span>
                             </div>
                             
@@ -606,16 +606,16 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
 
                                 {/* Loan Info */}
                                 <div className="footer-loan-col">
-                                    <span style={{ fontSize: '2rem' }}>💵</span>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span className="loan-badge" style={{ width: 'fit-content' }}>LOAN</span>
+                                    <span className="loan-profile-icon">💵</span>
+                                    <div className="loan-type-info">
+                                        <span className="loan-badge loan-badge-inline">LOAN</span>
                                         <span className="footer-loan-title">{loanType}</span>
                                     </div>
                                 </div>
 
                                 {/* Amount Info */}
                                 <div className="footer-amount-col">
-                                    <div style={{ width: '40px', height: '40px', background: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                                    <div className="loan-docs-icon">
                                         <span>📚</span>
                                     </div>
                                     <div className="footer-amount-box">
@@ -631,17 +631,16 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                     <div className="loan-app-footer">
                         <button
                             type="button"
-                            className="btn btn-secondary"
+                            className={`btn btn-secondary ${currentStep === 1 ? 'btn-back-disabled' : ''}`}
                             onClick={prevStep}
-                            style={{ opacity: currentStep === 1 ? 0.3 : 1, pointerEvents: currentStep === 1 ? 'none' : 'auto' }}
                         >
                             Back
                         </button>
 
-                        <div style={{ flex: 1 }}></div>
+                        <div className="loan-nav-spacer"></div>
 
                         {submitError && (
-                            <div style={{ color: 'var(--secondary)', marginRight: '2rem', fontSize: '0.9rem' }}>
+                            <div className="loan-error-msg">
                                 {submitError}
                             </div>
                         )}

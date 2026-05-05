@@ -1,4 +1,280 @@
 
+/* Loan Application Page Header */
+.loan-app-page {
+    min-height: 100vh;
+    background: #f8fafc;
+    padding: 4rem 0;
+}
+
+.loan-app-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.loan-app-title {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 1rem;
+}
+
+.loan-app-subtitle {
+    color: #6b7280;
+    font-size: 1.25rem;
+}
+
+/* Loan Form Styles */
+.loan-form-card {
+    padding: 3rem;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+}
+
+.loan-step-header {
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
+.loan-step-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.loan-profile-icon {
+    font-size: 1.2rem;
+    color: #10b981;
+}
+
+.loan-type-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.loan-badge-inline {
+    width: fit-content;
+}
+
+.loan-docs-icon {
+    width: 40px;
+    height: 40px;
+    background: #10b981;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.loan-nav-spacer {
+    flex: 1;
+}
+
+.loan-error-msg {
+    color: var(--secondary);
+    margin-right: 2rem;
+    font-size: 0.9rem;
+}
+
+.btn-back-disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+/* Loan Fields Styles */
+.running-loan-note {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-bottom: 1.5rem;
+}
+
+.running-loan-grid {
+    background: rgba(0,0,0,0.02);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.add-loan-row {
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 1.5rem;
+}
+
+.add-loan-btn {
+    width: 100%;
+}
+
+.loan-list-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.doc-card-title {
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.doc-status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.doc-status-uploaded {
+    background: #10b981;
+}
+
+.doc-status-pending {
+    background: #f59e0b;
+}
+
+.doc-label {
+    font-size: 0.8rem;
+}
+
+.doc-input {
+    margin-bottom: 1rem;
+    padding: 0.4rem;
+}
+
+.doc-file-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.doc-file-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+}
+
+.doc-file-input {
+    font-size: 0.7rem;
+    width: 100%;
+}
+
+.doc-upload-btn {
+    padding: 0.4rem;
+    font-size: 0.85rem;
+}
+
+.doc-other-card {
+    background: #334155;
+    color: #fff;
+}
+
+.doc-other-select {
+    background: #fff;
+    color: #1e293b;
+    margin-bottom: 1rem;
+}
+
+.doc-other-input {
+    background: #fff;
+    margin-bottom: 1rem;
+}
+
+.doc-other-file-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fff;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+
+.doc-other-file-input {
+    width: 100%;
+    color: #000;
+    font-size: 0.7rem;
+}
+
+.doc-td-name {
+    font-weight: 600;
+}
+
+.doc-td-badge {
+    padding: 0.2rem 0.5rem;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+.doc-td-center {
+    text-align: center;
+}
+
+.doc-view-btn {
+    border: none;
+    background: none;
+    color: var(--primary);
+    cursor: pointer;
+}
+
+.summary-errors {
+    margin-bottom: 2rem;
+}
+
+.summary-main {
+    margin-bottom: 2.5rem;
+}
+
+.summary-grid-wrap {
+    font-size: 0.85rem;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.summary-inner-grid {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.summary-val-break {
+    word-break: break-all;
+}
+
+.summary-p {
+    margin: 0;
+}
+
+.summary-p-muted {
+    margin: 0;
+    opacity: 0.8;
+    font-size: 0.8rem;
+}
+
+.summary-property-detail {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(0,0,0,0.02);
+    border-radius: 4px;
+}
+
+.summary-prop-label {
+    margin: 0;
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
+.summary-overflow {
+    overflow-x: auto;
+}
+
+.table-empty-row {
+    padding: 2rem;
+    text-align: center;
+    color: #64748b;
+}
+
 .loan-app-section {
     min-height: 60vh;
     padding-bottom: 4rem;

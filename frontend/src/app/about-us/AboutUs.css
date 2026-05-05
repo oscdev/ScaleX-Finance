@@ -71,6 +71,14 @@
     margin-bottom: 1rem;
 }
 
+.mv-title-primary {
+    color: var(--primary);
+}
+
+.mv-title-secondary {
+    color: var(--secondary);
+}
+
 .mv-content {
     opacity: 0.8;
     line-height: 1.6;
