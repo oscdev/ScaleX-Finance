@@ -1,6 +1,7 @@
 import React from 'react';
 export const dynamic = 'force-dynamic';
 import LeadForm from './LeadForm';
+import './LeadForm.css';
 
 import { strapiInternalApi } from '@/lib/strapi';
 
@@ -36,7 +37,7 @@ export default async function LeadFormPage() {
     }
 
     return (
-        <div style={{ paddingTop: '5rem' }}>
+        <div className="lead-form-wrapper">
             <LeadForm pageInfo={pageInfo} />
         </div>
     );

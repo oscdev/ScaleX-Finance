@@ -110,7 +110,6 @@ export default function AdvisorLoginForm() {
                         type="submit"
                         className={`btn btn-primary login-submit-btn ${isSubmitting ? 'btn-disabled' : ''}`}
                         disabled={isSubmitting}
-                        style={{ marginTop: '2rem' }}
                     >
                         {isSubmitting ? 'Logging in...' : 'Login'}
                     </button>

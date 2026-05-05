@@ -52,7 +52,7 @@ export default function ProductSelection({ products, buttonConfig }: { products:
                     ) : (
                         <div className="products-empty">
                             <h3>No products available yet.</h3>
-                            <p style={{ opacity: 0.7 }}>Add new incremental products via your Strapi Admin panel.</p>
+                            <p className="products-empty-note">Add new incremental products via your Strapi Admin panel.</p>
                         </div>
                     )}
                 </div>

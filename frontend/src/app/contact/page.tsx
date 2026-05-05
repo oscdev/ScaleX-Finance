@@ -2,6 +2,7 @@ import React from 'react';
 export const dynamic = 'force-dynamic';
 import { strapiInternalApi, withStrapiPublicUrl } from '@/lib/strapi';
 import ContactForm from './ContactForm';
+import './ContactForm.css';
 
 async function getContactUsPageData() {
     try {
@@ -60,44 +61,44 @@ export default async function ContactUsPage() {
     }
 
     return (
-        <main style={{ minHeight: '100vh', background: '#0a0a0a', color: '#fff', paddingTop: '8rem' }}>
+        <main className="contact-page">
             <div className="container animate-fade-in">
                 {/* Hero Header */}
-                <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
-                    <h1 style={{ fontSize: '3.5rem', fontWeight: 900, marginBottom: '1.5rem', background: 'linear-gradient(to right, #fff, rgba(255,255,255,0.6))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <div className="contact-hero">
+                    <h1 className="contact-hero-title">
                         {heroTitle}
                     </h1>
-                    <p style={{ fontSize: '1.15rem', color: 'rgba(255,255,255,0.7)', maxWidth: '600px', margin: '0 auto' }}>
+                    <p className="contact-hero-subtitle">
                         {heroSubtitle}
                     </p>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '4rem', marginBottom: '6rem' }}>
+                <div className="contact-layout-grid">
                     {/* Contact Info Sidebar */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                        <div className="card" style={{ padding: '2.5rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '1.5rem' }}>
-                            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '2rem', color: 'var(--primary)' }}>Contact Information</h3>
+                    <div className="contact-info-sidebar">
+                        <div className="card contact-info-card">
+                            <h3 className="contact-info-heading">Contact Information</h3>
 
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                                    <div style={{ fontSize: '1.5rem' }}>📧</div>
+                            <div className="contact-info-list">
+                                <div className="contact-info-row">
+                                    <div className="contact-info-icon">📧</div>
                                     <div>
-                                        <p style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Email Us</p>
-                                        <p style={{ opacity: 0.7 }}>{email}</p>
+                                        <p className="contact-info-label">Email Us</p>
+                                        <p className="contact-info-value">{email}</p>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                                    <div style={{ fontSize: '1.5rem' }}>📞</div>
+                                <div className="contact-info-row">
+                                    <div className="contact-info-icon">📞</div>
                                     <div>
-                                        <p style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Call Us</p>
-                                        <p style={{ opacity: 0.7 }}>{phone}</p>
+                                        <p className="contact-info-label">Call Us</p>
+                                        <p className="contact-info-value">{phone}</p>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                                    <div style={{ fontSize: '1.5rem' }}>📍</div>
+                                <div className="contact-info-row">
+                                    <div className="contact-info-icon">📍</div>
                                     <div>
-                                        <p style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Visit Us</p>
-                                        <p style={{ opacity: 0.7 }}>{address}</p>
+                                        <p className="contact-info-label">Visit Us</p>
+                                        <p className="contact-info-value">{address}</p>
                                     </div>
                                 </div>
                             </div>
@@ -105,13 +106,7 @@ export default async function ContactUsPage() {
 
                         {/* Map Embed Container */}
                         {mapUrl && (
-                            <div style={{
-                                height: '300px',
-                                border: '1px solid rgba(255,255,255,0.05)',
-                                borderRadius: '1.5rem',
-                                overflow: 'hidden',
-                                boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
-                            }}>
+                            <div className="contact-map-container">
                                 <iframe
                                     src={mapUrl}
                                     width="100%"
@@ -125,9 +120,9 @@ export default async function ContactUsPage() {
                     </div>
 
                     {/* Contact Form Container */}
-                    <div className="card" style={{ padding: '3rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '2rem', backdropFilter: 'blur(20px)' }}>
-                        <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '1rem' }}>{pageInfo?.contactFormTitle || 'Send a Message'}</h2>
-                        <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '2.5rem' }}>{pageInfo?.contactFormSubtitle || 'We usually respond within a few hours.'}</p>
+                    <div className="card contact-form-card">
+                        <h2 className="contact-form-title">{pageInfo?.contactFormTitle || 'Send a Message'}</h2>
+                        <p className="contact-form-subtitle">{pageInfo?.contactFormSubtitle || 'We usually respond within a few hours.'}</p>
 
                         <ContactForm />
                     </div>

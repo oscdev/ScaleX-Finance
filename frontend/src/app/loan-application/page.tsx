@@ -1,5 +1,6 @@
 import React from 'react';
 import LoanApplicationForm from './LoanApplicationForm';
+import './LoanApplication.css';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,13 +46,13 @@ export default async function LoanApplicationPage() {
     const pageSubtitle = pageInfo.pageSubtitle || 'Complete the steps below to submit your request.';
 
     return (
-        <main style={{ minHeight: '100vh', background: '#f8fafc', padding: '4rem 0' }}>
+        <main className="loan-app-page">
             <div className="container">
-                <header style={{ textAlign: 'center', marginBottom: '4rem' }}>
-                    <h1 style={{ fontSize: '3rem', fontWeight: 800, color: '#111827', marginBottom: '1rem' }}>
+                <header className="loan-app-header">
+                    <h1 className="loan-app-title">
                         {pageTitle}
                     </h1>
-                    <p style={{ color: '#6b7280', fontSize: '1.25rem' }}>
+                    <p className="loan-app-subtitle">
                         {pageSubtitle}
                     </p>
                 </header>

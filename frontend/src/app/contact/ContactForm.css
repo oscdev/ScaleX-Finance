@@ -1,4 +1,113 @@
+/* Contact Page Layout */
+.contact-page {
+    min-height: 100vh;
+    background: #0a0a0a;
+    color: #fff;
+    padding-top: 8rem;
+}
 
+.contact-hero {
+    text-align: center;
+    margin-bottom: 5rem;
+}
+
+.contact-hero-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(to right, #fff, rgba(255,255,255,0.6));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.contact-hero-subtitle {
+    font-size: 1.15rem;
+    color: rgba(255,255,255,0.7);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.contact-layout-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 4rem;
+    margin-bottom: 6rem;
+}
+
+.contact-info-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.contact-info-card {
+    padding: 2.5rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 1.5rem;
+}
+
+.contact-info-heading {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: var(--primary);
+}
+
+.contact-info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.contact-info-row {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.contact-info-icon {
+    font-size: 1.5rem;
+}
+
+.contact-info-label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.contact-info-value {
+    opacity: 0.7;
+}
+
+.contact-map-container {
+    height: 300px;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.contact-form-card {
+    padding: 3rem;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 2rem;
+    backdrop-filter: blur(20px);
+}
+
+.contact-form-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+.contact-form-subtitle {
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 2.5rem;
+}
+
+/* Contact Form Fields */
 .contact-form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;

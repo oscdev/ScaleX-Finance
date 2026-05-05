@@ -221,8 +221,8 @@ export const IncomeDetailsFields = ({ formData, handleChange, pageInfo }: FieldP
 export const OtherDetailsFields = ({ formData, handleChange, pageInfo, handleAddLoan }: any) => (
     <div className="animate-fade-in">
         <h4>{pageInfo.runningLoanTitle || 'Running Loan (If Any)'}</h4>
-        <p style={{ fontSize: '0.8rem', opacity: 0.7, marginBottom: '1.5rem' }}>{pageInfo.runningLoanSubtitle || 'Please enter all your running loan details including credit card, Gold loan, Auto loan and any other running loan'}</p>
-        <div className="card-grid-2" style={{ background: 'rgba(0,0,0,0.02)', padding: '1.5rem', borderRadius: '12px', marginBottom: '1.5rem' }}>
+        <p className="running-loan-note">{pageInfo.runningLoanSubtitle || 'Please enter all your running loan details including credit card, Gold loan, Auto loan and any other running loan'}</p>
+        <div className="card-grid-2 running-loan-grid">
             <div className="form-group">
                 <label className="form-label">{pageInfo.runningLoanTypeLabel || 'Loan Type'}<span className="required-star">*</span></label>
                 <select name="tempLoanType" className="form-select" value={formData.tempLoanType} onChange={handleChange}>
@@ -248,13 +248,13 @@ export const OtherDetailsFields = ({ formData, handleChange, pageInfo, handleAdd
                 <label className="form-label">{pageInfo.runningLoanPaidEmiLabel || 'No of Paid EMI'}<span className="required-star">*</span></label>
                 <input name="tempPaidEmi" className="form-input" value={formData.tempPaidEmi} onChange={handleChange} placeholder={pageInfo.runningLoanPaidEmiPlaceholder || 'Enter number of paid EMIs'} />
             </div>
-            <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: '1.5rem' }}>
-                <button type="button" className="btn btn-secondary" style={{ width: '100%' }} onClick={handleAddLoan}>{pageInfo.addLoanButtonLabel || '+ Add Loan'}</button>
+            <div className="add-loan-row">
+                <button type="button" className="btn btn-secondary add-loan-btn" onClick={handleAddLoan}>{pageInfo.addLoanButtonLabel || '+ Add Loan'}</button>
             </div>
         </div>
 
         {formData.runningLoans.length > 0 && (
-            <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+            <div className="card loan-list-card">
                 <table className="loan-list-table">
                     <thead>
                         <tr>
@@ -308,41 +308,31 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
 
     return (
         <div className="animate-fade-in">
-            <div className="doc-upload-grid" style={{ marginBottom: '2rem' }}>
+            <div className="doc-upload-grid">
                 {docFields.map((field) => {
                     const isUploaded = formData.uploadedFields[field.key];
                     return (
                         <div key={field.key} className="doc-card shadow-sm">
-                            <h4 style={{ fontSize: '0.9rem', marginBottom: '0.75rem', fontWeight: 600 }}>{field.id} - {field.name}<span className="required-star">*</span></h4>
-                            <div style={{
-                                display: 'inline-block',
-                                padding: '0.2rem 0.6rem',
-                                borderRadius: '4px',
-                                background: isUploaded ? '#10b981' : '#f59e0b',
-                                color: '#fff',
-                                fontSize: '0.7rem',
-                                fontWeight: 700,
-                                marginBottom: '1rem'
-                            }}>
+                            <h4 className="doc-card-title">{field.id} - {field.name}<span className="required-star">*</span></h4>
+                            <div className={`doc-status-badge ${isUploaded ? 'doc-status-uploaded' : 'doc-status-pending'}`}>
                                 {isUploaded ? (pageInfo.uploadedStatusText || '✔ UPLOADED') : (pageInfo.pendingStatusText || '⏳ PENDING')}
                             </div>
-                            <label className="form-label" style={{ fontSize: '0.8rem' }}>{pageInfo.pdfPasswordLabel || 'PDF Password (If any)'}</label>
-                            <input className="form-input" style={{ marginBottom: '1rem', padding: '0.4rem' }} value={formData.pdfPasswords[field.key] || ''} onChange={(e) => setFormData((p: any) => ({ ...p, pdfPasswords: { ...p.pdfPasswords, [field.key]: e.target.value } }))} placeholder={pageInfo.pdfPasswordPlaceholder || 'Enter password if PDF is protected'} />
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.7rem' }}>
+                            <label className="form-label doc-label">{pageInfo.pdfPasswordLabel || 'PDF Password (If any)'}</label>
+                            <input className="form-input doc-input" value={formData.pdfPasswords[field.key] || ''} onChange={(e) => setFormData((p: any) => ({ ...p, pdfPasswords: { ...p.pdfPasswords, [field.key]: e.target.value } }))} placeholder={pageInfo.pdfPasswordPlaceholder || 'Enter password if PDF is protected'} />
+                            <div className="doc-file-row">
+                                <div className="doc-file-item">
                                     <span style={{ opacity: 0.7, whiteSpace: 'nowrap', flexShrink: 0 }}>{pageInfo.selectFileLabel || '☁️ Select File'}</span>
-                                    <input 
-                                        type="file" 
+                                    <input
+                                        type="file"
                                         key={`${field.key}-${formData.uploadedFields[field.key]}`}
-                                        onChange={(e) => handleFileChange(e, field.key)} 
-                                        style={{ fontSize: '0.7rem', width: '100%' }} 
+                                        onChange={(e) => handleFileChange(e, field.key)}
+                                        className="doc-file-input"
                                     />
                                 </div>
                                 <button
                                     type="button"
-                                    className={`btn ${isUploaded ? 'btn-secondary' : 'btn-primary'}`}
+                                    className={`btn ${isUploaded ? 'btn-secondary' : 'btn-primary'} doc-upload-btn`}
                                     disabled={isUploaded}
-                                    style={{ padding: '0.4rem', fontSize: '0.85rem' }}
                                     onClick={() => handleSingleUpload(field.key, field.name)}
                                 >
                                     {isUploaded ? (pageInfo.uploadedSuccessfullyText || 'Uploaded Successfully') : (pageInfo.uploadButtonLabel || 'Upload Document')}
@@ -353,33 +343,32 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
                 })}
 
                 {loanType !== 'Business Loan' && !(occupation === 'Self Employed' && (loanType === 'Home Loan' || loanType === 'LAP' || loanType === 'LAP (Loan Against Property)')) && (
-                    <div className="doc-card shadow-sm" style={{ background: '#334155', color: '#fff' }}>
-                        <h4 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>{pageInfo.otherDocsTitle || 'Other Documents'}</h4>
+                    <div className="doc-card shadow-sm doc-other-card">
+                        <h4>{pageInfo.otherDocsTitle || 'Other Documents'}</h4>
                         <p style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: '1rem' }}>{pageInfo.otherDocsSubtitle || '( If there is any additional documents )'}</p>
-                        <label className="form-label" style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>{pageInfo.docTypeLabel || 'Document Type'}</label>
-                        <select className="form-select" style={{ background: '#fff', color: '#1e293b', marginBottom: '1rem' }} value={formData.docType} onChange={(e) => setFormData((p: any) => ({ ...p, docType: e.target.value }))}>
+                        <label className="form-label" style={{ color: '#cbd5e1' }}>{pageInfo.docTypeLabel || 'Document Type'}</label>
+                        <select className="form-select doc-other-select" value={formData.docType} onChange={(e) => setFormData((p: any) => ({ ...p, docType: e.target.value }))}>
                             <option value="">Select Document Type</option>
                             {(pageInfo.docTypeOptions || 'Pan Card, Aadhar Card Front, Aadhar Card Back, Salary Slip 1, Salary Slip 2, Salary Slip 3, 6 Month Bank Statement, Form 16 - 1, Form 16 - 2, Office ID Card Front, Office ID Card Back, Passport Size Photo, Co-Applicant Pan Card, Co-Applicant Aadhar Card Front, Co-Applicant Aadhar Card Back, Property Papers, Other Documents (if any)').split(',').map((opt: string) => (
                                 <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
                             ))}
                         </select>
-                        <label className="form-label" style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>{pageInfo.pdfPasswordLabel || 'PDF Password (If any)'}</label>
-                        <input className="form-input" style={{ background: '#fff', marginBottom: '1rem' }} value={formData.pdfPasswords['other'] || ''} onChange={(e) => setFormData((p: any) => ({ ...p, pdfPasswords: { ...p.pdfPasswords, other: e.target.value } }))} placeholder={pageInfo.pdfPasswordPlaceholder || 'Enter password'} />
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                        <label className="form-label" style={{ color: '#cbd5e1' }}>{pageInfo.pdfPasswordLabel || 'PDF Password (If any)'}</label>
+                        <input className="form-input doc-other-input" value={formData.pdfPasswords['other'] || ''} onChange={(e) => setFormData((p: any) => ({ ...p, pdfPasswords: { ...p.pdfPasswords, other: e.target.value } }))} placeholder={pageInfo.pdfPasswordPlaceholder || 'Enter password'} />
+                        <div className="doc-file-row">
+                            <div className="doc-other-file-row">
                                 <span style={{ color: '#000', fontSize: '0.7rem', opacity: 0.7, whiteSpace: 'nowrap', flexShrink: 0 }}>{pageInfo.selectFileLabel || '☁️ Select File'}</span>
-                                <input 
-                                    type="file" 
+                                <input
+                                    type="file"
                                     key={`otherDocs-${formData.addedDocs.length}`}
-                                    multiple 
-                                    onChange={(e) => handleFileChange(e, 'otherDocs')} 
-                                    style={{ width: '100%', color: '#000', fontSize: '0.7rem' }} 
+                                    multiple
+                                    onChange={(e) => handleFileChange(e, 'otherDocs')}
+                                    className="doc-other-file-input"
                                 />
                             </div>
                             <button
                                 type="button"
-                                className="btn btn-primary"
-                                style={{ padding: '0.4rem', fontSize: '0.85rem' }}
+                                className="btn btn-primary doc-upload-btn"
                                 onClick={() => handleSingleUpload('otherDocs', formData.docType || 'Other Document')}
                             >
                                 {pageInfo.uploadButtonLabel || 'Upload'}
@@ -388,7 +377,7 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
                     </div>
                 )}
             </div>
-            <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+            <div className="card loan-list-card">
                 <table className="loan-list-table">
                     <thead>
                         <tr>
@@ -398,20 +387,20 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
                             <th>{pageInfo.docTablePasswordHeader || 'Password'}</th>
                             <th>{pageInfo.docTableDateHeader || 'Date'}</th>
                             <th>{pageInfo.docTableStatusHeader || 'Status'}</th>
-                            <th style={{ textAlign: 'center' }}>{pageInfo.docTableActionHeader || 'View'}</th>
+                            <th className="doc-td-center">{pageInfo.docTableActionHeader || 'View'}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {formData.addedDocs.length === 0 ? (
                             <tr>
-                                <td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>{pageInfo.noDocsUploadedText || 'No documents uploaded yet.'}</td>
+                                <td colSpan={7} className="table-empty-row">{pageInfo.noDocsUploadedText || 'No documents uploaded yet.'}</td>
                             </tr>
                         ) : (
                             formData.addedDocs.map((doc: any, idx: number) => (
                                 <tr key={idx}>
-                                    <td style={{ fontWeight: 600 }}>{doc.id}</td>
+                                    <td className="doc-td-name">{doc.id}</td>
                                     <td>{doc.name}</td>
-                                    <td><span style={{ padding: '0.2rem 0.5rem', background: 'rgba(0,0,0,0.05)', borderRadius: '4px', fontSize: '0.75rem' }}>{doc.format}</span></td>
+                                    <td><span className="doc-td-badge">{doc.format}</span></td>
                                     <td>{doc.password}</td>
                                     <td>{doc.date}</td>
                                     <td>
@@ -419,8 +408,8 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
                                             ● {doc.status}
                                         </span>
                                     </td>
-                                    <td style={{ textAlign: 'center' }}>
-                                        <button type="button" style={{ border: 'none', background: 'none', color: 'var(--primary)', cursor: 'pointer' }}>{pageInfo.viewButtonLabel || '👁 View'}</button>
+                                    <td className="doc-td-center">
+                                        <button type="button" className="doc-view-btn">{pageInfo.viewButtonLabel || '👁 View'}</button>
                                     </td>
                                 </tr>
                             ))
@@ -434,7 +423,7 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
 
 export const SummarySection = ({ formData, loanProfile, leadId, pageInfo, loanType, occupation, vErrors, handleChange }: any) => (
     <div className="animate-fade-in">
-        <div style={{ marginBottom: '2rem' }}>
+        <div className="summary-errors">
             {vErrors.map((error: string, idx: number) => (
                 <div key={idx} className="validation-error-item">
                     <span>{idx + 1} - {error}</span>
@@ -443,18 +432,18 @@ export const SummarySection = ({ formData, loanProfile, leadId, pageInfo, loanTy
         </div>
 
         {vErrors.length === 0 && (
-            <div style={{ marginBottom: '2.5rem' }}>
+            <div className="summary-main">
                 <div className="success-banner">
                     <span>✅</span> {pageInfo.allStepsCompletedText || 'All required fields completed! Please review your summary below before final submission.'}
                 </div>
 
-                <div className="card-grid-2" style={{ fontSize: '0.85rem', gap: '1.5rem', marginBottom: '2rem' }}>
+                <div className="card-grid-2 summary-grid-wrap">
                     <div className="summary-card primary">
                         <h5 className="summary-header">{pageInfo.summaryOverviewTitle || '📋 Primary Application Overview'}</h5>
                         <div className="summary-grid">
                             <div className="summary-item"><span className="summary-label">{pageInfo.summaryLoanAmountLabel || 'Expected Loan Amount'}</span><span className="summary-value large">₹{formData.loanAmount.toLocaleString('en-IN')}</span></div>
                             <div className="summary-item"><span className="summary-label">{pageInfo.summaryPhoneLabel || 'Mobile Number'}</span><span className="summary-value">{loanProfile.phone}</span></div>
-                            <div className="summary-item"><span className="summary-label">{pageInfo.summaryEmailLabel || 'Email Address'}</span><span className="summary-value" style={{ wordBreak: 'break-all' }}>{loanProfile.email}</span></div>
+                            <div className="summary-item"><span className="summary-label">{pageInfo.summaryEmailLabel || 'Email Address'}</span><span className="summary-value summary-val-break">{loanProfile.email}</span></div>
                             <div className="summary-item"><span className="summary-label">{pageInfo.summaryPanLabel || 'PAN Card Number'}</span><span className="summary-value">{loanProfile.pan}</span></div>
                             <div className="summary-item"><span className="summary-label">{pageInfo.summaryAadharLabel || 'Aadhar Card Number'}</span><span className="summary-value">{loanProfile.aadhar}</span></div>
                         </div>
@@ -462,27 +451,27 @@ export const SummarySection = ({ formData, loanProfile, leadId, pageInfo, loanTy
 
                     <div className="summary-card shadow-sm">
                         <h5 className="summary-header">{pageInfo.summaryPersonalAddressTitle || 'Personal & Address'}</h5>
-                        <div style={{ display: 'grid', gap: '0.5rem' }}>
-                            <p style={{ margin: 0 }}><strong>{pageInfo.dobLabel || 'Date of Birth'}:</strong> {formData.dob}</p>
-                            <p style={{ margin: 0 }}><strong>{pageInfo.maritalStatusLabel || 'Marital Status'}:</strong> {formData.maritalStatus}</p>
-                            <p style={{ margin: 0 }}><strong>{pageInfo.motherNameLabel || 'Mother Name'}:</strong> {formData.motherName}</p>
-                            <p style={{ margin: 0 }}><strong>{pageInfo.residenceTypeLabel || 'Residence Type'}:</strong> {formData.residenceType}</p>
-                            <p style={{ margin: 0, marginTop: '0.5rem' }}><strong>Current Address:</strong></p>
-                            <p style={{ margin: 0, opacity: 0.8 }}>{formData.addressLine1}, {formData.addressLine2 ? `${formData.addressLine2}, ` : ''}{formData.landmark}, {formData.city}, {formData.state} - {formData.district}</p>
+                        <div className="summary-inner-grid">
+                            <p className="summary-p"><strong>{pageInfo.dobLabel || 'Date of Birth'}:</strong> {formData.dob}</p>
+                            <p className="summary-p"><strong>{pageInfo.maritalStatusLabel || 'Marital Status'}:</strong> {formData.maritalStatus}</p>
+                            <p className="summary-p"><strong>{pageInfo.motherNameLabel || 'Mother Name'}:</strong> {formData.motherName}</p>
+                            <p className="summary-p"><strong>{pageInfo.residenceTypeLabel || 'Residence Type'}:</strong> {formData.residenceType}</p>
+                            <p className="summary-p" style={{ marginTop: '0.5rem' }}><strong>Current Address:</strong></p>
+                            <p className="summary-p-muted">{formData.addressLine1}, {formData.addressLine2 ? `${formData.addressLine2}, ` : ''}{formData.landmark}, {formData.city}, {formData.state} - {formData.district}</p>
                         </div>
                     </div>
 
                     {(loanType === 'Business Loan' || occupation === 'Self Employed') && (
                         <div className="summary-card shadow-sm">
                             <h5 className="summary-header">{pageInfo.summaryBusinessTitle || 'Business Details'}</h5>
-                            <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                <p style={{ margin: 0 }}><strong>{pageInfo.businessNameLabel || 'Business Name'}:</strong> {formData.businessName}</p>
-                                <p style={{ margin: 0 }}><strong>{pageInfo.businessPremisesLabel || 'Premises'}:</strong> {formData.businessPremises}</p>
-                                <p style={{ margin: 0 }}><strong>{pageInfo.businessTypeLabel || 'Type'}:</strong> {formData.businessType}</p>
-                                <p style={{ margin: 0 }}><strong>{pageInfo.annualTurnoverLabel || 'Turnover'}:</strong> {formData.annualTurnover}</p>
-                                <p style={{ margin: 0 }}><strong>{pageInfo.businessAgeLabel || 'Age'}:</strong> {formData.businessAge}</p>
-                                <p style={{ margin: 0, marginTop: '0.5rem' }}><strong>Business Address:</strong></p>
-                                <p style={{ margin: 0, opacity: 0.8, fontSize: '0.8rem' }}>{formData.businessAddress}</p>
+                            <div className="summary-inner-grid">
+                                <p className="summary-p"><strong>{pageInfo.businessNameLabel || 'Business Name'}:</strong> {formData.businessName}</p>
+                                <p className="summary-p"><strong>{pageInfo.businessPremisesLabel || 'Premises'}:</strong> {formData.businessPremises}</p>
+                                <p className="summary-p"><strong>{pageInfo.businessTypeLabel || 'Type'}:</strong> {formData.businessType}</p>
+                                <p className="summary-p"><strong>{pageInfo.annualTurnoverLabel || 'Turnover'}:</strong> {formData.annualTurnover}</p>
+                                <p className="summary-p"><strong>{pageInfo.businessAgeLabel || 'Age'}:</strong> {formData.businessAge}</p>
+                                <p className="summary-p" style={{ marginTop: '0.5rem' }}><strong>Business Address:</strong></p>
+                                <p className="summary-p-muted">{formData.businessAddress}</p>
                             </div>
                         </div>
                     )}
@@ -490,16 +479,16 @@ export const SummarySection = ({ formData, loanProfile, leadId, pageInfo, loanTy
                     {occupation !== 'Self Employed' && loanType !== 'Business Loan' && (
                         <div className="summary-card shadow-sm">
                             <h5 className="summary-header">{pageInfo.summaryIncomePropertyTitle || 'Income & Property'}</h5>
-                            <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                <p style={{ margin: 0 }}><strong>{pageInfo.companyNameLabel || 'Company'}:</strong> {formData.companyName}</p>
-                                <p style={{ margin: 0 }}><strong>{pageInfo.designationLabel || 'Designation'}:</strong> {formData.designation}</p>
-                                <p style={{ margin: 0 }}><strong>{pageInfo.netSalaryLabel || 'Net Salary'}:</strong> ₹{parseInt(formData.netSalary || '0').toLocaleString('en-IN')}</p>
+                            <div className="summary-inner-grid">
+                                <p className="summary-p"><strong>{pageInfo.companyNameLabel || 'Company'}:</strong> {formData.companyName}</p>
+                                <p className="summary-p"><strong>{pageInfo.designationLabel || 'Designation'}:</strong> {formData.designation}</p>
+                                <p className="summary-p"><strong>{pageInfo.netSalaryLabel || 'Net Salary'}:</strong> ₹{parseInt(formData.netSalary || '0').toLocaleString('en-IN')}</p>
                                 {loanType === 'Home Loan' && (
-                                    <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(0,0,0,0.02)', borderRadius: '4px' }}>
-                                        <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.6 }}>Property Detail:</p>
-                                        <p style={{ margin: 0 }}><strong>{pageInfo.propertyTypeLabel || 'Type'}:</strong> {formData.propertyType}</p>
-                                        <p style={{ margin: 0 }}><strong>{pageInfo.propertyStatusLabel || 'Status'}:</strong> {formData.propertyStatus}</p>
-                                        <p style={{ margin: 0 }}><strong>{pageInfo.propertyValueLabel || 'Value'}:</strong> {formData.propertyValue}</p>
+                                    <div className="summary-property-detail">
+                                        <p className="summary-prop-label">Property Detail:</p>
+                                        <p className="summary-p"><strong>{pageInfo.propertyTypeLabel || 'Type'}:</strong> {formData.propertyType}</p>
+                                        <p className="summary-p"><strong>{pageInfo.propertyStatusLabel || 'Status'}:</strong> {formData.propertyStatus}</p>
+                                        <p className="summary-p"><strong>{pageInfo.propertyValueLabel || 'Value'}:</strong> {formData.propertyValue}</p>
                                         <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.8 }}>{formData.propertyAddressPincode}</p>
                                     </div>
                                 )}
@@ -511,12 +500,12 @@ export const SummarySection = ({ formData, loanProfile, leadId, pageInfo, loanTy
                     {(loanType === 'Home Loan') && (
                         <div className="summary-card shadow-sm">
                             <h5 className="summary-header">{pageInfo.summaryPropertyTitle || 'Property Details'}</h5>
-                            <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                <p style={{ margin: 0 }}><strong>{pageInfo.propertyTypeLabel || 'Type'}:</strong> {formData.propertyType}</p>
-                                <p style={{ margin: 0 }}><strong>{pageInfo.propertyStatusLabel || 'Status'}:</strong> {formData.propertyStatus}</p>
-                                <p style={{ margin: 0 }}><strong>{pageInfo.propertyValueLabel || 'Value'}:</strong> {formData.propertyValue}</p>
-                                <p style={{ margin: 0, marginTop: '0.5rem' }}><strong>Property Address:</strong></p>
-                                <p style={{ margin: 0, opacity: 0.8 }}>{formData.propertyAddressPincode}</p>
+                            <div className="summary-inner-grid">
+                                <p className="summary-p"><strong>{pageInfo.propertyTypeLabel || 'Type'}:</strong> {formData.propertyType}</p>
+                                <p className="summary-p"><strong>{pageInfo.propertyStatusLabel || 'Status'}:</strong> {formData.propertyStatus}</p>
+                                <p className="summary-p"><strong>{pageInfo.propertyValueLabel || 'Value'}:</strong> {formData.propertyValue}</p>
+                                <p className="summary-p" style={{ marginTop: '0.5rem' }}><strong>Property Address:</strong></p>
+                                <p className="summary-p-muted">{formData.propertyAddressPincode}</p>
                             </div>
                         </div>
                     )}
@@ -524,7 +513,7 @@ export const SummarySection = ({ formData, loanProfile, leadId, pageInfo, loanTy
                     {formData.runningLoans.length > 0 && (
                         <div className="summary-card shadow-sm primary">
                             <h5 className="summary-header">{pageInfo.summaryRunningLoansTitle || 'Running Loans Summary'}</h5>
-                            <div style={{ overflowX: 'auto' }}>
+                            <div className="summary-overflow">
                                 <table className="loan-list-table">
                                     <thead>
                                         <tr>

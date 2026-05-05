@@ -69,9 +69,9 @@ export default async function Products() {
 
     return (
         <>
-            <section className="hero-section" style={{ padding: '6rem 0 4rem 0' }}>
+            <section className="hero-section hero-section-products">
                 <div className="container animate-fade-in">
-                    <h1 className="hero-title" style={{ fontSize: '3rem' }}>{heroTitle}</h1>
+                    <h1 className="hero-title hero-title-products">{heroTitle}</h1>
                     <p className="hero-subtitle delay-100">{heroSubtitle}</p>
                 </div>
             </section>
