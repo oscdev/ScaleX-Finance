@@ -9,6 +9,7 @@ import { patchHistoryMethods } from './overrides/historyPatch';
 import { applyLoginPageOverride } from './overrides/loginPageOverride';
 import { applyNavOverride, updateNavActiveStates } from './overrides/navOverride';
 import { applyAdminUserOverride } from './overrides/adminUserOverride';
+import { applyAdminUsersListOverride } from './overrides/adminUsersListOverride';
 import { applyButtonHardening } from './overrides/buttonHardening';
 import { applyLeadTableOverride } from './overrides/leadTableOverride';
 import { applyAdvisorTableOverride } from './overrides/advisorTableOverride';
@@ -297,11 +298,12 @@ const initOverrides = () => {
         const isAdvisorsPage = path.includes('api::advisor.advisor');
         const isLeadsPage = path.includes('api::lead.lead');
         const isLoanPage = path.includes('api::loan-application.loan-application');
+        const isAdminUsersListPage = path.replace(/\/+$/, '') === '/admin/settings/users';
         const isDashboardMode = isLoanPage && (new URLSearchParams(window.location.search).get('view') === 'dashboard' || sessionStorage.getItem('currentLeadId'));
 
         // If we are NOT on a page we customize, ensure we are NOT in dashboard mode and return early.
         // This is the most critical fix to prevent breaking pages like Activity Log.
-        if (!isAdvisorsPage && !isLeadsPage && !isLoanPage) {
+        if (!isAdvisorsPage && !isLeadsPage && !isLoanPage && !isAdminUsersListPage) {
             if (document.body.classList.contains('dashboard-mode')) {
                 document.body.classList.remove('dashboard-mode');
                 showStrapiFrame();
@@ -322,6 +324,7 @@ const initOverrides = () => {
         if (isLeadsPage) safe(() => prefetchLeadsData());
 
         safe(() => applyAdminUserOverride(commonHeaders));
+        safe(() => applyAdminUsersListOverride(commonHeaders));
         safe(() => applyLeadDashboardOverride(token));
 
         safe(() => enforceDefaultListSettings());
