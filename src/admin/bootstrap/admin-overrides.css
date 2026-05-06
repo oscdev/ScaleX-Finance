@@ -76,8 +76,7 @@ nav ol,
 nav ul,
 aside li,
 aside ol,
-aside ul,
-.leads-submenu-item {
+aside ul {
     list-style: none !important;
     list-style-type: none !important;
     counter-reset: none !important;
@@ -110,10 +109,7 @@ aside li::before {
 /* Active Links */
 nav a.active,
 nav a[aria-current="page"],
-.custom-nav-link.active,
-#leads-toggle.active,
-#custom-add-lead-link.active,
-#custom-my-leads-link.active {
+.custom-nav-link.active {
     background-color: #1d4ed8 !important;
     color: #ffffff !important;
     font-weight: 600 !important;
@@ -122,8 +118,7 @@ nav a[aria-current="page"],
 
 /* Parent active state */
 nav li:has(a.active) > a,
-nav li:has(a[aria-current="page"]) > a,
-nav li:has(.active) #leads-toggle {
+nav li:has(a[aria-current="page"]) > a {
     background-color: #1d4ed8 !important;
     color: #ffffff !important;
     font-weight: 600 !important;
@@ -161,18 +156,10 @@ body:not(.is-config-page) [role="menuitem"]:has(input[type="checkbox"]:checked) 
 /* Icons and child text inside active/selected rows */
 nav a.active *,
 nav a[aria-current="page"] *,
-.active *,
-li:has(.active) #leads-toggle * {
+.active * {
     color: #ffffff !important;
     stroke: #ffffff !important;
 }
-
-/* Sidebar Submenu */
-#advisor-leads-submenu {
-    display: none; flex-direction: column;
-    padding: 0; list-style: none; margin-left: 12px;
-}
-#advisor-leads-submenu.is-expanded { display: flex; }
 
 /* ---------------------------------------------------------
    TABLE DESIGN
@@ -276,21 +263,6 @@ tbody tr [role="button"],
 #custom-partner-link { color: #1d4ed8; font-weight: 500; cursor: pointer; }
 #demo-credentials > div { text-align: center; margin-top: 1rem; color: #6b7280; font-size: 0.9rem; }
 
-/* ---------------------------------------------------------
-   NAVIGATION SUBMENU
-   --------------------------------------------------------- */
-
-.leads-submenu-item { padding-left: 20px; }
-.leads-submenu-link {
-    display: block; padding: 6px 16px;
-    text-decoration: none; color: inherit; font-size: 13px;
-}
-.leads-parent-nav-item { position: relative; }
-#leads-chevron-toggle {
-    background: transparent; border: none; padding: 2px 6px;
-    cursor: pointer; color: inherit;
-    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-}
 
 /* ---------------------------------------------------------
    CONFIGURE VIEW BUTTON
