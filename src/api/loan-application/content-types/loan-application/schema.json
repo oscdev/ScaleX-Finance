@@ -34,9 +34,6 @@
             ],
             "default": "Pending"
         },
-        "remarks": {
-            "type": "json"
-        },
         "aadharNumber": {
             "type": "string"
         },

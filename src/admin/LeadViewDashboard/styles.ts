@@ -13,18 +13,18 @@ export const styles: Record<string, CSSProperties> = {
     },
     metricGrid: {
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateColumns: 'repeat(5, 1fr)',
         gap: '16px',
         marginBottom: '24px',
     },
     fourColGrid: {
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateColumns: 'repeat(5, 1fr)',
         gap: '16px',
     },
     fourColGridTight: {
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateColumns: 'repeat(5, 1fr)',
         gap: '12px',
     },
     twoColGrid: {

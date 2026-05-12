@@ -1,0 +1,26 @@
+{
+    "kind": "collectionType",
+    "collectionName": "lead_remark",
+    "info": {
+        "singularName": "lead-remark",
+        "pluralName": "lead-remarks",
+        "displayName": "Lead Remarks",
+        "description": "Conversation history for leads"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {
+        "content-manager": {
+            "visible": false
+        }
+    },
+    "attributes": {
+        "leadId": {
+            "type": "integer"
+        },
+        "advisor_remark": {
+            "type": "json"
+        }
+    }
+}

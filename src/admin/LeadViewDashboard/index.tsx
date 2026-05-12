@@ -24,6 +24,13 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
         currentUser,
         errorLogs,
         handleUpdateStatus,
+        parentAdvisorIdVal,
+        setParentAdvisorIdVal,
+        isSavingParentId,
+        handleSaveParentAdvisorId,
+        parentAdvisor,
+        remarks,
+        statusHistory,
     } = useLeadViewDashboard(leadId);
 
     useEffect(() => {
@@ -88,14 +95,39 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
 
             {/* Top Identity Card */}
             <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px" marginBottom={4}>
-                <Flex gap={4}>
-                    <Box padding={2} background="success100" borderRadius="50%" style={styles.identityIcon}>
-                        👤
-                    </Box>
-                    <Box>
-                        <Typography variant="beta" fontWeight="bold">{lead.fullName || 'N/A'}</Typography>
-                        <Typography variant="pi" textColor="neutral600" marginLeft={2}>- #{leadId}</Typography>
-                    </Box>
+                <Flex justifyContent="space-between" alignItems="center">
+                    <Flex gap={4} alignItems="center">
+                        <Box padding={2} background="success100" borderRadius="50%" style={styles.identityIcon}>
+                            👤
+                        </Box>
+                        <Box>
+                            <Typography variant="beta" fontWeight="bold">{lead.fullName || 'N/A'}</Typography>
+                            <Typography variant="pi" textColor="neutral600" marginLeft={2}>- #{leadId}</Typography>
+                        </Box>
+                    </Flex>
+                    <Flex gap={2} alignItems="flex-end">
+                        <Box>
+                            <Typography variant="pi" textColor="neutral600" display="block" marginBottom={1}>
+                                Parent Advisor ID
+                            </Typography>
+                            <input
+                                value={parentAdvisorIdVal}
+                                onChange={(e) => setParentAdvisorIdVal(e.target.value)}
+                                placeholder="Enter ID..."
+                                style={{
+                                    border: '1px solid #dcdce4',
+                                    borderRadius: '4px',
+                                    padding: '6px 10px',
+                                    fontSize: '13px',
+                                    width: '160px',
+                                    outline: 'none',
+                                }}
+                            />
+                        </Box>
+                        <Button size="S" onClick={handleSaveParentAdvisorId} loading={isSavingParentId}>
+                            Save
+                        </Button>
+                    </Flex>
                 </Flex>
             </Box>
 
@@ -116,6 +148,13 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                         sub: `Referral ID: ${lead.advisorReferralId || 'N/A'}`,
                         icon: '👤',
                         bg: 'primary100',
+                    },
+                    {
+                        label: 'Parent Advisor ID',
+                        val: parentAdvisor ? parentAdvisor.fullName : (lead.parentAdvisorId || 'N/A'),
+                        sub: lead.parentAdvisorId ? `Advisor ID: ${lead.parentAdvisorId}` : undefined,
+                        icon: '🔗',
+                        bg: 'warning100',
                     },
                     { label: 'Lead Status', val: currentStatusLabel, icon: '⚙️', bg: 'neutral200', isBadge: true },
                 ].map((m, i) => (
@@ -247,124 +286,118 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                         </Typography>
                     </Box>
                     <Box padding={4} style={styles.historyScroll}>
-                        {(() => {
-                            if (!Array.isArray(lead.remarks)) {
-                                return (
-                                    <Box padding={8} textAlign="center">
-                                        <Typography variant="pi" textColor="neutral500">
-                                            No conversation history available.
-                                        </Typography>
-                                    </Box>
-                                );
-                            }
+                        {remarks.length === 0 ? (
+                            <Box padding={8} textAlign="center">
+                                <Typography variant="pi" textColor="neutral500">
+                                    No conversation history available.
+                                </Typography>
+                            </Box>
+                        ) : (
+                            <Flex direction="column" alignItems="stretch" gap={4}>
+                                {remarks.map((entry: any, index: number) => {
+                                    const isMine =
+                                        currentUser &&
+                                        entry.author &&
+                                        entry.author.includes(currentUser.firstname) &&
+                                        entry.author.includes(currentUser.lastname || '');
 
-                            const validRemarks = lead.remarks.filter((entry: any) => {
-                                if (!entry.text || entry.text.trim() === '') return false;
-                                if (entry.text === `Status changed to ${entry.status}`) return false;
-                                return true;
-                            });
-
-                            if (validRemarks.length === 0) {
-                                return (
-                                    <Box padding={8} textAlign="center">
-                                        <Typography variant="pi" textColor="neutral500">
-                                            No conversation history available.
-                                        </Typography>
-                                    </Box>
-                                );
-                            }
-
-                            return (
-                                <Flex direction="column" alignItems="stretch" gap={4}>
-                                    {validRemarks.map((entry: any, index: number) => {
-                                        const isMine =
-                                            currentUser &&
-                                            entry.author &&
-                                            entry.author.includes(currentUser.firstname) &&
-                                            entry.author.includes(currentUser.lastname || '');
-
-                                        return (
-                                            <Box
-                                                key={index}
-                                                maxWidth="70%"
-                                                style={{
-                                                    ...styles.remarkContainer,
-                                                    alignSelf: isMine ? 'flex-end' : 'flex-start',
-                                                }}
+                                    return (
+                                        <Box
+                                            key={index}
+                                            maxWidth="70%"
+                                            style={{
+                                                ...styles.remarkContainer,
+                                                alignSelf: isMine ? 'flex-end' : 'flex-start',
+                                            }}
+                                        >
+                                            <Flex
+                                                justifyContent={isMine ? 'flex-end' : 'flex-start'}
+                                                marginBottom={1}
+                                                gap={2}
+                                                alignItems="center"
                                             >
-                                                <Flex
-                                                    justifyContent={isMine ? 'flex-end' : 'flex-start'}
-                                                    marginBottom={1}
-                                                    gap={2}
-                                                >
-                                                    {!isMine && (
-                                                        <Box
-                                                            background="neutral200"
-                                                            color="neutral800"
-                                                            padding={1}
-                                                            borderRadius="4px"
-                                                            style={styles.authorBadge}
-                                                        >
-                                                            {entry.author?.[0] || 'U'}
-                                                        </Box>
-                                                    )}
+                                                {!isMine && (
+                                                    <Box
+                                                        background="neutral200"
+                                                        color="neutral800"
+                                                        padding={1}
+                                                        borderRadius="4px"
+                                                        style={styles.authorBadge}
+                                                    >
+                                                        {entry.author?.[0] || 'U'}
+                                                    </Box>
+                                                )}
+                                                <Box>
                                                     <Typography
                                                         variant="pi"
-                                                        textColor="neutral600"
+                                                        textColor="neutral800"
                                                         style={{ fontSize: '11px', fontWeight: 'bold' }}
+                                                        display="block"
                                                     >
                                                         {entry.author}
                                                     </Typography>
-                                                    {isMine && (
-                                                        <Box
-                                                            background="primary600"
-                                                            color="white"
-                                                            padding={1}
-                                                            borderRadius="4px"
-                                                            style={styles.authorBadge}
-                                                        >
-                                                            You
-                                                        </Box>
-                                                    )}
-                                                </Flex>
-
-                                                <Box
-                                                    background={isMine ? 'primary600' : 'neutral0'}
-                                                    color={isMine ? 'white' : 'neutral800'}
-                                                    padding={3}
-                                                    borderRadius="12px"
-                                                    shadow="filterShadow"
-                                                    style={bubbleStyle(isMine)}
-                                                >
-                                                    <Typography
-                                                        variant="pi"
-                                                        textColor={isMine ? 'neutral0' : 'neutral800'}
-                                                        style={styles.messageText}
-                                                    >
-                                                        {entry.text}
-                                                    </Typography>
-
-                                                    <Flex justifyContent="flex-end" marginTop={2} gap={4}>
+                                                    {entry.role && (
                                                         <Typography
                                                             variant="pi"
-                                                            textColor={isMine ? 'neutral200' : 'neutral500'}
-                                                            style={styles.messageTimestamp}
+                                                            textColor="neutral500"
+                                                            style={{ fontSize: '10px' }}
+                                                            display="block"
                                                         >
-                                                            {new Date(entry.timestamp).toLocaleString([], {
+                                                            {entry.role}
+                                                        </Typography>
+                                                    )}
+                                                </Box>
+                                                {isMine && (
+                                                    <Box
+                                                        background="primary600"
+                                                        color="white"
+                                                        padding={1}
+                                                        borderRadius="4px"
+                                                        style={styles.authorBadge}
+                                                    >
+                                                        You
+                                                    </Box>
+                                                )}
+                                            </Flex>
+
+                                            <Box
+                                                background={isMine ? 'primary600' : 'neutral0'}
+                                                color={isMine ? 'white' : 'neutral800'}
+                                                padding={3}
+                                                borderRadius="12px"
+                                                shadow="filterShadow"
+                                                style={bubbleStyle(isMine)}
+                                            >
+                                                <Typography
+                                                    variant="pi"
+                                                    textColor={isMine ? 'neutral0' : 'neutral800'}
+                                                    style={styles.messageText}
+                                                >
+                                                    {entry.message}
+                                                </Typography>
+
+                                                <Flex justifyContent="flex-end" marginTop={2} gap={4}>
+                                                    <Typography
+                                                        variant="pi"
+                                                        textColor={isMine ? 'neutral200' : 'neutral500'}
+                                                        style={styles.messageTimestamp}
+                                                    >
+                                                        {entry.timestamp
+                                                            ? new Date(entry.timestamp).toLocaleString([], {
                                                                 hour: '2-digit',
                                                                 minute: '2-digit',
                                                                 day: '2-digit',
                                                                 month: '2-digit',
-                                                            })}
-                                                        </Typography>
-                                                    </Flex>
-                                                </Box>
+                                                            })
+                                                            : ''}
+                                                    </Typography>
+                                                </Flex>
                                             </Box>
-                                        );
-                                    })}
-                                </Flex>
-                            );
-                        })()}
+                                        </Box>
+                                    );
+                                })}
+                            </Flex>
+                        )}
                     </Box>
                 </Box>
             </div>
@@ -707,7 +740,7 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                                             <Typography variant="pi" textColor="neutral800">{doc.pw}</Typography>
                                         </td>
                                         <td style={styles.docCell}>
-                                            <Typography variant="pi" textColor="neutral600" size="S">{doc.date}</Typography>
+                                            <Typography variant="pi" textColor="neutral600">{doc.date}</Typography>
                                         </td>
                                         <td style={styles.docCell}>
                                             <div style={styles.uploadedBadge}>UPLOADED</div>
@@ -776,53 +809,70 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                         </div>
                     </Box>
 
-                    {/* History Entries (status transitions only) */}
-                    {(() => {
-                        if (!Array.isArray(lead.remarks)) return null;
-
-                        const validJourney: any[] = [];
-                        let previousStatus: string | null = null;
-
-                        lead.remarks.forEach((entry: any) => {
-                            if (entry.status && entry.status !== previousStatus) {
-                                validJourney.push(entry);
-                                previousStatus = entry.status;
-                            }
-                        });
-
-                        return validJourney.map((entry: any, i: number) => (
+                    {/* Status change history — one entry per change */}
+                    {statusHistory.map((entry: any, i: number) => {
+                        const newStatus: string = entry.metadata?.newStatus || '';
+                        const oldStatus: string = entry.metadata?.oldStatus || '';
+                        const dotColor: Record<string, string> = {
+                            NEW: '#4945FF',
+                            UNDER_PROCESS: '#9736E8',
+                            APPROVED: '#328048',
+                            REJECTED: '#D02B20',
+                            DISBURSED: '#D9822B',
+                        };
+                        const color = dotColor[newStatus] || '#666';
+                        const isLast = i === statusHistory.length - 1;
+                        return (
                             <Box key={i} marginBottom={6} position="relative">
-                                <Box
-                                    position="absolute"
-                                    left="-23px"
-                                    top="0"
-                                    width="14px"
-                                    height="14px"
-                                    background="success600"
-                                    borderRadius="50%"
-                                    style={styles.timelineDotStatus}
+                                <div
+                                    style={{
+                                        position: 'absolute',
+                                        left: '-23px',
+                                        top: '0',
+                                        width: '14px',
+                                        height: '14px',
+                                        background: color,
+                                        borderRadius: '50%',
+                                        border: isLast ? '2px solid #fff' : undefined,
+                                        boxShadow: isLast ? `0 0 0 2px ${color}` : undefined,
+                                    }}
                                 />
                                 <div style={styles.timelineGrid}>
-                                    <Typography variant="pi" fontWeight="bold" textColor="success700">
-                                        {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : 'N/A'}
+                                    <Typography variant="pi" fontWeight="bold" style={{ color }}>
+                                        {new Date(entry.createdAt).toLocaleString()}
                                     </Typography>
                                     <Box>
                                         <Typography variant="pi" fontWeight="bold" display="block">
-                                            STATUS UPDATE: {entry.status}
+                                            STATUS CHANGED → {newStatus.replace('_', ' ')}
                                         </Typography>
-                                        <Typography
-                                            variant="pi"
-                                            textColor="neutral500"
-                                            marginTop={1}
-                                            display="block"
-                                        >
-                                            Author: {entry.author || 'N/A'}
+                                        <Typography variant="pi" textColor="neutral600">
+                                            {oldStatus.replace('_', ' ')} → {newStatus.replace('_', ' ')}
                                         </Typography>
                                     </Box>
                                 </div>
                             </Box>
-                        ));
-                    })()}
+                        );
+                    })}
+
+                    {/* Fallback: current status when no history entries exist yet */}
+                    {statusHistory.length === 0 && lead.leadStatus && lead.leadStatus !== 'NEW' && (
+                        <Box marginBottom={6} position="relative">
+                            <div style={{
+                                position: 'absolute', left: '-23px', top: '0',
+                                width: '14px', height: '14px', background: '#328048', borderRadius: '50%',
+                            }} />
+                            <div style={styles.timelineGrid}>
+                                <Typography variant="pi" fontWeight="bold" textColor="success700">
+                                    {lead.updatedAt ? new Date(lead.updatedAt).toLocaleString() : 'N/A'}
+                                </Typography>
+                                <Box>
+                                    <Typography variant="pi" fontWeight="bold" display="block">
+                                        CURRENT STATUS: {lead.leadStatus.replace('_', ' ')}
+                                    </Typography>
+                                </Box>
+                            </div>
+                        </Box>
+                    )}
                 </Box>
             </Box>
         </Box>

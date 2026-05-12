@@ -83,6 +83,39 @@ export default {
       }
     }
 
+    // 1b. Fix advisor role field-level permissions for leads and loan-applications (grant all fields)
+    try {
+      const allLeadFields = [
+        'fullName', 'email', 'requiredAmount', 'mobileNumber',
+        'advisorReferralId', 'parentAdvisorId', 'selectedProduct',
+        'panCard', 'aadharCard', 'propertyType', 'propertyStatus',
+        'propertyValue', 'employmentType', 'leadType', 'getEmailNotification',
+        'pinCode', 'leadStatus',
+      ];
+      const allLoanAppFields = [
+        'leadId', 'loanAmount', 'loanType', 'form_data', 'status',
+        'aadharNumber', 'panNumber', 'businessName', 'applicantName', 'email', 'phone',
+        'proprietorshipDoc', 'panCard', 'aadharCardFront', 'aadharCardBack',
+        'businessRegProofDoc', 'bankStatement', 'propertyPapers', 'coAppPan',
+        'coAppAadharFront', 'coAppAadharBack', 'salarySlips', 'otherDocs',
+        'declarationAccepted',
+      ];
+      const permLinks = await strapi.db.connection('admin_permissions_role_lnk')
+        .where({ role_id: advisorRole.id })
+        .select('permission_id');
+      const permIds = permLinks.map((r: any) => r.permission_id);
+      if (permIds.length > 0) {
+        await strapi.db.connection('admin_permissions')
+          .whereIn('id', permIds)
+          .where({ subject: 'api::lead.lead' })
+          .update({ properties: JSON.stringify({ fields: allLeadFields }) });
+        await strapi.db.connection('admin_permissions')
+          .whereIn('id', permIds)
+          .where({ subject: 'api::loan-application.loan-application' })
+          .update({ properties: JSON.stringify({ fields: allLoanAppFields }) });
+      }
+    } catch (e) {}
+
     // 2. Sync existing Approved advisors
     try {
       const approvedAdvisors = await strapi.db.query('api::advisor.advisor').findMany({
@@ -179,6 +212,11 @@ export default {
           { action: 'api::axis-bank-page.axis-bank-page.find', role: publicRole.id },
           { action: 'api::hdfc-bank-page.hdfc-bank-page.find', role: publicRole.id },
           { action: 'api::activity-log.activity-log.createLog', role: publicRole.id },
+          { action: 'api::advisor.advisor.find', role: publicRole.id },
+          { action: 'api::lead-remark.lead-remark.find', role: publicRole.id },
+          { action: 'api::lead-remark.lead-remark.findOne', role: publicRole.id },
+          { action: 'api::lead-remark.lead-remark.create', role: publicRole.id },
+          { action: 'api::lead-remark.lead-remark.update', role: publicRole.id },
           { action: 'plugin::upload.content-api.upload', role: publicRole.id },
           { action: 'plugin::upload.upload', role: publicRole.id }
         ];
@@ -233,7 +271,15 @@ export default {
 
           // console.log(`[Permission Sync] Found ${permissions.length} lead permissions for Advisor role ID: ${dbAdvisorRole.id}`);
 
-          // Grant Loan Application permissions if missing
+          // Grant Loan Application CM permissions — create if missing, then link and set all fields
+          const allLoanAppFields = [
+            'leadId', 'loanAmount', 'loanType', 'form_data', 'status',
+            'aadharNumber', 'panNumber', 'businessName', 'applicantName', 'email', 'phone',
+            'proprietorshipDoc', 'panCard', 'aadharCardFront', 'aadharCardBack',
+            'businessRegProofDoc', 'bankStatement', 'propertyPapers', 'coAppPan',
+            'coAppAadharFront', 'coAppAadharBack', 'salarySlips', 'otherDocs',
+            'declarationAccepted',
+          ];
           const loanAppActions = [
             'plugin::content-manager.explorer.read',
             'plugin::content-manager.explorer.create',
@@ -241,12 +287,26 @@ export default {
           ];
 
           for (const action of loanAppActions) {
-            const existing = await strapi.db.query('admin::permission').findOne({
-              where: {
-                action,
-                subject: 'api::loan-application.loan-application'
-              }
+            let existing = await strapi.db.query('admin::permission').findOne({
+              where: { action, subject: 'api::loan-application.loan-application' }
             });
+
+            if (!existing) {
+              existing = await strapi.db.query('admin::permission').create({
+                data: {
+                  action,
+                  subject: 'api::loan-application.loan-application',
+                  properties: { fields: allLoanAppFields },
+                  conditions: [],
+                }
+              });
+            } else {
+              // Ensure all fields are present
+              await strapi.db.query('admin::permission').update({
+                where: { id: existing.id },
+                data: { properties: { fields: allLoanAppFields } }
+              });
+            }
 
             if (existing) {
               const linked = await strapi.db.connection('admin_permissions_role_lnk')
@@ -258,7 +318,6 @@ export default {
                   permission_id: existing.id,
                   role_id: dbAdvisorRole.id
                 });
-                // console.log(`[Permission Sync] Linked ${action} for Loan Application to Advisor role`);
               }
             }
           }
@@ -571,11 +630,11 @@ export default {
             });
             const validIds = leads.map(l => l.id);
 
-            // Apply filter to loan applications
+            // Apply filter to loan applications by leadId field
             event.params.where = {
               $and: [
                 event.params.where || {},
-                { id: { $in: validIds } }
+                { leadId: { $in: validIds } }
               ]
             };
           }
@@ -609,7 +668,7 @@ export default {
             event.params.where = {
               $and: [
                 event.params.where || {},
-                { id: { $in: validIds } }
+                { leadId: { $in: validIds } }
               ]
             };
           }

@@ -255,6 +255,11 @@ export const useLeadViewDashboard = (leadId: string) => {
     const [isUpdating, setIsUpdating] = useState(false);
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [errorLogs, setErrorLogs] = useState<string[]>([]);
+    const [parentAdvisorIdVal, setParentAdvisorIdVal] = useState('');
+    const [isSavingParentId, setIsSavingParentId] = useState(false);
+    const [parentAdvisor, setParentAdvisor] = useState<any>(null);
+    const [remarks, setRemarks] = useState<any[]>([]);
+    const [statusHistory, setStatusHistory] = useState<any[]>([]);
 
     // 1. Fetch Lead
     useEffect(() => {
@@ -270,8 +275,6 @@ export const useLeadViewDashboard = (leadId: string) => {
 
             try {
                 const headers = authHeaders();
-                const idNum = parseInt(leadId);
-                const isNumeric = !isNaN(idNum) && /^\d+$/.test(leadId);
 
                 // Helper to try fetching by ID or searching by ID filter
                 const fetchWithFallback = async (uid: string, id: string) => {
@@ -446,6 +449,11 @@ export const useLeadViewDashboard = (leadId: string) => {
         if (lead) fetchLoan();
     }, [leadId, lead]);
 
+    // 3a. Sync parentAdvisorId input from fetched lead
+    useEffect(() => {
+        setParentAdvisorIdVal(lead?.parentAdvisorId || '');
+    }, [lead?.parentAdvisorId]);
+
     // 3. Fetch Advisor details
     useEffect(() => {
         const fetchAdvisor = async () => {
@@ -468,6 +476,29 @@ export const useLeadViewDashboard = (leadId: string) => {
         if (lead) fetchAdvisor();
     }, [lead]);
 
+    // 3b. Fetch Parent Advisor details by advisorId field (e.g. "ADV47")
+    useEffect(() => {
+        const fetchParentAdvisor = async () => {
+            if (!lead?.parentAdvisorId) return;
+            try {
+                const res = await fetch(
+                    `/api/advisors?filters[advisorId][$eq]=${encodeURIComponent(lead.parentAdvisorId)}`
+                );
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.data?.length > 0) {
+                        setParentAdvisor(data.data[0].attributes || data.data[0]);
+                    } else {
+                        setParentAdvisor(null);
+                    }
+                }
+            } catch (e) {
+                // swallow
+            }
+        };
+        fetchParentAdvisor();
+    }, [lead?.parentAdvisorId]);
+
     // 4. Fetch logged-in admin user info
     useEffect(() => {
         const fetchMe = async () => {
@@ -488,69 +519,166 @@ export const useLeadViewDashboard = (leadId: string) => {
         fetchMe();
     }, []);
 
+    // Helper: resolve numeric lead id from lead object or leadId string
+    const resolveNumericId = () => {
+        const rawId = lead?.id ?? null;
+        return (
+            (rawId !== null && /^\d+$/.test(String(rawId)) ? parseInt(String(rawId)) : null) ||
+            (!isNaN(parseInt(leadId)) && /^\d+$/.test(leadId) ? parseInt(leadId) : null)
+        );
+    };
+
+    // Helper: fetch the single remark row for this lead via public API
+    const fetchRemarkRow = async (numericId: number) => {
+        const res = await fetch(
+            `/api/lead-remarks?filters[leadId][$eq]=${numericId}&pagination[pageSize]=1`
+        );
+        if (!res.ok) return null;
+        const data = await res.json();
+        // Strapi v5 public API: flat objects inside data[]
+        const row = (data.data || [])[0];
+        return row || null;
+    };
+
+    // 5a. Load status history from activity log
+    useEffect(() => {
+        const loadStatusHistory = async () => {
+            const numericId = resolveNumericId();
+            if (!numericId) return;
+            try {
+                const res = await fetch(
+                    `/api/activity-logs?filters[action][$eq]=LEAD_STATUS_CHANGED&sort=createdAt:asc&pagination[pageSize]=200`
+                );
+                if (!res.ok) return;
+                const data = await res.json();
+                const entries = (data.data || []).filter(
+                    (e: any) => e.metadata?.leadId === numericId
+                );
+                setStatusHistory(entries);
+            } catch (e) {
+                // swallow
+            }
+        };
+        if (lead) loadStatusHistory();
+    }, [lead?.id, leadId]);
+
+    // 5. Load remarks for display
+    useEffect(() => {
+        const loadRemarks = async () => {
+            if (!lead) return;
+            const numericId = resolveNumericId();
+            if (!numericId) return;
+            try {
+                const row = await fetchRemarkRow(numericId);
+                if (row) {
+                    const arr = row.advisor_remark;
+                    setRemarks(Array.isArray(arr) ? arr : []);
+                } else {
+                    setRemarks([]);
+                }
+            } catch (e) {
+                // swallow
+            }
+        };
+        loadRemarks();
+    }, [lead?.id, leadId]);
+
     const handleUpdateStatus = async () => {
         if (!status) return;
-
         setIsUpdating(true);
         try {
-            const currentRemarks = Array.isArray(lead.remarks) ? lead.remarks : [];
-
-            let authorName = 'System';
-            if (currentUser) {
-                const roleName =
-                    Array.isArray(currentUser.roles) && currentUser.roles.length > 0
-                        ? currentUser.roles[0].name
-                        : 'Admin';
-                authorName = `${currentUser.firstname} ${currentUser.lastname || ''} (${roleName})`;
-            }
-
-            const newEntry = {
-                text: newRemark || `Status changed to ${status}`,
-                status: status,
-                timestamp: new Date().toISOString(),
-                author: authorName.trim(),
-            };
-
-            const updatedRemarks = [...currentRemarks, newEntry];
-
+            const roleName =
+                Array.isArray(currentUser?.roles) && currentUser.roles.length > 0
+                    ? currentUser.roles[0].name
+                    : 'Admin';
+            const authorName = currentUser
+                ? `${currentUser.firstname} ${currentUser.lastname || ''}`.trim()
+                : 'System';
             const cleanStatus = status.trim();
-            const payload = {
-                data: {
-                    leadStatus: cleanStatus,
-                    remarks: updatedRemarks,
-                },
-            };
 
-            console.log('[Dashboard] Updating lead via Public API with payload:', payload);
-
-            const res = await fetch(`/api/leads/${lead.documentId || leadId}`, {
+            // 1. Update lead status
+            const statusRes = await fetch(`/api/leads/${lead.documentId || leadId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
+                body: JSON.stringify({ data: { leadStatus: cleanStatus } }),
             });
-
-            if (res.ok) {
-                setNewRemark('');
-
-                const refreshRes = await fetch(
-                    `/content-manager/collection-types/api::lead.lead/${lead.documentId || lead.id || leadId}`,
-                    { headers: authHeaders() }
-                );
-                if (refreshRes.ok) {
-                    const freshData = await refreshRes.json();
-                    setLead(freshData.data || freshData);
-                }
-            } else {
-                const errorData = await res.json();
-                console.error(
-                    '[Dashboard] Update failed with details:',
-                    JSON.stringify(errorData, null, 2)
-                );
+            if (!statusRes.ok) {
+                console.error('[Remarks] Status update failed');
+                return;
             }
+
+            // 2. Upsert remark row — append to JSON array, one row per lead
+            if (newRemark.trim()) {
+                const numericId = resolveNumericId();
+                const newEntry = {
+                    message: newRemark.trim(),
+                    author: authorName,
+                    role: roleName,
+                    timestamp: new Date().toISOString(),
+                    lead_id: numericId,
+                };
+
+                const existingRow = await fetchRemarkRow(numericId!);
+                const existingArr = existingRow ? (existingRow.advisor_remark ?? []) : [];
+                const updatedArr = [...(Array.isArray(existingArr) ? existingArr : []), newEntry];
+
+                if (existingRow) {
+                    // Row exists — PUT to append via public API
+                    const rowDocId = existingRow.documentId || String(existingRow.id);
+                    await fetch(`/api/lead-remarks/${rowDocId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: { leadId: numericId, advisor_remark: updatedArr } }),
+                    });
+                } else {
+                    // No row yet — create via public API
+                    await fetch('/api/lead-remarks', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: { leadId: numericId, advisor_remark: updatedArr } }),
+                    });
+                }
+
+                setRemarks(updatedArr);
+            }
+
+            // Optimistically append to status history for immediate display
+            const oldStatus = lead?.leadStatus || '';
+            if (oldStatus !== cleanStatus) {
+                setStatusHistory((prev) => [
+                    ...prev,
+                    {
+                        metadata: { leadId: resolveNumericId(), oldStatus, newStatus: cleanStatus },
+                        createdAt: new Date().toISOString(),
+                        _optimistic: true,
+                    },
+                ]);
+            }
+
+            setNewRemark('');
+            setLead((prev: any) => ({ ...prev, leadStatus: cleanStatus }));
         } catch (err: any) {
             // swallow
         } finally {
             setIsUpdating(false);
+        }
+    };
+
+    const handleSaveParentAdvisorId = async () => {
+        setIsSavingParentId(true);
+        try {
+            const res = await fetch(`/api/leads/${lead?.documentId || leadId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: { parentAdvisorId: parentAdvisorIdVal } }),
+            });
+            if (res.ok) {
+                setLead((prev: any) => ({ ...prev, parentAdvisorId: parentAdvisorIdVal }));
+            }
+        } catch (e) {
+            // swallow
+        } finally {
+            setIsSavingParentId(false);
         }
     };
 
@@ -567,5 +695,12 @@ export const useLeadViewDashboard = (leadId: string) => {
         currentUser,
         errorLogs,
         handleUpdateStatus,
+        parentAdvisorIdVal,
+        setParentAdvisorIdVal,
+        isSavingParentId,
+        handleSaveParentAdvisorId,
+        parentAdvisor,
+        remarks,
+        statusHistory,
     };
 };
