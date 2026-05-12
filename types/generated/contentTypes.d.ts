@@ -1121,6 +1121,41 @@ export interface ApiLeadFormPageLeadFormPage extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiLeadRemarkLeadRemark extends Struct.CollectionTypeSchema {
+  collectionName: 'lead_remark';
+  info: {
+    description: 'Conversation history for leads';
+    displayName: 'Lead Remarks';
+    pluralName: 'lead-remarks';
+    singularName: 'lead-remark';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+  };
+  attributes: {
+    advisor_remark: Schema.Attribute.JSON;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    leadId: Schema.Attribute.Integer;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::lead-remark.lead-remark'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiLeadLead extends Struct.CollectionTypeSchema {
   collectionName: 'leads';
   info: {
@@ -1153,12 +1188,12 @@ export interface ApiLeadLead extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     mobileNumber: Schema.Attribute.String & Schema.Attribute.Required;
     panCard: Schema.Attribute.String;
+    parentAdvisorId: Schema.Attribute.String;
     pinCode: Schema.Attribute.String;
     propertyStatus: Schema.Attribute.String;
     propertyType: Schema.Attribute.String;
     propertyValue: Schema.Attribute.Decimal;
     publishedAt: Schema.Attribute.DateTime;
-    remarks: Schema.Attribute.JSON;
     requiredAmount: Schema.Attribute.Decimal & Schema.Attribute.Required;
     selectedProduct: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
@@ -1570,7 +1605,6 @@ export interface ApiLoanApplicationLoanApplication
     propertyPapers: Schema.Attribute.Media<'files' | 'images'>;
     proprietorshipDoc: Schema.Attribute.Media<'files' | 'images'>;
     publishedAt: Schema.Attribute.DateTime;
-    remarks: Schema.Attribute.JSON;
     salarySlips: Schema.Attribute.Media<'files' | 'images', true>;
     status: Schema.Attribute.Enumeration<
       ['Pending', 'Under Review', 'Approved', 'Rejected']
@@ -2177,6 +2211,7 @@ declare module '@strapi/strapi' {
       'api::header.header': ApiHeaderHeader;
       'api::homepage.homepage': ApiHomepageHomepage;
       'api::lead-form-page.lead-form-page': ApiLeadFormPageLeadFormPage;
+      'api::lead-remark.lead-remark': ApiLeadRemarkLeadRemark;
       'api::lead.lead': ApiLeadLead;
       'api::lender.lender': ApiLenderLender;
       'api::lenders-page.lenders-page': ApiLendersPageLendersPage;

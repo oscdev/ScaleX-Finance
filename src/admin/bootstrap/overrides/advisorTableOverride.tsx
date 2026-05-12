@@ -284,7 +284,7 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
                 if (!advEmail) throw new Error('Advisor email not found in record');
                 if (!advPassword) throw new Error('Advisor password not found in record');
 
-                // 2. Verify admin user with matching email + ID
+                // 2. Verify admin user with matching email
                 const adminUsersRes = await fetch(`/admin/users?pageSize=100&_q=${advEmail}`, {
                     headers: token ? { Authorization: `Bearer ${token}` } : {},
                 });
@@ -292,22 +292,22 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
                 const adminUsersData = await adminUsersRes.json();
                 const adminUsers = adminUsersData.data?.results || adminUsersData.data || [];
                 const matchingAdmin = adminUsers.find(
-                    (u: any) =>
-                        u.email.toLowerCase() === advEmail &&
-                        u.id.toString() === rawId.toString()
+                    (u: any) => u.email.toLowerCase() === advEmail
                 );
 
                 if (!matchingAdmin) {
-                    alert(`Verification Failed:\n- Advisor ID: ${rawId}\n- Email: ${advEmail}\nNo matching Admin User found with these identical credentials.`);
+                    alert(`Login Failed:\nNo admin account found for email: ${advEmail}\nMake sure this advisor is Approved.`);
                     return;
                 }
 
                 // 3. Confirm Advisor role
                 const hasAdvisorRole = (matchingAdmin.roles || []).some(
-                    (r: any) => r.name.toLowerCase() === 'advisor' || r.code?.toLowerCase() === 'advisor'
+                    (r: any) =>
+                        r.code === 'strapi-advisor' ||
+                        r.name.toLowerCase() === 'advisor'
                 );
                 if (!hasAdvisorRole) {
-                    alert(`Verification Failed:\nAdmin User found (ID: ${matchingAdmin.id}), but they do not have the 'Advisor' role.`);
+                    alert(`Login Failed:\nAdmin account found for ${advEmail} but does not have the Advisor role.`);
                     return;
                 }
 
