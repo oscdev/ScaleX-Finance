@@ -13,9 +13,132 @@ export const installFetchInterceptor = () => {
             token = (headers as any)['Authorization'] || (headers as any)['authorization'] || '';
         }
         if (token && token.startsWith('Bearer ')) {
+            const prevToken = (window as any)._strapi_last_token;
             (window as any)._strapi_last_token = token;
+            // A changed token means a new user just logged in. Re-sync session role
+            // state so stale data from a previous login is cleared and the correct
+            // role/assignment data is set before the next leads fetch runs.
+            if (token !== prevToken) {
+                (window as any)._syncSessionRole?.();
+                // Reset caches so the new user's role gets a fresh prefetch
+                (window as any)._advisors_loaded = false;
+                (window as any).advisorMap = {};
+                (window as any)._assignedLeadIds = null; // invalidate staff/banker lead ID cache
+            }
         }
         // ------------------------------
+
+        // ── Role-scoped lead filtering ────────────────────────────────────────
+        // Inject row-level filters for the leads list based on who is logged in:
+        //   advisor → advisorReferralId OR parentAdvisorId match (direct lead fields)
+        //   staff   → two-step: look up loan_applications.assignedStaffId = adminUserId,
+        //              collect the leadId values, then filter leads by id IN [...]
+        //   banker  → same two-step via loan_applications.assignedBankerId
+        //   admin   → no filter (sees all)
+        // Guard flags prevent re-entry when the interceptor itself fires sub-fetches.
+        if (
+            url.includes('/content-manager/collection-types/api::lead.lead') &&
+            !url.includes('configuration') &&
+            !url.includes('_leads_filtered=1')   // our own re-fetch marker
+        ) {
+            const roleReady: Promise<void> = (window as any)._sessionRoleReady ?? Promise.resolve();
+            await Promise.race([roleReady, new Promise<void>(r => setTimeout(r, 5000))]);
+
+            const role = sessionStorage.getItem('strapiUserRole') || 'admin';
+            const sep = url.includes('?') ? '&' : '?';
+
+            if (role === 'advisor') {
+                const advisorId = sessionStorage.getItem('strapiAdvisorId');
+                const advisorCode = sessionStorage.getItem('strapiAdvisorCode');
+                if (advisorId) {
+                    let filteredUrl = url + sep +
+                        `filters[$or][0][advisorReferralId][$eq]=${encodeURIComponent(advisorId)}`;
+                    if (advisorCode) {
+                        filteredUrl += `&filters[$or][1][parentAdvisorId][$eq]=${encodeURIComponent(advisorCode)}`;
+                    }
+                    filteredUrl += '&_leads_filtered=1';
+                    const newArgs = [...args] as Parameters<typeof originalFetch>;
+                    newArgs[0] = filteredUrl;
+                    return originalFetch(...newArgs);
+                }
+
+            } else if (role === 'staff' || role === 'banker') {
+                const adminUserId = sessionStorage.getItem('strapiAdminUserId');
+                if (adminUserId) {
+                    const filterKey = role === 'staff' ? 'assignedStaffId' : 'assignedBankerId';
+
+                    // ── Step 1: resolve assigned leadIds (cached per session) ──────
+                    let leadIds: number[] = (window as any)._assignedLeadIds;
+                    if (leadIds == null) {
+                        try {
+                            const loanRes = await originalFetch(
+                                `/api/loan-applications?filters[${filterKey}][$eq]=${adminUserId}&fields[0]=leadId&pagination[pageSize]=500`
+                            );
+                            if (loanRes.ok) {
+                                const loanData = await loanRes.json();
+                                const items: any[] = loanData.data || [];
+                                leadIds = items
+                                    .map((item: any) => Number((item.attributes || item).leadId))
+                                    .filter((id) => !isNaN(id) && id > 0);
+                            } else {
+                                leadIds = [];
+                            }
+                        } catch {
+                            leadIds = [];
+                        }
+                        (window as any)._assignedLeadIds = leadIds;
+                    }
+
+                    // ── Step 2: filter leads list by the resolved IDs ─────────────
+                    if (leadIds.length === 0) {
+                        // No assigned leads — return an empty CM-format response
+                        return new Response(
+                            JSON.stringify({ results: [], pagination: { total: 0, page: 1, pageSize: 10, pageCount: 0 } }),
+                            { status: 200, headers: { 'Content-Type': 'application/json' } }
+                        );
+                    }
+
+                    const idFilter = leadIds
+                        .map((id, idx) => `filters[id][$in][${idx}]=${id}`)
+                        .join('&');
+                    const filteredUrl = url + sep + idFilter + '&_leads_filtered=1';
+                    const newArgs = [...args] as Parameters<typeof originalFetch>;
+                    newArgs[0] = filteredUrl;
+                    return originalFetch(...newArgs);
+                }
+            }
+            // admin: fall through with no filter
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
+        // ── Staff / Banker loan-application filtering ─────────────────────────
+        // Staff only see loan apps where assignedStaffId = their admin user ID.
+        // Bankers only see loan apps where assignedBankerId = their admin user ID.
+        // Admin sees all — no filter injected.
+        if (
+            url.includes('/content-manager/collection-types/api::loan-application.loan-application') &&
+            !url.includes('configuration') &&
+            !url.includes('filters[assignedStaffId]') &&
+            !url.includes('filters[assignedBankerId]') &&
+            !url.includes('filters[leadId]') &&
+            !url.includes('filters[id]')
+        ) {
+            const roleReady: Promise<void> = (window as any)._sessionRoleReady ?? Promise.resolve();
+            await Promise.race([roleReady, new Promise<void>(r => setTimeout(r, 5000))]);
+
+            const role = sessionStorage.getItem('strapiUserRole');
+            const adminUserId = sessionStorage.getItem('strapiAdminUserId');
+
+            if (adminUserId && (role === 'staff' || role === 'banker')) {
+                const filterKey = role === 'staff' ? 'assignedStaffId' : 'assignedBankerId';
+                const sep = url.includes('?') ? '&' : '?';
+                const filteredUrl = url + sep + `filters[${filterKey}][$eq]=${encodeURIComponent(adminUserId)}`;
+                const newArgs = [...args] as Parameters<typeof originalFetch>;
+                newArgs[0] = filteredUrl;
+                return originalFetch(...newArgs);
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
 
         const response = await originalFetch(...args);
 
@@ -86,18 +209,11 @@ export const installFetchInterceptor = () => {
             try {
                 const json = await clonedResponse.json();
 
-                const customDefaultSequence = [
-                    'id',
-                    'fullName',
-                    'mobileNumber',
-                    'email',
-                    'selectedProduct',
-                    'requiredAmount',
-                    'advisorReferralId',
-                    'updatedAt',
-                    'createdAt',
-                    'leadStatus',
-                ];
+                // Admin sees the ADVISOR column; all other roles do not.
+                const _role = sessionStorage.getItem('strapiUserRole') || 'admin';
+                const customDefaultSequence = _role === 'admin'
+                    ? ['id', 'fullName', 'mobileNumber', 'email', 'selectedProduct', 'requiredAmount', 'advisorReferralId', 'updatedAt', 'createdAt', 'leadStatus']
+                    : ['id', 'fullName', 'mobileNumber', 'email', 'selectedProduct', 'requiredAmount', 'updatedAt', 'createdAt', 'leadStatus'];
 
                 let modified = false;
 

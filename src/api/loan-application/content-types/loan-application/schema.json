@@ -150,6 +150,12 @@
         },
         "declarationAccepted": {
             "type": "boolean"
+        },
+        "assignedStaffId": {
+            "type": "integer"
+        },
+        "assignedBankerId": {
+            "type": "integer"
         }
     }
 }

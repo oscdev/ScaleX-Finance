@@ -28,7 +28,6 @@ export const leadLabelMap: Record<string, string> = {
     employmenttype: 'EMPLOYMENT',
     leadtype: 'LEAD TYPE',
     getemailnotification: 'EMAIL NOTIFICATIONS',
-    getEmailNotification: 'EMAIL NOTIFICATIONS',
     pincode: 'PINCODE',
     remarks: 'REMARKS',
     locale: 'LOCALE',

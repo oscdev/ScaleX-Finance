@@ -153,10 +153,9 @@ body:not(.is-config-page) [role="menuitem"]:has(input[type="checkbox"]:checked) 
     font-weight: 800 !important;
 }
 
-/* Icons and child text inside active/selected rows */
+/* Icons and child text inside active nav links */
 nav a.active *,
-nav a[aria-current="page"] *,
-.active * {
+nav a[aria-current="page"] * {
     color: #ffffff !important;
     stroke: #ffffff !important;
 }

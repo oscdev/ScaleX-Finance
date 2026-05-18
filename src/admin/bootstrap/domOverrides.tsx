@@ -13,6 +13,7 @@ import { applyAdminUsersListOverride } from './overrides/adminUsersListOverride'
 import { applyButtonHardening } from './overrides/buttonHardening';
 import { applyLeadTableOverride } from './overrides/leadTableOverride';
 import { applyAdvisorTableOverride } from './overrides/advisorTableOverride';
+import { applyRoleTabOverride } from './overrides/roleTabOverride';
 import adminOverridesCss from './admin-overrides.css?inline';
 
 if (typeof document !== 'undefined' && !document.getElementById('scalex-admin-overrides')) {
@@ -67,10 +68,11 @@ const prefetchAdvisorStatusMap = () => {
     whenAuthed(() => {
         authedFetch('/content-manager/collection-types/api::advisor.advisor?pageSize=100')
             .then((r) => {
-                if (!r.ok) throw new Error(`status ${r.status}`);
+                if (!r.ok) return null; // 403/404 — no permission, don't retry
                 return r.json();
             })
             .then((data) => {
+                if (!data) return;
                 const advisors = data.results || data.data || [];
                 advisors.forEach((adv: any) => {
                     if (adv.id) (window as any).advisorStatusMap[adv.id] = adv.advisorStatus || 'Disapproved';
@@ -79,7 +81,7 @@ const prefetchAdvisorStatusMap = () => {
                 });
                 setTimeout(initOverrides, 0);
             })
-            .catch(() => { (window as any)._advisor_status_loaded = false; });
+            .catch(() => {}); // network error — loaded flag stays true, no retry
     });
 };
 
@@ -91,31 +93,54 @@ const prefetchLeadsData = () => {
     (window as any).leadDocMap = (window as any).leadDocMap || {};
 
     whenAuthed(() => {
-        authedFetch('/content-manager/collection-types/api::advisor.advisor?pageSize=100')
+        // Try custom endpoint first (works for all roles including Advisor).
+        // If it returns 404 (Strapi not yet restarted), fall back to content-manager (works for super admin).
+        authedFetch('/admin/advisors-list')
             .then((r) => {
-                if (!r.ok) throw new Error(`status ${r.status}`);
-                return r.json();
+                if (r.ok) return r.json().then((d: any) => ({ source: 'custom', data: d }));
+                return authedFetch('/content-manager/collection-types/api::advisor.advisor?pageSize=100')
+                    .then((r2) => (r2.ok ? r2.json().then((d: any) => ({ source: 'cm', data: d })) : null));
             })
-            .then((data) => {
-                const advisors = data.results || data.data || [];
+            .then((result: any) => {
+                // Both admin endpoints failed (e.g. advisor role has no CM access).
+                // Fall back to the public API. Send the Bearer token in case the
+                // endpoint requires authentication.
+                if (!result) {
+                    const captured = (window as any)._strapi_last_token as string | undefined;
+                    const headers: Record<string, string> = { Accept: 'application/json' };
+                    if (captured) headers.Authorization = captured.startsWith('Bearer ') ? captured : `Bearer ${captured}`;
+                    return fetch('/api/advisors?pageSize=100', { headers })
+                        .then((r) => (r.ok ? r.json().then((d: any) => ({ source: 'public', data: d })) : null));
+                }
+                return result;
+            })
+            .then((result: any) => {
+                if (!result) return;
+                const advisors: any[] = result.source === 'custom'
+                    ? (result.data.data || [])
+                    : (result.data.results || result.data.data || []);
                 advisors.forEach((adv: any) => {
-                    (window as any).advisorMap[adv.id] = {
-                        name: adv.fullName,
-                        id: adv.id,
-                        email: adv.email,
-                        phone: adv.phoneNumber,
+                    const id = adv.id;
+                    if (!id) return;
+                    const attrs = adv.attributes || adv;
+                    (window as any).advisorMap[id] = {
+                        name: attrs.fullName || adv.fullName,
+                        id,
+                        email: attrs.email || adv.email,
+                        phone: attrs.phoneNumber || attrs.mobileNumber || adv.phoneNumber || adv.mobileNumber,
                     };
                 });
                 setTimeout(initOverrides, 0);
             })
-            .catch(() => { (window as any)._advisors_loaded = false; });
+            .catch(() => {}); // network error — loaded flag stays true, no retry
 
         authedFetch('/content-manager/collection-types/api::lead.lead?pageSize=100')
             .then((r) => {
-                if (!r.ok) throw new Error(`status ${r.status}`);
+                if (!r.ok) return null; // 403/404 — no permission, don't retry
                 return r.json();
             })
             .then((data) => {
+                if (!data) return;
                 const leads = data.results || data.data || [];
                 leads.forEach((l: any) => {
                     if (l.id) (window as any).leadStatusMap[l.id] = l.leadStatus || 'NEW';
@@ -124,7 +149,7 @@ const prefetchLeadsData = () => {
                 });
                 setTimeout(initOverrides, 0);
             })
-            .catch(() => { (window as any)._advisors_loaded = false; });
+            .catch(() => {}); // network error — loaded flag stays true, no retry
     });
 };
 
@@ -299,11 +324,11 @@ const initOverrides = () => {
         const isLeadsPage = path.includes('api::lead.lead');
         const isLoanPage = path.includes('api::loan-application.loan-application');
         const isAdminUsersListPage = path.replace(/\/+$/, '') === '/admin/settings/users';
-        const isDashboardMode = isLoanPage && (new URLSearchParams(window.location.search).get('view') === 'dashboard' || sessionStorage.getItem('currentLeadId'));
+        const isRoleEditPage = /\/admin\/settings\/roles\/\d+/.test(path);
 
         // If we are NOT on a page we customize, ensure we are NOT in dashboard mode and return early.
         // This is the most critical fix to prevent breaking pages like Activity Log.
-        if (!isAdvisorsPage && !isLeadsPage && !isLoanPage && !isAdminUsersListPage) {
+        if (!isAdvisorsPage && !isLeadsPage && !isLoanPage && !isAdminUsersListPage && !isRoleEditPage) {
             if (document.body.classList.contains('dashboard-mode')) {
                 document.body.classList.remove('dashboard-mode');
                 showStrapiFrame();
@@ -312,6 +337,7 @@ const initOverrides = () => {
             safe(() => applyLoginPageOverride());
             safe(() => applyNavOverride());
             safe(() => updateNavActiveStates());
+            safe(() => applyRoleTabOverride()); // cleans up any injected tab on non-role pages
             return;
         }
 
@@ -336,6 +362,7 @@ const initOverrides = () => {
 
         safe(() => applyLeadTableOverride());
         safe(() => applyAdvisorTableOverride());
+        safe(() => applyRoleTabOverride());
 
         safe(() => ensureAdminNotifications());
         safe(() => ensureDebugBadge());

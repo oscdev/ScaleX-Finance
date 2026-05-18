@@ -1170,6 +1170,8 @@ export interface ApiLeadLead extends Struct.CollectionTypeSchema {
   attributes: {
     aadharCard: Schema.Attribute.String;
     advisorReferralId: Schema.Attribute.String;
+    assignedBankerId: Schema.Attribute.Integer;
+    assignedStaffId: Schema.Attribute.Integer;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1269,6 +1271,43 @@ export interface ApiLendersPageLendersPage extends Struct.SingleTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     title: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Matched Lenders'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiLoanAppSectionPermissionLoanAppSectionPermission
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'loan_app_section_permissions';
+  info: {
+    description: 'Per-role section-level permissions for the loan application';
+    displayName: 'Loan App Section Permission';
+    pluralName: 'loan-app-section-permissions';
+    singularName: 'loan-app-section-permission';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::loan-app-section-permission.loan-app-section-permission'
+    > &
+      Schema.Attribute.Private;
+    permissions: Schema.Attribute.JSON;
+    publishedAt: Schema.Attribute.DateTime;
+    roleId: Schema.Attribute.Integer;
+    roleName: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1577,6 +1616,8 @@ export interface ApiLoanApplicationLoanApplication
     aadharCardFront: Schema.Attribute.Media<'files' | 'images'>;
     aadharNumber: Schema.Attribute.String;
     applicantName: Schema.Attribute.String;
+    assignedBankerId: Schema.Attribute.Integer;
+    assignedStaffId: Schema.Attribute.Integer;
     bankStatement: Schema.Attribute.Media<'files' | 'images'>;
     businessName: Schema.Attribute.String;
     businessRegProofDoc: Schema.Attribute.Media<'files' | 'images'>;
@@ -2215,6 +2256,7 @@ declare module '@strapi/strapi' {
       'api::lead.lead': ApiLeadLead;
       'api::lender.lender': ApiLenderLender;
       'api::lenders-page.lenders-page': ApiLendersPageLendersPage;
+      'api::loan-app-section-permission.loan-app-section-permission': ApiLoanAppSectionPermissionLoanAppSectionPermission;
       'api::loan-application-page.loan-application-page': ApiLoanApplicationPageLoanApplicationPage;
       'api::loan-application.loan-application': ApiLoanApplicationLoanApplication;
       'api::product-page.product-page': ApiProductPageProductPage;

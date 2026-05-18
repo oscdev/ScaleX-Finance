@@ -1,0 +1,29 @@
+{
+    "kind": "collectionType",
+    "collectionName": "loan_app_section_permissions",
+    "info": {
+        "singularName": "loan-app-section-permission",
+        "pluralName": "loan-app-section-permissions",
+        "displayName": "Loan App Section Permission",
+        "description": "Per-role section-level permissions for the loan application"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {
+        "content-manager": {
+            "visible": false
+        }
+    },
+    "attributes": {
+        "roleId": {
+            "type": "integer"
+        },
+        "roleName": {
+            "type": "string"
+        },
+        "permissions": {
+            "type": "json"
+        }
+    }
+}
