@@ -200,7 +200,7 @@ export const getAppSteps = (loanType: string, occupation: string) => {
     }
 };
 
-const getToken = () => {
+export const getToken = () => {
     if (typeof window === 'undefined') return '';
     try {
         // 1. Priority: Globally captured token from fetch interceptor
@@ -245,6 +245,23 @@ const authHeaders = (): Record<string, string> => {
     };
 };
 
+export type SectionPerms = Record<string, { add: boolean; view: boolean; edit: boolean; delete: boolean; fields?: Record<string, { view: boolean; edit: boolean }> }>;
+
+const allSectionsAllowed = (): SectionPerms => {
+    const full = { add: true, edit: true, view: true, delete: true };
+    return {
+        personalInfo:     full,
+        personalDetails:  full,
+        addressDetails:   full,
+        propertyDetails:  full,
+        incomeDetails:    full,
+        businessInfo:     full,
+        runningLoans:     full,
+        documentDetails:  full,
+        assignmentStatus: full,
+    };
+};
+
 export const useLeadViewDashboard = (leadId: string) => {
     const [lead, setLead] = useState<any>(null);
     const [loanApp, setLoanApp] = useState<any>(null);
@@ -260,6 +277,13 @@ export const useLeadViewDashboard = (leadId: string) => {
     const [parentAdvisor, setParentAdvisor] = useState<any>(null);
     const [remarks, setRemarks] = useState<any[]>([]);
     const [statusHistory, setStatusHistory] = useState<any[]>([]);
+    const [sectionPerms, setSectionPerms] = useState<SectionPerms>(allSectionsAllowed());
+
+    // Staff / Banker assignment
+    const [staffList, setStaffList] = useState<any[]>([]);
+    const [bankerList, setBankerList] = useState<any[]>([]);
+    const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
+    const [selectedBankerId, setSelectedBankerId] = useState<number | null>(null);
 
     // 1. Fetch Lead
     useEffect(() => {
@@ -454,6 +478,42 @@ export const useLeadViewDashboard = (leadId: string) => {
         setParentAdvisorIdVal(lead?.parentAdvisorId || '');
     }, [lead?.parentAdvisorId]);
 
+    // 3b-extra. Sync staff/banker from loanApp once loaded
+    useEffect(() => {
+        if (!loanApp) return;
+        setSelectedStaffId(loanApp.assignedStaffId ?? null);
+        setSelectedBankerId(loanApp.assignedBankerId ?? null);
+    }, [loanApp?.assignedStaffId, loanApp?.assignedBankerId]);
+
+    // Fetch all admin users once, split by role
+    useEffect(() => {
+        const fetchAdminUsers = async () => {
+            try {
+                const token = getToken();
+                if (!token) return;
+                const res = await fetch('/admin/users?pageSize=200&page=1', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (!res.ok) return; // advisors don't have user-list access — silently skip
+                const data = await res.json();
+                const users: any[] = data.data?.results || data.results || [];
+                const staffRoleCodes = ['strapi-editor'];
+                const bankerRoleCodes = ['bankers-mosko0d4'];
+                setStaffList(
+                    users.filter((u: any) =>
+                        (u.roles || []).some((r: any) => staffRoleCodes.includes(r.code))
+                    )
+                );
+                setBankerList(
+                    users.filter((u: any) =>
+                        (u.roles || []).some((r: any) => bankerRoleCodes.includes(r.code))
+                    )
+                );
+            } catch (e) {}
+        };
+        fetchAdminUsers();
+    }, []);
+
     // 3. Fetch Advisor details
     useEffect(() => {
         const fetchAdvisor = async () => {
@@ -499,7 +559,7 @@ export const useLeadViewDashboard = (leadId: string) => {
         fetchParentAdvisor();
     }, [lead?.parentAdvisorId]);
 
-    // 4. Fetch logged-in admin user info
+    // 4. Fetch logged-in admin user info + section permissions for their role
     useEffect(() => {
         const fetchMe = async () => {
             try {
@@ -508,9 +568,37 @@ export const useLeadViewDashboard = (leadId: string) => {
                 const res = await fetch('/admin/users/me', {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                if (res.ok) {
-                    const data = await res.json();
-                    setCurrentUser(data.data || data);
+                if (!res.ok) return;
+                const data = await res.json();
+                const user = data.data || data;
+                setCurrentUser(user);
+
+                const roles: any[] = user.roles || [];
+                // Super Admins always get full access — skip permission fetch
+                if (roles.some((r: any) => r.code === 'strapi-super-admin')) return;
+
+                const roleId = roles[0]?.id;
+                if (!roleId) return;
+
+                // Use public REST API — no CM access needed, works for all admin roles
+                // Fetch all records and filter client-side to avoid Strapi v5 filter syntax issues
+                const denied: SectionPerms = {} as SectionPerms;
+                const denyAll = () => {
+                    Object.keys(allSectionsAllowed()).forEach((k) => {
+                        denied[k] = { add: false, view: false, edit: false, delete: false };
+                    });
+                    setSectionPerms(denied);
+                };
+                const permRes = await fetch('/api/loan-app-section-permissions?pagination[pageSize]=100');
+                if (!permRes.ok) { denyAll(); return; }
+                const permData = await permRes.json();
+                // Strapi v5 public API returns { data: [...] }
+                const allRecords: any[] = permData.data || [];
+                const record = allRecords.find((r: any) => Number(r.roleId) === roleId);
+                if (record && record.permissions) {
+                    setSectionPerms({ ...allSectionsAllowed(), ...record.permissions });
+                } else {
+                    denyAll();
                 }
             } catch (e) {
                 // swallow
@@ -667,19 +755,170 @@ export const useLeadViewDashboard = (leadId: string) => {
     const handleSaveParentAdvisorId = async () => {
         setIsSavingParentId(true);
         try {
-            const res = await fetch(`/api/leads/${lead?.documentId || leadId}`, {
+            // Save parentAdvisorId + assignedStaffId + assignedBankerId to the lead.
+            // Staff/banker filtering on the leads LIST uses these lead-level fields so
+            // the assignment is visible without joining to the loan-application record.
+            const leadDocId = lead?.documentId || leadId;
+            const leadRes = await fetch(`/api/leads/${leadDocId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: { parentAdvisorId: parentAdvisorIdVal } }),
+                body: JSON.stringify({
+                    data: {
+                        parentAdvisorId: parentAdvisorIdVal,
+                        assignedStaffId: selectedStaffId ?? null,
+                        assignedBankerId: selectedBankerId ?? null,
+                    },
+                }),
             });
-            if (res.ok) {
-                setLead((prev: any) => ({ ...prev, parentAdvisorId: parentAdvisorIdVal }));
+            if (leadRes.ok) {
+                setLead((prev: any) => ({
+                    ...prev,
+                    parentAdvisorId: parentAdvisorIdVal,
+                    assignedStaffId: selectedStaffId,
+                    assignedBankerId: selectedBankerId,
+                }));
+            }
+
+            // Also mirror to the loan application for consistency.
+            if (loanApp?.documentId || loanApp?.id) {
+                const loanDocId = loanApp.documentId || String(loanApp.id);
+                const loanRes = await fetch(`/api/loan-applications/${loanDocId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        data: {
+                            assignedStaffId: selectedStaffId ?? null,
+                            assignedBankerId: selectedBankerId ?? null,
+                        },
+                    }),
+                });
+                if (loanRes.ok) {
+                    setLoanApp((prev: any) => ({
+                        ...prev,
+                        assignedStaffId: selectedStaffId,
+                        assignedBankerId: selectedBankerId,
+                    }));
+                }
             }
         } catch (e) {
             // swallow
         } finally {
             setIsSavingParentId(false);
         }
+    };
+
+    const handleSaveLeadField = async (key: string, value: string) => {
+        try {
+            const res = await fetch(`/api/leads/${lead?.documentId || leadId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: { [key]: value } }),
+            });
+            if (res.ok) setLead((prev: any) => ({ ...prev, [key]: value }));
+        } catch (e) {}
+    };
+
+    const handleSaveLoanFormData = async (section: string, fieldKey: string, value: string) => {
+        if (!loanApp) return;
+        try {
+            const updatedFormData = {
+                ...loanApp.form_data,
+                [section]: { ...(loanApp.form_data?.[section] || {}), [fieldKey]: value },
+            };
+            const loanDocId = loanApp.documentId || String(loanApp.id);
+            const res = await fetch(`/api/loan-applications/${loanDocId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: { form_data: updatedFormData } }),
+            });
+            if (res.ok) setLoanApp((prev: any) => ({ ...prev, form_data: updatedFormData }));
+        } catch (e) {}
+    };
+
+    const handleSaveRunningLoan = async (index: number, field: string, value: string) => {
+        if (!loanApp) return;
+        try {
+            const runningLoans = [...(loanApp.form_data?.otherDetails?.runningLoans || [])];
+            runningLoans[index] = { ...runningLoans[index], [field]: value };
+            const updatedFormData = {
+                ...loanApp.form_data,
+                otherDetails: { ...(loanApp.form_data?.otherDetails || {}), runningLoans },
+            };
+            const loanDocId = loanApp.documentId || String(loanApp.id);
+            const res = await fetch(`/api/loan-applications/${loanDocId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: { form_data: updatedFormData } }),
+            });
+            if (res.ok) setLoanApp((prev: any) => ({ ...prev, form_data: updatedFormData }));
+        } catch (e) {}
+    };
+
+    const handleSaveDocPassword = async (docKey: string, password: string) => {
+        if (!loanApp) return;
+        try {
+            const updatedFormData = {
+                ...loanApp.form_data,
+                pdfPasswords: { ...(loanApp.form_data?.pdfPasswords || {}), [docKey]: password },
+            };
+            const loanDocId = loanApp.documentId || String(loanApp.id);
+            const res = await fetch(`/api/loan-applications/${loanDocId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: { form_data: updatedFormData } }),
+            });
+            if (res.ok) setLoanApp((prev: any) => ({ ...prev, form_data: updatedFormData }));
+        } catch (e) {}
+    };
+
+    const handleSaveDocDate = async (fileId: string | number, date: string) => {
+        if (!loanApp) return;
+        try {
+            const updatedFormData = {
+                ...loanApp.form_data,
+                docDates: { ...(loanApp.form_data?.docDates || {}), [String(fileId)]: date },
+            };
+            const loanDocId = loanApp.documentId || String(loanApp.id);
+            const res = await fetch(`/api/loan-applications/${loanDocId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: { form_data: updatedFormData } }),
+            });
+            if (res.ok) setLoanApp((prev: any) => ({ ...prev, form_data: updatedFormData }));
+        } catch (e) {}
+    };
+
+    const handleSaveDocFormat = async (fileId: string | number, format: string) => {
+        if (!loanApp) return;
+        try {
+            const updatedFormData = {
+                ...loanApp.form_data,
+                docFormats: { ...(loanApp.form_data?.docFormats || {}), [String(fileId)]: format.toUpperCase() },
+            };
+            const loanDocId = loanApp.documentId || String(loanApp.id);
+            const res = await fetch(`/api/loan-applications/${loanDocId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: { form_data: updatedFormData } }),
+            });
+            if (res.ok) setLoanApp((prev: any) => ({ ...prev, form_data: updatedFormData }));
+        } catch (e) {}
+    };
+
+    const refetchLoanApp = async () => {
+        if (!lead) return;
+        try {
+            const numericLId = lead.leadId || lead.id;
+            const res = await fetch(`/api/loan-applications?filters[leadId][$eq]=${numericLId}&populate=*`);
+            if (res.ok) {
+                const data = await res.json();
+                const items = data.data || [];
+                if (items.length > 0) {
+                    const found = items[0].attributes || items[0];
+                    setLoanApp({ ...found, id: items[0].id });
+                }
+            }
+        } catch (e) {}
     };
 
     return {
@@ -702,5 +941,19 @@ export const useLeadViewDashboard = (leadId: string) => {
         parentAdvisor,
         remarks,
         statusHistory,
+        staffList,
+        bankerList,
+        selectedStaffId,
+        setSelectedStaffId,
+        selectedBankerId,
+        setSelectedBankerId,
+        sectionPerms,
+        handleSaveLeadField,
+        handleSaveLoanFormData,
+        handleSaveRunningLoan,
+        handleSaveDocPassword,
+        handleSaveDocDate,
+        handleSaveDocFormat,
+        refetchLoanApp,
     };
 };

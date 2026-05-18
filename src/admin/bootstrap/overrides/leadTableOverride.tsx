@@ -4,6 +4,14 @@ import { LeadOverviewDashboard } from '../../LeadOverview';
 import { reactRoots, unmountAndRemove } from './reactRoots';
 import { leadLabelMap } from './constants';
 
+// ─── Role helpers ─────────────────────────────────────────────────────────────
+
+const getUserRole = (): string => sessionStorage.getItem('strapiUserRole') || 'admin';
+// Only admin sees the ADVISOR column
+const showAdvisorColumn = (): boolean => getUserRole() === 'admin';
+// Admin and Staff get the AI Match button
+const showAiMatchBtn = (): boolean => ['admin', 'staff'].includes(getUserRole());
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const isInsideRadixPortal = (el: Element): boolean => {
@@ -70,6 +78,12 @@ const relabelLeadHeaders = (headers: Element[]) => {
             raw.includes('publication') ||
             raw.includes('published')
         ) {
+            (th as HTMLElement).style.display = 'none';
+            return;
+        }
+
+        // ADVISOR column — only visible to admin
+        if (th.id === 'col-advisor' && !showAdvisorColumn()) {
             (th as HTMLElement).style.display = 'none';
             return;
         }
@@ -282,23 +296,47 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
         `;
     }
 
-    // Advisor cell (name + contact icons)
-    if (advIdx !== -1 && cells[advIdx]) {
+    // Advisor cell — hidden for all non-admin roles
+    if (advIdx !== -1 && cells[advIdx] && !showAdvisorColumn()) {
+        cells[advIdx].style.display = 'none';
+    }
+
+    // Advisor cell (name + contact icons) — admin only
+    if (advIdx !== -1 && cells[advIdx] && showAdvisorColumn()) {
         const advCell = cells[advIdx];
-        const rawId = advCell.textContent?.trim();
+        const existing = advCell.querySelector('.custom-advisor-container');
+        // Use the stored raw numeric ID (survives innerHTML rewrites on re-runs).
+        // On the first pass the cell contains Strapi's raw value; on subsequent
+        // passes it contains our rendered HTML, so textContent would be "ADV47"
+        // which doesn't match the numeric keys in advisorMap.
+        const rawId = advCell.dataset.advisorRawId || advCell.textContent?.trim();
         const map = (window as any).advisorMap || {};
         const advData = rawId ? map[rawId] : null;
-        if (advData && !advCell.querySelector('.custom-advisor-container')) {
-            advCell.innerHTML = `
-                <div class="custom-advisor-container">
-                    <span class="custom-advisor-name">${advData.name} / ADV${advData.id}</span>
-                    <div class="custom-comm-icons" style="margin-top: 4px;">
-                        ${advData.phone ? `<a href="tel:${advData.phone}" onclick="event.stopPropagation()" title="Call: ${advData.phone}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">📞</a>` : ''}
-                        ${advData.phone ? `<a href="https://wa.me/${advData.phone.replace(/\D/g, '')}" target="_blank" onclick="event.stopPropagation()" title="WhatsApp: ${advData.phone}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">💬</a>` : ''}
-                        ${advData.email ? `<a href="mailto:${advData.email}" onclick="event.stopPropagation()" title="Email: ${advData.email}" class="custom-comm-icon" style="text-decoration: none;">✉️</a>` : ''}
+
+        // Render when: no container yet, OR container is the bare-ID fallback and
+        // real data has now arrived (advisorMap populated after the first render).
+        const isFallback = existing && !existing.querySelector('.custom-comm-icons');
+        const shouldRender = rawId && (!existing || (isFallback && advData));
+
+        if (shouldRender) {
+            // Persist the raw numeric ID before innerHTML is rewritten so future
+            // passes can still look up the correct advisorMap key.
+            advCell.dataset.advisorRawId = rawId!;
+            if (advData) {
+                advCell.innerHTML = `
+                    <div class="custom-advisor-container">
+                        <span class="custom-advisor-name">${advData.name} / ADV${advData.id}</span>
+                        <div class="custom-comm-icons" style="margin-top: 4px;">
+                            ${advData.phone ? `<a href="tel:${advData.phone}" onclick="event.stopPropagation()" title="Call: ${advData.phone}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">📞</a>` : ''}
+                            ${advData.phone ? `<a href="https://wa.me/${advData.phone.replace(/\D/g, '')}" target="_blank" onclick="event.stopPropagation()" title="WhatsApp: ${advData.phone}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">💬</a>` : ''}
+                            ${advData.email ? `<a href="mailto:${advData.email}" onclick="event.stopPropagation()" title="Email: ${advData.email}" class="custom-comm-icon" style="text-decoration: none;">✉️</a>` : ''}
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            } else {
+                // advisorMap not yet populated — bare-ID fallback (will be upgraded once map arrives)
+                advCell.innerHTML = `<div class="custom-advisor-container"><span class="custom-advisor-name">ADV${rawId}</span></div>`;
+            }
         }
     }
 
@@ -398,11 +436,12 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
 
         const container = document.createElement('div');
         container.className = 'custom-actions-btn-row';
+        const hasTwoButtons = showAiMatchBtn();
         container.style.display = 'flex';
         container.style.gap = '8px';
-        container.style.justifyContent = 'flex-end';
+        container.style.justifyContent = hasTwoButtons ? 'flex-end' : 'center';
         container.style.alignItems = 'center';
-        container.style.minWidth = '220px';
+        container.style.minWidth = hasTwoButtons ? '220px' : '110px';
 
         const aiBtn = document.createElement('button');
         aiBtn.className = 'custom-ai-match custom-action-btn';
@@ -436,7 +475,8 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
             cursor: 'pointer',
             fontSize: '12px',
             fontWeight: '700',
-            transition: 'background 0.2s'
+            transition: 'background 0.2s',
+            ...(hasTwoButtons ? {} : { width: '100px', textAlign: 'center' }),
         });
         viewBtn.onclick = async (e) => {
             e.preventDefault();
@@ -481,7 +521,7 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
         };
 
         container.appendChild(viewBtn);
-        container.appendChild(aiBtn);
+        if (showAiMatchBtn()) container.appendChild(aiBtn);
         actTd.appendChild(container);
         row.appendChild(actTd);
     }

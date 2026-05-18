@@ -50,7 +50,91 @@ const createAdminUserFromAdvisor = async (strapi: Core.Strapi, advisor: any, raw
 };
 
 export default {
-  register({ strapi }: { strapi: Core.Strapi }) { },
+  register({ strapi }: { strapi: Core.Strapi }) {
+    const UID = 'api::loan-app-section-permission.loan-app-section-permission';
+    const router = (strapi.server as any).router;
+
+    const requireAuth = (ctx: any) => {
+      const auth: string = ctx.headers.authorization || '';
+      if (!auth.startsWith('Bearer ')) {
+        ctx.status = 401;
+        ctx.body = { error: 'Unauthorized' };
+        return false;
+      }
+      return true;
+    };
+
+    router.get('/admin/loan-app-permissions', async (ctx: any) => {
+      if (!requireAuth(ctx)) return;
+      const roleId = Number(ctx.query.roleId);
+      const where = roleId ? { roleId } : {};
+      // Return only the most-recently-created record to avoid returning stale duplicates
+      const results = await strapi.db.query(UID).findMany({ where, orderBy: { id: 'desc' }, limit: 1 });
+      ctx.body = { data: results };
+    });
+
+    router.post('/admin/loan-app-permissions', async (ctx: any) => {
+      if (!requireAuth(ctx)) return;
+      try {
+        // Safely read body — ctx.request.body may be empty if body-parser hasn't run
+        let body: any = ctx.request.body;
+        if (!body || typeof body !== 'object' || !Object.keys(body).length) {
+          const raw = await new Promise<string>((resolve) => {
+            if ((ctx.req as any).complete) { resolve(''); return; }
+            let d = '';
+            ctx.req.on('data', (c: Buffer) => { d += c.toString(); });
+            ctx.req.on('end', () => resolve(d));
+            ctx.req.on('error', () => resolve(''));
+          });
+          try { body = JSON.parse(raw); } catch { body = {}; }
+        }
+
+        const { id, roleId, roleName, permissions } = body as any;
+
+        if (!permissions || typeof permissions !== 'object') {
+          ctx.status = 400;
+          ctx.body = { error: 'permissions field missing or invalid in request body', received: JSON.stringify(body).slice(0, 300) };
+          return;
+        }
+
+        let result: any;
+        if (id) {
+          result = await strapi.db.query(UID).update({ where: { id: Number(id) }, data: { roleId, roleName, permissions } });
+        } else {
+          const existing = roleId ? await strapi.db.query(UID).findOne({ where: { roleId: Number(roleId) } }) : null;
+          if (existing) {
+            result = await strapi.db.query(UID).update({ where: { id: existing.id }, data: { roleName, permissions } });
+          } else {
+            result = await strapi.db.query(UID).create({ data: { roleId: Number(roleId), roleName, permissions } });
+          }
+        }
+        ctx.body = { data: result };
+      } catch (e: any) {
+        ctx.status = 500;
+        ctx.body = { error: e?.message || 'Internal server error', type: e?.constructor?.name };
+      }
+    });
+
+    router.put('/admin/loan-app-permissions/:id', async (ctx: any) => {
+      if (!requireAuth(ctx)) return;
+      const { roleId, roleName, permissions } = ctx.request.body as any;
+      const updated = await strapi.db.query(UID).update({
+        where: { id: Number(ctx.params.id) },
+        data: { roleId, roleName, permissions },
+      });
+      ctx.body = { data: updated };
+    });
+
+    // Advisor name/contact list — accessible to any authenticated admin (including Advisor role)
+    router.get('/admin/advisors-list', async (ctx: any) => {
+      if (!requireAuth(ctx)) return;
+      const advisors = await strapi.db.query('api::advisor.advisor').findMany({
+        select: ['id', 'fullName', 'email', 'phoneNumber', 'mobileNumber'],
+        limit: 500,
+      });
+      ctx.body = { data: advisors };
+    });
+  },
 
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     // console.log('[Bootstrap] Initialization started...');
@@ -98,7 +182,7 @@ export default {
         'proprietorshipDoc', 'panCard', 'aadharCardFront', 'aadharCardBack',
         'businessRegProofDoc', 'bankStatement', 'propertyPapers', 'coAppPan',
         'coAppAadharFront', 'coAppAadharBack', 'salarySlips', 'otherDocs',
-        'declarationAccepted',
+        'declarationAccepted', 'assignedStaffId', 'assignedBankerId',
       ];
       const permLinks = await strapi.db.connection('admin_permissions_role_lnk')
         .where({ role_id: advisorRole.id })
@@ -218,7 +302,8 @@ export default {
           { action: 'api::lead-remark.lead-remark.create', role: publicRole.id },
           { action: 'api::lead-remark.lead-remark.update', role: publicRole.id },
           { action: 'plugin::upload.content-api.upload', role: publicRole.id },
-          { action: 'plugin::upload.upload', role: publicRole.id }
+          { action: 'plugin::upload.upload', role: publicRole.id },
+          { action: 'api::loan-app-section-permission.loan-app-section-permission.find', role: publicRole.id }
         ];
 
         for (const perm of permissions) {
@@ -278,13 +363,43 @@ export default {
             'proprietorshipDoc', 'panCard', 'aadharCardFront', 'aadharCardBack',
             'businessRegProofDoc', 'bankStatement', 'propertyPapers', 'coAppPan',
             'coAppAadharFront', 'coAppAadharBack', 'salarySlips', 'otherDocs',
-            'declarationAccepted',
+            'declarationAccepted', 'assignedStaffId', 'assignedBankerId',
           ];
           const loanAppActions = [
             'plugin::content-manager.explorer.read',
             'plugin::content-manager.explorer.create',
             'plugin::content-manager.explorer.update'
           ];
+
+          // Grant read-only access to loan-app-section-permission so advisors can load their permissions
+          const permReadAction = 'plugin::content-manager.explorer.read';
+          const permReadSubject = 'api::loan-app-section-permission.loan-app-section-permission';
+          try {
+            let sectionPermRead = await strapi.db.query('admin::permission').findOne({
+              where: { action: permReadAction, subject: permReadSubject }
+            });
+            if (!sectionPermRead) {
+              sectionPermRead = await strapi.db.query('admin::permission').create({
+                data: {
+                  action: permReadAction,
+                  subject: permReadSubject,
+                  properties: { fields: ['roleId', 'roleName', 'permissions'] },
+                  conditions: [],
+                }
+              });
+            }
+            if (sectionPermRead) {
+              const alreadyLinked = await strapi.db.connection('admin_permissions_role_lnk')
+                .where({ permission_id: sectionPermRead.id, role_id: dbAdvisorRole.id })
+                .first();
+              if (!alreadyLinked) {
+                await strapi.db.connection('admin_permissions_role_lnk').insert({
+                  permission_id: sectionPermRead.id,
+                  role_id: dbAdvisorRole.id,
+                });
+              }
+            }
+          } catch (e) {}
 
           for (const action of loanAppActions) {
             let existing = await strapi.db.query('admin::permission').findOne({
