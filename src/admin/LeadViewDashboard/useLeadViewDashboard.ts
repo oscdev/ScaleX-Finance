@@ -485,25 +485,54 @@ export const useLeadViewDashboard = (leadId: string) => {
         setSelectedBankerId(loanApp.assignedBankerId ?? null);
     }, [loanApp?.assignedStaffId, loanApp?.assignedBankerId]);
 
-    // Fetch all admin users once, split by role
+    // Fetch admin users filtered by role; staff list is further filtered to only
+    // those assigned the same product as the lead (via staff_product_mappings).
     useEffect(() => {
+        if (!lead) return; // wait for lead to load before fetching
         const fetchAdminUsers = async () => {
             try {
                 const token = getToken();
                 if (!token) return;
-                const res = await fetch('/admin/users?pageSize=200&page=1', {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                if (!res.ok) return; // advisors don't have user-list access — silently skip
-                const data = await res.json();
-                const users: any[] = data.data?.results || data.results || [];
+
+                const selectedProduct: string = lead.selectedProduct || '';
+
+                // Fetch admin users + product mappings in parallel
+                const [usersRes, mappingsRes] = await Promise.all([
+                    fetch('/admin/users?pageSize=200&page=1', {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }),
+                    selectedProduct
+                        ? fetch(`/api/staff-product-mappings?filters[product][$eq]=${encodeURIComponent(selectedProduct)}&pagination[pageSize]=500&fields[0]=adminUserId`)
+                        : Promise.resolve(null),
+                ]);
+
+                if (!usersRes.ok) return; // advisors don't have user-list access — silently skip
+
+                const usersData = await usersRes.json();
+                const users: any[] = usersData.data?.results || usersData.results || [];
+
+                // Build set of adminUserIds that handle this product
+                let productStaffIds: Set<number> | null = null;
+                if (mappingsRes && mappingsRes.ok) {
+                    const mappingsData = await mappingsRes.json();
+                    const items: any[] = mappingsData.data || [];
+                    productStaffIds = new Set(items.map((m: any) => Number(m.adminUserId)).filter(Boolean));
+                }
+
                 const staffRoleCodes = ['strapi-editor'];
                 const bankerRoleCodes = ['bankers-mosko0d4'];
-                setStaffList(
-                    users.filter((u: any) =>
-                        (u.roles || []).some((r: any) => staffRoleCodes.includes(r.code))
-                    )
+
+                const allStaff = users.filter((u: any) =>
+                    (u.roles || []).some((r: any) => staffRoleCodes.includes(r.code))
                 );
+
+                // If we have a product filter, only show staff assigned to that product
+                setStaffList(
+                    productStaffIds && productStaffIds.size > 0
+                        ? allStaff.filter((u: any) => productStaffIds!.has(Number(u.id)))
+                        : allStaff
+                );
+
                 setBankerList(
                     users.filter((u: any) =>
                         (u.roles || []).some((r: any) => bankerRoleCodes.includes(r.code))
@@ -512,7 +541,7 @@ export const useLeadViewDashboard = (leadId: string) => {
             } catch (e) {}
         };
         fetchAdminUsers();
-    }, []);
+    }, [lead?.selectedProduct]);
 
     // 3. Fetch Advisor details
     useEffect(() => {

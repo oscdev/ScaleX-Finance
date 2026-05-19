@@ -1,0 +1,28 @@
+{
+    "kind": "collectionType",
+    "collectionName": "staff_product_mappings",
+    "info": {
+        "singularName": "staff-product-mapping",
+        "pluralName": "staff-product-mappings",
+        "displayName": "Staff Product Mappings",
+        "description": "Stores product assignment for admin users (staff/bankers)"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {
+        "content-manager": {
+            "visible": false
+        }
+    },
+    "attributes": {
+        "adminUserId": {
+            "type": "integer",
+            "required": true
+        },
+        "product": {
+            "type": "string",
+            "required": true
+        }
+    }
+}

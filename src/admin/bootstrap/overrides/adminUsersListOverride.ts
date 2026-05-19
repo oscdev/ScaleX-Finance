@@ -1,5 +1,5 @@
-// Admin Users list override: adds ID column, injects ID + Roles filter controls
-// INTO the existing Strapi search/filter toolbar row, and sorts by ID desc.
+// Admin Users list override: adds ID + Product columns, injects ID + Roles filter
+// controls INTO the existing Strapi search/filter toolbar row, and sorts by ID desc.
 
 const FETCH_FLAG = '_admin_users_id_loaded';
 
@@ -27,7 +27,7 @@ const cleanUrl = () => {
     history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
 };
 
-// ─── API fetch ────────────────────────────────────────────────────────────────
+// ─── API fetch — admin users ──────────────────────────────────────────────────
 
 const fetchAdminUsers = async (commonHeaders: Record<string, string>): Promise<AdminUserEntry[]> => {
     const cached = (window as any).adminUsersFullList as AdminUserEntry[] | undefined;
@@ -51,6 +51,30 @@ const fetchAdminUsers = async (commonHeaders: Record<string, string>): Promise<A
         return list;
     } catch {
         return [];
+    }
+};
+
+// ─── API fetch — product mappings ─────────────────────────────────────────────
+
+const fetchProductMappings = async (): Promise<Record<number, string>> => {
+    const cached = (window as any)._staffProductMap as Record<number, string> | undefined;
+    if (cached) return cached;
+    try {
+        // Public endpoint — no auth token needed
+        const res = await fetch('/api/staff-product-mappings?pagination[pageSize]=500&fields[0]=adminUserId&fields[1]=product');
+        if (!res.ok) return {};
+        const data = await res.json();
+        const items: any[] = data.data || [];
+        const map: Record<number, string> = {};
+        items.forEach((item: any) => {
+            const userId = Number(item.adminUserId);
+            const product = (item.product || '').trim();
+            if (userId && product) map[userId] = product;
+        });
+        (window as any)._staffProductMap = map;
+        return map;
+    } catch {
+        return {};
     }
 };
 
@@ -249,6 +273,30 @@ const ensureIdHeader = (headerRow: Element): number => {
     return Array.from(headerRow.children).indexOf(idTh);
 };
 
+const ensureProductHeader = (headerRow: Element): number => {
+    const existing = headerRow.querySelector<HTMLElement>('th.custom-admin-product-header');
+    if (existing) return Array.from(headerRow.children).indexOf(existing);
+
+    const productTh = document.createElement('th');
+    productTh.className = 'custom-admin-product-header';
+    productTh.innerHTML = '<span>PRODUCT</span>';
+    Object.assign(productTh.style, { padding: '12px 16px', textAlign: 'left', fontWeight: '700' });
+
+    // Insert after the Roles <th>
+    const rolesHeader = Array.from(headerRow.querySelectorAll('th')).find(
+        (th) => (th.textContent || '').trim().toLowerCase().includes('role')
+    );
+    if (rolesHeader) {
+        rolesHeader.insertAdjacentElement('afterend', productTh);
+    } else {
+        // Fallback: before the last column (actions)
+        const lastTh = headerRow.lastElementChild;
+        if (lastTh) headerRow.insertBefore(productTh, lastTh);
+        else headerRow.appendChild(productTh);
+    }
+    return Array.from(headerRow.children).indexOf(productTh);
+};
+
 const ensureIdCell = (row: Element, insertIdx: number, id: number | null) => {
     let cell = row.querySelector<HTMLElement>('td.custom-admin-id-cell');
     if (!cell) {
@@ -260,6 +308,18 @@ const ensureIdCell = (row: Element, insertIdx: number, id: number | null) => {
     }
     cell.textContent = id == null ? '—' : String(id);
     cell.setAttribute('data-admin-id', id == null ? '' : String(id));
+};
+
+const ensureProductCell = (row: Element, insertIdx: number, product: string) => {
+    let cell = row.querySelector<HTMLElement>('td.custom-admin-product-cell');
+    if (!cell) {
+        cell = document.createElement('td');
+        cell.className = 'custom-admin-product-cell';
+        Object.assign(cell.style, { padding: '12px 16px' });
+        const ref = row.children[insertIdx] ?? null;
+        row.insertBefore(cell, ref);
+    }
+    cell.textContent = product || '—';
 };
 
 const sortRowsByIdDesc = (tbody: Element) => {
@@ -282,6 +342,7 @@ export const applyAdminUsersListOverride = (commonHeaders: Record<string, string
         (window as any)[FETCH_FLAG] = false;
         (window as any).adminUsersFullList = undefined;
         (window as any).adminUserEmailIdMap = undefined;
+        (window as any)._staffProductMap = undefined;
         document.getElementById(FILTER_CONTROLS_ID)?.remove();
         return;
     }
@@ -293,9 +354,9 @@ export const applyAdminUsersListOverride = (commonHeaders: Record<string, string
     const tbody = table?.querySelector('tbody');
     if (!table || !headerRow || !tbody) return;
 
-    const insertIdx = ensureIdHeader(headerRow);
+    const idInsertIdx = ensureIdHeader(headerRow);
 
-    const applyAll = (list: AdminUserEntry[]) => {
+    const applyAll = (list: AdminUserEntry[], productMap: Record<number, string>) => {
         const idMap: Record<string, number> = {};
         list.forEach((u) => { if (u.email) idMap[u.email] = u.id; });
 
@@ -307,24 +368,35 @@ export const applyAdminUsersListOverride = (commonHeaders: Record<string, string
 
         ensureFilterControls(roles);
 
+        // Product header must be inserted AFTER ID header is already in the DOM
+        const productInsertIdx = ensureProductHeader(headerRow);
+
         Array.from(tbody.querySelectorAll('tr')).forEach((row) => {
             const email = findEmailInRow(row);
-            ensureIdCell(row, insertIdx, email ? (idMap[email] ?? null) : null);
+            const userId = email ? (idMap[email] ?? null) : null;
+            ensureIdCell(row, idInsertIdx, userId);
+            const product = userId != null ? (productMap[userId] || '') : '';
+            ensureProductCell(row, productInsertIdx, product);
         });
         sortRowsByIdDesc(tbody);
         applyFilter();
     };
 
-    const cached = (window as any).adminUsersFullList as AdminUserEntry[] | undefined;
-    if (cached && cached.length > 0) {
-        applyAll(cached);
+    const cachedUsers = (window as any).adminUsersFullList as AdminUserEntry[] | undefined;
+    const cachedProducts = (window as any)._staffProductMap as Record<number, string> | undefined;
+
+    if (cachedUsers && cachedUsers.length > 0 && cachedProducts) {
+        applyAll(cachedUsers, cachedProducts);
         return;
     }
 
     if (!(window as any)[FETCH_FLAG]) {
         (window as any)[FETCH_FLAG] = true;
-        fetchAdminUsers(commonHeaders)
-            .then((list) => { if (isAdminUsersListPath()) applyAll(list); })
-            .catch(() => { (window as any)[FETCH_FLAG] = false; });
+        Promise.all([
+            fetchAdminUsers(commonHeaders),
+            fetchProductMappings(),
+        ]).then(([list, productMap]) => {
+            if (isAdminUsersListPath()) applyAll(list, productMap);
+        }).catch(() => { (window as any)[FETCH_FLAG] = false; });
     }
 };

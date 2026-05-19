@@ -1728,6 +1728,42 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiStaffProductMappingStaffProductMapping
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'staff_product_mappings';
+  info: {
+    description: 'Stores product assignment for admin users (staff/bankers)';
+    displayName: 'Staff Product Mappings';
+    pluralName: 'staff-product-mappings';
+    singularName: 'staff-product-mapping';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+  };
+  attributes: {
+    adminUserId: Schema.Attribute.Integer & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::staff-product-mapping.staff-product-mapping'
+    > &
+      Schema.Attribute.Private;
+    product: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface PluginContentReleasesRelease
   extends Struct.CollectionTypeSchema {
   collectionName: 'strapi_releases';
@@ -2261,6 +2297,7 @@ declare module '@strapi/strapi' {
       'api::loan-application.loan-application': ApiLoanApplicationLoanApplication;
       'api::product-page.product-page': ApiProductPageProductPage;
       'api::product.product': ApiProductProduct;
+      'api::staff-product-mapping.staff-product-mapping': ApiStaffProductMappingStaffProductMapping;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;
