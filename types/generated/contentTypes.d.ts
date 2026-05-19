@@ -1170,8 +1170,6 @@ export interface ApiLeadLead extends Struct.CollectionTypeSchema {
   attributes: {
     aadharCard: Schema.Attribute.String;
     advisorReferralId: Schema.Attribute.String;
-    assignedBankerId: Schema.Attribute.Integer;
-    assignedStaffId: Schema.Attribute.Integer;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

@@ -784,9 +784,6 @@ export const useLeadViewDashboard = (leadId: string) => {
     const handleSaveParentAdvisorId = async () => {
         setIsSavingParentId(true);
         try {
-            // Save parentAdvisorId + assignedStaffId + assignedBankerId to the lead.
-            // Staff/banker filtering on the leads LIST uses these lead-level fields so
-            // the assignment is visible without joining to the loan-application record.
             const leadDocId = lead?.documentId || leadId;
             const leadRes = await fetch(`/api/leads/${leadDocId}`, {
                 method: 'PUT',
@@ -794,8 +791,6 @@ export const useLeadViewDashboard = (leadId: string) => {
                 body: JSON.stringify({
                     data: {
                         parentAdvisorId: parentAdvisorIdVal,
-                        assignedStaffId: selectedStaffId ?? null,
-                        assignedBankerId: selectedBankerId ?? null,
                     },
                 }),
             });
@@ -803,12 +798,9 @@ export const useLeadViewDashboard = (leadId: string) => {
                 setLead((prev: any) => ({
                     ...prev,
                     parentAdvisorId: parentAdvisorIdVal,
-                    assignedStaffId: selectedStaffId,
-                    assignedBankerId: selectedBankerId,
                 }));
             }
 
-            // Also mirror to the loan application for consistency.
             if (loanApp?.documentId || loanApp?.id) {
                 const loanDocId = loanApp.documentId || String(loanApp.id);
                 const loanRes = await fetch(`/api/loan-applications/${loanDocId}`, {

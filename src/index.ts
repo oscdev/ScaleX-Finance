@@ -303,7 +303,11 @@ export default {
           { action: 'api::lead-remark.lead-remark.update', role: publicRole.id },
           { action: 'plugin::upload.content-api.upload', role: publicRole.id },
           { action: 'plugin::upload.upload', role: publicRole.id },
-          { action: 'api::loan-app-section-permission.loan-app-section-permission.find', role: publicRole.id }
+          { action: 'api::loan-app-section-permission.loan-app-section-permission.find', role: publicRole.id },
+          { action: 'api::staff-product-mapping.staff-product-mapping.find', role: publicRole.id },
+          { action: 'api::staff-product-mapping.staff-product-mapping.findOne', role: publicRole.id },
+          { action: 'api::staff-product-mapping.staff-product-mapping.create', role: publicRole.id },
+          { action: 'api::staff-product-mapping.staff-product-mapping.update', role: publicRole.id },
         ];
 
         for (const perm of permissions) {

@@ -82,12 +82,6 @@
                 "DISBURSED"
             ],
             "default": "NEW"
-        },
-        "assignedStaffId": {
-            "type": "integer"
-        },
-        "assignedBankerId": {
-            "type": "integer"
         }
     }
 }   
