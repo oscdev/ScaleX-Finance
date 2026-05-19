@@ -142,6 +142,84 @@ export const installFetchInterceptor = () => {
 
         const response = await originalFetch(...args);
 
+        // ── Save product mapping after admin user invite succeeds ─────────────
+        // When the "Invite new user" form is submitted, Strapi POSTs to /admin/users.
+        // We intercept the successful response, grab the new user's ID, and save the
+        // product selection (set by inviteUserOverride.ts) to staff-product-mappings.
+        if (
+            (url === '/admin/users' || url.endsWith('/admin/users')) &&
+            (args[1] as any)?.method === 'POST' &&
+            response.ok
+        ) {
+            const product = (window as any)._pendingInviteProduct as string | undefined;
+            if (product) {
+                try {
+                    const cloned = response.clone();
+                    const data = await cloned.json();
+                    const newUserId: number | undefined = data?.data?.id;
+                    if (newUserId) {
+                        // /api/staff-product-mappings has Public create permission —
+                        // admin JWTs are not valid on /api/* endpoints, so no auth header.
+                        originalFetch('/api/staff-product-mappings', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ data: { adminUserId: newUserId, product } }),
+                        }).catch(() => {});
+                    }
+                } catch (_) {}
+                (window as any)._pendingInviteProduct = '';
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
+        // ── Update product mapping after admin user edit is saved ─────────────
+        // When the edit form is saved, Strapi PUTs to /admin/users/:id.
+        // We upsert the product mapping:
+        //   - documentId exists  → content-manager PUT (accepts admin JWT)
+        //   - no documentId yet  → public POST (create new mapping)
+        // _pendingEditProduct === undefined means the Product field was hidden
+        // (user is not Staff), so we skip saving entirely.
+        const putUserMatch = url.match(/\/admin\/users\/(\d+)$/);
+        if (putUserMatch && (args[1] as any)?.method === 'PUT' && response.ok) {
+            const product = (window as any)._pendingEditProduct as string | undefined;
+            if (product !== undefined && product !== '') {
+                const documentId = (window as any)._editProductDocumentId as string | null;
+                const adminId = Number((window as any)._editProductAdminId || putUserMatch[1]);
+                const savedToken = (window as any)._strapi_last_token as string | undefined;
+                const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+                if (savedToken) {
+                    authHeaders.Authorization = savedToken.startsWith('Bearer ')
+                        ? savedToken
+                        : `Bearer ${savedToken}`;
+                }
+
+                if (documentId) {
+                    // Update existing mapping via content-manager (accepts admin JWT)
+                    originalFetch(
+                        `/content-manager/collection-types/api::staff-product-mapping.staff-product-mapping/${documentId}`,
+                        {
+                            method: 'PUT',
+                            headers: authHeaders,
+                            body: JSON.stringify({ adminUserId: adminId, product }),
+                        }
+                    ).then(() => {
+                        // Invalidate product cache so list page shows fresh data
+                        (window as any)._staffProductMap = undefined;
+                    }).catch(() => {});
+                } else {
+                    // No existing mapping — create one via public API
+                    originalFetch('/api/staff-product-mappings', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: { adminUserId: adminId, product } }),
+                    }).then(() => {
+                        (window as any)._staffProductMap = undefined;
+                    }).catch(() => {});
+                }
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         const labelMap: Record<string, string> = {
             id: 'ID',
             fullname: 'CUSTOMER INFO',

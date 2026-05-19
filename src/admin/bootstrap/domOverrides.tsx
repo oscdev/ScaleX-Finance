@@ -14,6 +14,7 @@ import { applyButtonHardening } from './overrides/buttonHardening';
 import { applyLeadTableOverride } from './overrides/leadTableOverride';
 import { applyAdvisorTableOverride } from './overrides/advisorTableOverride';
 import { applyRoleTabOverride } from './overrides/roleTabOverride';
+import { startInviteUserOverride } from './overrides/inviteUserOverride';
 import adminOverridesCss from './admin-overrides.css?inline';
 
 if (typeof document !== 'undefined' && !document.getElementById('scalex-admin-overrides')) {
@@ -324,11 +325,12 @@ const initOverrides = () => {
         const isLeadsPage = path.includes('api::lead.lead');
         const isLoanPage = path.includes('api::loan-application.loan-application');
         const isAdminUsersListPage = path.replace(/\/+$/, '') === '/admin/settings/users';
+        const isAdminUserEditPage = /\/admin\/settings\/users\/\d+/.test(path);
         const isRoleEditPage = /\/admin\/settings\/roles\/\d+/.test(path);
 
         // If we are NOT on a page we customize, ensure we are NOT in dashboard mode and return early.
         // This is the most critical fix to prevent breaking pages like Activity Log.
-        if (!isAdvisorsPage && !isLeadsPage && !isLoanPage && !isAdminUsersListPage && !isRoleEditPage) {
+        if (!isAdvisorsPage && !isLeadsPage && !isLoanPage && !isAdminUsersListPage && !isAdminUserEditPage && !isRoleEditPage) {
             if (document.body.classList.contains('dashboard-mode')) {
                 document.body.classList.remove('dashboard-mode');
                 showStrapiFrame();
@@ -375,6 +377,7 @@ const initOverrides = () => {
 
 export const startDomOverrides = () => {
     patchHistoryMethods();
+    startInviteUserOverride(); // persistent MutationObserver — run once globally
 
     let debounceTimer: any;
     const debouncedOverrides = () => {
