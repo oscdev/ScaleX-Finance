@@ -97,6 +97,10 @@ export const syncSessionRole = async (isRetry = false): Promise<void> => {
         // to filter loan-application list rows for staff and banker roles.
         sessionStorage.setItem('strapiAdminUserId', String(adminUser.id));
 
+        // Store numeric role IDs so permission checks can query per-role settings
+        const roleIds: number[] = adminUser.roles.map((r: any) => r.id);
+        sessionStorage.setItem('strapiRoleIds', JSON.stringify(roleIds));
+
         const isAdvisor = adminUser.roles.some(
             (role: any) =>
                 ['strapi-advisor', 'Advisor', 'advisor', 'Advisior'].includes(role.code) ||

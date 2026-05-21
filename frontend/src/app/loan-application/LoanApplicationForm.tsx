@@ -390,7 +390,10 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                     },
                     ...uploadedFileIds,
                     status: 'Pending',
-                    declarationAccepted: formData.declarationAccepted
+                    declarationAccepted: formData.declarationAccepted,
+                    ...(sessionStorage.getItem('strapiUserRole') === 'staff' && sessionStorage.getItem('strapiAdminUserId')
+                        ? { assignedStaffId: Number(sessionStorage.getItem('strapiAdminUserId')) }
+                        : {})
                 }
             };
 
@@ -414,7 +417,12 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                 }
             }
 
-            router.push('/loan-application-success');
+            const strapiRole = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('strapiUserRole') : null;
+            if (strapiRole === 'admin' || strapiRole === 'staff' || strapiRole === 'advisor') {
+                router.push('/admin/content-manager/collection-types/api::lead.lead');
+            } else {
+                router.push('/loan-application-success');
+            }
         } catch (err: any) {
             console.error('Submission Error:', err);
             setSubmitError(err.message);

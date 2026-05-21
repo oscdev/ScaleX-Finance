@@ -7,7 +7,8 @@ import { reactRoots, unmountAndRemove } from './overrides/reactRoots';
 import { getStrapiToken, getCommonHeaders } from './overrides/strapiToken';
 import { patchHistoryMethods } from './overrides/historyPatch';
 import { applyLoginPageOverride } from './overrides/loginPageOverride';
-import { applyNavOverride, updateNavActiveStates } from './overrides/navOverride';
+import { applyNavOverride, updateNavActiveStates, updateAddNewLeadNavVisibility } from './overrides/navOverride';
+import { applyAddNewLeadPermissionRow } from './overrides/addNewLeadPermission';
 import { applyAdminUserOverride } from './overrides/adminUserOverride';
 import { applyAdminUsersListOverride } from './overrides/adminUsersListOverride';
 import { applyButtonHardening } from './overrides/buttonHardening';
@@ -366,11 +367,66 @@ const initOverrides = () => {
         safe(() => applyAdvisorTableOverride());
         safe(() => applyRoleTabOverride());
 
+        if (isRoleEditPage) safe(() => { applyAddNewLeadPermissionRow().catch(() => {}); });
+
         safe(() => ensureAdminNotifications());
         safe(() => ensureDebugBadge());
     } finally {
         (window as any)._is_running_overrides = false;
     }
+};
+
+// ─── Add New Lead nav permission loader ───────────────────────────────────────
+
+const applyNavPermissionWhenReady = (attempt = 0) => {
+    // Wait for strapiUserRole — it is stored LAST in syncSessionRole, so once it
+    // is present we know strapiRoleIds is also ready.
+    const strapiRole = sessionStorage.getItem('strapiUserRole');
+    const roleIdsRaw = sessionStorage.getItem('strapiRoleIds');
+
+    if ((!strapiRole || !roleIdsRaw) && attempt < 20) {
+        setTimeout(() => applyNavPermissionWhenReady(attempt + 1), 300);
+        return;
+    }
+
+    if (!strapiRole || strapiRole === 'admin') {
+        (window as any)._addNewLeadNavAllowed = true;
+        updateAddNewLeadNavVisibility();
+        return;
+    }
+
+    let roleIds: number[] = [];
+    try { roleIds = JSON.parse(roleIdsRaw || '[]'); } catch {}
+    if (roleIds.length === 0) {
+        (window as any)._addNewLeadNavAllowed = true;
+        updateAddNewLeadNavVisibility();
+        return;
+    }
+
+    const roleId = roleIds[0];
+    const captured = (window as any)._strapi_last_token as string | undefined;
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (captured) headers.Authorization = captured.startsWith('Bearer ') ? captured : `Bearer ${captured}`;
+
+    fetch(`/admin/loan-app-permissions?roleId=${roleId}`, { headers })
+        .then(r => r.ok ? r.json() : null)
+        .then((data: any) => {
+            if (!data) { (window as any)._addNewLeadNavAllowed = true; }
+            else {
+                const results: any[] = data.data || [];
+                const allowed = results.length === 0 || results[0].permissions?.addNewLead?.show !== false;
+                (window as any)._addNewLeadNavAllowed = allowed;
+            }
+            updateAddNewLeadNavVisibility();
+        })
+        .catch(() => {
+            (window as any)._addNewLeadNavAllowed = true;
+            updateAddNewLeadNavVisibility();
+        });
+};
+
+const loadAddNewLeadNavPermission = () => {
+    whenAuthed(() => applyNavPermissionWhenReady());
 };
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
@@ -445,4 +501,7 @@ export const startDomOverrides = () => {
     initOverrides();
     setTimeout(initOverrides, 300);
     setTimeout(initOverrides, 1000);
+
+    // Load per-role "Add New Lead" visibility once auth is available
+    loadAddNewLeadNavPermission();
 };
