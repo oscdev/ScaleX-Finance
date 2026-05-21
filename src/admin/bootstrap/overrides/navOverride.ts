@@ -58,7 +58,13 @@ export const applyNavOverride = () => {
         'Add New Lead',
         '/products',
         false,
-        (e) => { e.preventDefault(); window.open('/products', '_self'); },
+        (e) => {
+            e.preventDefault();
+            const role = sessionStorage.getItem('strapiUserRole');
+            const adminUserId = sessionStorage.getItem('strapiAdminUserId');
+            const url = (role === 'staff' && adminUserId) ? `/products?staffId=${adminUserId}` : '/products';
+            window.open(url, '_self');
+        },
     );
 
     // "Leads Overview"
@@ -92,6 +98,31 @@ export const applyNavOverride = () => {
         overviewLi.style.display = nowExpanded ? 'block' : 'none';
         sessionStorage.setItem('leads-nav-expanded', nowExpanded ? 'true' : 'false');
     }, true);
+
+    // Apply current permission state immediately — the async permission loader
+    // may have already resolved _addNewLeadNavAllowed before this element existed.
+    updateAddNewLeadNavVisibility();
+};
+
+export const updateAddNewLeadNavVisibility = () => {
+    const li = document.getElementById('custom-leads-add-li') as HTMLElement | null;
+    if (!li) return;
+
+    const role = sessionStorage.getItem('strapiUserRole');
+    // Super-admin always sees the button
+    if (!role || role === 'admin') {
+        const expanded = sessionStorage.getItem('leads-nav-expanded') !== 'false';
+        li.style.display = expanded ? 'block' : 'none';
+        return;
+    }
+
+    const allowed = (window as any)._addNewLeadNavAllowed;
+    if (allowed === false) {
+        li.style.display = 'none';
+    } else {
+        const expanded = sessionStorage.getItem('leads-nav-expanded') !== 'false';
+        li.style.display = expanded ? 'block' : 'none';
+    }
 };
 
 export const updateNavActiveStates = () => {

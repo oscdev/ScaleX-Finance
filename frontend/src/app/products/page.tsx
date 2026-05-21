@@ -47,9 +47,40 @@ async function getProductPageData() {
     }
 }
 
-export default async function Products() {
+async function getStaffProductNames(staffId: string): Promise<string[]> {
+    try {
+        const res = await fetch(
+            strapiInternalApi(`/api/staff-product-mappings?filters[adminUserId][$eq]=${staffId}&pagination[pageSize]=100`),
+            { cache: 'no-store' }
+        );
+        if (!res.ok) return [];
+        const json = await res.json();
+        const results: any[] = json.data || [];
+        return results.map((r: any) => r.attributes?.product || r.product).filter(Boolean);
+    } catch {
+        return [];
+    }
+}
+
+export default async function Products(props: { searchParams: Promise<{ staffId?: string }> }) {
+    const searchParams = await props.searchParams;
+    const staffId = searchParams?.staffId;
+
     const products = await getProductsData();
     const productPageResponse = await getProductPageData();
+
+    let filteredProducts = products || [];
+    if (staffId) {
+        const mappedNames = await getStaffProductNames(staffId);
+        if (mappedNames.length > 0) {
+            filteredProducts = filteredProducts.filter((p: any) => {
+                const title = p.attributes?.title || p.title || '';
+                return mappedNames.some(
+                    (name) => name.trim().toLowerCase() === title.trim().toLowerCase()
+                );
+            });
+        }
+    }
 
     // With Strapi v5, sometimes data comes directly or under attributes
     let pageInfo: any = {};
@@ -76,7 +107,7 @@ export default async function Products() {
                 </div>
             </section>
 
-            <ProductSelection products={products || []} buttonConfig={buttonConfig} />
+            <ProductSelection products={filteredProducts} buttonConfig={buttonConfig} />
         </>
     );
 }

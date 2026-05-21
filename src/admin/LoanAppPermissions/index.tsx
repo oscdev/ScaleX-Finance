@@ -226,8 +226,26 @@ export const LoanAppPermissions = ({ roleId, roleName }: { roleId: number; roleN
         setIsSaving(true);
         setSaveError('');
         const token = getToken();
-        // Always POST — server upserts by roleId (avoids stale recordId / PUT body-parse issues)
-        const body = JSON.stringify({ id: recordId, roleId, roleName, permissions: perms });
+
+        // Preserve keys outside SECTION_TREE (e.g. addNewLead) so they survive this save
+        let extraKeys: Record<string, any> = {};
+        try {
+            const existingRes = await fetch(`${API_BASE}?roleId=${roleId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (existingRes.ok) {
+                const existingData = await existingRes.json();
+                const existingResults: any[] = existingData.data || [];
+                if (existingResults.length > 0 && existingResults[0].permissions) {
+                    const sectionKeys = new Set(SECTION_TREE.map(s => s.key));
+                    Object.entries(existingResults[0].permissions).forEach(([k, v]) => {
+                        if (!sectionKeys.has(k)) extraKeys[k] = v;
+                    });
+                }
+            }
+        } catch {}
+
+        const body = JSON.stringify({ id: recordId, roleId, roleName, permissions: { ...extraKeys, ...perms } });
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
