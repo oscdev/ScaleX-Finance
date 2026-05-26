@@ -126,12 +126,15 @@
     margin-bottom: 1rem;
 }
 
-.doc-status-uploaded {
+/* Combined selectors prevent color override conflicts */
+.doc-status-badge.doc-status-uploaded {
     background: #10b981;
+    color: #fff;
 }
 
-.doc-status-pending {
+.doc-status-badge.doc-status-pending {
     background: #f59e0b;
+    color: #fff;
 }
 
 .doc-label {
@@ -166,7 +169,8 @@
     font-size: 0.85rem;
 }
 
-.doc-other-card {
+/* Combined selector wins over .doc-card (same specificity, later in file) */
+.doc-card.doc-other-card {
     background: #334155;
     color: #fff;
 }
@@ -505,7 +509,7 @@
     gap: 1rem;
 }
 
-.doc-status-uploaded {
+.doc-status-uploaded-text {
     color: #10b981;
     font-weight: 600;
     font-size: 0.8rem;
@@ -623,4 +627,189 @@
 .required-star {
     color: #ef4444 !important;
     margin-left: 2px;
+}
+
+/* ── Document Password Modal ── */
+.doc-pw-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.doc-pw-modal {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.doc-pw-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.doc-pw-lock-icon {
+    font-size: 1.5rem;
+}
+
+.doc-pw-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--foreground, #111827);
+}
+
+.doc-pw-desc {
+    font-size: 0.9rem;
+    color: var(--foreground, #374151);
+    opacity: 0.8;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+}
+
+.doc-pw-input {
+    margin-bottom: 0.5rem;
+}
+
+.doc-pw-input-error {
+    border-color: #ef4444 !important;
+}
+
+.doc-pw-error {
+    color: #ef4444;
+    font-size: 0.82rem;
+    margin-bottom: 0.75rem;
+    margin-top: 0;
+}
+
+.doc-pw-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 1.25rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .loan-app-page {
+        padding: 2rem 0;
+    }
+
+    .loan-app-title {
+        font-size: clamp(1.75rem, 7vw, 2.5rem);
+    }
+
+    .loan-app-subtitle {
+        font-size: 1rem;
+    }
+
+    .loan-app-header {
+        margin-bottom: 2rem;
+    }
+
+    .loan-form-card {
+        padding: 1.5rem;
+    }
+
+    /* Step navigation — wrap and shrink on mobile */
+    .step-nav {
+        gap: 0.5rem;
+        padding: 1rem 0.75rem;
+    }
+
+    .step-item {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.65rem;
+        gap: 0.35rem;
+    }
+
+    /* Profile card wraps on mobile */
+    .loan-app-profile-card {
+        gap: 1rem;
+        font-size: 0.85rem;
+    }
+
+    /* Footer grid stacks on mobile */
+    .footer-details-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .footer-amount-col {
+        justify-content: flex-start;
+    }
+
+    .footer-loan-col {
+        justify-content: flex-start;
+    }
+
+    /* Loan app footer buttons stack */
+    .loan-app-footer {
+        flex-direction: column-reverse;
+        gap: 0.75rem;
+    }
+
+    .loan-app-footer .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Document upload grid — single column */
+    .doc-upload-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Summary cards — single column */
+    .summary-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    /* Running loan grid stacks */
+    .add-loan-row {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: stretch;
+    }
+
+    /* Table: horizontal scroll on mobile */
+    .summary-overflow {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .loan-list-table {
+        min-width: 500px;
+    }
+
+    .loan-app-footer-profile {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .loan-form-card {
+        padding: 1rem;
+    }
+
+    .step-item .step-number {
+        display: none;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-profile-name {
+        font-size: 0.9rem;
+    }
 }

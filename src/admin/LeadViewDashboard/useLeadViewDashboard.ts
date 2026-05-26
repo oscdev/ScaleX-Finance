@@ -108,6 +108,31 @@ export const buildDocuments = (loanApp: any): DocumentEntry[] => {
     let salaryCounter = 1;
     let otherCounter = 1;
 
+    // Build a lookup from form_data.documents by doc name (handles old display-name keyed records)
+    const pwByDocName: Record<string, string> = {};
+    (loanApp.form_data?.documents || []).forEach((d: any) => {
+        if (d.name && d.password && d.password !== 'No') pwByDocName[d.name] = d.password;
+    });
+
+    // Known field keys and display names — used to detect user-defined otherDocs names
+    const knownPwKeys = new Set([...Object.keys(DOC_LABELS), ...Object.values(DOC_LABELS)]);
+
+    const findPw = (label: string): string => {
+        // 1. New format: stored by field key (e.g. "panCard")
+        if (pdfPw[label]) return pdfPw[label];
+        // 2. Old format: stored by standard display name (e.g. "Pan Card")
+        const stdName = DOC_LABELS[label] || label;
+        if (pdfPw[stdName]) return pdfPw[stdName];
+        // 3. Fallback: match against form_data.documents by standard display name
+        if (pwByDocName[stdName]) return pwByDocName[stdName];
+        // 4. otherDocs: scan pdfPw for any user-defined key (non-standard)
+        if (label === 'otherDocs') {
+            const unknownKey = Object.keys(pdfPw).find(k => !knownPwKeys.has(k) && pdfPw[k]);
+            if (unknownKey) return pdfPw[unknownKey];
+        }
+        return '';
+    };
+
     const addDoc = (val: any, label: string) => {
         if (!val) return;
         const rawItems = val.data !== undefined ? val.data : val;
@@ -141,7 +166,7 @@ export const buildDocuments = (loanApp: any): DocumentEntry[] => {
                     type: displayType,
                     ext: fileExt.length > 4 ? fileExt.substring(0, 3) : fileExt,
                     url: fileUrl,
-                    pw: pdfPw[label] || '',
+                    pw: findPw(label),
                     date: fileDate,
                 });
             }
@@ -152,8 +177,7 @@ export const buildDocuments = (loanApp: any): DocumentEntry[] => {
     return docs;
 };
 
-export const handleDocView = (e: ReactMouseEvent, url: string | null, pw: string) => {
-    e.preventDefault();
+export const openDocWithPasswordCheck = (url: string | null, pw: string) => {
     if (!url) return;
     const fullUrl = url.startsWith('http')
         ? url
@@ -163,16 +187,79 @@ export const handleDocView = (e: ReactMouseEvent, url: string | null, pw: string
                   : window.location.origin
           }${url}`;
 
-    if (pw && pw.trim() !== '') {
-        const input = window.prompt(
-            'This document is password protected. Please enter the password:'
-        );
-        if (input === pw) {
-            window.open(fullUrl, '_blank');
-        }
-    } else {
+    if (!pw || pw.trim() === '') {
         window.open(fullUrl, '_blank');
+        return;
     }
+
+    // Build a lightweight inline modal for password verification
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;
+        align-items:center;justify-content:center;z-index:99999;
+        backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+    `;
+
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        background:#fff;border-radius:12px;padding:28px 28px 22px;width:360px;max-width:90vw;
+        box-shadow:0 20px 60px rgba(0,0,0,0.25);font-family:sans-serif;
+    `;
+    modal.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <span style="font-size:22px;">🔒</span>
+            <strong style="font-size:15px;color:#111827;">Password Required</strong>
+        </div>
+        <p style="font-size:13px;color:#374151;margin:0 0 14px;line-height:1.5;">
+            This document is password protected.<br/>Enter the password to open it.
+        </p>
+        <input id="doc-pw-input" type="password" placeholder="Enter document password"
+            style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:13px;
+                   border:1.5px solid #d1d5db;border-radius:6px;outline:none;margin-bottom:6px;"/>
+        <p id="doc-pw-error" style="color:#ef4444;font-size:12px;margin:0 0 12px;min-height:16px;"></p>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button id="doc-pw-cancel"
+                style="padding:7px 16px;border:1px solid #d1d5db;background:#f9fafb;border-radius:6px;
+                       cursor:pointer;font-size:13px;">Cancel</button>
+            <button id="doc-pw-open"
+                style="padding:7px 18px;background:#4945ff;color:#fff;border:none;border-radius:6px;
+                       cursor:pointer;font-size:13px;font-weight:600;">Open Document</button>
+        </div>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    const input = modal.querySelector('#doc-pw-input') as HTMLInputElement;
+    const errorEl = modal.querySelector('#doc-pw-error') as HTMLElement;
+    const cancelBtn = modal.querySelector('#doc-pw-cancel') as HTMLButtonElement;
+    const openBtn = modal.querySelector('#doc-pw-open') as HTMLButtonElement;
+
+    setTimeout(() => input?.focus(), 50);
+
+    const close = () => document.body.removeChild(overlay);
+
+    const verify = () => {
+        if (input.value === pw) {
+            close();
+            window.open(fullUrl, '_blank');
+        } else {
+            errorEl.textContent = 'Incorrect password. Please try again.';
+            input.style.borderColor = '#ef4444';
+            input.value = '';
+            setTimeout(() => input?.focus(), 50);
+        }
+    };
+
+    cancelBtn.addEventListener('click', close);
+    openBtn.addEventListener('click', verify);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') verify(); });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+};
+
+export const handleDocView = (e: ReactMouseEvent, url: string | null, pw: string) => {
+    e.preventDefault();
+    openDocWithPasswordCheck(url, pw);
 };
 
 export const getAppSteps = (loanType: string, occupation: string) => {
@@ -485,8 +572,8 @@ export const useLeadViewDashboard = (leadId: string) => {
         setSelectedBankerId(loanApp.assignedBankerId ?? null);
     }, [loanApp?.assignedStaffId, loanApp?.assignedBankerId]);
 
-    // Fetch admin users filtered by role; staff list is further filtered to only
-    // those assigned the same product as the lead (via staff_product_mappings).
+    // Fetch admin users filtered by role; both staff and banker lists are further
+    // filtered to only those assigned the same product as the lead (via user_product_mappings).
     useEffect(() => {
         if (!lead) return; // wait for lead to load before fetching
         const fetchAdminUsers = async () => {
@@ -502,7 +589,7 @@ export const useLeadViewDashboard = (leadId: string) => {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
                     selectedProduct
-                        ? fetch(`/api/staff-product-mappings?filters[product][$eq]=${encodeURIComponent(selectedProduct)}&pagination[pageSize]=500&fields[0]=adminUserId`)
+                        ? fetch(`/api/user-product-mappings?filters[product][$eq]=${encodeURIComponent(selectedProduct)}&pagination[pageSize]=500&fields[0]=adminUserId`)
                         : Promise.resolve(null),
                 ]);
 
@@ -526,7 +613,11 @@ export const useLeadViewDashboard = (leadId: string) => {
                     (u.roles || []).some((r: any) => staffRoleCodes.includes(r.code))
                 );
 
-                // If we have a product filter, only show staff assigned to that product
+                const allBankers = users.filter((u: any) =>
+                    (u.roles || []).some((r: any) => bankerRoleCodes.includes(r.code))
+                );
+
+                // If we have a product filter, only show staff/bankers assigned to that product
                 setStaffList(
                     productStaffIds && productStaffIds.size > 0
                         ? allStaff.filter((u: any) => productStaffIds!.has(Number(u.id)))
@@ -534,9 +625,9 @@ export const useLeadViewDashboard = (leadId: string) => {
                 );
 
                 setBankerList(
-                    users.filter((u: any) =>
-                        (u.roles || []).some((r: any) => bankerRoleCodes.includes(r.code))
-                    )
+                    productStaffIds && productStaffIds.size > 0
+                        ? allBankers.filter((u: any) => productStaffIds!.has(Number(u.id)))
+                        : allBankers
                 );
             } catch (e) {}
         };
@@ -571,7 +662,7 @@ export const useLeadViewDashboard = (leadId: string) => {
             if (!lead?.parentAdvisorId) return;
             try {
                 const res = await fetch(
-                    `/api/advisors?filters[advisorId][$eq]=${encodeURIComponent(lead.parentAdvisorId)}`
+                    `/api/advisors?filters[id][$eq]=${encodeURIComponent(lead.parentAdvisorId)}`
                 );
                 if (res.ok) {
                     const data = await res.json();

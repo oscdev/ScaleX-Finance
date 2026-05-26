@@ -66,3 +66,31 @@
     cursor: not-allowed;
     pointer-events: none;
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .hero-section-products {
+        padding: 4rem 0 2.5rem 0;
+    }
+
+    .hero-title-products {
+        font-size: clamp(1.75rem, 7vw, 2.5rem);
+    }
+
+    .products-footer {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .products-footer .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section-products {
+        padding: 3rem 0 2rem 0;
+    }
+}

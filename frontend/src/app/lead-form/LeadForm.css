@@ -142,3 +142,36 @@
     cursor: not-allowed;
     pointer-events: none;
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .lead-form-card {
+        padding: 1.75rem;
+    }
+
+    .lead-form-footer {
+        flex-direction: column-reverse;
+        gap: 0.75rem;
+    }
+
+    .lead-form-footer .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .lead-form-submit-error {
+        position: static;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .lead-form-radio-group {
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .lead-form-card {
+        padding: 1.25rem;
+    }
+}

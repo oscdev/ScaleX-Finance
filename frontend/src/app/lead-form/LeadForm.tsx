@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { strapiPublicApi } from '@/lib/strapi';
 import { logEvent } from '@/lib/logger';
+import { safeSessionStorage } from '@/lib/safeStorage';
 import './LeadForm.css';
 import BusinessLoanFunnel from './funnels/BusinessLoanFunnel';
 import PersonalLoanFunnel from './funnels/PersonalLoanFunnel';
@@ -36,13 +37,14 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
     });
 
     useEffect(() => {
-        const savedProduct = sessionStorage.getItem('selectedProduct');
+        const ss = safeSessionStorage();
+        const savedProduct = ss.getItem('selectedProduct');
         if (savedProduct) {
             setFormData(prev => ({ ...prev, selectedProduct: savedProduct }));
         }
 
         // Auto-populate Advisor ID if logged into Strapi
-        const strapiAdvisorId = sessionStorage.getItem('strapiAdvisorId');
+        const strapiAdvisorId = ss.getItem('strapiAdvisorId');
         if (strapiAdvisorId) {
             setFormData(prev => ({ ...prev, advisorReferralId: strapiAdvisorId }));
             setIsAdvisorAutoPopulated(true);
@@ -171,17 +173,18 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
                 });
 
                 // Save lead details for loan application pre-population
-                sessionStorage.setItem('requiredAmount', formData.requiredAmount);
-                sessionStorage.setItem('getEmailNotification', formData.getEmailNotification);
-                sessionStorage.setItem('leadName', formData.fullName);
-                sessionStorage.setItem('leadEmail', formData.email);
-                sessionStorage.setItem('leadPhone', formData.mobileNumber);
-                sessionStorage.setItem('leadAadhar', formData.aadharCard);
-                sessionStorage.setItem('leadPan', formData.panCard);
-                sessionStorage.setItem('leadOccupation', formData.employmentType);
+                const ss = safeSessionStorage();
+                ss.setItem('requiredAmount', formData.requiredAmount);
+                ss.setItem('getEmailNotification', formData.getEmailNotification);
+                ss.setItem('leadName', formData.fullName);
+                ss.setItem('leadEmail', formData.email);
+                ss.setItem('leadPhone', formData.mobileNumber);
+                ss.setItem('leadAadhar', formData.aadharCard);
+                ss.setItem('leadPan', formData.panCard);
+                ss.setItem('leadOccupation', formData.employmentType);
 
                 if (leadId) {
-                    sessionStorage.setItem('lastLeadId', leadId.toString());
+                    ss.setItem('lastLeadId', leadId.toString());
                 }
 
                 setIsSuccess(true);

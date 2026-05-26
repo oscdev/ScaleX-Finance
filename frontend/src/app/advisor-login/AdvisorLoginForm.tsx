@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { strapiPublicApi } from '@/lib/strapi';
 
 import { logEvent } from '@/lib/logger';
+import { safeLocalStorage } from '@/lib/safeStorage';
 import './AdvisorLogin.css';
 
 export default function AdvisorLoginForm() {
@@ -63,7 +64,7 @@ export default function AdvisorLoginForm() {
                 metadata: { email: formData.email }
             });
 
-            localStorage.setItem('advisorToken', data.jwt);
+            safeLocalStorage().setItem('advisorToken', data.jwt);
             router.push('/advisor-dashboard');
 
         } catch (err: any) {

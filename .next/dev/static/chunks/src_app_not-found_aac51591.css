@@ -1,0 +1,35 @@
+/* [project]/src/app/not-found.css [app-client] (css) */
+.not-found-page {
+  background: #f8fafc;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  display: flex;
+}
+
+.not-found-content {
+  text-align: center;
+  padding: 3rem;
+}
+
+.not-found-code {
+  color: var(--primary);
+  margin-bottom: 1rem;
+  font-size: 6rem;
+  font-weight: 900;
+}
+
+.not-found-title {
+  color: #111827;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.not-found-message {
+  color: #6b7280;
+  margin-bottom: 2.5rem;
+  font-size: 1.1rem;
+}
+
+/*# sourceMappingURL=src_app_not-found_aac51591.css.map*/

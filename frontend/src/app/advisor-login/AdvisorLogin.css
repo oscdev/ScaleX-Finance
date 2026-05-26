@@ -57,7 +57,7 @@
 
 .login-submit-btn {
     width: 100%;
-    marginTop: 2rem;
+    margin-top: 2rem;
 }
 
 .login-footer {
@@ -69,4 +69,29 @@
 .login-link {
     color: var(--primary);
     text-decoration: underline;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .login-hero-section {
+        padding: 4rem 0 2.5rem 0;
+    }
+
+    .login-hero-title {
+        font-size: clamp(1.75rem, 7vw, 2.5rem);
+    }
+
+    .login-card {
+        padding: 2rem !important;
+    }
+
+    .login-container {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-card {
+        padding: 1.5rem !important;
+    }
 }

@@ -1,0 +1,178 @@
+/* [project]/src/app/lead-form/LeadForm.css [app-client] (css) */
+.lead-form-section {
+  min-height: 60vh;
+  padding-bottom: 4rem;
+}
+
+.lead-form-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.lead-form-title {
+  text-align: center;
+  color: var(--primary);
+  margin-bottom: 2rem;
+}
+
+.lead-form-card {
+  background: var(--card-bg, #ffffff08);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 3rem;
+}
+
+.lead-form-grid {
+  grid-template-columns: 1fr 1fr;
+  gap: 0 2rem;
+  display: grid;
+}
+
+@media (max-width: 768px) {
+  .lead-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lead-form-label {
+  opacity: .9;
+  margin-top: 1.5rem;
+  font-size: .9rem;
+  font-weight: 500;
+  display: block;
+}
+
+.lead-form-input {
+  border: 1px solid var(--border-color);
+  width: 100%;
+  color: inherit;
+  background: #ffffff0d;
+  border-radius: 8px;
+  outline: none;
+  margin-top: .5rem;
+  margin-bottom: .25rem;
+  padding: 1rem;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all .3s;
+}
+
+.lead-form-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), .1);
+}
+
+.lead-form-error {
+  color: var(--secondary);
+  margin-top: .2rem;
+  font-size: .8rem;
+}
+
+.lead-form-radio-group {
+  gap: 2rem;
+  margin-top: 1rem;
+  display: flex;
+}
+
+.lead-form-radio-label {
+  cursor: pointer;
+  align-items: center;
+  gap: .5rem;
+  font-size: .9rem;
+  display: flex;
+}
+
+.lead-form-footer {
+  border-top: 1px solid var(--border-color);
+  justify-content: space-between;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  display: flex;
+  position: relative;
+}
+
+.lead-form-submit-error {
+  color: var(--secondary);
+  font-size: .9rem;
+  position: absolute;
+  top: .5rem;
+  left: 0;
+}
+
+.lead-form-success-container {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.lead-form-success-card {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.lead-form-advisor-field {
+  grid-column: 1 / -1;
+}
+
+.lead-form-input.is-error {
+  border-color: var(--secondary) !important;
+}
+
+.lead-form-input.is-disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.required-star {
+  color: red;
+}
+
+.lead-form-success-title {
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+.lead-form-success-text {
+  opacity: .8;
+  margin-bottom: 2rem;
+}
+
+.btn-disabled {
+  opacity: .7;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .lead-form-card {
+    padding: 1.75rem;
+  }
+
+  .lead-form-footer {
+    flex-direction: column-reverse;
+    gap: .75rem;
+  }
+
+  .lead-form-footer .btn {
+    text-align: center;
+    width: 100%;
+  }
+
+  .lead-form-submit-error {
+    text-align: center;
+    margin-bottom: .5rem;
+    position: static;
+  }
+
+  .lead-form-radio-group {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .lead-form-card {
+    padding: 1.25rem;
+  }
+}
+
+/*# sourceMappingURL=src_app_lead-form_LeadForm_410436a2.css.map*/

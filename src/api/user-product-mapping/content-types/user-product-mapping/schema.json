@@ -1,10 +1,10 @@
 {
     "kind": "collectionType",
-    "collectionName": "staff_product_mappings",
+    "collectionName": "user_product_mappings",
     "info": {
-        "singularName": "staff-product-mapping",
-        "pluralName": "staff-product-mappings",
-        "displayName": "Staff Product Mappings",
+        "singularName": "user-product-mapping",
+        "pluralName": "user-product-mappings",
+        "displayName": "User Product Mappings",
         "description": "Stores product assignment for admin users (staff/bankers)"
     },
     "options": {

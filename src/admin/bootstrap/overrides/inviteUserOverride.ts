@@ -1,9 +1,9 @@
 // Injects a "Product" dropdown into Strapi's "Invite new user" modal.
-// The field is hidden until the "Staff" role is selected in the roles combobox.
+// The field is hidden until the "Staff" or "Banker" role is selected in the roles combobox.
 // Options are fetched live from /api/products (the products table).
 // The selected value is stored on window._pendingInviteProduct.
 // fetchInterceptor.ts reads it after POST /admin/users succeeds and
-// saves it to /api/staff-product-mappings.
+// saves it to /api/user-product-mappings.
 
 const INJECT_ID = 'scalex-invite-product-field';
 
@@ -41,12 +41,11 @@ const findInviteModal = (): HTMLElement | null => {
 // ─── Role detection ───────────────────────────────────────────────────────────
 // Strapi renders selected role chips inline in the combobox.
 // Unselected options only appear inside [role="listbox"] (the open dropdown).
-// We look for a leaf element with text "staff" that is NOT inside a listbox.
+// We look for a leaf element with text "staff" or "banker" that is NOT inside a listbox.
 
-const isStaffRoleSelected = (modal: HTMLElement): boolean => {
+const isStaffOrBankerRoleSelected = (modal: HTMLElement): boolean => {
     const inListbox = (el: Element) => !!el.closest('[role="listbox"]');
-    // Exclude our own injected field — its hint text contains "staff" and would
-    // cause a false positive the moment the wrapper is added to the DOM.
+    // Exclude our own injected field to avoid false positives.
     const inOurField = (el: Element) => !!el.closest(`#${INJECT_ID}`);
 
     return Array.from(modal.querySelectorAll<HTMLElement>('span, div'))
@@ -55,7 +54,7 @@ const isStaffRoleSelected = (modal: HTMLElement): boolean => {
             // Chip labels have no child spans/divs (leaf-like nodes)
             const hasNoComplexChildren = el.querySelectorAll('span, div').length === 0;
             const text = (el.textContent || '').trim().toLowerCase();
-            return hasNoComplexChildren && text.includes('staff');
+            return hasNoComplexChildren && (text.includes('staff') || text.includes('banker'));
         });
 };
 
@@ -76,7 +75,7 @@ const startInnerObserver = (modal: HTMLElement) => {
         const wrapper = modal.querySelector<HTMLElement>(`#${INJECT_ID}`);
         if (!wrapper) return;
 
-        const show = isStaffRoleSelected(modal);
+        const show = isStaffOrBankerRoleSelected(modal);
         wrapper.style.display = show ? 'flex' : 'none';
 
         if (!show) {
@@ -160,7 +159,7 @@ const injectProductField = async (modal: HTMLElement) => {
     });
 
     const hint = document.createElement('span');
-    hint.textContent = 'Which product does this staff member handle?';
+    hint.textContent = 'Which product does this user handle?';
     Object.assign(hint.style, {
         fontSize: '11px',
         color: '#8e8ea9',

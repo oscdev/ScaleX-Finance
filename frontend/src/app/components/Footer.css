@@ -89,3 +89,30 @@
     opacity: 0.5;
     font-size: 0.9rem;
 }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .main-footer {
+        padding: 3rem 0 1.5rem 0;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .footer-brand {
+        max-width: 100%;
+    }
+
+    .footer-links-section {
+        flex: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-links-list {
+        gap: 0.5rem;
+    }
+}

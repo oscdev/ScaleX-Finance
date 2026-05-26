@@ -1,0 +1,69 @@
+/* [project]/src/app/components/MaintenanceShield.css [app-client] (css) */
+.maintenance-overlay {
+  z-index: 100000;
+  text-align: center;
+  background-color: #f8fafc;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 100vw;
+  height: 100vh;
+  padding: 2rem;
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow-x: hidden;
+}
+
+.maintenance-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  max-width: 500px;
+  padding: 3rem;
+  box-shadow: 0 20px 25px -5px #0000001a, 0 10px 10px -5px #0000000a;
+}
+
+.maintenance-icon {
+  margin-bottom: 1rem;
+  font-size: 3rem;
+}
+
+.maintenance-title {
+  color: #1e293b;
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.maintenance-description {
+  color: #64748b;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.maintenance-btn {
+  color: #fff;
+  cursor: pointer;
+  background-color: #2563eb;
+  border: none;
+  border-radius: 8px;
+  padding: .75rem 1.5rem;
+  font-weight: 600;
+  transition: background-color .3s;
+}
+
+.maintenance-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.maintenance-footer {
+  color: #94a3b8;
+  margin-top: 2rem;
+  font-size: .9rem;
+}
+
+/*# sourceMappingURL=src_app_components_MaintenanceShield_css_bad6b30c._.single.css.map*/
