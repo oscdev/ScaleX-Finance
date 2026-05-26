@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { INDIA_STATES_DISTRICTS } from '@/data/india-states-districts';
 
 interface FieldProps {
@@ -285,6 +285,33 @@ export const OtherDetailsFields = ({ formData, handleChange, pageInfo, handleAdd
 );
 
 export const DocumentsFields = ({ formData, setFormData, handleFileChange, handleSingleUpload, pageInfo, loanType, occupation }: any) => {
+    const [pendingDoc, setPendingDoc] = useState<any>(null);
+    const [inputPassword, setInputPassword] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+
+    const handleViewClick = (doc: any) => {
+        if (!doc.previewUrl) return;
+        if (doc.password && doc.password !== 'No') {
+            setPendingDoc(doc);
+            setInputPassword('');
+            setPasswordError('');
+        } else {
+            window.open(doc.previewUrl, '_blank');
+        }
+    };
+
+    const handlePasswordSubmit = () => {
+        if (!pendingDoc) return;
+        if (inputPassword === pendingDoc.password) {
+            window.open(pendingDoc.previewUrl, '_blank');
+            setPendingDoc(null);
+            setInputPassword('');
+            setPasswordError('');
+        } else {
+            setPasswordError('Incorrect password. Please try again.');
+        }
+    };
+
     const isSelfEmployedDoc = occupation === 'Self Employed';
     const docFields = (loanType === 'Business Loan' || isSelfEmployedDoc) ? [
         { name: formData.businessType ? `Document for ${formData.businessType}` : 'Select Business Type in Business Details', key: 'proprietorshipDoc', id: '#1' }
@@ -354,7 +381,7 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
                             ))}
                         </select>
                         <label className="form-label" style={{ color: '#cbd5e1' }}>{pageInfo.pdfPasswordLabel || 'PDF Password (If any)'}</label>
-                        <input className="form-input doc-other-input" value={formData.pdfPasswords['other'] || ''} onChange={(e) => setFormData((p: any) => ({ ...p, pdfPasswords: { ...p.pdfPasswords, other: e.target.value } }))} placeholder={pageInfo.pdfPasswordPlaceholder || 'Enter password'} />
+                        <input className="form-input doc-other-input" value={formData.pdfPasswords['otherDocs'] || ''} onChange={(e) => setFormData((p: any) => ({ ...p, pdfPasswords: { ...p.pdfPasswords, otherDocs: e.target.value } }))} placeholder={pageInfo.pdfPasswordPlaceholder || 'Enter password'} />
                         <div className="doc-file-row">
                             <div className="doc-other-file-row">
                                 <span style={{ color: '#000', fontSize: '0.7rem', opacity: 0.7, whiteSpace: 'nowrap', flexShrink: 0 }}>{pageInfo.selectFileLabel || '☁️ Select File'}</span>
@@ -404,12 +431,20 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
                                     <td>{doc.password}</td>
                                     <td>{doc.date}</td>
                                     <td>
-                                        <span className="doc-status-uploaded">
+                                        <span className="doc-status-uploaded-text">
                                             ● {doc.status}
                                         </span>
                                     </td>
                                     <td className="doc-td-center">
-                                        <button type="button" className="doc-view-btn">{pageInfo.viewButtonLabel || '👁 View'}</button>
+                                        <button
+                                            type="button"
+                                            className="doc-view-btn"
+                                            onClick={() => handleViewClick(doc)}
+                                            disabled={!doc.previewUrl}
+                                            title={doc.previewUrl ? 'View document' : 'No preview available'}
+                                        >
+                                            {pageInfo.viewButtonLabel || '👁 View'}
+                                        </button>
                                     </td>
                                 </tr>
                             ))
@@ -417,6 +452,35 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
                     </tbody>
                 </table>
             </div>
+
+            {pendingDoc && (
+                <div className="doc-pw-overlay" onClick={() => setPendingDoc(null)}>
+                    <div className="doc-pw-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="doc-pw-modal-header">
+                            <span className="doc-pw-lock-icon">🔒</span>
+                            <h3 className="doc-pw-title">Password Required</h3>
+                        </div>
+                        <p className="doc-pw-desc">
+                            <strong>{pendingDoc.name}</strong> is password protected.<br />
+                            Enter the password to view this document.
+                        </p>
+                        <input
+                            type="password"
+                            className={`form-input doc-pw-input${passwordError ? ' doc-pw-input-error' : ''}`}
+                            placeholder="Enter document password"
+                            value={inputPassword}
+                            onChange={(e) => { setInputPassword(e.target.value); setPasswordError(''); }}
+                            onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                            autoFocus
+                        />
+                        {passwordError && <p className="doc-pw-error">{passwordError}</p>}
+                        <div className="doc-pw-actions">
+                            <button type="button" className="btn btn-secondary" onClick={() => setPendingDoc(null)}>Cancel</button>
+                            <button type="button" className="btn btn-primary" onClick={handlePasswordSubmit}>Open Document</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

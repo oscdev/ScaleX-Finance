@@ -8,7 +8,8 @@
         "description": "Submitted Advisor Registration Applications"
     },
     "options": {
-        "draftAndPublish": false
+        "draftAndPublish": false,
+        "previewable": false
     },
     "pluginOptions": {},
     "attributes": {

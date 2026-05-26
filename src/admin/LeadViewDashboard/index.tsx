@@ -594,7 +594,7 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                         bg: 'primary100',
                     },
                     {
-                        label: 'Parent Advisor ID',
+                        label: 'Parent Advisor',
                         val: parentAdvisor ? parentAdvisor.fullName : (lead.parentAdvisorId || 'N/A'),
                         rawVal: lead.parentAdvisorId || '',
                         editKey: 'parentAdvisorId',

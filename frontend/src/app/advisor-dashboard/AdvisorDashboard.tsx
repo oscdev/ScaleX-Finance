@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { strapiPublicApi } from '@/lib/strapi';
+import { safeLocalStorage, safeSessionStorage } from '@/lib/safeStorage';
 import './AdvisorDashboard.css';
 
 interface Lead {
@@ -33,7 +34,7 @@ export default function AdvisorDashboard() {
 
     const checkAuth = async () => {
         try {
-            const token = localStorage.getItem('advisorToken');
+            const token = safeLocalStorage().getItem('advisorToken');
 
             if (!token) {
                 router.push('/advisor-login');
@@ -75,7 +76,7 @@ export default function AdvisorDashboard() {
 
         } catch (err: any) {
             setError(err.message);
-            localStorage.removeItem('advisorToken');
+            safeLocalStorage().removeItem('advisorToken');
             router.push('/advisor-login');
         }
     };
@@ -103,13 +104,13 @@ export default function AdvisorDashboard() {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('advisorToken');
+        safeLocalStorage().removeItem('advisorToken');
         router.push('/');
     };
 
     const handleAddNewLead = () => {
         if (advisor) {
-            sessionStorage.setItem('advisorReferralId', advisor.id);
+            safeSessionStorage().setItem('advisorReferralId', advisor.id);
         }
         router.push('/products');
     };

@@ -684,6 +684,7 @@ export interface ApiAdvisorAdvisor extends Struct.CollectionTypeSchema {
   };
   options: {
     draftAndPublish: false;
+    previewable: false;
   };
   attributes: {
     advisorId: Schema.Attribute.String & Schema.Attribute.Unique;
@@ -1726,14 +1727,14 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiStaffProductMappingStaffProductMapping
+export interface ApiUserProductMappingUserProductMapping
   extends Struct.CollectionTypeSchema {
-  collectionName: 'staff_product_mappings';
+  collectionName: 'user_product_mappings';
   info: {
     description: 'Stores product assignment for admin users (staff/bankers)';
-    displayName: 'Staff Product Mappings';
-    pluralName: 'staff-product-mappings';
-    singularName: 'staff-product-mapping';
+    displayName: 'User Product Mappings';
+    pluralName: 'user-product-mappings';
+    singularName: 'user-product-mapping';
   };
   options: {
     draftAndPublish: false;
@@ -1751,7 +1752,7 @@ export interface ApiStaffProductMappingStaffProductMapping
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
-      'api::staff-product-mapping.staff-product-mapping'
+      'api::user-product-mapping.user-product-mapping'
     > &
       Schema.Attribute.Private;
     product: Schema.Attribute.String & Schema.Attribute.Required;
@@ -2295,7 +2296,7 @@ declare module '@strapi/strapi' {
       'api::loan-application.loan-application': ApiLoanApplicationLoanApplication;
       'api::product-page.product-page': ApiProductPageProductPage;
       'api::product.product': ApiProductProduct;
-      'api::staff-product-mapping.staff-product-mapping': ApiStaffProductMappingStaffProductMapping;
+      'api::user-product-mapping.user-product-mapping': ApiUserProductMappingUserProductMapping;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

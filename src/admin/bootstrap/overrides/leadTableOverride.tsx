@@ -333,9 +333,12 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
                         </div>
                     </div>
                 `;
-            } else {
+            } else if (/^\d+$/.test(rawId!)) {
                 // advisorMap not yet populated — bare-ID fallback (will be upgraded once map arrives)
                 advCell.innerHTML = `<div class="custom-advisor-container"><span class="custom-advisor-name">ADV${rawId}</span></div>`;
+            } else {
+                // No advisor assigned (cell contains "-" or empty placeholder)
+                advCell.innerHTML = `<span>-</span>`;
             }
         }
     }

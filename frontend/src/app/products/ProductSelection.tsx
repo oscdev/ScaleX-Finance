@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { withStrapiPublicUrl } from '@/lib/strapi';
 import { useRouter } from 'next/navigation';
+import { safeSessionStorage } from '@/lib/safeStorage';
 import './ProductSelection.css';
 
 export default function ProductSelection({ products, buttonConfig }: { products: any[], buttonConfig: any }) {
@@ -72,7 +73,7 @@ export default function ProductSelection({ products, buttonConfig }: { products:
                         onClick={() => {
                             const productObj = products.find(p => p.id === selectedProduct);
                             const title = productObj?.attributes?.title || productObj?.title || 'Unknown Product';
-                            sessionStorage.setItem('selectedProduct', title);
+                            safeSessionStorage().setItem('selectedProduct', title);
                             router.push(buttonConfig.continueLink);
                         }}
                     >

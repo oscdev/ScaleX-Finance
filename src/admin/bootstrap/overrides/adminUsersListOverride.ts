@@ -61,7 +61,7 @@ const fetchProductMappings = async (): Promise<Record<number, string>> => {
     if (cached) return cached;
     try {
         // Public endpoint — no auth token needed
-        const res = await fetch('/api/staff-product-mappings?pagination[pageSize]=500&fields[0]=adminUserId&fields[1]=product');
+        const res = await fetch('/api/user-product-mappings?pagination[pageSize]=500&fields[0]=adminUserId&fields[1]=product');
         if (!res.ok) return {};
         const data = await res.json();
         const items: any[] = data.data || [];

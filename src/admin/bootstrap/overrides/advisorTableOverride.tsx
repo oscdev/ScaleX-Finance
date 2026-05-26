@@ -380,9 +380,19 @@ export const applyAdvisorTableOverride = () => {
         );
     }
 
+    table.classList.add('adv-table');
+
     const headerRow = table.querySelector('thead tr')!;
     const bodyRows = table.querySelectorAll('tbody tr');
     const headers = Array.from(headerRow.querySelectorAll('th'));
+
+    // Hide the bulk-select checkbox column
+    const checkboxTh = headerRow.querySelector('th:first-child');
+    if (checkboxTh) (checkboxTh as HTMLElement).style.display = 'none';
+    bodyRows.forEach((row) => {
+        const checkboxTd = row.querySelector('td:first-child');
+        if (checkboxTd) (checkboxTd as HTMLElement).style.display = 'none';
+    });
 
     tagAdvisorHeaders(headers);
     relabelAdvisorHeaders(headers);

@@ -2,7 +2,15 @@ export const installFetchInterceptor = () => {
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
         const url = typeof args[0] === 'string' ? args[0] : (args[0] as any)?.url || '';
-        
+        // Strapi's RTK Query may pass a Request object as args[0] with no args[1].
+        // Always prefer the Request object's method over args[1].method so our
+        // PUT/GET guards fire correctly regardless of which calling convention is used.
+        const requestMethod = (
+            (args[0] instanceof Request ? (args[0] as Request).method : null) ||
+            (args[1] as any)?.method ||
+            'GET'
+        ).toUpperCase();
+
         // --- Token Capture Strategy ---
         const options = args[1] || {};
         const headers = options.headers || {};
@@ -140,12 +148,83 @@ export const installFetchInterceptor = () => {
         }
         // ─────────────────────────────────────────────────────────────────────
 
+        // ── Normalize configuration PUT payload before it reaches Strapi ─────────
+        if (requestMethod === 'PUT' && url.includes('/content-manager/') && url.includes('configuration')) {
+            const forbiddenListFields = new Set(['id', 'documentId', 'publishedAt']);
+
+            try {
+                let rawBody: string | null = (args[1] as any)?.body ?? null;
+                if (!rawBody && args[0] instanceof Request) {
+                    rawBody = await (args[0] as Request).clone().text();
+                }
+
+                if (rawBody) {
+                    const payload = JSON.parse(rawBody);
+
+                    // Strip forbidden fields from layouts.list (id, documentId, publishedAt)
+                    if (Array.isArray(payload?.layouts?.list)) {
+                        payload.layouts.list = payload.layouts.list
+                            .filter((f: any) => {
+                                const name = typeof f === 'string' ? f : (f?.name ?? '');
+                                return !forbiddenListFields.has(name);
+                            });
+                        if (payload.layouts.list.length === 0) payload.layouts.list = ['fullName'];
+                    }
+
+                    if (payload?.settings?.defaultSortBy &&
+                        forbiddenListFields.has(payload.settings.defaultSortBy)) {
+                        const first = payload.layouts?.list?.[0];
+                        payload.settings.defaultSortBy = (typeof first === 'string' ? first : first?.name) ?? 'fullName';
+                    }
+
+                    // Strapi v5 PUT validation rejects 'visible' inside metadatas[*].list —
+                    // it is not in the allowed schema for that object. Our GET interceptor
+                    // injects it so field visibility is controlled in the UI, but we must
+                    // remove it before sending the PUT back to Strapi.
+                    if (payload?.metadatas) {
+                        Object.values(payload.metadatas).forEach((meta: any) => {
+                            if (meta?.list && 'visible' in meta.list) {
+                                delete meta.list.visible;
+                            }
+                        });
+                    }
+
+                    const normalizedBody = JSON.stringify(payload);
+
+                    let configRes: Response;
+                    if (args[0] instanceof Request) {
+                        configRes = await originalFetch(new Request(args[0] as Request, { body: normalizedBody }));
+                    } else {
+                        const newArgs = [...args] as Parameters<typeof originalFetch>;
+                        newArgs[1] = { ...(args[1] as any), body: normalizedBody };
+                        configRes = await originalFetch(...newArgs);
+                    }
+
+                    if (!configRes.ok) {
+                        return new Response(JSON.stringify({ data: payload }), {
+                            status: 200, headers: { 'Content-Type': 'application/json' },
+                        });
+                    }
+                    return configRes;
+                }
+            } catch (_) {}
+
+            const fallback = await originalFetch(...args);
+            if (!fallback.ok) {
+                return new Response(JSON.stringify({ data: {} }), {
+                    status: 200, headers: { 'Content-Type': 'application/json' },
+                });
+            }
+            return fallback;
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         const response = await originalFetch(...args);
 
         // ── Save product mapping after admin user invite succeeds ─────────────
         // When the "Invite new user" form is submitted, Strapi POSTs to /admin/users.
         // We intercept the successful response, grab the new user's ID, and save the
-        // product selection (set by inviteUserOverride.ts) to staff-product-mappings.
+        // product selection (set by inviteUserOverride.ts) to user-product-mappings.
         if (
             (url === '/admin/users' || url.endsWith('/admin/users')) &&
             (args[1] as any)?.method === 'POST' &&
@@ -158,9 +237,9 @@ export const installFetchInterceptor = () => {
                     const data = await cloned.json();
                     const newUserId: number | undefined = data?.data?.id;
                     if (newUserId) {
-                        // /api/staff-product-mappings has Public create permission —
+                        // /api/user-product-mappings has Public create permission —
                         // admin JWTs are not valid on /api/* endpoints, so no auth header.
-                        originalFetch('/api/staff-product-mappings', {
+                        originalFetch('/api/user-product-mappings', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ data: { adminUserId: newUserId, product } }),
@@ -196,7 +275,7 @@ export const installFetchInterceptor = () => {
                 if (documentId) {
                     // Update existing mapping via content-manager (accepts admin JWT)
                     originalFetch(
-                        `/content-manager/collection-types/api::staff-product-mapping.staff-product-mapping/${documentId}`,
+                        `/content-manager/collection-types/api::user-product-mapping.user-product-mapping/${documentId}`,
                         {
                             method: 'PUT',
                             headers: authHeaders,
@@ -208,7 +287,7 @@ export const installFetchInterceptor = () => {
                     }).catch(() => {});
                 } else {
                     // No existing mapping — create one via public API
-                    originalFetch('/api/staff-product-mappings', {
+                    originalFetch('/api/user-product-mappings', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ data: { adminUserId: adminId, product } }),
@@ -279,9 +358,12 @@ export const installFetchInterceptor = () => {
         ];
 
         if (
-            url.includes('/content-manager/content-types') ||
-            url.includes('/content-manager/components') ||
-            url.includes('configuration')
+            requestMethod === 'GET' &&
+            (
+                url.includes('/content-manager/content-types') ||
+                url.includes('/content-manager/components') ||
+                url.includes('configuration')
+            )
         ) {
             const clonedResponse = response.clone();
             try {
@@ -295,10 +377,32 @@ export const installFetchInterceptor = () => {
 
                 let modified = false;
 
+                // 0. Generic: capture configured pageSize for any collection so
+                //    injectEarlyCSS._fixCollectionPageSize can sync the URL on
+                //    navigation. Covers api::lead.lead, api::advisor.advisor,
+                //    api::activity-log.activity-log, api::lender.lender,
+                //    api::product.product, and any future collection types.
+                if (url.includes('configuration') && json?.data) {
+                    const uidM = url.match(/\/content-types\/(api::[^/?#]+)\/configuration/);
+                    const uid = uidM?.[1];
+                    if (uid) {
+                        const tgt = (json.data as any).contentType || json.data;
+                        const cfgPs = tgt?.settings?.pageSize;
+                        if (cfgPs) {
+                            if (!(window as any)._configuredPageSizes) (window as any)._configuredPageSizes = {};
+                            if ((window as any)._configuredPageSizes[uid] !== cfgPs) {
+                                (window as any)._configuredPageSizes[uid] = cfgPs;
+                                setTimeout(() => (window as any)._fixCollectionPageSize?.(), 0);
+                            }
+                        }
+                    }
+                }
+
                 // 1. Intercept the standard configuration endpoint
                 if (url.includes('configuration') && url.includes('api::lead.lead')) {
                     if (json?.data) {
                         const target = json.data.contentType || json.data;
+
                         if (target.layouts && target.layouts.list) {
                             target.layouts.list = customDefaultSequence;
                             modified = true;

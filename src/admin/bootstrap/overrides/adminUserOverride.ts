@@ -1,7 +1,7 @@
 // Handles the admin user edit page (/admin/settings/users/:id).
 // 1. Pre-fills password fields from the advisor record.
-// 2. Injects a "Product" dropdown, visible only when the Staff role is selected,
-//    pre-filled from staff_product_mappings and saved via fetchInterceptor on PUT.
+// 2. Injects a "Product" dropdown, visible when Staff or Banker role is selected,
+//    pre-filled from user_product_mappings and saved via fetchInterceptor on PUT.
 
 const EDIT_PRODUCT_ID = 'scalex-edit-product-field';
 
@@ -9,7 +9,7 @@ const EDIT_PRODUCT_ID = 'scalex-edit-product-field';
 // Reuses the same chip-detection pattern as inviteUserOverride:
 // selected role chips are leaf elements outside any [role="listbox"].
 
-const isStaffRoleOnEditPage = (): boolean => {
+const isStaffOrBankerRoleOnEditPage = (): boolean => {
     const inListbox = (el: Element) => !!el.closest('[role="listbox"]');
     const inOurField = (el: Element) => !!el.closest(`#${EDIT_PRODUCT_ID}`);
     return Array.from(document.querySelectorAll<HTMLElement>('span, div'))
@@ -17,7 +17,7 @@ const isStaffRoleOnEditPage = (): boolean => {
         .some(el => {
             const hasNoComplexChildren = el.querySelectorAll('span, div').length === 0;
             const text = (el.textContent || '').trim().toLowerCase();
-            return hasNoComplexChildren && text.includes('staff');
+            return hasNoComplexChildren && (text.includes('staff') || text.includes('banker'));
         });
 };
 
@@ -29,7 +29,7 @@ const fetchExistingProductMapping = async (
 ): Promise<{ documentId: string; product: string } | null> => {
     try {
         const res = await fetch(
-            `/api/staff-product-mappings?filters[adminUserId][$eq]=${adminId}&pagination[pageSize]=1`
+            `/api/user-product-mappings?filters[adminUserId][$eq]=${adminId}&pagination[pageSize]=1`
         );
         if (!res.ok) return null;
         const data = await res.json();
@@ -150,7 +150,7 @@ const injectProductFieldOnEditPage = async (
     });
 
     const hint = document.createElement('span');
-    hint.textContent = 'Which product does this staff member handle?';
+    hint.textContent = 'Which product does this user handle?';
     Object.assign(hint.style, { fontSize: '11px', color: '#8e8ea9' });
 
     const select = document.createElement('select');
@@ -190,7 +190,7 @@ const injectProductFieldOnEditPage = async (
     _editInnerObserver = new MutationObserver(() => {
         const w = document.getElementById(EDIT_PRODUCT_ID);
         if (!w) { _editInnerObserver?.disconnect(); return; }
-        const show = isStaffRoleOnEditPage();
+        const show = isStaffOrBankerRoleOnEditPage();
         w.style.display = show ? 'flex' : 'none';
         if (!show) {
             const sel = w.querySelector<HTMLSelectElement>('select');
@@ -232,7 +232,7 @@ const injectProductFieldOnEditPage = async (
     if (existing?.product) select.value = existing.product;
 
     // Initial visibility
-    const show = isStaffRoleOnEditPage();
+    const show = isStaffOrBankerRoleOnEditPage();
     wrapper.style.display = show ? 'flex' : 'none';
     if (!show) (window as any)._pendingEditProduct = undefined;
 };

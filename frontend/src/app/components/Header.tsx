@@ -1,6 +1,7 @@
-import React from 'react';
 import Link from 'next/link';
 import { getStrapiInternalUrl, withStrapiPublicUrl } from '@/lib/strapi';
+import MobileNav from './MobileNav';
+import './Header.css';
 
 async function getHeaderData() {
     try {
@@ -10,21 +11,15 @@ async function getHeaderData() {
             headers: { 'Content-Type': 'application/json' }
         });
 
-        if (!res.ok) {
-            // console.error("Failed to fetch header data");
-            return null;
-        }
+        if (!res.ok) return null;
 
         const json = await res.json();
         return json.data;
 
-    } catch (error) {
-        // console.error("Fetch header error:", error);
+    } catch {
         return null;
     }
 }
-
-import './Header.css';
 
 export default async function Header() {
     const data = await getHeaderData();
@@ -51,6 +46,15 @@ export default async function Header() {
 
     const fullLogoUrl = logoImageUrl ? withStrapiPublicUrl(logoImageUrl) : null;
 
+    const mobileNavItems = [
+        { label: homeLabel, href: homeLink },
+        { label: quickLoansLabel, href: quickLoansLink },
+        { label: aboutUsLabel, href: aboutUsLink },
+        { label: contactUsLabel, href: contactUsLink },
+        { label: advisorRegistrationLabel, href: advisorRegistrationLink, isButton: true, buttonStyle: 'primary' as const },
+        { label: advisorLoginLabel, href: advisorLoginLink, isButton: true, buttonStyle: 'secondary' as const },
+    ];
+
     return (
         <header className="main-header">
             <div className="container header-container">
@@ -63,27 +67,17 @@ export default async function Header() {
                     {logoText}
                 </Link>
 
-                <nav className="header-nav">
-                    <Link href={homeLink} className="nav-link">
-                        {homeLabel}
-                    </Link>
-                    <Link href={quickLoansLink} className="nav-link">
-                        {quickLoansLabel}
-                    </Link>
-                    <Link href={aboutUsLink} className="nav-link">
-                        {aboutUsLabel}
-                    </Link>
-                    <Link href={contactUsLink} className="nav-link">
-                        {contactUsLabel}
-                    </Link>
-                    <Link href={advisorRegistrationLink} className="btn btn-primary">
-                        {advisorRegistrationLabel}
-                    </Link>
-                    <Link href={advisorLoginLink} className="btn btn-secondary">
-                        {advisorLoginLabel}
-                    </Link>
+                <nav className="header-nav" aria-label="Main navigation">
+                    <Link href={homeLink} className="nav-link">{homeLabel}</Link>
+                    <Link href={quickLoansLink} className="nav-link">{quickLoansLabel}</Link>
+                    <Link href={aboutUsLink} className="nav-link">{aboutUsLabel}</Link>
+                    <Link href={contactUsLink} className="nav-link">{contactUsLabel}</Link>
+                    <Link href={advisorRegistrationLink} className="btn btn-primary">{advisorRegistrationLabel}</Link>
+                    <Link href={advisorLoginLink} className="btn btn-secondary">{advisorLoginLabel}</Link>
                 </nav>
+
+                <MobileNav items={mobileNavItems} />
             </div>
-        </header >
+        </header>
     );
 }

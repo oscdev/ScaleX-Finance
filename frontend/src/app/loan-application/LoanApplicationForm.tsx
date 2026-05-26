@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { strapiPublicApi } from '@/lib/strapi';
+import { safeSessionStorage } from '@/lib/safeStorage';
 import './LoanApplication.css';
 import BusinessLoanFunnel from './funnels/BusinessLoanFunnel';
 import HomeLoanFunnel from './funnels/HomeLoanFunnel';
@@ -173,22 +174,23 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
     });
 
     useEffect(() => {
-        const savedProduct = sessionStorage.getItem('selectedProduct');
+        const ss = safeSessionStorage();
+        const savedProduct = ss.getItem('selectedProduct');
         if (savedProduct) setLoanType(savedProduct);
-        const savedOccupation = sessionStorage.getItem('leadOccupation');
+        const savedOccupation = ss.getItem('leadOccupation');
         if (savedOccupation) setOccupation(savedOccupation);
-        const savedAmount = sessionStorage.getItem('requiredAmount');
+        const savedAmount = ss.getItem('requiredAmount');
         if (savedAmount) setFormData(prev => ({ ...prev, loanAmount: Number(savedAmount) }));
 
         // Get lead profile details safely
         setLoanProfile({
-            name: sessionStorage.getItem('leadName') || 'Applicant',
-            phone: sessionStorage.getItem('leadPhone') || 'N/A',
-            email: sessionStorage.getItem('leadEmail') || 'N/A',
-            pan: sessionStorage.getItem('leadPan') || 'N/A',
-            aadhar: sessionStorage.getItem('leadAadhar') || 'N/A'
+            name: ss.getItem('leadName') || 'Applicant',
+            phone: ss.getItem('leadPhone') || 'N/A',
+            email: ss.getItem('leadEmail') || 'N/A',
+            pan: ss.getItem('leadPan') || 'N/A',
+            aadhar: ss.getItem('leadAadhar') || 'N/A'
         });
-        setLeadId(sessionStorage.getItem('lastLeadId') || 'N/A');
+        setLeadId(ss.getItem('lastLeadId') || 'N/A');
     }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -227,22 +229,28 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
             return;
         }
 
+        // Create a local object URL so the View button can open the file before final upload
+        const previewUrl = URL.createObjectURL(currentFile);
+
         setFormData(prev => {
             const docId = `Doc-${prev.addedDocs.length + 1}`;
             const newDoc = {
                 id: docId,
+                key: fieldKey,
                 name: fieldName,
                 format: currentFile.name.split('.').pop()?.toUpperCase() || 'UNKNOWN',
                 password: prev.pdfPasswords[fieldKey] || 'No',
                 date: new Date().toLocaleDateString('en-IN'),
-                status: 'Staged'
+                status: 'Staged',
+                previewUrl
             };
 
             return {
                 ...prev,
                 uploadedFields: { ...prev.uploadedFields, [fieldKey]: true },
-                addedDocs: [...prev.addedDocs, newDoc]
-                // We DO NOT clear the file or password here, because they are need for final sequential submit
+                addedDocs: [...prev.addedDocs, newDoc],
+                pdfPasswords: { ...prev.pdfPasswords, [fieldKey]: '' },
+                ...(fieldKey === 'otherDocs' ? { docType: '' } : {})
             };
         });
     };
@@ -279,7 +287,6 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         const currentStepErrors = errors.filter(err => err.includes(`"${currentStepName}" tab`) || err.includes(`in "${currentStepName}"`));
         
         if (currentStepErrors.length > 0) {
-            alert(currentStepErrors[0]);
             return false;
         }
         return true;
@@ -290,9 +297,8 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
     };
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        
+    const handleSubmit = async () => {
+
         const errors = getValidationErrors();
         if (errors.length > 0) {
             setSubmitError(`Please fix all validation errors before submitting. (${errors.length} pending)`);
@@ -303,7 +309,8 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         setSubmitError(null);
 
         try {
-            const leadId = sessionStorage.getItem('lastLeadId');
+            const ss = safeSessionStorage();
+            const leadId = ss.getItem('lastLeadId');
             const uploadedFileIds: Record<string, any> = {};
             const filesToUpload = [
                 'proprietorshipDoc', 'panCard', 'aadharCardFront', 'aadharCardBack',
@@ -353,11 +360,11 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                     leadId: cleanLeadId,
                     loanType,
                     loanAmount: cleanLoanAmount,
-                    applicantName: sessionStorage.getItem('leadName') || formData.applicantName || 'Applicant',
-                    email: sessionStorage.getItem('leadEmail') || '',
-                    phone: sessionStorage.getItem('leadPhone') || '',
-                    aadharNumber: sessionStorage.getItem('leadAadhar') || '',
-                    panNumber: sessionStorage.getItem('leadPan') || '',
+                    applicantName: ss.getItem('leadName') || formData.applicantName || 'Applicant',
+                    email: ss.getItem('leadEmail') || '',
+                    phone: ss.getItem('leadPhone') || '',
+                    aadharNumber: ss.getItem('leadAadhar') || '',
+                    panNumber: ss.getItem('leadPan') || '',
                     form_data: {
                         businessDetails: {
                             name: formData.businessName, premises: formData.businessPremises,
@@ -386,13 +393,24 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                             type: formData.propertyType, status: formData.propertyStatus, value: formData.propertyValue
                         },
                         otherDetails: { runningLoans: formData.runningLoans },
-                        pdfPasswords: formData.pdfPasswords
+                        documents: formData.addedDocs.map((doc: any) => ({
+                            id: doc.id,
+                            name: doc.name,
+                            format: doc.format,
+                            password: doc.password,
+                            date: doc.date,
+                            status: doc.status
+                        })),
+                        pdfPasswords: formData.addedDocs.reduce((acc: Record<string, string>, doc: any) => {
+                            if (doc.password && doc.password !== 'No') acc[doc.key || doc.name] = doc.password;
+                            return acc;
+                        }, {})
                     },
                     ...uploadedFileIds,
                     status: 'Pending',
                     declarationAccepted: formData.declarationAccepted,
-                    ...(sessionStorage.getItem('strapiUserRole') === 'staff' && sessionStorage.getItem('strapiAdminUserId')
-                        ? { assignedStaffId: Number(sessionStorage.getItem('strapiAdminUserId')) }
+                    ...(ss.getItem('strapiUserRole') === 'staff' && ss.getItem('strapiAdminUserId')
+                        ? { assignedStaffId: Number(ss.getItem('strapiAdminUserId')) }
                         : {})
                 }
             };
@@ -417,7 +435,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                 }
             }
 
-            const strapiRole = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('strapiUserRole') : null;
+            const strapiRole = ss.getItem('strapiUserRole');
             if (strapiRole === 'admin' || strapiRole === 'staff' || strapiRole === 'advisor') {
                 router.push('/admin/content-manager/collection-types/api::lead.lead');
             } else {
