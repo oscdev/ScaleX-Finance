@@ -16,15 +16,34 @@ const isAdminUsersListPath = () =>
 
 const cleanUrl = () => {
     const params = new URLSearchParams(window.location.search);
-    const SORT_DEFAULTS = new Set(['firstname', 'id:DESC']);
     let changed = false;
     const sort = decodeURIComponent(params.get('sort') || '');
-    if (!sort || SORT_DEFAULTS.has(sort)) { params.delete('sort'); changed = true; }
+    // Only strip Strapi's default firstname sort; preserve id:ASC / id:DESC
+    if (!sort || sort === 'firstname') { params.delete('sort'); changed = true; }
     if (params.get('pageSize') === '10') { params.delete('pageSize'); changed = true; }
     if (params.get('page') === '1') { params.delete('page'); changed = true; }
     if (!changed) return;
     const qs = params.toString();
     history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
+};
+
+// ─── Trigger Strapi to re-fetch users (server-side filter/sort) ───────────────
+// Pushes a URL state change + fires popstate so React Router re-renders the list
+// component with the current URL params. The fetch interceptor then injects any
+// active filter values into the outgoing GET /admin/users request.
+
+const triggerStrapiRefetch = () => {
+    const params = new URLSearchParams(window.location.search);
+    params.delete('page'); // reset to page 1 on filter/sort change
+    // Encode active filter values into the URL so the URL always changes and
+    // React Router fires a real re-render / re-fetch even when sort is unchanged.
+    const { id, role } = getFilter();
+    if (id) params.set('_fid', id); else params.delete('_fid');
+    if (role) params.set('_frole', role); else params.delete('_frole');
+    const qs = params.toString();
+    const newUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+    history.pushState(null, '', newUrl);
+    window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
 };
 
 // ─── API fetch — admin users ──────────────────────────────────────────────────
@@ -87,28 +106,26 @@ const setFilter = (patch: Partial<FilterState>) => {
     (window as any)._adminUsersFilter = { ...getFilter(), ...patch };
 };
 
-// ─── Apply filter to table rows ───────────────────────────────────────────────
+// ─── Client-side role filter (applied after DOM rows are injected) ─────────────
+// The admin users API returns 400 for filters[roles][name][$eq], so role filtering
+// is done client-side after loading all users (pageSize=200 via interceptor).
 
-const applyFilter = () => {
-    const tbody = document.querySelector('table tbody');
-    if (!tbody) return;
-    const { id: idVal, role: roleVal } = getFilter();
-    const list = (window as any).adminUsersFullList as AdminUserEntry[] | undefined;
-    if (!list) return;
-
+const applyRoleFilter = (tbody: Element, list: AdminUserEntry[]) => {
+    const filterRole = new URLSearchParams(window.location.search).get('_frole') || '';
+    // Always reset first — React may reuse existing row nodes, so stale display:none persists.
+    Array.from(tbody.querySelectorAll<HTMLTableRowElement>('tr')).forEach(row => {
+        row.style.display = '';
+    });
+    if (!filterRole) return;
     const byEmail: Record<string, AdminUserEntry> = {};
-    list.forEach((u) => { byEmail[u.email] = u; });
-
-    Array.from(tbody.querySelectorAll<HTMLTableRowElement>('tr')).forEach((row) => {
+    list.forEach(u => { if (u.email) byEmail[u.email] = u; });
+    Array.from(tbody.querySelectorAll<HTMLTableRowElement>('tr')).forEach(row => {
         const email = findEmailInRow(row);
         const entry = email ? byEmail[email] : null;
-        let show = true;
-        if (idVal && entry) show = show && String(entry.id) === idVal;
-        if (roleVal && entry) show = show && entry.roleNames.some((r) => r === roleVal);
-        if (!entry && (idVal || roleVal)) show = false;
-        row.style.display = show ? '' : 'none';
+        row.style.display = (entry && entry.roleNames.some(r => r === filterRole)) ? '' : 'none';
     });
 };
+
 
 // ─── Inject controls into the existing Strapi filter toolbar ──────────────────
 
@@ -178,7 +195,9 @@ const ensureFilterControls = (roles: string[]) => {
     idInput.id = 'custom-admin-id-filter';
     idInput.placeholder = 'Filter by ID';
     Object.assign(idInput.style, { ...sharedInput, width: '120px' });
-    idInput.value = getFilter().id;
+    // Pre-fill from URL params (source of truth after re-renders) with window state as fallback
+    const _urlParams = new URLSearchParams(window.location.search);
+    idInput.value = _urlParams.get('_fid') || getFilter().id;
 
     // Role select
     const roleSelect = document.createElement('select');
@@ -187,10 +206,11 @@ const ensureFilterControls = (roles: string[]) => {
     const allOpt = document.createElement('option');
     allOpt.value = ''; allOpt.textContent = 'All Roles';
     roleSelect.appendChild(allOpt);
+    const _activeRole = _urlParams.get('_frole') || getFilter().role;
     roles.forEach((r) => {
         const opt = document.createElement('option');
         opt.value = r; opt.textContent = r;
-        if (r === getFilter().role) opt.selected = true;
+        if (r === _activeRole) opt.selected = true;
         roleSelect.appendChild(opt);
     });
 
@@ -202,7 +222,7 @@ const ensureFilterControls = (roles: string[]) => {
         height: '32px',
         padding: '0 10px',
         cursor: 'pointer',
-        display: getFilter().id || getFilter().role ? '' : 'none',
+        display: (_urlParams.get('_fid') || _urlParams.get('_frole') || getFilter().id || getFilter().role) ? '' : 'none',
         background: '#fee2e2',
         border: '1px solid #fca5a5',
         color: '#991b1b',
@@ -220,12 +240,12 @@ const ensureFilterControls = (roles: string[]) => {
     idInput.addEventListener('input', () => {
         setFilter({ id: idInput.value.trim() });
         updateClearVisibility();
-        applyFilter();
+        triggerStrapiRefetch();
     });
     roleSelect.addEventListener('change', () => {
         setFilter({ role: roleSelect.value });
         updateClearVisibility();
-        applyFilter();
+        triggerStrapiRefetch();
     });
     clearBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -233,13 +253,26 @@ const ensureFilterControls = (roles: string[]) => {
         idInput.value = '';
         roleSelect.value = '';
         updateClearVisibility();
-        applyFilter();
+        triggerStrapiRefetch();
     });
 
     wrap.appendChild(idInput);
     wrap.appendChild(roleSelect);
     wrap.appendChild(clearBtn);
     toolbar.appendChild(wrap);
+};
+
+// ─── Hide checkbox column ─────────────────────────────────────────────────────
+
+const hideCheckboxColumn = (table: Element) => {
+    table.querySelectorAll<HTMLElement>('thead tr th, tbody tr td').forEach((cell) => {
+        if (
+            cell.querySelector('input[type="checkbox"]') ||
+            cell.querySelector('[role="checkbox"]')
+        ) {
+            cell.style.display = 'none';
+        }
+    });
 };
 
 // ─── Table helpers ────────────────────────────────────────────────────────────
@@ -252,14 +285,58 @@ const findEmailInRow = (row: Element): string | null => {
     return null;
 };
 
+// ─── ID sort state — read from URL sort param ─────────────────────────────────
+
+const getIdSortDir = (): 'desc' | 'asc' => {
+    const sort = new URLSearchParams(window.location.search).get('sort') || '';
+    return sort.toUpperCase().endsWith(':ASC') ? 'asc' : 'desc';
+};
+
+const updateIdHeaderArrow = () => {
+    const th = document.querySelector<HTMLElement>('th.custom-admin-id-header');
+    if (!th) return;
+    const arrow = th.querySelector<HTMLElement>('.id-sort-arrow');
+    if (arrow) arrow.textContent = getIdSortDir() === 'desc' ? ' ▼' : ' ▲';
+};
+
 const ensureIdHeader = (headerRow: Element): number => {
     const existing = headerRow.querySelector<HTMLElement>('th.custom-admin-id-header');
-    if (existing) return Array.from(headerRow.children).indexOf(existing);
+    if (existing) {
+        updateIdHeaderArrow();
+        return Array.from(headerRow.children).indexOf(existing);
+    }
 
     const idTh = document.createElement('th');
     idTh.className = 'custom-admin-id-header';
-    idTh.innerHTML = '<span>ID</span>';
-    Object.assign(idTh.style, { padding: '12px 16px', textAlign: 'left', fontWeight: '700' });
+    Object.assign(idTh.style, {
+        padding: '12px 16px',
+        textAlign: 'left',
+        fontWeight: '700',
+        cursor: 'pointer',
+        userSelect: 'none',
+        whiteSpace: 'nowrap',
+    });
+
+    const label = document.createElement('span');
+    label.textContent = 'ID';
+
+    const arrow = document.createElement('span');
+    arrow.className = 'id-sort-arrow';
+    arrow.textContent = getIdSortDir() === 'desc' ? ' ▼' : ' ▲';
+    Object.assign(arrow.style, { fontSize: '11px', color: '#4945ff' });
+
+    idTh.appendChild(label);
+    idTh.appendChild(arrow);
+
+    idTh.addEventListener('click', () => {
+        const next = getIdSortDir() === 'desc' ? 'asc' : 'desc';
+        const params = new URLSearchParams(window.location.search);
+        params.set('sort', `id:${next.toUpperCase()}`);
+        params.delete('page');
+        const qs = params.toString();
+        history.pushState(null, '', `${window.location.pathname}?${qs}`);
+        window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+    });
 
     const firstTh = headerRow.firstElementChild;
     const afterFirst = firstTh?.nextElementSibling ?? null;
@@ -322,18 +399,6 @@ const ensureProductCell = (row: Element, insertIdx: number, product: string) => 
     cell.textContent = product || '—';
 };
 
-const sortRowsByIdDesc = (tbody: Element) => {
-    const rows = Array.from(tbody.querySelectorAll<HTMLTableRowElement>('tr'));
-    if (rows.length < 2) return;
-    const annotated = rows.map((r) => {
-        const v = r.querySelector('.custom-admin-id-cell')?.getAttribute('data-admin-id') || '';
-        const n = v ? parseInt(v, 10) : NaN;
-        return { row: r, id: isNaN(n) ? -Infinity : n };
-    });
-    if (annotated.every((a, i) => i === 0 || annotated[i - 1].id >= a.id)) return;
-    annotated.sort((a, b) => b.id - a.id);
-    annotated.forEach(({ row }) => tbody.appendChild(row));
-};
 
 // ─── Public entry point ───────────────────────────────────────────────────────
 
@@ -354,6 +419,7 @@ export const applyAdminUsersListOverride = (commonHeaders: Record<string, string
     const tbody = table?.querySelector('tbody');
     if (!table || !headerRow || !tbody) return;
 
+    hideCheckboxColumn(table);
     const idInsertIdx = ensureIdHeader(headerRow);
 
     const applyAll = (list: AdminUserEntry[], productMap: Record<number, string>) => {
@@ -378,8 +444,8 @@ export const applyAdminUsersListOverride = (commonHeaders: Record<string, string
             const product = userId != null ? (productMap[userId] || '') : '';
             ensureProductCell(row, productInsertIdx, product);
         });
-        sortRowsByIdDesc(tbody);
-        applyFilter();
+        // Sort is server-side via URL sort param; role filter is client-side
+        applyRoleFilter(tbody, list);
     };
 
     const cachedUsers = (window as any).adminUsersFullList as AdminUserEntry[] | undefined;

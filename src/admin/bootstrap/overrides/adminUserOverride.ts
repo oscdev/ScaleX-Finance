@@ -9,16 +9,21 @@ const EDIT_PRODUCT_ID = 'scalex-edit-product-field';
 // Reuses the same chip-detection pattern as inviteUserOverride:
 // selected role chips are leaf elements outside any [role="listbox"].
 
-const isStaffOrBankerRoleOnEditPage = (): boolean => {
+const getSelectedRoleOnEditPage = (): string => {
     const inListbox = (el: Element) => !!el.closest('[role="listbox"]');
     const inOurField = (el: Element) => !!el.closest(`#${EDIT_PRODUCT_ID}`);
-    return Array.from(document.querySelectorAll<HTMLElement>('span, div'))
+    const chip = Array.from(document.querySelectorAll<HTMLElement>('span, div'))
         .filter(el => !inListbox(el) && !inOurField(el))
-        .some(el => {
+        .find(el => {
             const hasNoComplexChildren = el.querySelectorAll('span, div').length === 0;
             const text = (el.textContent || '').trim().toLowerCase();
             return hasNoComplexChildren && (text.includes('staff') || text.includes('banker'));
         });
+    if (!chip) return '';
+    const text = (chip.textContent || '').trim().toLowerCase();
+    if (text.includes('banker')) return 'Banker';
+    if (text.includes('staff')) return 'Staff';
+    return '';
 };
 
 // ─── Fetch existing product mapping ──────────────────────────────────────────
@@ -26,7 +31,7 @@ const isStaffOrBankerRoleOnEditPage = (): boolean => {
 const fetchExistingProductMapping = async (
     adminId: string,
     _commonHeaders: Record<string, string>
-): Promise<{ documentId: string; product: string } | null> => {
+): Promise<{ documentId: string; product: string; user_role: string } | null> => {
     try {
         const res = await fetch(
             `/api/user-product-mappings?filters[adminUserId][$eq]=${adminId}&pagination[pageSize]=1`
@@ -35,7 +40,7 @@ const fetchExistingProductMapping = async (
         const data = await res.json();
         const item = (data.data || [])[0];
         if (!item) return null;
-        return { documentId: item.documentId as string, product: (item.product || '') as string };
+        return { documentId: item.documentId as string, product: (item.product || '') as string, user_role: (item.user_role || '') as string };
     } catch {
         return null;
     }
@@ -190,8 +195,10 @@ const injectProductFieldOnEditPage = async (
     _editInnerObserver = new MutationObserver(() => {
         const w = document.getElementById(EDIT_PRODUCT_ID);
         if (!w) { _editInnerObserver?.disconnect(); return; }
-        const show = isStaffOrBankerRoleOnEditPage();
+        const role = getSelectedRoleOnEditPage();
+        const show = role !== '';
         w.style.display = show ? 'flex' : 'none';
+        (window as any)._pendingEditRole = show ? role : undefined;
         if (!show) {
             const sel = w.querySelector<HTMLSelectElement>('select');
             if (sel) sel.value = '';
@@ -216,6 +223,7 @@ const injectProductFieldOnEditPage = async (
     (window as any)._editProductDocumentId = existing?.documentId ?? null;
     (window as any)._editProductAdminId = adminId;
     (window as any)._pendingEditProduct = existing?.product ?? undefined;
+    (window as any)._pendingEditRole = existing?.user_role ?? undefined;
 
     // Populate options
     while (select.options.length > 0) select.remove(0);
@@ -232,8 +240,10 @@ const injectProductFieldOnEditPage = async (
     if (existing?.product) select.value = existing.product;
 
     // Initial visibility
-    const show = isStaffOrBankerRoleOnEditPage();
+    const initialRole = getSelectedRoleOnEditPage();
+    const show = initialRole !== '';
     wrapper.style.display = show ? 'flex' : 'none';
+    (window as any)._pendingEditRole = show ? initialRole : undefined;
     if (!show) (window as any)._pendingEditProduct = undefined;
 };
 

@@ -1760,6 +1760,7 @@ export interface ApiUserProductMappingUserProductMapping
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    user_role: Schema.Attribute.String;
   };
 }
 

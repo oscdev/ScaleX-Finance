@@ -219,6 +219,58 @@ export const installFetchInterceptor = () => {
         }
         // ─────────────────────────────────────────────────────────────────────
 
+        // ── Inject server-side filters for admin users list ──────────────────────
+        // When the custom ID / Role filter controls are active, inject the matching
+        // filter params into Strapi's own paginated GET /admin/users request so that
+        // filtering works across ALL pages, not just the currently visible rows.
+        if (
+            requestMethod === 'GET' &&
+            url.includes('/admin/users') &&
+            !url.match(/\/admin\/users\/\d+/)   // skip individual user GETs like /admin/users/16
+        ) {
+            // Read filter values from the page URL (_fid / _frole params written by
+            // triggerStrapiRefetch so the URL always changes and React Router re-renders).
+            // - ID filter  → server-side via filters[id][$eq] (admin API supports it)
+            // - Role filter → admin API rejects filters[roles][name][$eq] with 400,
+            //   so we load all users (pageSize=200) and let applyRoleFilter hide rows client-side.
+            const pageParams = new URLSearchParams(window.location.search);
+            const filterId = pageParams.get('_fid') || '';
+            const filterRole = pageParams.get('_frole') || '';
+            if (filterId || filterRole) {
+                try {
+                    const urlObj = new URL(url, window.location.origin);
+                    if (filterId) urlObj.searchParams.set('filters[id][$eq]', filterId);
+                    if (filterRole) urlObj.searchParams.set('pageSize', '200');
+                    const newUrl = urlObj.pathname + urlObj.search;
+                    if (args[0] instanceof Request) {
+                        return originalFetch(new Request(newUrl, args[0] as Request));
+                    }
+                    const newArgs = [...args] as Parameters<typeof originalFetch>;
+                    newArgs[0] = newUrl;
+                    return originalFetch(...newArgs);
+                } catch (_) {}
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
+        // Snapshot product-edit state NOW, before awaiting — the MutationObserver on
+        // the edit page resets _pendingEditProduct to undefined when Strapi re-renders
+        // during save (loading spinner etc.), which happens mid-await and races with
+        // the response handler below.
+        const _preEditMatch = url.match(/\/admin\/users\/(\d+)$/);
+        const _snappedProduct = (_preEditMatch && requestMethod === 'PUT')
+            ? (window as any)._pendingEditProduct as string | undefined
+            : undefined;
+        const _snappedDocumentId = (_preEditMatch && requestMethod === 'PUT')
+            ? (window as any)._editProductDocumentId as string | null
+            : null;
+        const _snappedAdminId = (_preEditMatch && requestMethod === 'PUT')
+            ? String((window as any)._editProductAdminId || _preEditMatch[1])
+            : '';
+        const _snappedRole = (_preEditMatch && requestMethod === 'PUT')
+            ? (window as any)._pendingEditRole as string | undefined
+            : undefined;
+
         const response = await originalFetch(...args);
 
         // ── Save product mapping after admin user invite succeeds ─────────────
@@ -227,10 +279,11 @@ export const installFetchInterceptor = () => {
         // product selection (set by inviteUserOverride.ts) to user-product-mappings.
         if (
             (url === '/admin/users' || url.endsWith('/admin/users')) &&
-            (args[1] as any)?.method === 'POST' &&
+            requestMethod === 'POST' &&
             response.ok
         ) {
             const product = (window as any)._pendingInviteProduct as string | undefined;
+            const inviteRole = (window as any)._pendingInviteRole as string | undefined;
             if (product) {
                 try {
                     const cloned = response.clone();
@@ -242,11 +295,12 @@ export const installFetchInterceptor = () => {
                         originalFetch('/api/user-product-mappings', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ data: { adminUserId: newUserId, product } }),
+                            body: JSON.stringify({ data: { adminUserId: newUserId, product, user_role: inviteRole || '' } }),
                         }).catch(() => {});
                     }
                 } catch (_) {}
                 (window as any)._pendingInviteProduct = '';
+                (window as any)._pendingInviteRole = '';
             }
         }
         // ─────────────────────────────────────────────────────────────────────
@@ -258,39 +312,29 @@ export const installFetchInterceptor = () => {
         //   - no documentId yet  → public POST (create new mapping)
         // _pendingEditProduct === undefined means the Product field was hidden
         // (user is not Staff), so we skip saving entirely.
-        const putUserMatch = url.match(/\/admin\/users\/(\d+)$/);
-        if (putUserMatch && (args[1] as any)?.method === 'PUT' && response.ok) {
-            const product = (window as any)._pendingEditProduct as string | undefined;
+        const putUserMatch = _preEditMatch;
+        if (putUserMatch && requestMethod === 'PUT' && response.ok) {
+            const product = _snappedProduct;
             if (product !== undefined && product !== '') {
-                const documentId = (window as any)._editProductDocumentId as string | null;
-                const adminId = Number((window as any)._editProductAdminId || putUserMatch[1]);
-                const savedToken = (window as any)._strapi_last_token as string | undefined;
-                const authHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
-                if (savedToken) {
-                    authHeaders.Authorization = savedToken.startsWith('Bearer ')
-                        ? savedToken
-                        : `Bearer ${savedToken}`;
-                }
+                const documentId = _snappedDocumentId;
+                const adminId = Number(_snappedAdminId || putUserMatch[1]);
 
+                const user_role = _snappedRole || '';
                 if (documentId) {
-                    // Update existing mapping via content-manager (accepts admin JWT)
-                    originalFetch(
-                        `/content-manager/collection-types/api::user-product-mapping.user-product-mapping/${documentId}`,
-                        {
-                            method: 'PUT',
-                            headers: authHeaders,
-                            body: JSON.stringify({ adminUserId: adminId, product }),
-                        }
-                    ).then(() => {
-                        // Invalidate product cache so list page shows fresh data
+                    // Update existing mapping via public REST API (public role has update permission)
+                    originalFetch(`/api/user-product-mappings/${documentId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: { adminUserId: adminId, product, user_role } }),
+                    }).then(() => {
                         (window as any)._staffProductMap = undefined;
                     }).catch(() => {});
                 } else {
-                    // No existing mapping — create one via public API
+                    // No existing mapping — create one via public REST API
                     originalFetch('/api/user-product-mappings', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ data: { adminUserId: adminId, product } }),
+                        body: JSON.stringify({ data: { adminUserId: adminId, product, user_role } }),
                     }).then(() => {
                         (window as any)._staffProductMap = undefined;
                     }).catch(() => {});

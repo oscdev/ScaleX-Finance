@@ -43,20 +43,24 @@ const findInviteModal = (): HTMLElement | null => {
 // Unselected options only appear inside [role="listbox"] (the open dropdown).
 // We look for a leaf element with text "staff" or "banker" that is NOT inside a listbox.
 
-const isStaffOrBankerRoleSelected = (modal: HTMLElement): boolean => {
+const getSelectedRoleFromModal = (modal: HTMLElement): string => {
     const inListbox = (el: Element) => !!el.closest('[role="listbox"]');
-    // Exclude our own injected field to avoid false positives.
     const inOurField = (el: Element) => !!el.closest(`#${INJECT_ID}`);
 
-    return Array.from(modal.querySelectorAll<HTMLElement>('span, div'))
+    const chip = Array.from(modal.querySelectorAll<HTMLElement>('span, div'))
         .filter(el => !inListbox(el) && !inOurField(el))
-        .some(el => {
-            // Chip labels have no child spans/divs (leaf-like nodes)
+        .find(el => {
             const hasNoComplexChildren = el.querySelectorAll('span, div').length === 0;
             const text = (el.textContent || '').trim().toLowerCase();
             return hasNoComplexChildren && (text.includes('staff') || text.includes('banker'));
         });
+    if (!chip) return '';
+    const text = (chip.textContent || '').trim().toLowerCase();
+    if (text.includes('banker')) return 'Banker';
+    if (text.includes('staff')) return 'Staff';
+    return '';
 };
+
 
 // ─── Inner observer (per modal) ───────────────────────────────────────────────
 // Watches the modal's DOM and toggles the product field visibility when the
@@ -75,8 +79,10 @@ const startInnerObserver = (modal: HTMLElement) => {
         const wrapper = modal.querySelector<HTMLElement>(`#${INJECT_ID}`);
         if (!wrapper) return;
 
-        const show = isStaffOrBankerRoleSelected(modal);
+        const role = getSelectedRoleFromModal(modal);
+        const show = role !== '';
         wrapper.style.display = show ? 'flex' : 'none';
+        (window as any)._pendingInviteRole = show ? role : '';
 
         if (!show) {
             // Reset product selection when the field is hidden

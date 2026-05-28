@@ -20,6 +20,9 @@
             "type": "integer",
             "required": true
         },
+        "user_role": {
+            "type": "string"
+        },
         "product": {
             "type": "string",
             "required": true
