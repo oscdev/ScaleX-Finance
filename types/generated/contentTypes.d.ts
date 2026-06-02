@@ -1139,7 +1139,8 @@ export interface ApiLeadRemarkLeadRemark extends Struct.CollectionTypeSchema {
     };
   };
   attributes: {
-    advisor_remark: Schema.Attribute.JSON;
+    advisor_admin_staff_remark: Schema.Attribute.JSON;
+    banker_admin_staff_remark: Schema.Attribute.JSON;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

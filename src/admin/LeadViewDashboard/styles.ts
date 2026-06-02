@@ -62,6 +62,7 @@ export const styles: Record<string, CSSProperties> = {
     },
     messageText: {
         wordBreak: 'break-word',
+        whiteSpace: 'pre-wrap',
     },
     statusSelect: {
         flex: 1,

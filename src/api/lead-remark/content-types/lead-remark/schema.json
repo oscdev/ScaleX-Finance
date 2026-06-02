@@ -19,7 +19,10 @@
         "leadId": {
             "type": "integer"
         },
-        "advisor_remark": {
+        "advisor_admin_staff_remark": {
+            "type": "json"
+        },
+        "banker_admin_staff_remark": {
             "type": "json"
         }
     }

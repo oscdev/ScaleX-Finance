@@ -119,9 +119,12 @@ const SECTION_TREE = [
         label: 'Assignment & Status',
         fields: [
             { key: 'leadStatus', label: 'Lead Status' },
-            { key: 'remarks', label: 'Remarks' },
             { key: 'assignStaff', label: 'Assign Staff' },
             { key: 'assignBanker', label: 'Assign Banker' },
+            { key: 'advisorConversationHistory', label: 'Advisor Conversation History' },
+            { key: 'bankerConversationHistory', label: 'Banker Conversation History' },
+            { key: 'advisorRemark', label: 'Advisor Remark' },
+            { key: 'bankerRemark', label: 'Banker Remark' },
         ],
     },
 ];
