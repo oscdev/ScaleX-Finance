@@ -17,11 +17,13 @@ const SearchableDropdown = ({
     options,
     value,
     onChange,
+    disabled = false,
 }: {
     label: string;
     options: any[];
     value: number | null;
     onChange: (id: number | null) => void;
+    disabled?: boolean;
 }) => {
     const [search, setSearch] = useState('');
     const [open, setOpen] = useState(false);
@@ -48,14 +50,14 @@ const SearchableDropdown = ({
                 {label}
             </Typography>
             <div
-                onClick={() => { setOpen((o) => !o); setSearch(''); }}
+                onClick={() => { if (!disabled) { setOpen((o) => !o); setSearch(''); } }}
                 style={{
                     border: '1px solid #dcdce4',
                     borderRadius: '4px',
                     padding: '6px 10px',
                     fontSize: '13px',
-                    cursor: 'pointer',
-                    background: '#fff',
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    background: disabled ? '#f6f6f9' : '#fff',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -64,6 +66,7 @@ const SearchableDropdown = ({
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '4px',
+                    opacity: disabled ? 0.6 : 1,
                 }}
             >
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>
@@ -385,6 +388,8 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
         setStatus,
         newRemark,
         setNewRemark,
+        newBankerRemark,
+        setNewBankerRemark,
         isUpdating,
         currentUser,
         errorLogs,
@@ -393,6 +398,8 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
         handleSaveParentAdvisorId,
         parentAdvisor,
         remarks,
+        bankerRemarks,
+        isBankerUser,
         statusHistory,
         staffList,
         bankerList,
@@ -464,6 +471,16 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
         const root = document.getElementById('custom-dashboard-root');
         if (root) root.scrollTop = 0;
     }, [leadId]);
+
+    const userRoles: string[] = (currentUser?.roles || []).map((r: any) => r.code as string);
+    const isAdvisorUser  = userRoles.includes('strapi-advisor');
+    const isBankerOnly   = isBankerUser() && !userRoles.includes('strapi-editor') && !userRoles.includes('strapi-super-admin');
+    const isAdvisorOnly  = isAdvisorUser && !isBankerUser() && !userRoles.includes('strapi-editor') && !userRoles.includes('strapi-super-admin');
+
+    // Box 1: advisor_admin_staff_remark — visible to advisor, staff, admin (not banker-only)
+    const canViewAdvisorBox = !isBankerOnly;
+    // Box 2: banker_admin_staff_remark — visible to banker, staff, admin (not advisor-only)
+    const canViewBankerBox  = !isAdvisorOnly;
 
     if (isLoading) {
         return <Box padding={8} background="neutral100">Loading Lead Detail Dashboard...</Box>;
@@ -706,8 +723,8 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                 </Box>
             </Box>}
 
-            {/* Management & History */}
-            <div style={styles.twoColGrid}>
+            {/* Management & History — 3 equal columns */}
+            <div style={{ display: 'grid', gridTemplateColumns: (() => { const cols = (canView('assignmentStatus') ? 1 : 0) + (canViewAdvisorBox && canViewField('assignmentStatus', 'advisorConversationHistory') ? 1 : 0) + (canViewBankerBox && canViewField('assignmentStatus', 'bankerConversationHistory') ? 1 : 0); return Array(cols || 1).fill('1fr').join(' '); })(), gap: '16px', marginBottom: '24px', alignItems: 'stretch' }}>
                 {/* Status Update Form */}
                 {canView('assignmentStatus') ? <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
                     <Typography variant="delta" fontWeight="bold" marginBottom={4} display="block">
@@ -743,35 +760,19 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                         </Flex>
                     </Box>}
 
-                    {canViewField('assignmentStatus', 'remarks') && <Box marginBottom={4}>
-                        <Typography
-                            variant="pi"
-                            fontWeight="bold"
-                            textColor="primary600"
-                            display="block"
-                            marginBottom={1}
-                        >
-                            Lead Remark *
-                        </Typography>
-                        <Textarea
-                            placeholder="Enter remarks here..."
-                            value={newRemark}
-                            onChange={(e: any) => setNewRemark(e.target.value)}
-                            disabled={!canEditField('assignmentStatus', 'remarks')}
-                        />
-                    </Box>}
 
                     {(canViewField('assignmentStatus', 'assignStaff') || canViewField('assignmentStatus', 'assignBanker')) && (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
                             {canViewField('assignmentStatus', 'assignStaff') && <Box>
                                 <Typography variant="pi" fontWeight="bold" textColor="primary600" display="block" marginBottom={1}>
                                     ASSIGN STAFF
                                 </Typography>
                                 <SearchableDropdown
                                     label=""
-                                    options={canEditField('assignmentStatus', 'assignStaff') ? staffList : []}
+                                    options={staffList}
                                     value={selectedStaffId}
-                                    onChange={canEditField('assignmentStatus', 'assignStaff') ? setSelectedStaffId : () => {}}
+                                    onChange={setSelectedStaffId}
+                                    disabled={!canEditField('assignmentStatus', 'assignStaff')}
                                 />
                             </Box>}
                             {canViewField('assignmentStatus', 'assignBanker') && <Box>
@@ -780,9 +781,10 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                                 </Typography>
                                 <SearchableDropdown
                                     label=""
-                                    options={canEditField('assignmentStatus', 'assignBanker') ? bankerList : []}
+                                    options={bankerList}
                                     value={selectedBankerId}
-                                    onChange={canEditField('assignmentStatus', 'assignBanker') ? setSelectedBankerId : () => {}}
+                                    onChange={setSelectedBankerId}
+                                    disabled={!canEditField('assignmentStatus', 'assignBanker')}
                                 />
                             </Box>}
                         </div>
@@ -791,6 +793,7 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                     <Button
                         onClick={async () => { await handleUpdateStatus(); await handleSaveParentAdvisorId(); }}
                         loading={isUpdating || isSavingParentId}
+                        disabled={!canEdit('assignmentStatus')}
                         variant="default"
                         size="L"
                     >
@@ -798,11 +801,12 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                     </Button>
                 </Box> : null}
 
-                {/* Conversation History */}
-                {canView('assignmentStatus') && <Box background="neutral0" shadow="filterShadow" borderRadius="8px" style={styles.conversationBox}>
+                {/* Advisor Conversation History */}
+                {canView('assignmentStatus') && canViewAdvisorBox && canViewField('assignmentStatus', 'advisorConversationHistory') && <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <Box background="neutral0" shadow="filterShadow" borderRadius="8px" style={styles.conversationBox}>
                     <Box padding={3} background="neutral700" style={styles.historyHeaderBox}>
                         <Typography variant="pi" fontWeight="bold" textColor="neutral0">
-                            Conversation History
+                            Advisor Conversation History
                         </Typography>
                     </Box>
                     <Box padding={4} style={styles.historyScroll}>
@@ -919,7 +923,169 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                             </Flex>
                         )}
                     </Box>
+                </Box>
+                {canViewField('assignmentStatus', 'advisorRemark') && <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
+                    <Typography variant="pi" fontWeight="bold" textColor="primary600" display="block" marginBottom={1}>
+                        Advisor Remark
+                    </Typography>
+                    <Textarea
+                        placeholder="Enter remarks here... (Enter to send, Shift+Enter for new line)"
+                        value={newRemark}
+                        onChange={(e: any) => setNewRemark(e.target.value)}
+                        disabled={!canEditField('assignmentStatus', 'advisorRemark')}
+                        onKeyDown={async (e: any) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                await handleUpdateStatus();
+                                await handleSaveParentAdvisorId();
+                            }
+                        }}
+                    />
                 </Box>}
+                </div>}
+
+                {/* Banker Conversation History — Banker / Admin / Staff */}
+                {canView('assignmentStatus') && canViewBankerBox && canViewField('assignmentStatus', 'bankerConversationHistory') && <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <Box background="neutral0" shadow="filterShadow" borderRadius="8px" style={styles.conversationBox}>
+                    <Box padding={3} background="neutral700" style={styles.historyHeaderBox}>
+                        <Typography variant="pi" fontWeight="bold" textColor="neutral0">
+                            Banker Conversation History
+                        </Typography>
+                    </Box>
+                    <Box padding={4} style={styles.historyScroll}>
+                        {bankerRemarks.length === 0 ? (
+                            <Box padding={8} textAlign="center">
+                                <Typography variant="pi" textColor="neutral500">
+                                    No conversation history available.
+                                </Typography>
+                            </Box>
+                        ) : (
+                            <Flex direction="column" alignItems="stretch" gap={4}>
+                                {bankerRemarks.map((entry: any, index: number) => {
+                                    const isMine =
+                                        currentUser &&
+                                        entry.author &&
+                                        entry.author.includes(currentUser.firstname) &&
+                                        entry.author.includes(currentUser.lastname || '');
+
+                                    return (
+                                        <Box
+                                            key={index}
+                                            maxWidth="70%"
+                                            style={{
+                                                ...styles.remarkContainer,
+                                                alignSelf: isMine ? 'flex-end' : 'flex-start',
+                                            }}
+                                        >
+                                            <Flex
+                                                justifyContent={isMine ? 'flex-end' : 'flex-start'}
+                                                marginBottom={1}
+                                                gap={2}
+                                                alignItems="center"
+                                            >
+                                                {!isMine && (
+                                                    <Box
+                                                        background="neutral200"
+                                                        color="neutral800"
+                                                        padding={1}
+                                                        borderRadius="4px"
+                                                        style={styles.authorBadge}
+                                                    >
+                                                        {entry.author?.[0] || 'U'}
+                                                    </Box>
+                                                )}
+                                                <Box>
+                                                    <Typography
+                                                        variant="pi"
+                                                        textColor="neutral800"
+                                                        style={{ fontSize: '11px', fontWeight: 'bold' }}
+                                                        display="block"
+                                                    >
+                                                        {entry.author}
+                                                    </Typography>
+                                                    {entry.role && (
+                                                        <Typography
+                                                            variant="pi"
+                                                            textColor="neutral500"
+                                                            style={{ fontSize: '10px' }}
+                                                            display="block"
+                                                        >
+                                                            {entry.role}
+                                                        </Typography>
+                                                    )}
+                                                </Box>
+                                                {isMine && (
+                                                    <Box
+                                                        background="primary600"
+                                                        color="white"
+                                                        padding={1}
+                                                        borderRadius="4px"
+                                                        style={styles.authorBadge}
+                                                    >
+                                                        You
+                                                    </Box>
+                                                )}
+                                            </Flex>
+
+                                            <Box
+                                                background={isMine ? 'primary600' : 'neutral0'}
+                                                color={isMine ? 'white' : 'neutral800'}
+                                                padding={3}
+                                                borderRadius="12px"
+                                                shadow="filterShadow"
+                                                style={bubbleStyle(isMine)}
+                                            >
+                                                <Typography
+                                                    variant="pi"
+                                                    textColor={isMine ? 'neutral0' : 'neutral800'}
+                                                    style={styles.messageText}
+                                                >
+                                                    {entry.message}
+                                                </Typography>
+
+                                                <Flex justifyContent="flex-end" marginTop={2} gap={4}>
+                                                    <Typography
+                                                        variant="pi"
+                                                        textColor={isMine ? 'neutral200' : 'neutral500'}
+                                                        style={styles.messageTimestamp}
+                                                    >
+                                                        {entry.timestamp
+                                                            ? new Date(entry.timestamp).toLocaleString([], {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit',
+                                                                day: '2-digit',
+                                                                month: '2-digit',
+                                                            })
+                                                            : ''}
+                                                    </Typography>
+                                                </Flex>
+                                            </Box>
+                                        </Box>
+                                    );
+                                })}
+                            </Flex>
+                        )}
+                    </Box>
+                </Box>
+                {canViewBankerBox && canViewField('assignmentStatus', 'bankerRemark') && <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
+                    <Typography variant="pi" fontWeight="bold" textColor="primary600" display="block" marginBottom={1}>
+                        Banker Remark
+                    </Typography>
+                    <Textarea
+                        placeholder="Enter banker remarks here... (Enter to send, Shift+Enter for new line)"
+                        value={newBankerRemark}
+                        onChange={(e: any) => setNewBankerRemark(e.target.value)}
+                        disabled={!canEditField('assignmentStatus', 'bankerRemark')}
+                        onKeyDown={async (e: any) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                await handleUpdateStatus();
+                                await handleSaveParentAdvisorId();
+                            }
+                        }}
+                    />
+                </Box>}
+                </div>}
             </div>
 
             {/* Step-wise Application Details */}

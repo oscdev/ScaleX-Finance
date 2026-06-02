@@ -356,6 +356,7 @@ export const useLeadViewDashboard = (leadId: string) => {
     const [isLoading, setIsLoading] = useState(true);
     const [status, setStatus] = useState('');
     const [newRemark, setNewRemark] = useState('');
+    const [newBankerRemark, setNewBankerRemark] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [errorLogs, setErrorLogs] = useState<string[]>([]);
@@ -363,6 +364,7 @@ export const useLeadViewDashboard = (leadId: string) => {
     const [isSavingParentId, setIsSavingParentId] = useState(false);
     const [parentAdvisor, setParentAdvisor] = useState<any>(null);
     const [remarks, setRemarks] = useState<any[]>([]);
+    const [bankerRemarks, setBankerRemarks] = useState<any[]>([]);
     const [statusHistory, setStatusHistory] = useState<any[]>([]);
     const [sectionPerms, setSectionPerms] = useState<SectionPerms>(allSectionsAllowed());
 
@@ -572,67 +574,31 @@ export const useLeadViewDashboard = (leadId: string) => {
         setSelectedBankerId(loanApp.assignedBankerId ?? null);
     }, [loanApp?.assignedStaffId, loanApp?.assignedBankerId]);
 
-    // Fetch admin users filtered by role; both staff and banker lists are further
-    // filtered to only those assigned the same product as the lead (via user_product_mappings).
+    // Fetch staff and bankers for this lead's product via a server-side route
+    // accessible to all authenticated roles (not just admins).
     useEffect(() => {
-        if (!lead) return; // wait for lead to load before fetching
-        const fetchAdminUsers = async () => {
+        if (!lead) return;
+        const fetchProductUsers = async () => {
             try {
                 const token = getToken();
                 if (!token) return;
 
-                const selectedProduct: string = lead.selectedProduct || '';
+                const product: string = lead.selectedProduct || loanApp?.loanType || '';
+                if (!product) return;
 
-                // Fetch admin users + product mappings in parallel
-                const [usersRes, mappingsRes] = await Promise.all([
-                    fetch('/admin/users?pageSize=200&page=1', {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }),
-                    selectedProduct
-                        ? fetch(`/api/user-product-mappings?filters[product][$eq]=${encodeURIComponent(selectedProduct)}&pagination[pageSize]=500&fields[0]=adminUserId`)
-                        : Promise.resolve(null),
-                ]);
-
-                if (!usersRes.ok) return; // advisors don't have user-list access — silently skip
-
-                const usersData = await usersRes.json();
-                const users: any[] = usersData.data?.results || usersData.results || [];
-
-                // Build set of adminUserIds that handle this product
-                let productStaffIds: Set<number> | null = null;
-                if (mappingsRes && mappingsRes.ok) {
-                    const mappingsData = await mappingsRes.json();
-                    const items: any[] = mappingsData.data || [];
-                    productStaffIds = new Set(items.map((m: any) => Number(m.adminUserId)).filter(Boolean));
-                }
-
-                const staffRoleCodes = ['strapi-editor'];
-                const bankerRoleCodes = ['bankers-mosko0d4'];
-
-                const allStaff = users.filter((u: any) =>
-                    (u.roles || []).some((r: any) => staffRoleCodes.includes(r.code))
+                const res = await fetch(
+                    `/admin/product-users?product=${encodeURIComponent(product)}`,
+                    { headers: { Authorization: `Bearer ${token}` } }
                 );
+                if (!res.ok) return;
 
-                const allBankers = users.filter((u: any) =>
-                    (u.roles || []).some((r: any) => bankerRoleCodes.includes(r.code))
-                );
-
-                // If we have a product filter, only show staff/bankers assigned to that product
-                setStaffList(
-                    productStaffIds && productStaffIds.size > 0
-                        ? allStaff.filter((u: any) => productStaffIds!.has(Number(u.id)))
-                        : allStaff
-                );
-
-                setBankerList(
-                    productStaffIds && productStaffIds.size > 0
-                        ? allBankers.filter((u: any) => productStaffIds!.has(Number(u.id)))
-                        : allBankers
-                );
+                const data = await res.json();
+                setStaffList(data.staff || []);
+                setBankerList(data.bankers || []);
             } catch (e) {}
         };
-        fetchAdminUsers();
-    }, [lead?.selectedProduct]);
+        fetchProductUsers();
+    }, [lead?.selectedProduct, loanApp?.loanType]);
 
     // 3. Fetch Advisor details
     useEffect(() => {
@@ -770,6 +736,12 @@ export const useLeadViewDashboard = (leadId: string) => {
         if (lead) loadStatusHistory();
     }, [lead?.id, leadId]);
 
+    // Helper: is the current user a banker?
+    const isBankerUser = (): boolean => {
+        const roles: any[] = currentUser?.roles || [];
+        return roles.some((r: any) => r.code === 'bankers-mosko0d4');
+    };
+
     // 5. Load remarks for display
     useEffect(() => {
         const loadRemarks = async () => {
@@ -779,10 +751,13 @@ export const useLeadViewDashboard = (leadId: string) => {
             try {
                 const row = await fetchRemarkRow(numericId);
                 if (row) {
-                    const arr = row.advisor_remark;
-                    setRemarks(Array.isArray(arr) ? arr : []);
+                    const advisorArr = row.advisor_admin_staff_remark;
+                    setRemarks(Array.isArray(advisorArr) ? advisorArr : []);
+                    const bankerArr = row.banker_admin_staff_remark;
+                    setBankerRemarks(Array.isArray(bankerArr) ? bankerArr : []);
                 } else {
                     setRemarks([]);
+                    setBankerRemarks([]);
                 }
             } catch (e) {
                 // swallow
@@ -815,11 +790,10 @@ export const useLeadViewDashboard = (leadId: string) => {
                 return;
             }
 
-            // 2. Upsert remark row — append to JSON array, one row per lead
-            if (newRemark.trim()) {
+            // 2. Upsert remark row — append to both JSON arrays in a single call
+            if (newRemark.trim() || newBankerRemark.trim()) {
                 const numericId = resolveNumericId();
-                const newEntry = {
-                    message: newRemark.trim(),
+                const baseEntry = {
                     author: authorName,
                     role: roleName,
                     timestamp: new Date().toISOString(),
@@ -827,27 +801,40 @@ export const useLeadViewDashboard = (leadId: string) => {
                 };
 
                 const existingRow = await fetchRemarkRow(numericId!);
-                const existingArr = existingRow ? (existingRow.advisor_remark ?? []) : [];
-                const updatedArr = [...(Array.isArray(existingArr) ? existingArr : []), newEntry];
+                const payload: Record<string, any> = { leadId: numericId };
+
+                let updatedAdvisorArr: any[] | null = null;
+                let updatedBankerArr: any[] | null = null;
+
+                if (newRemark.trim()) {
+                    const existingArr = existingRow ? (existingRow.advisor_admin_staff_remark ?? []) : [];
+                    updatedAdvisorArr = [...(Array.isArray(existingArr) ? existingArr : []), { ...baseEntry, message: newRemark.trim() }];
+                    payload.advisor_admin_staff_remark = updatedAdvisorArr;
+                }
+
+                if (newBankerRemark.trim()) {
+                    const existingArr = existingRow ? (existingRow.banker_admin_staff_remark ?? []) : [];
+                    updatedBankerArr = [...(Array.isArray(existingArr) ? existingArr : []), { ...baseEntry, message: newBankerRemark.trim() }];
+                    payload.banker_admin_staff_remark = updatedBankerArr;
+                }
 
                 if (existingRow) {
-                    // Row exists — PUT to append via public API
                     const rowDocId = existingRow.documentId || String(existingRow.id);
                     await fetch(`/api/lead-remarks/${rowDocId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ data: { leadId: numericId, advisor_remark: updatedArr } }),
+                        body: JSON.stringify({ data: payload }),
                     });
                 } else {
-                    // No row yet — create via public API
                     await fetch('/api/lead-remarks', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ data: { leadId: numericId, advisor_remark: updatedArr } }),
+                        body: JSON.stringify({ data: payload }),
                     });
                 }
 
-                setRemarks(updatedArr);
+                if (updatedAdvisorArr) setRemarks(updatedAdvisorArr);
+                if (updatedBankerArr) setBankerRemarks(updatedBankerArr);
             }
 
             // Optimistically append to status history for immediate display
@@ -864,6 +851,7 @@ export const useLeadViewDashboard = (leadId: string) => {
             }
 
             setNewRemark('');
+            setNewBankerRemark('');
             setLead((prev: any) => ({ ...prev, leadStatus: cleanStatus }));
         } catch (err: any) {
             // swallow
@@ -871,6 +859,7 @@ export const useLeadViewDashboard = (leadId: string) => {
             setIsUpdating(false);
         }
     };
+
 
     const handleSaveParentAdvisorId = async () => {
         setIsSavingParentId(true);
@@ -1042,6 +1031,8 @@ export const useLeadViewDashboard = (leadId: string) => {
         setStatus,
         newRemark,
         setNewRemark,
+        newBankerRemark,
+        setNewBankerRemark,
         isUpdating,
         currentUser,
         errorLogs,
@@ -1052,6 +1043,8 @@ export const useLeadViewDashboard = (leadId: string) => {
         handleSaveParentAdvisorId,
         parentAdvisor,
         remarks,
+        bankerRemarks,
+        isBankerUser,
         statusHistory,
         staffList,
         bankerList,

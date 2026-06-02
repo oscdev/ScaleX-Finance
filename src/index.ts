@@ -126,6 +126,41 @@ export default {
     });
 
     // Advisor name/contact list — accessible to any authenticated admin (including Advisor role)
+    router.get('/admin/product-users', async (ctx: any) => {
+      if (!requireAuth(ctx)) return;
+      const product: string = (ctx.query.product as string) || '';
+      if (!product) { ctx.body = { staff: [], bankers: [] }; return; }
+
+      // Fetch all mapping IDs for this product
+      const mappings = await strapi.db.query('api::user-product-mapping.user-product-mapping').findMany({
+        where: { product },
+        select: ['adminUserId'],
+        limit: 500,
+      });
+      const adminUserIds = [...new Set(mappings.map((m: any) => Number(m.adminUserId)).filter(Boolean))];
+      if (!adminUserIds.length) { ctx.body = { staff: [], bankers: [] }; return; }
+
+      // Fetch admin users + their roles in one query
+      const adminUsers = await strapi.db.query('admin::user').findMany({
+        where: { id: { $in: adminUserIds } },
+        select: ['id', 'firstname', 'lastname', 'email'],
+        populate: { roles: { select: ['code'] } },
+        limit: 500,
+      });
+
+      const staffRoleCodes = ['strapi-editor'];
+      const bankerRoleCodes = ['bankers-mosko0d4'];
+
+      const staff = adminUsers.filter((u: any) =>
+        (u.roles || []).some((r: any) => staffRoleCodes.includes(r.code))
+      );
+      const bankers = adminUsers.filter((u: any) =>
+        (u.roles || []).some((r: any) => bankerRoleCodes.includes(r.code))
+      );
+
+      ctx.body = { staff, bankers };
+    });
+
     router.get('/admin/advisors-list', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       const advisors = await strapi.db.query('api::advisor.advisor').findMany({
