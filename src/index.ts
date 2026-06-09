@@ -131,31 +131,45 @@ export default {
       const product: string = (ctx.query.product as string) || '';
       if (!product) { ctx.body = { staff: [], bankers: [] }; return; }
 
-      // Fetch all mapping IDs for this product
+      // Fetch all mappings for this product (carry user_role to classify staff vs banker)
       const mappings = await strapi.db.query('api::user-product-mapping.user-product-mapping').findMany({
         where: { product },
-        select: ['adminUserId'],
+        select: ['adminUserId', 'user_role'],
         limit: 500,
       });
-      const adminUserIds = [...new Set(mappings.map((m: any) => Number(m.adminUserId)).filter(Boolean))];
+      if (!mappings.length) { ctx.body = { staff: [], bankers: [] }; return; }
+
+      // adminUserId -> normalized user_role recorded on the mapping row ('staff' | 'banker')
+      const roleByUserId = new Map<number, string>();
+      mappings.forEach((m: any) => {
+        const id = Number(m.adminUserId);
+        if (id) roleByUserId.set(id, (m.user_role || '').trim().toLowerCase());
+      });
+      const adminUserIds = [...roleByUserId.keys()];
       if (!adminUserIds.length) { ctx.body = { staff: [], bankers: [] }; return; }
 
-      // Fetch admin users + their roles in one query
+      // Fetch admin users + their roles in one query (roles used as a legacy fallback)
       const adminUsers = await strapi.db.query('admin::user').findMany({
         where: { id: { $in: adminUserIds } },
         select: ['id', 'firstname', 'lastname', 'email'],
-        populate: { roles: { select: ['code'] } },
+        populate: { roles: { select: ['code', 'name'] } },
         limit: 500,
       });
 
-      const staffRoleCodes = ['strapi-editor'];
-      const bankerRoleCodes = ['bankers-mosko0d4'];
+      // Symmetric classifier: trust the mapping's user_role first, fall back to the
+      // admin role (matched by code OR name) for rows saved before user_role existed.
+      const isRole = (u: any, mappingRole: string, codes: string[], names: string[]): boolean => {
+        if (roleByUserId.get(Number(u.id)) === mappingRole) return true;
+        return (u.roles || []).some((r: any) =>
+          codes.includes(r.code) || names.includes((r.name || '').trim().toLowerCase())
+        );
+      };
 
       const staff = adminUsers.filter((u: any) =>
-        (u.roles || []).some((r: any) => staffRoleCodes.includes(r.code))
+        isRole(u, 'staff', ['strapi-editor', 'staff', 'strapi-staff'], ['staff'])
       );
       const bankers = adminUsers.filter((u: any) =>
-        (u.roles || []).some((r: any) => bankerRoleCodes.includes(r.code))
+        isRole(u, 'banker', ['bankers-mosko0d4', 'banker', 'bankers', 'strapi-banker'], ['banker', 'bankers'])
       );
 
       ctx.body = { staff, bankers };
