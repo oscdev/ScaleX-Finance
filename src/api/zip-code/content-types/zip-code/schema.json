@@ -1,0 +1,40 @@
+{
+    "kind": "collectionType",
+    "collectionName": "zip_codes_to_lenders",
+    "info": {
+        "singularName": "zip-code",
+        "pluralName": "zip-codes",
+        "displayName": "Zip Codes",
+        "description": "Serviceable pincodes per lender"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {
+        "content-manager": {
+            "visible": false
+        },
+        "content-type-builder": {
+            "visible": false
+        }
+    },
+    "attributes": {
+        "lenderCode": {
+            "type": "string",
+            "required": true
+        },
+        "zipCode": {
+            "type": "integer"
+        },
+        "coversAllPincodes": {
+            "type": "boolean",
+            "default": false,
+            "required": true
+        },
+        "isActive": {
+            "type": "boolean",
+            "default": true,
+            "required": true
+        }
+    }
+}

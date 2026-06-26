@@ -1,0 +1,50 @@
+{
+    "kind": "collectionType",
+    "collectionName": "cibil_report_summary",
+    "info": {
+        "singularName": "cibil-report-summary",
+        "pluralName": "cibil-report-summaries",
+        "displayName": "CIBIL Report Summary",
+        "description": "CIBIL bureau report and salary slip data per loan application"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {
+        "content-manager": {
+            "visible": false
+        },
+        "content-type-builder": {
+            "visible": false
+        }
+    },
+    "attributes": {
+        "lenderCode": {
+            "type": "string",
+            "required": true
+        },
+        "leadId": {
+            "type": "integer",
+            "required": true,
+            "unique": true
+        },
+        "cibilData": {
+            "type": "json"
+        },
+        "salarySlipData": {
+            "type": "json"
+        },
+        "dataSource": {
+            "type": "enumeration",
+            "enum": [
+                "MANUAL",
+                "CIBIL_API",
+                "EXPERIAN",
+                "EQUIFAX",
+                "CRIF"
+            ],
+            "default": "MANUAL",
+            "required": true
+        }
+    }
+}
