@@ -566,6 +566,48 @@ export interface ApiActivityLogActivityLog extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiAdvancedLendersCriteriaPlAdvancedLendersCriteriaPl
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'advanced_lenders_criteria_pl';
+  info: {
+    description: 'Per-period DPD and enquiry thresholds per lender';
+    displayName: 'Advanced Lenders Criteria PL';
+    pluralName: 'advanced-lenders-criteria-pls';
+    singularName: 'advanced-lenders-criteria-pl';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    lenderCode: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::advanced-lenders-criteria-pl.advanced-lenders-criteria-pl'
+    > &
+      Schema.Attribute.Private;
+    maxDpdCount: Schema.Attribute.Integer;
+    maxEnquiryCount: Schema.Attribute.Integer;
+    periodMonths: Schema.Attribute.Enumeration<['M1', 'M3', 'M6', 'M12']> &
+      Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiAdvisorRegistrationPageAdvisorRegistrationPage
   extends Struct.SingleTypeSchema {
   collectionName: 'advisor_registration_page';
@@ -754,6 +796,54 @@ export interface ApiAxisBankPageAxisBankPage extends Struct.SingleTypeSchema {
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiCibilReportSummaryCibilReportSummary
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'cibil_report_summary';
+  info: {
+    description: 'CIBIL bureau report and salary slip data per loan application';
+    displayName: 'CIBIL Report Summary';
+    pluralName: 'cibil-report-summaries';
+    singularName: 'cibil-report-summary';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    cibilData: Schema.Attribute.JSON;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    dataSource: Schema.Attribute.Enumeration<
+      ['MANUAL', 'CIBIL_API', 'EXPERIAN', 'EQUIFAX', 'CRIF']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'MANUAL'>;
+    leadId: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    lenderCode: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::cibil-report-summary.cibil-report-summary'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    salarySlipData: Schema.Attribute.JSON;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1204,6 +1294,52 @@ export interface ApiLeadLead extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiLenderBusinessExclusionLenderBusinessExclusion
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'lender_business_exclusions';
+  info: {
+    description: 'Business types excluded per lender per product';
+    displayName: 'Lender Business Exclusions';
+    pluralName: 'lender-business-exclusions';
+    singularName: 'lender-business-exclusion';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    businessType: Schema.Attribute.String & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    isActive: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    lenderCode: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::lender-business-exclusion.lender-business-exclusion'
+    > &
+      Schema.Attribute.Private;
+    productType: Schema.Attribute.Enumeration<
+      ['Personal_Loan', 'Business_Loan', 'Home_Loan', 'LAP', 'All']
+    > &
+      Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiLenderLender extends Struct.CollectionTypeSchema {
   collectionName: 'lenders';
   info: {
@@ -1238,6 +1374,127 @@ export interface ApiLenderLender extends Struct.CollectionTypeSchema {
       > &
       Schema.Attribute.DefaultTo<90>;
     name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiLendersCatalogLendersCatalog
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'lenders_catalog';
+  info: {
+    description: 'Master registry of all financial institutions';
+    displayName: 'Lenders Catalog';
+    pluralName: 'lenders-catalogs';
+    singularName: 'lenders-catalog';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    isActive: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    lenderCode: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    lenderName: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    lenderType: Schema.Attribute.Enumeration<
+      ['Public Bank', 'Private Bank', 'NBFC', 'Fintech / Digital']
+    > &
+      Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::lenders-catalog.lenders-catalog'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiLendersCriteriaPlLendersCriteriaPl
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'lenders_criteria_pl';
+  info: {
+    description: 'Personal loan eligibility thresholds per lender';
+    displayName: 'Lenders Criteria PL';
+    pluralName: 'lenders-criteria-pls';
+    singularName: 'lenders-criteria-pl';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    acceptedSalaryTypes: Schema.Attribute.JSON;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    firstTimeBorrowerAllowed: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    foir: Schema.Attribute.Decimal;
+    isActive: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    lenderCode: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::lenders-criteria-pl.lenders-criteria-pl'
+    > &
+      Schema.Attribute.Private;
+    maxActiveUnsecuredAccount: Schema.Attribute.Integer;
+    maxAge: Schema.Attribute.Integer;
+    maxCCUtilizationRatio: Schema.Attribute.Decimal;
+    maxDpdCount12months: Schema.Attribute.Integer;
+    maxDpdCount3months: Schema.Attribute.Integer;
+    maxDpdCount6months: Schema.Attribute.Integer;
+    maxDpdDaysAllowed: Schema.Attribute.Integer;
+    maxEnquiries1month: Schema.Attribute.Integer;
+    maxEnquiries3months: Schema.Attribute.Integer;
+    maxInterestRate: Schema.Attribute.Decimal;
+    maxLoanAmount: Schema.Attribute.Decimal;
+    minAge: Schema.Attribute.Integer;
+    minCibil: Schema.Attribute.Integer;
+    minEmploymentMonths: Schema.Attribute.Integer;
+    minInterestRate: Schema.Attribute.Decimal;
+    minLoanAmount: Schema.Attribute.Decimal;
+    minMonthlyIncome: Schema.Attribute.Decimal;
+    pfRequired: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    pincodeCheckRequired: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -1765,6 +2022,50 @@ export interface ApiUserProductMappingUserProductMapping
   };
 }
 
+export interface ApiZipCodeZipCode extends Struct.CollectionTypeSchema {
+  collectionName: 'zip_codes_to_lenders';
+  info: {
+    description: 'Serviceable pincodes per lender';
+    displayName: 'Zip Codes';
+    pluralName: 'zip-codes';
+    singularName: 'zip-code';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    coversAllPincodes: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    isActive: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    lenderCode: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::zip-code.zip-code'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    zipCode: Schema.Attribute.Integer;
+  };
+}
+
 export interface PluginContentReleasesRelease
   extends Struct.CollectionTypeSchema {
   collectionName: 'strapi_releases';
@@ -2279,9 +2580,11 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::about-us-page.about-us-page': ApiAboutUsPageAboutUsPage;
       'api::activity-log.activity-log': ApiActivityLogActivityLog;
+      'api::advanced-lenders-criteria-pl.advanced-lenders-criteria-pl': ApiAdvancedLendersCriteriaPlAdvancedLendersCriteriaPl;
       'api::advisor-registration-page.advisor-registration-page': ApiAdvisorRegistrationPageAdvisorRegistrationPage;
       'api::advisor.advisor': ApiAdvisorAdvisor;
       'api::axis-bank-page.axis-bank-page': ApiAxisBankPageAxisBankPage;
+      'api::cibil-report-summary.cibil-report-summary': ApiCibilReportSummaryCibilReportSummary;
       'api::contact-us-page.contact-us-page': ApiContactUsPageContactUsPage;
       'api::footer.footer': ApiFooterFooter;
       'api::global-setting.global-setting': ApiGlobalSettingGlobalSetting;
@@ -2291,7 +2594,10 @@ declare module '@strapi/strapi' {
       'api::lead-form-page.lead-form-page': ApiLeadFormPageLeadFormPage;
       'api::lead-remark.lead-remark': ApiLeadRemarkLeadRemark;
       'api::lead.lead': ApiLeadLead;
+      'api::lender-business-exclusion.lender-business-exclusion': ApiLenderBusinessExclusionLenderBusinessExclusion;
       'api::lender.lender': ApiLenderLender;
+      'api::lenders-catalog.lenders-catalog': ApiLendersCatalogLendersCatalog;
+      'api::lenders-criteria-pl.lenders-criteria-pl': ApiLendersCriteriaPlLendersCriteriaPl;
       'api::lenders-page.lenders-page': ApiLendersPageLendersPage;
       'api::loan-app-section-permission.loan-app-section-permission': ApiLoanAppSectionPermissionLoanAppSectionPermission;
       'api::loan-application-page.loan-application-page': ApiLoanApplicationPageLoanApplicationPage;
@@ -2299,6 +2605,7 @@ declare module '@strapi/strapi' {
       'api::product-page.product-page': ApiProductPageProductPage;
       'api::product.product': ApiProductProduct;
       'api::user-product-mapping.user-product-mapping': ApiUserProductMappingUserProductMapping;
+      'api::zip-code.zip-code': ApiZipCodeZipCode;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

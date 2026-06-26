@@ -1,0 +1,105 @@
+{
+    "kind": "collectionType",
+    "collectionName": "lenders_criteria_pl",
+    "info": {
+        "singularName": "lenders-criteria-pl",
+        "pluralName": "lenders-criteria-pls",
+        "displayName": "Lenders Criteria PL",
+        "description": "Personal loan eligibility thresholds per lender"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {
+        "content-manager": {
+            "visible": false
+        },
+        "content-type-builder": {
+            "visible": false
+        }
+    },
+    "attributes": {
+        "lenderCode": {
+            "type": "string",
+            "required": true,
+            "unique": true
+        },
+        "isActive": {
+            "type": "boolean",
+            "default": true,
+            "required": true
+        },
+        "minCibil": {
+            "type": "integer"
+        },
+        "firstTimeBorrowerAllowed": {
+            "type": "boolean",
+            "default": false,
+            "required": true
+        },
+        "minInterestRate": {
+            "type": "decimal"
+        },
+        "maxInterestRate": {
+            "type": "decimal"
+        },
+        "pincodeCheckRequired": {
+            "type": "boolean",
+            "default": false,
+            "required": true
+        },
+        "minAge": {
+            "type": "integer"
+        },
+        "maxAge": {
+            "type": "integer"
+        },
+        "minMonthlyIncome": {
+            "type": "decimal"
+        },
+        "foir": {
+            "type": "decimal"
+        },
+        "maxCCUtilizationRatio": {
+            "type": "decimal"
+        },
+        "maxActiveUnsecuredAccount": {
+            "type": "integer"
+        },
+        "acceptedSalaryTypes": {
+            "type": "json"
+        },
+        "pfRequired": {
+            "type": "boolean",
+            "default": false,
+            "required": true
+        },
+        "minEmploymentMonths": {
+            "type": "integer"
+        },
+        "maxDpdDaysAllowed": {
+            "type": "integer"
+        },
+        "maxDpdCount3months": {
+            "type": "integer"
+        },
+        "maxDpdCount6months": {
+            "type": "integer"
+        },
+        "maxDpdCount12months": {
+            "type": "integer"
+        },
+        "maxEnquiries1month": {
+            "type": "integer"
+        },
+        "maxEnquiries3months": {
+            "type": "integer"
+        },
+        "minLoanAmount": {
+            "type": "decimal"
+        },
+        "maxLoanAmount": {
+            "type": "decimal"
+        }
+    }
+}

@@ -1,0 +1,48 @@
+{
+    "kind": "collectionType",
+    "collectionName": "lenders_catalog",
+    "info": {
+        "singularName": "lenders-catalog",
+        "pluralName": "lenders-catalogs",
+        "displayName": "Lenders Catalog",
+        "description": "Master registry of all financial institutions"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "pluginOptions": {
+        "content-manager": {
+            "visible": false
+        },
+        "content-type-builder": {
+            "visible": false
+        }
+    },
+    "attributes": {
+        "lenderName": {
+            "type": "string",
+            "required": true,
+            "unique": true
+        },
+        "lenderType": {
+            "type": "enumeration",
+            "enum": [
+                "Public Bank",
+                "Private Bank",
+                "NBFC",
+                "Fintech / Digital"
+            ],
+            "required": true
+        },
+        "lenderCode": {
+            "type": "string",
+            "required": true,
+            "unique": true
+        },
+        "isActive": {
+            "type": "boolean",
+            "default": true,
+            "required": true
+        }
+    }
+}
