@@ -8,7 +8,7 @@ export default factories.createCoreController('api::loan-application.loan-applic
         // 1. Snapshot uploaded file IDs before Strapi native mutation
         const fileIds: Set<number> = new Set();
         const mediaFields = ['panCard', 'aadharCardFront', 'aadharCardBack', 'proprietorshipDoc', 'businessRegProofDoc', 'bankStatement', 'salarySlips', 'coAppPan', 'coAppAadharFront', 'coAppAadharBack', 'propertyPapers', 'otherDocs'];
-        
+
         if (data) {
             for (const field of mediaFields) {
                 if (data[field]) {
@@ -65,9 +65,11 @@ export default factories.createCoreController('api::loan-application.loan-applic
             try {
                 const leadId = data.leadId || createdRecord.leadId || 'Unknown_Lead';
                 const applicantName = data.applicantName || createdRecord.applicantName || 'Applicant';
-                
+
                 // Clean folder name to prevent errors with special characters
-                const folderName = `${leadId}-${applicantName}`.replace(/[^a-zA-Z0-9.\- ]/g, '').trim();
+                const folderName = `${leadId}-${applicantName.trim().replace(/\s+/g, '')}`
+                    .replace(/[^a-zA-Z0-9.\- ]/g, '')
+                    .trim();
 
                 if (fileIds.size > 0) {
                     // 2. Get or Create Root Folder 'API Uploads'
@@ -105,7 +107,7 @@ export default factories.createCoreController('api::loan-application.loan-applic
                             for (const fileId of fileIds) {
                                 try {
                                     await strapi.entityService.update('plugin::upload.file', fileId, {
-                                        data: { 
+                                        data: {
                                             folder: leadFolder.id,
                                             folderPath: leadFolder.path
                                         }
