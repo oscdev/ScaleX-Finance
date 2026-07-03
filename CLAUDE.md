@@ -111,7 +111,7 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 | `lead` | Customer leads submitted via advisor referral | `fullName`, `email`, `mobileNumber`, `requiredAmount`, `selectedProduct`, `leadType`, `leadStatus`, `advisorReferralId`, `parentAdvisorId`, `employmentType`, `propertyType`, `pinCode`, `panCard`, `aadharCard` |
 | `loan-application` | Full loan application tied to a lead | `leadId`, `applicantName`, `loanType`, `loanAmount`, `status`, `form_data`, `assignedStaffId`, `assignedBankerId`, docs fields (panCard, aadharCardFront/Back, salarySlips, etc.) |
 | `lead-remark` | Conversation/remarks history on a lead | `leadId`, `advisor_admin_staff_remark`, `banker_admin_staff_remark` |
-| `lender` | Lender institution records | — |
+| `lenders-catalog` | Master lender registry (replaces the deprecated `lender`/`lenders` table). Also the master table referenced by the Personal Loan lender-matching engine (`lenders-criteria-pl`, `zip-code`, `lender-business-exclusion`, `advanced-lenders-criteria-pl`) | `lenderName`, `lenderType`, `lenderCode`, `isActive` |
 | `product` | Financial product definitions | — |
 | `user-product-mapping` | Maps admin users (staff/bankers) to products | `adminUserId`, `user_role` (staff/banker), `product` |
 | `loan-app-section-permission` | Controls which sections a role can see in loan forms | `roleId`, `roleName`, `permissions` |
@@ -130,7 +130,6 @@ These are single-type or collection-type entries managed via Strapi admin for fr
 | `footer` | Global footer content |
 | `global-setting` | Site-wide settings |
 | `lead-form-page` | Lead capture form page content |
-| `lenders-page` | Lenders directory page content |
 | `loan-application-page` | Loan application page content |
 | `product-page` | Products page content |
 | `advisor-registration-page` | Advisor onboarding page content |
@@ -223,3 +222,15 @@ Copy `.env.example` to `.env` and update:
 - Server Actions are configured with `allowedOrigins: ['scalex.local', 'localhost:3000']`
 - Staff/Banker assignment uses Strapi admin user IDs (not advisor collection IDs)
 - `lead-remark` is a flat record per lead (not an array) — remarks are appended text blobs, not individual comment objects
+- The deprecated `lender` collection (`lenders` table) has been removed; the public `/lenders` page and all lender data now read from `lenders-catalog`. The `lenders` table is dropped via a migration — the old `name`/`interestRateOffer`/`matchPercentage`/`applyUrl`/`logo` display fields no longer exist, the page now shows `lenderName`/`lenderType`/`lenderCode`
+- The `lenders-page` / `lenders-catalog-page` single type (CMS copy for the `/lenders` page header) has been removed entirely, table `lenders_catalog_page` dropped. The `/lenders` page header text is now hardcoded ("Matched Lenders" / "Based on your application...") in `frontend/src/app/lenders/page.tsx`
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
