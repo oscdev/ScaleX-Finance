@@ -424,7 +424,7 @@ export const installFetchInterceptor = () => {
                 // 0. Generic: capture configured pageSize for any collection so
                 //    injectEarlyCSS._fixCollectionPageSize can sync the URL on
                 //    navigation. Covers api::lead.lead, api::advisor.advisor,
-                //    api::activity-log.activity-log, api::lender.lender,
+                //    api::activity-log.activity-log, api::lenders-catalog.lenders-catalog,
                 //    api::product.product, and any future collection types.
                 if (url.includes('configuration') && json?.data) {
                     const uidM = url.match(/\/content-types\/(api::[^/?#]+)\/configuration/);

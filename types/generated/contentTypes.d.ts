@@ -835,7 +835,6 @@ export interface ApiCibilReportSummaryCibilReportSummary
     leadId: Schema.Attribute.Integer &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
-    lenderCode: Schema.Attribute.String & Schema.Attribute.Required;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1340,47 +1339,6 @@ export interface ApiLenderBusinessExclusionLenderBusinessExclusion
   };
 }
 
-export interface ApiLenderLender extends Struct.CollectionTypeSchema {
-  collectionName: 'lenders';
-  info: {
-    description: 'Financial institutions and banks providing loans';
-    displayName: 'Lender';
-    pluralName: 'lenders';
-    singularName: 'lender';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    applyUrl: Schema.Attribute.String & Schema.Attribute.DefaultTo<'#'>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    interestRateOffer: Schema.Attribute.String & Schema.Attribute.Required;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::lender.lender'
-    > &
-      Schema.Attribute.Private;
-    logo: Schema.Attribute.Media<'images'>;
-    matchPercentage: Schema.Attribute.Integer &
-      Schema.Attribute.SetMinMax<
-        {
-          max: 100;
-          min: 0;
-        },
-        number
-      > &
-      Schema.Attribute.DefaultTo<90>;
-    name: Schema.Attribute.String & Schema.Attribute.Required;
-    publishedAt: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
 export interface ApiLendersCatalogLendersCatalog
   extends Struct.CollectionTypeSchema {
   collectionName: 'lenders_catalog';
@@ -1392,14 +1350,6 @@ export interface ApiLendersCatalogLendersCatalog
   };
   options: {
     draftAndPublish: false;
-  };
-  pluginOptions: {
-    'content-manager': {
-      visible: false;
-    };
-    'content-type-builder': {
-      visible: false;
-    };
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -1496,38 +1446,6 @@ export interface ApiLendersCriteriaPlLendersCriteriaPl
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<false>;
     publishedAt: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiLendersPageLendersPage extends Struct.SingleTypeSchema {
-  collectionName: 'lenders_pages';
-  info: {
-    description: 'CMS settings for the Matched Lenders results page';
-    displayName: 'Lenders Page';
-    pluralName: 'lenders-pages';
-    singularName: 'lenders-page';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    description: Schema.Attribute.Text &
-      Schema.Attribute.DefaultTo<'Based on your application, these lenders are the best match for your requirements.'>;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::lenders-page.lenders-page'
-    > &
-      Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
-    title: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Matched Lenders'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2595,10 +2513,8 @@ declare module '@strapi/strapi' {
       'api::lead-remark.lead-remark': ApiLeadRemarkLeadRemark;
       'api::lead.lead': ApiLeadLead;
       'api::lender-business-exclusion.lender-business-exclusion': ApiLenderBusinessExclusionLenderBusinessExclusion;
-      'api::lender.lender': ApiLenderLender;
       'api::lenders-catalog.lenders-catalog': ApiLendersCatalogLendersCatalog;
       'api::lenders-criteria-pl.lenders-criteria-pl': ApiLendersCriteriaPlLendersCriteriaPl;
-      'api::lenders-page.lenders-page': ApiLendersPageLendersPage;
       'api::loan-app-section-permission.loan-app-section-permission': ApiLoanAppSectionPermissionLoanAppSectionPermission;
       'api::loan-application-page.loan-application-page': ApiLoanApplicationPageLoanApplicationPage;
       'api::loan-application.loan-application': ApiLoanApplicationLoanApplication;

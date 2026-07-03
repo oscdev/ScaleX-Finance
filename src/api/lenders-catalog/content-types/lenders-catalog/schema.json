@@ -10,14 +10,7 @@
     "options": {
         "draftAndPublish": false
     },
-    "pluginOptions": {
-        "content-manager": {
-            "visible": false
-        },
-        "content-type-builder": {
-            "visible": false
-        }
-    },
+    "pluginOptions": {},
     "attributes": {
         "lenderName": {
             "type": "string",
