@@ -1,0 +1,312 @@
+extract:
+
+  cibil_score:
+    aliases:
+      - CIBIL Score
+      - Creditvision Score
+      - Bureau Score
+
+    # Ordered most-specific first: apply_patterns collects candidates
+    # pattern by pattern, and the extractor returns the first one
+    # that validates - so a precise pattern here reliably wins even
+    # when a later, broader pattern would also match, e.g. against
+    # descriptive boilerplate text that itself mentions "300"/"900"
+    # before the real score appears.
+    patterns:
+      - '(?is)Your\s*CIBIL\s*Score\s*is\s*([3-9][0-9]{2})'
+      - '(?is)SCORING\s*FACTORS.*?([3-9][0-9]{2})'
+      - '(?is)300\s*\(high\s*risk\)\s*to\s*900\s*\(low\s*risk\).*?300\s*900\s*([3-9][0-9]{2})'
+      - '(?is)CIBIL\s*Score.*?\b([3-9][0-9]{2})\b'
+
+    validation:
+      type: integer
+      min: 300
+      max: 900
+
+    normalization:
+      strip: true
+
+    value: one
+    context_window: 3
+
+
+  pan_number:
+    aliases:
+      - PAN
+      - PAN Number
+      - Permanent Account Number
+
+    patterns:
+      - '(?i)PAN\s*:?\s*([A-Z]{5}[0-9]{4}[A-Z])'
+      - '(?i)PAN\s*Number\s*:?\s*([A-Z]{5}[0-9]{4}[A-Z])'
+      - '(?i)Permanent\s*Account\s*Number\s*:?\s*([A-Z]{5}[0-9]{4}[A-Z])'
+      - '\b([A-Za-z]{5}[0-9]{4}[A-Za-z])\b'
+
+    validation:
+      type: regex
+      regex: '^[A-Z]{5}[0-9]{4}[A-Z]$'
+
+    normalization:
+      uppercase: true
+      strip: true
+
+    value: one
+    context_window: 3
+
+
+  permanent_address:
+    aliases:
+      - Permanent
+      - Residence
+      - Address
+      - Permanent Address
+      - Residence Address
+
+    # Used when a report lists multiple labelled addresses side by
+    # side (group 1 = address text, group 2 = its category label).
+    # If this doesn't match a given report, extraction falls back to
+    # the aliases/patterns-based hybrid search below.
+    category_pattern: '(?is)\bAddress\b(?!\s*DETAILS)\s*(.*?)\s*\bCategory\b\s*(.*?)\s*(?=Residence\s*Code|Date\s*Reported|$)'
+    preferred_category: 'Permanent Address'
+
+    patterns:
+      - '(?is)([A-Za-z0-9,/().#\-\s]{20,250}?\b\d{6}\b)'
+      - '(?is)([A-Za-z0-9,/().#\-\s]{20,250}?,\s*[A-Za-z ]+\s*-\s*\d{6})'
+      - '(?is)([A-Za-z0-9,/().#\-\s]{20,250}?,\s*[A-Za-z ]+\s+\d{6})'
+      - '(?is)([A-Za-z0-9,/().#\-\n\s]{20,300}\b\d{6}\b)'
+
+    validation:
+      type: address
+      min_length: 20
+      max_length: 250
+      min_score: 70
+
+    normalization:
+      strip: true
+      collapse_spaces: true
+      collapse_newlines: true
+
+    value: one
+    context_window: 7
+
+
+  emi_amount:
+    aliases:
+      - EMI
+      - EMI Amount
+      - Monthly Payment
+      - Actual Payment
+
+    # [^\d]{0,20} (bounded) rather than [^\d]* (unbounded): the value
+    # is always within a short distance of its label - either on the
+    # same line or the very next one. An unbounded skip would happily
+    # run past a "-" (no value reported) placeholder and grab an
+    # unrelated digit from a different field several lines down.
+    patterns:
+      - '(?is)EMI\s*:?\s*[^\d]{0,20}([0-9][0-9,]*)'
+      - '(?is)Actual\s*Payment\s*:?\s*[^\d]{0,20}([0-9][0-9,]*)'
+      - '(?is)Monthly\s*Payment\s*:?\s*[^\d]{0,20}([0-9][0-9,]*)'
+      - '(?is)EMI\s*Amount\s*:?\s*[^\d]{0,20}([0-9][0-9,]*)'
+
+    validation:
+      type: currency
+      min: 0
+
+    normalization:
+        remove_commas: true
+        strip: true
+
+    value: many
+    context_window: 6
+
+
+  current_balance:
+    aliases:
+      - Current Balance
+      - Outstanding Balance
+      - Outstanding Amount
+
+    patterns:
+      - '(?is)Current\s*Balance\s*:?\s*[^\d-]{0,20}(-?[0-9][0-9,]*)'
+      - '(?is)Outstanding\s*Balance\s*:?\s*[^\d-]{0,20}(-?[0-9][0-9,]*)'
+      - '(?is)Outstanding\s*Amount\s*:?\s*₹?\s*[^\d-]{0,20}(-?[0-9][0-9,]*)'
+
+    validation:
+      type: currency
+      min: 0
+
+    normalization:
+      remove_commas: true
+      strip: true
+
+    value: many
+    context_window: 6
+
+
+  credit_limit:
+    aliases:
+      - Credit Limit
+      - Sanctioned Amount
+      - Credit Line
+
+    patterns:
+      - '(?is)Sanctioned\s*Amount\s*:?\s*[^\d]{0,20}([0-9][0-9,]*)'
+      - '(?is)Credit\s*Limit\s*:?\s*[^\d]{0,20}([0-9][0-9,]*)'
+      - '(?is)Credit\s*Line\s*:?\s*[^\d]{0,20}([0-9][0-9,]*)'
+
+    validation:
+      type: currency
+      min: 0
+
+    normalization:
+      remove_commas: true
+      strip: true
+
+    value: many
+    context_window: 6
+
+
+  payment_history:
+    aliases:
+      - Days Past Due
+      - DPD
+      - Payment History
+
+    search:
+      before_lines: 2
+      after_lines: 90
+
+    # Two known payment-history layouts are described side by side:
+    #   - a "Days Past Due" grid (YEAR header + repeating year/12-values
+    #     rows)
+    #   - a flat "Payment History" list (one "Mon YYYY value" row per
+    #     month)
+    # Whichever one matches a given report is used automatically -
+    # see PaymentHistoryValidator, which parses either shape.
+    patterns:
+      - '(?is)Days\s*Past\s*Due.*?YEAR(.*?)(?=ACCOUNT\s*INFORMATION|ACCOUNT\s*TYPE|$)'
+      - '(?is)DPD.*?YEAR(.*?)(?=ACCOUNT\s*INFORMATION|ACCOUNT\s*TYPE|$)'
+      - '(?is)Payment\s*History.*?YEAR(.*?)(?=ACCOUNT\s*INFORMATION|ACCOUNT\s*TYPE|$)'
+      - '(?is)Payment\s*History\s*(.*?)(?=PAYMENT\s*STATUS|STD\s*:|Member\s*Name|$)'
+
+    # Anchor "last N months" to the report's own printed date rather
+    # than the machine's clock - see extract_reference_date(). Falls
+    # back to the real date if this doesn't match a given report.
+    reference_date_pattern:
+      - '(?im)^\s*Date\s*:\s*(\d{2}/\d{2}/\d{4})'
+      - '(?i)REPORT\s*DATE\s*(?:&|AND)?\s*TIME\s*:\s*(\d{2}/\d{2}/\d{4})'
+
+    validation:
+      type: payment_history
+      months_back: 6
+
+    normalization:
+      collapse_spaces: true
+      strip: true
+
+    value: many_one
+
+
+  enquiries_date:
+    aliases:
+      - Date Of Enquiry
+      - Date of Inquiry
+      - Enquiry Date
+      - Inquiry Date
+      - Enquiry Details
+      - Enquiry History
+      - Inquiry History
+
+    search:
+      before_lines: 2
+      after_lines: 15
+
+    # No section_patterns here on purpose: aliases already anchor
+    # tightly on the real enquiry rows, so an extra isolation regex
+    # only adds risk - e.g. a report's glossary can happen to
+    # mention "Enquiry Details" too, and a wider isolation regex can
+    # latch onto that noise instead and discard the real rows that
+    # came before it within the same (correctly narrow) window.
+    # The negative lookahead excludes a report's own page-timestamp
+    # footer (e.g. "05/01/2026, 15:44"), which otherwise matches the
+    # same dd/mm/yyyy shape as a real enquiry date.
+    patterns:
+      - '(?m)^\s*(\d{2}/\d{2}/\d{4})(?!,\s*\d{1,2}:\d{2})\s+.*$'
+      - '\b(\d{2}/\d{2}/\d{4})\b(?!,\s*\d{1,2}:\d{2})'
+
+    # See payment_history for why "last N months" is anchored to
+    # the report's own printed date rather than the machine clock.
+    reference_date_pattern:
+      - '(?im)^\s*Date\s*:\s*(\d{2}/\d{2}/\d{4})'
+      - '(?i)REPORT\s*DATE\s*(?:&|AND)?\s*TIME\s*:\s*(\d{2}/\d{2}/\d{4})'
+
+    validation:
+      type: enquiry_date
+      months_back: 3
+
+    normalization:
+      strip: true
+
+    value: many_one
+
+
+  active_unsecured_loan_count:
+
+    # Bound the search to the accounts section, excluding the
+    # enquiries list further down (which reuses "Member Name" too).
+    # If a report has no such heading, the whole document is used.
+    region_pattern: '(?is)ALL\s*ACCOUNTS(.*?)(?=ENQUIRY\s*DETAILS|$)'
+
+    # Split the (bounded) document into one block per reported
+    # account. Two known anchor conventions are listed - whichever
+    # one actually appears in a given report is used.
+    block_pattern:
+      - '(?is)ACCOUNT\s*INFORMATION(.*?)(?=ACCOUNT\s*INFORMATION|CONSUMER\s*ENQUIRY|ENQUIRY\s*DETAILS|$)'
+      - '(?is)Member\s*Name(.*?)(?=Member\s*Name|Disclaimer|ENQUIRY\s*DETAILS|$)'
+
+    # Convention 1: a literal status token inside each block.
+    status_patterns:
+      active: '(?i)\bACTIVE\b'
+      inactive: '(?i)\bINACTIVE\b'
+
+    # Convention 2: accounts are grouped under a labelled section
+    # instead of being tagged individually. Used automatically when
+    # no block anywhere matches status_patterns.
+    scope_patterns:
+      active: '(?is)OPEN\s*ACCOUNTS(.*?)(?=CLOSED\s*ACCOUNTS|$)'
+      inactive: '(?is)CLOSED\s*ACCOUNTS(.*?)$'
+
+    # Extract the account type text from within the block
+    type_pattern: '(?is)Account\s*Type\s*:?\s*(.{1,60}?)\s*(?:Account\s*Number|Member|Amounts|Ownership|$)'
+
+    # Keyword lists used to classify the extracted type text.
+    # Add/adjust keywords per bureau/report vocabulary - no code
+    # changes needed.
+    type_classification:
+      unsecured:
+        - Personal Loan
+        - Credit Card
+        - Consumer Loan
+        - Business Loan
+        - Microfinance
+        - Overdraft
+        - Education Loan
+      secured:
+        - Housing Loan
+        - Home Loan
+        - Property Loan
+        - Construction Equipment Loan
+        - Gold Loan
+        - Auto Loan
+        - Car Loan
+        - Vehicle Loan
+        - Two-wheeler Loan
+        - Two Wheeler Loan
+        - Commercial Vehicle Loan
+        - Loan Against Property
+
+    # Only count blocks satisfying both of these
+    count_status: active
+    count_classification: unsecured
+
+    value: count

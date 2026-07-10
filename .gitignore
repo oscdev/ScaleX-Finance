@@ -2,6 +2,13 @@
 # OS X
 ############################
 
+graphify-out
+graphify-out/
+.cursor
+..gitignore.swp
+.claude
+.vscode
+graphify-out/*
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -95,6 +102,8 @@ pids
 logs
 results
 node_modules
+.venv
+venv
 .node_history
 
 ############################
@@ -118,8 +127,14 @@ yarn-error.log
 coverage
 
 ############################
-# Strapi
+# Bureau PDF extraction artifacts
 ############################
+
+src/api/bureau-data-extraction/integrations/python/pdf_extractor/data/outputs/
+src/api/bureau-data-extraction/integrations/python/pdf_extractor/logs/
+src/api/bureau-data-extraction/integrations/python/pdf_extractor/.pytest_cache/
+src/api/bureau-data-extraction/integrations/python/pdf_extractor/.git/
+
 
 .env
 license.txt

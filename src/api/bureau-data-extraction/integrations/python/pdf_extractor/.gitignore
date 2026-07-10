@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Conda
+.env
+.venv
+conda-meta/
+.envrc
+
+# IDE
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+
+# Environment variables
+.env
+
+# Test / cache
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Build
+dist/
+build/
+
+# Local embeddings/vector indexes
+data/embeddings/
+
+# Processed/generated artifacts
+data/processed/
+data/outputs/
+
+# OCR temp files
+*.tmp

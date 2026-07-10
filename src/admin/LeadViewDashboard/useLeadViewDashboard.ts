@@ -79,6 +79,7 @@ export const PRODUCT_CONFIG: Record<string, { leadFields: any[] }> = {
 export const DOC_LABELS: Record<string, string> = {
     proprietorshipDoc: 'Proprietorship Doc',
     panCard: 'Pan Card',
+    cibilReport: 'CIBIL Report',
     aadharCardFront: 'Aadhar Card Front',
     aadharCardBack: 'Aadhar Card Back',
     bankStatement: '6 Month Bank Statement',

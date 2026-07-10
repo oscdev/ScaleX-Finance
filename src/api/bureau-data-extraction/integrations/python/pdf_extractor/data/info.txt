@@ -1,0 +1,4 @@
+Folder Explicitly for data, not for code. This is to avoid confusion and to keep the codebase clean.
+
+Create Sub-Folders for different types of data, such as "raw", "processed", "external", etc. 
+This will help in organizing the data and making it easier to manage.

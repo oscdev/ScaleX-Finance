@@ -313,10 +313,13 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
     };
 
     const isSelfEmployedDoc = occupation === 'Self Employed';
+    const cibilField = { name: pageInfo.cibilReportLabel || 'CIBIL Report', key: 'cibilReport', id: '#CIBIL' };
     const docFields = (loanType === 'Business Loan' || isSelfEmployedDoc) ? [
-        { name: formData.businessType ? `Document for ${formData.businessType}` : 'Select Business Type in Business Details', key: 'proprietorshipDoc', id: '#1' }
+        { name: formData.businessType ? `Document for ${formData.businessType}` : 'Select Business Type in Business Details', key: 'proprietorshipDoc', id: '#1' },
+        cibilField,
     ] : loanType === 'Home Loan' ? [
         { name: pageInfo.panCardLabel || 'Pan Card', key: 'panCard', id: '#1' },
+        cibilField,
         { name: pageInfo.adharFrontLabel || 'Aadhar Card Front', key: 'aadharCardFront', id: '#2' },
         { name: pageInfo.adharBackLabel || 'Aadhar Card Back', key: 'aadharCardBack', id: '#3' },
         { name: pageInfo.coAppPanLabel || 'Co-Applicant Pan Card', key: 'coAppPan', id: '#4' },
@@ -327,6 +330,7 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
         { name: pageInfo.propertyPapersLabel || 'Property Papers', key: 'propertyPapers', id: '#9' },
     ] : [
         { name: pageInfo.panCardLabel || 'Pan Card', key: 'panCard', id: '#1' },
+        cibilField,
         { name: pageInfo.adharFrontLabel || 'Aadhar Card Front', key: 'aadharCardFront', id: '#2' },
         { name: pageInfo.adharBackLabel || 'Aadhar Card Back', key: 'aadharCardBack', id: '#3' },
         { name: pageInfo.salarySlipsLabel || 'Salary Slip 1 year', key: 'salarySlips', id: '#4' },

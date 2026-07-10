@@ -1,5 +1,6 @@
 import type { Core } from '@strapi/strapi';
 import { getEmailTemplate } from './email-templates';
+import { ensurePythonEnvironment } from './api/bureau-data-extraction/services/python-bridge';
 
 const createAdminUserFromAdvisor = async (strapi: Core.Strapi, advisor: any, rawPassword?: string) => {
   if (advisor.advisorStatus === 'Approved') {
@@ -188,6 +189,8 @@ export default {
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     // console.log('[Bootstrap] Initialization started...');
 
+    await ensurePythonEnvironment(strapi.log);
+
     // 1. Create/Verify Advisor role
     let advisorRole = await strapi.db.query('admin::role').findOne({
       where: { code: 'strapi-advisor' }
@@ -228,7 +231,7 @@ export default {
       const allLoanAppFields = [
         'leadId', 'loanAmount', 'loanType', 'form_data', 'status',
         'aadharNumber', 'panNumber', 'businessName', 'applicantName', 'email', 'phone',
-        'proprietorshipDoc', 'panCard', 'aadharCardFront', 'aadharCardBack',
+        'proprietorshipDoc', 'panCard', 'cibilReport', 'aadharCardFront', 'aadharCardBack',
         'businessRegProofDoc', 'bankStatement', 'propertyPapers', 'coAppPan',
         'coAppAadharFront', 'coAppAadharBack', 'salarySlips', 'otherDocs',
         'declarationAccepted', 'assignedStaffId', 'assignedBankerId',
@@ -412,7 +415,7 @@ export default {
           const allLoanAppFields = [
             'leadId', 'loanAmount', 'loanType', 'form_data', 'status',
             'aadharNumber', 'panNumber', 'businessName', 'applicantName', 'email', 'phone',
-            'proprietorshipDoc', 'panCard', 'aadharCardFront', 'aadharCardBack',
+            'proprietorshipDoc', 'panCard', 'cibilReport', 'aadharCardFront', 'aadharCardBack',
             'businessRegProofDoc', 'bankStatement', 'propertyPapers', 'coAppPan',
             'coAppAadharFront', 'coAppAadharBack', 'salarySlips', 'otherDocs',
             'declarationAccepted', 'assignedStaffId', 'assignedBankerId',

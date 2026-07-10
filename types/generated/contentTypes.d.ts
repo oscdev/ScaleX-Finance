@@ -802,7 +802,7 @@ export interface ApiAxisBankPageAxisBankPage extends Struct.SingleTypeSchema {
   };
 }
 
-export interface ApiCibilReportSummaryCibilReportSummary
+export interface ApiBureauDataExtractionCibilReportSummary
   extends Struct.CollectionTypeSchema {
   collectionName: 'cibil_report_summary';
   info: {
@@ -828,17 +828,18 @@ export interface ApiCibilReportSummaryCibilReportSummary
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     dataSource: Schema.Attribute.Enumeration<
-      ['MANUAL', 'CIBIL_API', 'EXPERIAN', 'EQUIFAX', 'CRIF']
+      ['MANUAL', 'PDF_EXTRACTION', 'CIBIL_API', 'EXPERIAN', 'EQUIFAX', 'CRIF']
     > &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'MANUAL'>;
     leadId: Schema.Attribute.Integer &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
+    loanApplicationId: Schema.Attribute.Integer;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
-      'api::cibil-report-summary.cibil-report-summary'
+      'api::bureau-data-extraction.cibil-report-summary'
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
@@ -1796,6 +1797,7 @@ export interface ApiLoanApplicationLoanApplication
     bankStatement: Schema.Attribute.Media<'files' | 'images'>;
     businessName: Schema.Attribute.String;
     businessRegProofDoc: Schema.Attribute.Media<'files' | 'images'>;
+    cibilReport: Schema.Attribute.Media<'files' | 'images'>;
     coAppAadharBack: Schema.Attribute.Media<'files' | 'images'>;
     coAppAadharFront: Schema.Attribute.Media<'files' | 'images'>;
     coAppPan: Schema.Attribute.Media<'files' | 'images'>;
@@ -2502,7 +2504,7 @@ declare module '@strapi/strapi' {
       'api::advisor-registration-page.advisor-registration-page': ApiAdvisorRegistrationPageAdvisorRegistrationPage;
       'api::advisor.advisor': ApiAdvisorAdvisor;
       'api::axis-bank-page.axis-bank-page': ApiAxisBankPageAxisBankPage;
-      'api::cibil-report-summary.cibil-report-summary': ApiCibilReportSummaryCibilReportSummary;
+      'api::bureau-data-extraction.cibil-report-summary': ApiBureauDataExtractionCibilReportSummary;
       'api::contact-us-page.contact-us-page': ApiContactUsPageContactUsPage;
       'api::footer.footer': ApiFooterFooter;
       'api::global-setting.global-setting': ApiGlobalSettingGlobalSetting;

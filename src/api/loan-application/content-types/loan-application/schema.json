@@ -68,6 +68,14 @@
                 "images"
             ]
         },
+        "cibilReport": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
         "aadharCardFront": {
             "type": "media",
             "multiple": false,

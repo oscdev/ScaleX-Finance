@@ -107,7 +107,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         propertyType: string; propertyStatus: string; propertyValue: string;
         companyName: string; designation: string; companyAddress: string; netSalary: string; salaryMode: string; jobStability: string;
         runningLoans: any[]; tempLoanId: string; tempLoanType: string; tempBankName: string; tempLoanAmount: string; tempEmiAmount: string; tempPaidEmi: string;
-        proprietorshipDoc: File | null; panCard: File | null; aadharCardFront: File | null; aadharCardBack: File | null; businessRegProofDoc: File | null;
+        proprietorshipDoc: File | null; panCard: File | null; cibilReport: File | null; aadharCardFront: File | null; aadharCardBack: File | null; businessRegProofDoc: File | null;
         bankStatement: File | null; propertyPapers: File | null; coAppPan: File | null; coAppAadharFront: File | null; coAppAadharBack: File | null;
         salarySlips: File[]; otherDocs: File[];
         addedDocs: any[]; uploadedFields: Record<string, boolean>;
@@ -155,6 +155,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         tempPaidEmi: '',
         proprietorshipDoc: null,
         panCard: null,
+        cibilReport: null,
         aadharCardFront: null,
         aadharCardBack: null,
         businessRegProofDoc: null,
@@ -313,7 +314,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
             const leadId = ss.getItem('lastLeadId');
             const uploadedFileIds: Record<string, any> = {};
             const filesToUpload = [
-                'proprietorshipDoc', 'panCard', 'aadharCardFront', 'aadharCardBack',
+                'proprietorshipDoc', 'panCard', 'cibilReport', 'aadharCardFront', 'aadharCardBack',
                 'businessRegProofDoc', 'bankStatement', 'propertyPapers',
                 'coAppPan', 'coAppAadharFront', 'coAppAadharBack'
             ];
@@ -488,6 +489,9 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                 const label = formData.businessType ? `Document for ${formData.businessType}` : 'Business Type Document';
                 errors.push(`Please upload "${label}*" in "Docs" tab.`);
             }
+            if (!formData.uploadedFields['cibilReport']) {
+                errors.push(`Please upload "${pageInfo.cibilReportLabel || 'CIBIL Report'}*" in "Docs" tab.`);
+            }
             return errors;
         }
 
@@ -523,6 +527,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         if (!formData.jobStability) errors.push(`Please enter "${pageInfo.jobStabilityLabel || 'Current Job Stability'}*" in "Income" tab.`);
 
         if (!formData.uploadedFields['panCard']) errors.push(`Please upload "${pageInfo.panCardLabel || 'Pan Card'}*" in "Docs" tab.`);
+        if (!formData.uploadedFields['cibilReport']) errors.push(`Please upload "${pageInfo.cibilReportLabel || 'CIBIL Report'}*" in "Docs" tab.`);
         if (!formData.uploadedFields['aadharCardFront']) errors.push(`Please upload "${pageInfo.adharFrontLabel || 'Aadhar Card Front'}*" in "Docs" tab.`);
         if (!formData.uploadedFields['aadharCardBack']) errors.push(`Please upload "${pageInfo.adharBackLabel || 'Aadhar Card Back'}*" in "Docs" tab.`);
 
