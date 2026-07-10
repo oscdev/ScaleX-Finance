@@ -18,6 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 ├── src/                     # Strapi backend (API, CMS admin panel)
 │   ├── api/                 # Content collections (see full list below)
+│   │   └── bureau-data-extraction/  # Bureau PDF extraction + cibil-report-summary storage
 │   ├── admin/               # Custom admin panel extensions
 │   ├── email-templates/     # Email templates
 │   ├── extensions/          # Plugin customizations
@@ -73,6 +74,18 @@ npm run upgrade
 npm run upgrade:dry
 ```
 
+### Bureau Data Extraction (Python)
+
+Requires a project-root **`.venv`** — created automatically on first `npm run dev` if missing. See [docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md).
+
+```bash
+# Start Strapi — auto-creates .venv + installs Python deps on first run if needed
+npm run dev
+
+# Troubleshooting only — re-run extraction for a lead (Strapi must be running)
+npm run extract:bureau -- <leadId> "<leadName>"
+```
+
 ### Frontend (Next.js)
 
 ```bash
@@ -116,6 +129,19 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 | `user-product-mapping` | Maps admin users (staff/bankers) to products | `adminUserId`, `user_role` (staff/banker), `product` |
 | `loan-app-section-permission` | Controls which sections a role can see in loan forms | `roleId`, `roleName`, `permissions` |
 | `activity-log` | System audit trail | `action`, `description`, `severity`, `model`, `metadata`, `ipAddress`, `userId` |
+
+### Personal Loan / Lender Matching & Bureau Extraction
+
+| Collection / module | Purpose | Key fields / notes |
+|---|---|---|
+| `bureau-data-extraction` | Strapi API module for bureau/salary PDF extraction and persistence | UID: `api::bureau-data-extraction.cibil-report-summary`; Python sub-project in `integrations/python/`; Strapi service `python-bridge.ts` + `POST /api/cibil-report-summaries/extract` |
+| `cibil-report-summary` | Content type inside `bureau-data-extraction`; stores structured bureau + salary JSON per lead | `leadId`, `loanApplicationId` (optional), `cibilData`, `salarySlipData`, `dataSource` (`PDF_EXTRACTION` for AI/PDF pipeline); table `cibil_report_summary`; hidden from Content Manager |
+| `lenders-criteria-pl` | Per-lender PL eligibility thresholds | Used by matching engine (not yet implemented) |
+| `advanced-lenders-criteria-pl` | Per-period DPD/enquiry caps | — |
+| `lender-business-exclusion` | Business-type exclusions per lender | — |
+| `zip-code` | Serviceable pincodes per lender | — |
+
+See [docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md), [docs/BRD-Personal-Loan.md](docs/BRD-Personal-Loan.md), [docs/HLD-Personal-Loan.md](docs/HLD-Personal-Loan.md), [docs/LLD-Personal-Loan.md](docs/LLD-Personal-Loan.md).
 
 ### CMS / Page-Content Collections
 
@@ -185,6 +211,19 @@ The platform has three distinct admin roles:
 6. Remarks/conversation history tracked in `lead-remark` (separate fields per role type)
 7. On success, customer is redirected to `/loan-application-success`
 
+### Bureau Data Extraction Flow (partial — implemented)
+
+1. Documents uploaded during `/loan-application` → Strapi Media Library `API Uploads/{leadId}-{applicantNameNoSpaces}/` and moved on disk to `public/uploads/api_uploads/{leadId}-{applicantNameNoSpaces}/` (`cibilReport` saved as `cibil_report.pdf`)
+2. **`syncLeadDocumentsToDisk`** creates the folder and, when `cibil_report.pdf` is present, **`queueBureauExtraction`** runs Python extraction in the background (no manual `npm run extract:bureau`)
+3. **`python-bridge.ts`** spawns Python (`pdf_extractor/tests/test_field_extraction.py`); auto-resolves `<project-root>/.venv/bin/python3`
+4. Python extracts bureau fields → `pdf_extractor/data/outputs/extracted_fields.json`
+5. Service reads JSON outputs and upserts via **`strapi.db.query()`** into `cibil_report_summary`
+6. PDF input directory: `public/uploads/api_uploads/{leadId}-{applicantNameNoSpaces}/`
+7. Troubleshooting re-run: `POST /api/cibil-report-summaries/extract` or `npm run extract:bureau`
+8. **Not yet wired:** matching engine consumption; full salary-field pipeline
+
+Setup: [docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md)
+
 ## Database & Migrations
 
 Migrations are in `database/migrations/` and run automatically on Strapi startup (Knex-based).
@@ -202,6 +241,7 @@ Copy `.env.example` to `.env` and update:
 - `APP_KEYS`, `API_TOKEN_SALT`, `ADMIN_JWT_SECRET` (Strapi security)
 - `JWT_SECRET`, `ENCRYPTION_KEY` (API auth)
 - Database connection details (if not using default localhost)
+- **Python extraction:** bootstrap `ensurePythonEnvironment()` auto-creates `.venv` and installs deps on first `npm run dev`; optional `PYTHON_PATH` in `.env`
 
 ## Key Files to Know
 
@@ -211,7 +251,9 @@ Copy `.env.example` to `.env` and update:
 - **[frontend/src/lib/safeStorage.ts](frontend/src/lib/safeStorage.ts)** — SSR-safe localStorage/sessionStorage wrappers
 - **[src/api/](src/api/)** — All Strapi collections
 - **[frontend/src/app/](frontend/src/app/)** — All frontend routes and pages
-- **[database/migrations/](database/migrations/)** — Schema migration history
+- **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create, links uploads to Media Library `API Uploads/{leadId}-{name}/` and moves them to `public/uploads/api_uploads/{leadId}-{name}/` only
+- **[src/api/bureau-data-extraction/](src/api/bureau-data-extraction/)** — Bureau PDF extraction (`POST /api/cibil-report-summaries/extract`; reads `public/uploads/api_uploads/`)
+- **[docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md)** — `.venv` setup and extraction runbook
 
 ## Notes
 
@@ -223,7 +265,11 @@ Copy `.env.example` to `.env` and update:
 - Staff/Banker assignment uses Strapi admin user IDs (not advisor collection IDs)
 - `lead-remark` is a flat record per lead (not an array) — remarks are appended text blobs, not individual comment objects
 - The deprecated `lender` collection (`lenders` table) has been removed; the public `/lenders` page and all lender data now read from `lenders-catalog`. The `lenders` table is dropped via a migration — the old `name`/`interestRateOffer`/`matchPercentage`/`applyUrl`/`logo` display fields no longer exist, the page now shows `lenderName`/`lenderType`/`lenderCode`
+- **[database/migrations/](database/migrations/)** — Schema migration history
+- The deprecated `lender` collection (`lenders` table) has been removed; the public `/lenders` page and all lender data now read from `lenders-catalog`. The `lenders` table is dropped via a migration — the old `name`/`interestRateOffer`/`matchPercentage`/`applyUrl`/`logo` display fields no longer exist, the page now shows `lenderName`/`lenderType`/`lenderCode`
 - The `lenders-page` / `lenders-catalog-page` single type (CMS copy for the `/lenders` page header) has been removed entirely, table `lenders_catalog_page` dropped. The `/lenders` page header text is now hardcoded ("Matched Lenders" / "Based on your application...") in `frontend/src/app/lenders/page.tsx`
+- The `cibil-report-summary` collection lives under the **`bureau-data-extraction`** API folder (UID `api::bureau-data-extraction.cibil-report-summary`), not a top-level `src/api/cibil-report-summary/` path
+- Bureau extraction auto-triggers when `cibil_report.pdf` lands in `public/uploads/api_uploads/` via `syncLeadDocumentsToDisk`; matching engine consumption remains open
 
 ## graphify
 

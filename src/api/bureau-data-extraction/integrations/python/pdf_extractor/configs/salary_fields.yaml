@@ -1,0 +1,51 @@
+extract:
+
+  net_salary:
+    aliases:
+      - Total Net Payable
+      - Net Payable
+      - Net Salary
+
+    # "Total Net Payable" (the bottom-line summary row, cross-checked
+    # against "Amount in Words" on this sample slip) is the actual
+    # take-home figure - some payslip templates also print a
+    # differently-named "Net" value in the header block that isn't
+    # the real net-of-deductions amount, so this is deliberately
+    # specific rather than matching any "Net ..." label.
+    patterns:
+      - '(?i)Total\s*Net\s*Payable\s*[^\d]{0,20}([0-9][0-9,]*)'
+      - '(?i)Net\s*Payable\s*[^\d]{0,20}([0-9][0-9,]*)'
+
+    validation:
+      type: currency
+      min: 0
+
+    normalization:
+      remove_commas: true
+      strip: true
+
+    value: one
+    context_window: 3
+
+
+  is_pf_deducted:
+    aliases:
+      - PF Deduction
+      - Provident Fund
+
+    # Extract the PF deduction amount and normalize it to a
+    # boolean: > 0 means PF was deducted, 0/absent means it wasn't.
+    patterns:
+      - '(?i)PF\s*Deduction\s*[^\d]{0,20}([0-9][0-9,]*)'
+      - '(?i)Provident\s*Fund\s*(?:Deduction)?\s*[^\d]{0,20}([0-9][0-9,]*)'
+
+    validation:
+      type: currency
+      min: 0
+
+    normalization:
+      remove_commas: true
+      to_boolean: true
+
+    value: one
+    context_window: 3

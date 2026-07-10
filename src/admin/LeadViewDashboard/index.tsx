@@ -10,6 +10,7 @@ import {
     buildDocuments,
     handleDocView,
 } from './useLeadViewDashboard';
+import { buildLeadUploadFolderName } from '../../api/loan-application/utils/lead-upload-folder';
 import { styles, fileFormatBox, fileFormatText, bubbleStyle, logTextStyle } from './styles';
 
 const SearchableDropdown = ({
@@ -274,7 +275,8 @@ const AddDocumentRow = ({
             const numericId = String(loanApp.id);
             const loanDocId = loanApp.documentId || numericId;
             const numericLeadId = typeof leadId === 'number' ? leadId : (parseInt(String(leadId)) || leadId);
-            const folderName = leadName ? `${numericLeadId}-${leadName}` : String(numericLeadId);
+            const applicantName = loanApp.applicantName || leadName || 'Applicant';
+            const folderName = buildLeadUploadFolderName(numericLeadId, applicantName);
 
             setUploadStatus('Preparing folder…');
             const rootFolderId = await getOrCreateFolder('API Uploads', null);
@@ -287,7 +289,31 @@ const AddDocumentRow = ({
             form.append('ref', 'api::loan-application.loan-application');
             form.append('refId', numericId);
             form.append('field', docType);
-            await post('/upload', form);
+            const uploadRes = await post('/upload', form);
+            const uploadData = uploadRes?.data;
+            const uploadedFiles = Array.isArray(uploadData)
+                ? uploadData
+                : uploadData
+                  ? [uploadData]
+                  : [];
+            const fileIds = uploadedFiles
+                .map((f: { id?: number }) => Number(f.id))
+                .filter((id: number) => Number.isFinite(id));
+
+            if (fileIds.length) {
+                setUploadStatus('Syncing to disk…');
+                await fetch('/api/loan-applications/sync-documents', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        leadId: numericLeadId,
+                        applicantName,
+                        fileIds,
+                        loanApplicationId: loanApp.id,
+                        docType,
+                    }),
+                });
+            }
 
             if (password) {
                 const updatedFormData = {
