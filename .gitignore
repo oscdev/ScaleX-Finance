@@ -1,7 +1,9 @@
 ############################
 # OS X
 ############################
-
+.claude/
+.vscode
+docs/
 graphify-out
 graphify-out/
 .cursor
