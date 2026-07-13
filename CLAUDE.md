@@ -124,11 +124,18 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 | `lead` | Customer leads submitted via advisor referral | `fullName`, `email`, `mobileNumber`, `requiredAmount`, `selectedProduct`, `leadType`, `leadStatus`, `advisorReferralId`, `parentAdvisorId`, `employmentType`, `propertyType`, `pinCode`, `panCard`, `aadharCard` |
 | `loan-application` | Full loan application tied to a lead | `leadId`, `applicantName`, `loanType`, `loanAmount`, `status`, `form_data`, `assignedStaffId`, `assignedBankerId`, docs fields (panCard, aadharCardFront/Back, salarySlips, etc.) |
 | `lead-remark` | Conversation/remarks history on a lead | `leadId`, `advisor_admin_staff_remark`, `banker_admin_staff_remark` |
-| `lenders-catalog` | Master lender registry (replaces the deprecated `lender`/`lenders` table). Also the master table referenced by the Personal Loan lender-matching engine (`lenders-criteria-pl`, `zip-code`, `lender-business-exclusion`, `advanced-lenders-criteria-pl`) | `lenderName`, `lenderType`, `lenderCode`, `isActive` |
 | `product` | Financial product definitions | — |
 | `user-product-mapping` | Maps admin users (staff/bankers) to products | `adminUserId`, `user_role` (staff/banker), `product` |
 | `loan-app-section-permission` | Controls which sections a role can see in loan forms | `roleId`, `roleName`, `permissions` |
 | `activity-log` | System audit trail | `action`, `description`, `severity`, `model`, `metadata`, `ipAddress`, `userId` |
+
+### Lender Master
+
+| Collection / module | Purpose | Key fields / notes |
+|---|---|---|
+| `lender-master` | Strapi API module for master lender registry + serviceable pincodes | Module path `src/api/lender-master/`; see [docs/Lender-Master.md](docs/Lender-Master.md) |
+| `lenders-catalog` | Content type inside `lender-master`; master registry of financial institutions (replaces deprecated `lender`/`lenders` table) | UID: `api::lender-master.lenders-catalog`; table `lenders_catalog`; REST `/api/lenders-catalogs`; fields `lenderName`, `lenderType`, `lenderCode`, `isActive` |
+| `zip-code` | Content type inside `lender-master`; serviceable pincodes per lender | UID: `api::lender-master.zip-code`; table `zip_codes_to_lenders`; REST `/api/zip-codes`; soft-links via `lenderCode`; hidden from Content Manager |
 
 ### Personal Loan / Lender Matching & Bureau Extraction
 
@@ -136,12 +143,11 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 |---|---|---|
 | `bureau-data-extraction` | Strapi API module for bureau/salary PDF extraction and persistence | UID: `api::bureau-data-extraction.cibil-report-summary`; Python sub-project in `integrations/python/`; Strapi service `python-bridge.ts` + `POST /api/cibil-report-summaries/extract` |
 | `cibil-report-summary` | Content type inside `bureau-data-extraction`; stores structured bureau + salary JSON per lead | `leadId`, `loanApplicationId` (optional), `cibilData`, `salarySlipData`, `dataSource` (`PDF_EXTRACTION` for AI/PDF pipeline); table `cibil_report_summary`; hidden from Content Manager |
-| `lenders-criteria-pl` | Per-lender PL eligibility thresholds | Used by matching engine (not yet implemented) |
-| `advanced-lenders-criteria-pl` | Per-period DPD/enquiry caps | — |
-| `lender-business-exclusion` | Business-type exclusions per lender | — |
-| `zip-code` | Serviceable pincodes per lender | — |
+| `lenders-criteria-pl` | Per-lender PL eligibility thresholds | Soft-links to catalog via `lenderCode`; used by matching engine (not yet implemented); remains a top-level API |
+| `advanced-lenders-criteria-pl` | Per-period DPD/enquiry caps | Soft-links via `lenderCode`; remains a top-level API |
+| `lender-business-exclusion` | Business-type exclusions per lender | Soft-links via `lenderCode`; remains a top-level API |
 
-See [docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md), [docs/BRD-Personal-Loan.md](docs/BRD-Personal-Loan.md), [docs/HLD-Personal-Loan.md](docs/HLD-Personal-Loan.md), [docs/LLD-Personal-Loan.md](docs/LLD-Personal-Loan.md).
+See [docs/Lender-Master.md](docs/Lender-Master.md), [docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md), [docs/BRD-Personal-Loan.md](docs/BRD-Personal-Loan.md), [docs/HLD-Personal-Loan.md](docs/HLD-Personal-Loan.md), [docs/LLD-Personal-Loan.md](docs/LLD-Personal-Loan.md).
 
 ### CMS / Page-Content Collections
 
@@ -260,7 +266,9 @@ Copy `.env.example` to `.env` and update:
 - **[frontend/src/app/](frontend/src/app/)** — All frontend routes and pages
 - **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create, links uploads to Media Library `API Uploads/{leadId}-{name}/` and moves them to `public/uploads/api_uploads/{leadId}-{name}/` only
 - **[src/api/bureau-data-extraction/](src/api/bureau-data-extraction/)** — Bureau PDF extraction (`POST /api/cibil-report-summaries/extract`; reads `public/uploads/api_uploads/`)
+- **[src/api/lender-master/](src/api/lender-master/)** — Lender master registry + zip coverage (`lenders-catalog`, `zip-code`)
 - **[docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md)** — `.venv` setup and extraction runbook
+- **[docs/Lender-Master.md](docs/Lender-Master.md)** — Lender Master module reference
 
 ## Notes
 
@@ -271,10 +279,10 @@ Copy `.env.example` to `.env` and update:
 - Server Actions are configured with `allowedOrigins: ['scalex.local', 'localhost:3000']`
 - Staff/Banker assignment uses Strapi admin user IDs (not advisor collection IDs)
 - `lead-remark` is a flat record per lead (not an array) — remarks are appended text blobs, not individual comment objects
-- The deprecated `lender` collection (`lenders` table) has been removed; the public `/lenders` page and all lender data now read from `lenders-catalog`. The `lenders` table is dropped via a migration — the old `name`/`interestRateOffer`/`matchPercentage`/`applyUrl`/`logo` display fields no longer exist, the page now shows `lenderName`/`lenderType`/`lenderCode`
+- The deprecated `lender` collection (`lenders` table) has been removed; the public `/lenders` page and all lender data now read from `lenders-catalog` inside **`lender-master`** (UID `api::lender-master.lenders-catalog`). The `lenders` table is dropped via a migration — the old `name`/`interestRateOffer`/`matchPercentage`/`applyUrl`/`logo` display fields no longer exist, the page now shows `lenderName`/`lenderType`/`lenderCode`
 - **[database/migrations/](database/migrations/)** — Schema migration history
-- The deprecated `lender` collection (`lenders` table) has been removed; the public `/lenders` page and all lender data now read from `lenders-catalog`. The `lenders` table is dropped via a migration — the old `name`/`interestRateOffer`/`matchPercentage`/`applyUrl`/`logo` display fields no longer exist, the page now shows `lenderName`/`lenderType`/`lenderCode`
 - The `lenders-page` / `lenders-catalog-page` single type (CMS copy for the `/lenders` page header) has been removed entirely, table `lenders_catalog_page` dropped. The `/lenders` page header text is now hardcoded ("Matched Lenders" / "Based on your application...") in `frontend/src/app/lenders/page.tsx`
+- The `lenders-catalog` and `zip-code` collections live under the **`lender-master`** API folder (UIDs `api::lender-master.lenders-catalog`, `api::lender-master.zip-code`), not top-level `src/api/lenders-catalog/` / `src/api/zip-code/` paths
 - The `cibil-report-summary` collection lives under the **`bureau-data-extraction`** API folder (UID `api::bureau-data-extraction.cibil-report-summary`), not a top-level `src/api/cibil-report-summary/` path
 - Bureau extraction auto-triggers when `cibil_report.pdf` lands in `public/uploads/api_uploads/` via `syncLeadDocumentsToDisk`; matching engine consumption remains open
 

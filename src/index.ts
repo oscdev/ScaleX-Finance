@@ -341,7 +341,7 @@ export default {
           { action: 'api::loan-application.loan-application.update', role: publicRole.id },
           { action: 'api::product.product.find', role: publicRole.id },
           { action: 'api::loan-application-page.loan-application-page.find', role: publicRole.id },
-          { action: 'api::lenders-catalog.lenders-catalog.find', role: publicRole.id },
+          { action: 'api::lender-master.lenders-catalog.find', role: publicRole.id },
           { action: 'api::about-us-page.about-us-page.find', role: publicRole.id },
           { action: 'api::contact-us-page.contact-us-page.find', role: publicRole.id },
           { action: 'api::axis-bank-page.axis-bank-page.find', role: publicRole.id },
