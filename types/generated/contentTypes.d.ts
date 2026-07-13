@@ -1340,7 +1340,7 @@ export interface ApiLenderBusinessExclusionLenderBusinessExclusion
   };
 }
 
-export interface ApiLendersCatalogLendersCatalog
+export interface ApiLenderMasterLendersCatalog
   extends Struct.CollectionTypeSchema {
   collectionName: 'lenders_catalog';
   info: {
@@ -1372,7 +1372,7 @@ export interface ApiLendersCatalogLendersCatalog
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
-      'api::lenders-catalog.lenders-catalog'
+      'api::lender-master.lenders-catalog'
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
@@ -1942,7 +1942,7 @@ export interface ApiUserProductMappingUserProductMapping
   };
 }
 
-export interface ApiZipCodeZipCode extends Struct.CollectionTypeSchema {
+export interface ApiLenderMasterZipCode extends Struct.CollectionTypeSchema {
   collectionName: 'zip_codes_to_lenders';
   info: {
     description: 'Serviceable pincodes per lender';
@@ -1975,7 +1975,7 @@ export interface ApiZipCodeZipCode extends Struct.CollectionTypeSchema {
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
-      'api::zip-code.zip-code'
+      'api::lender-master.zip-code'
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
@@ -2515,7 +2515,8 @@ declare module '@strapi/strapi' {
       'api::lead-remark.lead-remark': ApiLeadRemarkLeadRemark;
       'api::lead.lead': ApiLeadLead;
       'api::lender-business-exclusion.lender-business-exclusion': ApiLenderBusinessExclusionLenderBusinessExclusion;
-      'api::lenders-catalog.lenders-catalog': ApiLendersCatalogLendersCatalog;
+      'api::lender-master.lenders-catalog': ApiLenderMasterLendersCatalog;
+      'api::lender-master.zip-code': ApiLenderMasterZipCode;
       'api::lenders-criteria-pl.lenders-criteria-pl': ApiLendersCriteriaPlLendersCriteriaPl;
       'api::loan-app-section-permission.loan-app-section-permission': ApiLoanAppSectionPermissionLoanAppSectionPermission;
       'api::loan-application-page.loan-application-page': ApiLoanApplicationPageLoanApplicationPage;
@@ -2523,7 +2524,6 @@ declare module '@strapi/strapi' {
       'api::product-page.product-page': ApiProductPageProductPage;
       'api::product.product': ApiProductProduct;
       'api::user-product-mapping.user-product-mapping': ApiUserProductMappingUserProductMapping;
-      'api::zip-code.zip-code': ApiZipCodeZipCode;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;
