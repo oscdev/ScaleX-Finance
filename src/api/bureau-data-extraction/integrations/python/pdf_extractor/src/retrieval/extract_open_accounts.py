@@ -9,20 +9,23 @@ from src.validator.payment_history_validator import (
 )
 
 
+# (?m) must appear once at the start — Python 3.11+ rejects inline
+# global flags after "|" in an alternation.
 FOOTER_NOISE = re.compile(
-    r"(?m)^\s*\d{2}/\d{2}/\d{4},\s*\d{1,2}:\d{2}\s*$|"
-    r"(?m)^\s*CIBIL Report\s*$|"
-    r"(?m)^\s*https?://\S+\s*$|"
-    r"(?m)^\s*\d{1,3}/\d{1,3}\s*$|"
-    r"(?m)^\s*ACCOUNT DETAILS\s*$|"
-    r"(?m)^\s*PAYMENT STATUS\s*$|"
-    r"(?m)^\s*STD:.*$|"
-    r"(?m)^\s*DBT:.*$|"
-    r"(?m)^\s*###:.*$|"
-    r"(?m)^\s*SMA:.*$|"
-    r"(?m)^\s*LSS:.*$|"
-    r"(?m)^\s*XXX:.*$|"
-    r"(?m)^\s*SUB:.*$"
+    r"(?m)"
+    r"^\s*\d{2}/\d{2}/\d{4},\s*\d{1,2}:\d{2}\s*$|"
+    r"^\s*CIBIL Report\s*$|"
+    r"^\s*https?://\S+\s*$|"
+    r"^\s*\d{1,3}/\d{1,3}\s*$|"
+    r"^\s*ACCOUNT DETAILS\s*$|"
+    r"^\s*PAYMENT STATUS\s*$|"
+    r"^\s*STD:.*$|"
+    r"^\s*DBT:.*$|"
+    r"^\s*###:.*$|"
+    r"^\s*SMA:.*$|"
+    r"^\s*LSS:.*$|"
+    r"^\s*XXX:.*$|"
+    r"^\s*SUB:.*$"
 )
 
 MEMBER_SPLIT = re.compile(r"(?im)(?=^Member\s*Name\s*$)")
