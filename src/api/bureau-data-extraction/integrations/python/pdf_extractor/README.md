@@ -126,10 +126,12 @@ Configured in YAML — edit configs to add fields without code changes.
 
 | Config | Fields |
 |---|---|
-| [`configs/fields.yaml`](configs/fields.yaml) | `cibil_score`, `pan_number`, `permanent_address`, `emi_amount`, `current_balance`, `credit_limit`, `payment_history`, `enquiries_date`, `active_unsecured_loan_count` |
+| [`configs/fields.yaml`](configs/fields.yaml) | PERSONAL: `consumer_name`, `date_of_birth`, `gender`; CONTACT: `telephone_numbers` (top 2); EMAIL: `email_id` (top 1); EMPLOYMENT: `employment_account_type`, `employment_date_reported`, `occupation`; OPEN ACCOUNTS: `open_accounts` (structured, payment history 12 months); ENQUIRY: `enquiries` (structured, last 3 months); plus `cibil_score`, `pan_number`, `permanent_address`, `active_unsecured_loan_count` |
 | [`configs/salary_fields.yaml`](configs/salary_fields.yaml) | `net_salary`, `is_pf_deducted` |
 
-Each field supports: aliases, regex patterns, validation type, normalization, and retrieval mode (`one`, `many`, `many_one`, `count`).
+Each field supports: aliases, regex patterns, validation type, normalization, and retrieval mode (`one`, `many`, `many_one`, `count`, `telephones`, `accounts`, `enquiries`).
+
+Original pre-change copies: [`_backup_20260713_155651/`](_backup_20260713_155651/).
 
 ---
 
@@ -144,9 +146,10 @@ PDFLoader → PDFParser → TextCleaner
         ↓
 SectionChunker
         ↓
-LocalEmbedder → VectorSearch + BM25Search → HybridSearch
+LocalEmbedder → VectorSearch + BM25Search → HybridSearch   (for value: one)
         ↓
 extract_single / extract_many / extract_many_one / extract_count
+extract_telephone_numbers / extract_open_accounts / extract_enquiries
         ↓
 Field validators (src/validator/)
         ↓
