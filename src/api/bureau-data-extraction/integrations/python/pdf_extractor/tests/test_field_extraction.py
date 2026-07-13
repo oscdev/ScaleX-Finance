@@ -14,6 +14,9 @@ from src.retrieval.extract_single import extract_single
 from src.retrieval.extract_many import extract_many
 from src.retrieval.extract_many_one import extract_many_one
 from src.retrieval.extract_count import extract_count
+from src.retrieval.extract_telephone_numbers import extract_telephone_numbers
+from src.retrieval.extract_open_accounts import extract_open_accounts
+from src.retrieval.extract_enquiries import extract_enquiries
 from src.utils.logger import logger
 
 
@@ -79,6 +82,36 @@ def extract_field(
 ):
 
     value_type = field_cfg.get("value", "one")
+
+    # ------------------------------
+    # Structured telephone pairs
+    # ------------------------------
+    if value_type == "telephones":
+
+        return extract_telephone_numbers(
+            field_cfg=field_cfg,
+            all_text=all_text,
+        )
+
+    # ------------------------------
+    # Structured open accounts
+    # ------------------------------
+    if value_type == "accounts":
+
+        return extract_open_accounts(
+            field_cfg=field_cfg,
+            all_text=all_text,
+        )
+
+    # ------------------------------
+    # Structured enquiries
+    # ------------------------------
+    if value_type == "enquiries":
+
+        return extract_enquiries(
+            field_cfg=field_cfg,
+            all_text=all_text,
+        )
 
     # ------------------------------
     # Single value
@@ -174,7 +207,21 @@ def main():
 
     fields = load_fields()
 
-    hybrid, embedder, chunks, all_text = build_pipeline(raw_pdf)
+    # Ingest once; build hybrid retrieval only when at least one field
+    # needs value:one (alias/chunk search). Structured extractors use all_text only.
+    needs_hybrid = any(
+        (field_cfg.get("value", "one") == "one")
+        for field_cfg in fields.values()
+    )
+
+    if needs_hybrid:
+        hybrid, embedder, chunks, all_text = build_pipeline(raw_pdf)
+    else:
+        from src.ingestion.document_ingestor import DocumentIngestor
+
+        corpus = DocumentIngestor(raw_pdf).ingest()
+        all_text = "\n".join(page["text"] for page in corpus["pages"])
+        hybrid = embedder = chunks = None
 
     extracted = {}
 

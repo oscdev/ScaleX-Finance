@@ -216,11 +216,18 @@ The platform has three distinct admin roles:
 1. Documents uploaded during `/loan-application` → Strapi Media Library `API Uploads/{leadId}-{applicantNameNoSpaces}/` and moved on disk to `public/uploads/api_uploads/{leadId}-{applicantNameNoSpaces}/` (`cibilReport` saved as `cibil_report.pdf`)
 2. **`syncLeadDocumentsToDisk`** creates the folder and, when `cibil_report.pdf` is present, **`queueBureauExtraction`** runs Python extraction in the background (no manual `npm run extract:bureau`)
 3. **`python-bridge.ts`** spawns Python (`pdf_extractor/tests/test_field_extraction.py`); auto-resolves `<project-root>/.venv/bin/python3`
-4. Python extracts bureau fields → `pdf_extractor/data/outputs/extracted_fields.json`
-5. Service reads JSON outputs and upserts via **`strapi.db.query()`** into `cibil_report_summary`
+4. Python extracts bureau fields → `pdf_extractor/data/outputs/extracted_fields.json`, including:
+   - PERSONAL DETAILS: `consumer_name`, `date_of_birth`, `gender`
+   - CONTACT / EMAIL / EMPLOYMENT: `telephone_numbers` (top 2), `email_id` (top 1), `employment_account_type`, `employment_date_reported`, `occupation`
+   - OPEN ACCOUNTS: structured `open_accounts[]` (ACCOUNT DETAILS + PAYMENT STATUS; payment history last 12 months)
+   - ENQUIRY DETAILS: structured `enquiries[]` (member, date, purpose; last 3 months)
+   - Also: `cibil_score`, `pan_number`, `permanent_address`, `active_unsecured_loan_count`
+5. Service reads JSON outputs and upserts via **`strapi.db.query()`** into `cibil_report_summary` (`cibilData` JSON)
 6. PDF input directory: `public/uploads/api_uploads/{leadId}-{applicantNameNoSpaces}/`
 7. Troubleshooting re-run: `POST /api/cibil-report-summaries/extract` or `npm run extract:bureau`
 8. **Not yet wired:** matching engine consumption; full salary-field pipeline
+
+Config / parsers: [`configs/fields.yaml`](src/api/bureau-data-extraction/integrations/python/pdf_extractor/configs/fields.yaml), `extract_open_accounts.py`, `extract_enquiries.py`, `extract_telephone_numbers.py`. Backups: `pdf_extractor/_backup_20260713_155651/`, `backups/bureau-fields-remove-legacy_*`, `backups/docs-bureau-extract/`.
 
 Setup: [docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md)
 
