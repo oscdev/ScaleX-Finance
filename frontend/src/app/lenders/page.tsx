@@ -56,9 +56,9 @@ export default async function LendersPage() {
                             <h3 className="lender-name">{lender.name}</h3>
                             <p className="lender-rate">{lender.type}</p>
                             <p className="lender-code">{lender.code}</p>
-                            <a href="/dummy-pages/axis-bank" className="btn btn-primary lender-apply-btn">
+                            <button type="button" className="btn btn-primary lender-apply-btn">
                                 Apply Now
-                            </a>
+                            </button>
                         </div>
                     )) : (
                         <div className="lenders-empty">

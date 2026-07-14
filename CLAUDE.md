@@ -37,8 +37,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 │   │   │   ├── products/                 # Financial products
 │   │   │   ├── about-us/                 # About Us page
 │   │   │   ├── contact/                  # Contact Us page
-│   │   │   ├── components/               # Shared React components
-│   │   │   └── dummy-pages/              # Bank-specific pages (HDFC, Axis)
+│   │   │   └── components/               # Shared React components
 │   │   ├── lib/             # Utility functions (strapi.ts, safeStorage.ts, logger.ts)
 │   │   └── data/            # Static data/constants
 │   ├── next.config.ts       # Next.js rewrites (proxies /strapi-api/* → http://127.0.0.1:1337/api/*)
@@ -137,15 +136,19 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 | `lenders-catalog` | Content type inside `lender-master`; master registry of financial institutions (replaces deprecated `lender`/`lenders` table) | UID: `api::lender-master.lenders-catalog`; table `lenders_catalog`; REST `/api/lenders-catalogs`; fields `lenderName`, `lenderType`, `lenderCode`, `isActive` |
 | `zip-code` | Content type inside `lender-master`; serviceable pincodes per lender | UID: `api::lender-master.zip-code`; table `zip_codes_to_lenders`; REST `/api/zip-codes`; soft-links via `lenderCode`; hidden from Content Manager |
 
+### Personal Loan Eligibility
+
+| Collection / module | Purpose | Key fields / notes |
+|---|---|---|
+| `personal-loan-eligibility` | Strapi API module for ON/OFF lender matching conditions | Module path `src/api/personal-loan-eligibility/` |
+| `lenders-criteria-pl` | Content type inside `personal-loan-eligibility`; per-lender PL eligibility thresholds | UID: `api::personal-loan-eligibility.lenders-criteria-pl`; table `lenders_criteria_pl`; REST `/api/lenders-criteria-pls`; soft-links via `lenderCode`; hidden from Content Manager |
+
 ### Personal Loan / Lender Matching & Bureau Extraction
 
 | Collection / module | Purpose | Key fields / notes |
 |---|---|---|
 | `bureau-data-extraction` | Strapi API module for bureau/salary PDF extraction and persistence | UID: `api::bureau-data-extraction.cibil-report-summary`; Python sub-project in `integrations/python/`; Strapi service `python-bridge.ts` + `POST /api/cibil-report-summaries/extract` |
 | `cibil-report-summary` | Content type inside `bureau-data-extraction`; stores structured bureau + salary JSON per lead | `leadId`, `loanApplicationId` (optional), `cibilData`, `salarySlipData`, `dataSource` (`PDF_EXTRACTION` for AI/PDF pipeline); table `cibil_report_summary`; hidden from Content Manager |
-| `lenders-criteria-pl` | Per-lender PL eligibility thresholds | Soft-links to catalog via `lenderCode`; used by matching engine (not yet implemented); remains a top-level API |
-| `advanced-lenders-criteria-pl` | Per-period DPD/enquiry caps | Soft-links via `lenderCode`; remains a top-level API |
-| `lender-business-exclusion` | Business-type exclusions per lender | Soft-links via `lenderCode`; remains a top-level API |
 
 See [docs/Lender-Master.md](docs/Lender-Master.md), [docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md), [docs/BRD-Personal-Loan.md](docs/BRD-Personal-Loan.md), [docs/HLD-Personal-Loan.md](docs/HLD-Personal-Loan.md), [docs/LLD-Personal-Loan.md](docs/LLD-Personal-Loan.md).
 
@@ -165,8 +168,6 @@ These are single-type or collection-type entries managed via Strapi admin for fr
 | `loan-application-page` | Loan application page content |
 | `product-page` | Products page content |
 | `advisor-registration-page` | Advisor onboarding page content |
-| `hdfc-bank-page` | HDFC dummy bank page |
-| `axis-bank-page` | Axis dummy bank page |
 
 ## Architecture Patterns
 
@@ -246,6 +247,7 @@ Recent migrations:
 - `2026.05.26` — Add `user_role` column to user-product-mappings
 - `2026.06.01` — Drop product columns from admin_users (moved to user-product-mapping)
 - `2026.06.01` — Rename advisor_remark → `advisor_admin_staff_remark`, add `banker_admin_staff_remark`
+- `2026.07.14` — Drop `advanced_lenders_criteria_pl`, `hdfc-bank-pages`, `axis-bank-pages`, `lender_business_exclusions` (removed modules)
 
 ## Environment Setup
 
@@ -267,6 +269,7 @@ Copy `.env.example` to `.env` and update:
 - **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create, links uploads to Media Library `API Uploads/{leadId}-{name}/` and moves them to `public/uploads/api_uploads/{leadId}-{name}/` only
 - **[src/api/bureau-data-extraction/](src/api/bureau-data-extraction/)** — Bureau PDF extraction (`POST /api/cibil-report-summaries/extract`; reads `public/uploads/api_uploads/`)
 - **[src/api/lender-master/](src/api/lender-master/)** — Lender master registry + zip coverage (`lenders-catalog`, `zip-code`)
+- **[src/api/personal-loan-eligibility/](src/api/personal-loan-eligibility/)** — PL lender matching ON/OFF criteria (`lenders-criteria-pl`)
 - **[docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md)** — `.venv` setup and extraction runbook
 - **[docs/Lender-Master.md](docs/Lender-Master.md)** — Lender Master module reference
 

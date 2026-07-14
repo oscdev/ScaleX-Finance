@@ -344,8 +344,6 @@ export default {
           { action: 'api::lender-master.lenders-catalog.find', role: publicRole.id },
           { action: 'api::about-us-page.about-us-page.find', role: publicRole.id },
           { action: 'api::contact-us-page.contact-us-page.find', role: publicRole.id },
-          { action: 'api::axis-bank-page.axis-bank-page.find', role: publicRole.id },
-          { action: 'api::hdfc-bank-page.hdfc-bank-page.find', role: publicRole.id },
           { action: 'api::activity-log.activity-log.createLog', role: publicRole.id },
           { action: 'api::advisor.advisor.find', role: publicRole.id },
           { action: 'api::lead-remark.lead-remark.find', role: publicRole.id },
@@ -856,8 +854,6 @@ export default {
         'api::about-us-page.about-us-page',
         'api::contact-us-page.contact-us-page',
         'api::advisor-registration-page.advisor-registration-page',
-        'api::axis-bank-page.axis-bank-page',
-        'api::hdfc-bank-page.hdfc-bank-page',
         'api::footer.footer',
         'api::header.header',
         'api::global-setting.global-setting'

@@ -9,8 +9,6 @@ module.exports = async ({ strapi }) => {
     'api::about-us-page.about-us-page',
     'api::contact-us-page.contact-us-page',
     'api::advisor-registration-page.advisor-registration-page',
-    'api::axis-bank-page.axis-bank-page',
-    'api::hdfc-bank-page.hdfc-bank-page',
     'api::footer.footer',
     'api::header.header',
     'api::global-setting.global-setting'
