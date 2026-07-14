@@ -566,48 +566,6 @@ export interface ApiActivityLogActivityLog extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiAdvancedLendersCriteriaPlAdvancedLendersCriteriaPl
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'advanced_lenders_criteria_pl';
-  info: {
-    description: 'Per-period DPD and enquiry thresholds per lender';
-    displayName: 'Advanced Lenders Criteria PL';
-    pluralName: 'advanced-lenders-criteria-pls';
-    singularName: 'advanced-lenders-criteria-pl';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  pluginOptions: {
-    'content-manager': {
-      visible: false;
-    };
-    'content-type-builder': {
-      visible: false;
-    };
-  };
-  attributes: {
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    lenderCode: Schema.Attribute.String & Schema.Attribute.Required;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::advanced-lenders-criteria-pl.advanced-lenders-criteria-pl'
-    > &
-      Schema.Attribute.Private;
-    maxDpdCount: Schema.Attribute.Integer;
-    maxEnquiryCount: Schema.Attribute.Integer;
-    periodMonths: Schema.Attribute.Enumeration<['M1', 'M3', 'M6', 'M12']> &
-      Schema.Attribute.Required;
-    publishedAt: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
 export interface ApiAdvisorRegistrationPageAdvisorRegistrationPage
   extends Struct.SingleTypeSchema {
   collectionName: 'advisor_registration_page';
@@ -759,43 +717,6 @@ export interface ApiAdvisorAdvisor extends Struct.CollectionTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     specialization: Schema.Attribute.String & Schema.Attribute.Required;
     state: Schema.Attribute.String & Schema.Attribute.Required;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiAxisBankPageAxisBankPage extends Struct.SingleTypeSchema {
-  collectionName: 'axis-bank-pages';
-  info: {
-    description: 'Dummy page for Axis Bank lender redirection';
-    displayName: 'Axis Bank Page';
-    pluralName: 'axis-bank-pages';
-    singularName: 'axis-bank-page';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    applyButtonText: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Proceed with Application'>;
-    backToLendersText: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Back to Lenders'>;
-    bankLogo: Schema.Attribute.Media<'images'>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    heroSubtitle: Schema.Attribute.Text &
-      Schema.Attribute.DefaultTo<'Your preferred lender choice for financial solutions.'>;
-    heroTitle: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Welcome to Axis Bank'>;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::axis-bank-page.axis-bank-page'
-    > &
-      Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -971,43 +892,6 @@ export interface ApiGlobalSettingGlobalSetting extends Struct.SingleTypeSchema {
       Schema.Attribute.DefaultTo<true>;
     publishedAt: Schema.Attribute.DateTime;
     retentionDays: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<30>;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiHdfcBankPageHdfcBankPage extends Struct.SingleTypeSchema {
-  collectionName: 'hdfc-bank-pages';
-  info: {
-    description: 'Dummy page for HDFC Bank lender redirection';
-    displayName: 'HDFC Bank Page';
-    pluralName: 'hdfc-bank-pages';
-    singularName: 'hdfc-bank-page';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    applyButtonText: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Apply Now via HDFC'>;
-    backToLendersText: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Return to Lenders List'>;
-    bankLogo: Schema.Attribute.Media<'images'>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    heroSubtitle: Schema.Attribute.Text &
-      Schema.Attribute.DefaultTo<'Trusted financial partner for your loan requirements.'>;
-    heroTitle: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'HDFC Bank Portal'>;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::hdfc-bank-page.hdfc-bank-page'
-    > &
-      Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1294,52 +1178,6 @@ export interface ApiLeadLead extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface ApiLenderBusinessExclusionLenderBusinessExclusion
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'lender_business_exclusions';
-  info: {
-    description: 'Business types excluded per lender per product';
-    displayName: 'Lender Business Exclusions';
-    pluralName: 'lender-business-exclusions';
-    singularName: 'lender-business-exclusion';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  pluginOptions: {
-    'content-manager': {
-      visible: false;
-    };
-    'content-type-builder': {
-      visible: false;
-    };
-  };
-  attributes: {
-    businessType: Schema.Attribute.String & Schema.Attribute.Required;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    isActive: Schema.Attribute.Boolean &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<true>;
-    lenderCode: Schema.Attribute.String & Schema.Attribute.Required;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::lender-business-exclusion.lender-business-exclusion'
-    > &
-      Schema.Attribute.Private;
-    productType: Schema.Attribute.Enumeration<
-      ['Personal_Loan', 'Business_Loan', 'Home_Loan', 'LAP', 'All']
-    > &
-      Schema.Attribute.Required;
-    publishedAt: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
 export interface ApiLenderMasterLendersCatalog
   extends Struct.CollectionTypeSchema {
   collectionName: 'lenders_catalog';
@@ -1382,14 +1220,13 @@ export interface ApiLenderMasterLendersCatalog
   };
 }
 
-export interface ApiLendersCriteriaPlLendersCriteriaPl
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'lenders_criteria_pl';
+export interface ApiLenderMasterZipCode extends Struct.CollectionTypeSchema {
+  collectionName: 'zip_codes_to_lenders';
   info: {
-    description: 'Personal loan eligibility thresholds per lender';
-    displayName: 'Lenders Criteria PL';
-    pluralName: 'lenders-criteria-pls';
-    singularName: 'lenders-criteria-pl';
+    description: 'Serviceable pincodes per lender';
+    displayName: 'Zip Codes';
+    pluralName: 'zip-codes';
+    singularName: 'zip-code';
   };
   options: {
     draftAndPublish: false;
@@ -1403,53 +1240,27 @@ export interface ApiLendersCriteriaPlLendersCriteriaPl
     };
   };
   attributes: {
-    acceptedSalaryTypes: Schema.Attribute.JSON;
+    coversAllPincodes: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    firstTimeBorrowerAllowed: Schema.Attribute.Boolean &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<false>;
-    foir: Schema.Attribute.Decimal;
     isActive: Schema.Attribute.Boolean &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<true>;
-    lenderCode: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.Unique;
+    lenderCode: Schema.Attribute.String & Schema.Attribute.Required;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
-      'api::lenders-criteria-pl.lenders-criteria-pl'
+      'api::lender-master.zip-code'
     > &
       Schema.Attribute.Private;
-    maxActiveUnsecuredAccount: Schema.Attribute.Integer;
-    maxAge: Schema.Attribute.Integer;
-    maxCCUtilizationRatio: Schema.Attribute.Decimal;
-    maxDpdCount12months: Schema.Attribute.Integer;
-    maxDpdCount3months: Schema.Attribute.Integer;
-    maxDpdCount6months: Schema.Attribute.Integer;
-    maxDpdDaysAllowed: Schema.Attribute.Integer;
-    maxEnquiries1month: Schema.Attribute.Integer;
-    maxEnquiries3months: Schema.Attribute.Integer;
-    maxInterestRate: Schema.Attribute.Decimal;
-    maxLoanAmount: Schema.Attribute.Decimal;
-    minAge: Schema.Attribute.Integer;
-    minCibil: Schema.Attribute.Integer;
-    minEmploymentMonths: Schema.Attribute.Integer;
-    minInterestRate: Schema.Attribute.Decimal;
-    minLoanAmount: Schema.Attribute.Decimal;
-    minMonthlyIncome: Schema.Attribute.Decimal;
-    pfRequired: Schema.Attribute.Boolean &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<false>;
-    pincodeCheckRequired: Schema.Attribute.Boolean &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<false>;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    zipCode: Schema.Attribute.Integer;
   };
 }
 
@@ -1834,6 +1645,77 @@ export interface ApiLoanApplicationLoanApplication
   };
 }
 
+export interface ApiPersonalLoanEligibilityLendersCriteriaPl
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'lenders_criteria_pl';
+  info: {
+    description: 'Personal loan eligibility thresholds per lender';
+    displayName: 'Lenders Criteria PL';
+    pluralName: 'lenders-criteria-pls';
+    singularName: 'lenders-criteria-pl';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    acceptedSalaryTypes: Schema.Attribute.JSON;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    firstTimeBorrowerAllowed: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    foir: Schema.Attribute.Decimal;
+    isActive: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    lenderCode: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::personal-loan-eligibility.lenders-criteria-pl'
+    > &
+      Schema.Attribute.Private;
+    maxActiveUnsecuredAccount: Schema.Attribute.Integer;
+    maxAge: Schema.Attribute.Integer;
+    maxCCUtilizationRatio: Schema.Attribute.Decimal;
+    maxDpdCount12months: Schema.Attribute.Integer;
+    maxDpdCount3months: Schema.Attribute.Integer;
+    maxDpdCount6months: Schema.Attribute.Integer;
+    maxDpdDaysAllowed: Schema.Attribute.Integer;
+    maxEnquiries1month: Schema.Attribute.Integer;
+    maxEnquiries3months: Schema.Attribute.Integer;
+    maxInterestRate: Schema.Attribute.Decimal;
+    maxLoanAmount: Schema.Attribute.Decimal;
+    minAge: Schema.Attribute.Integer;
+    minCibil: Schema.Attribute.Integer;
+    minEmploymentMonths: Schema.Attribute.Integer;
+    minInterestRate: Schema.Attribute.Decimal;
+    minLoanAmount: Schema.Attribute.Decimal;
+    minMonthlyIncome: Schema.Attribute.Decimal;
+    pfRequired: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    pincodeCheckRequired: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiProductPageProductPage extends Struct.SingleTypeSchema {
   collectionName: 'product_page';
   info: {
@@ -1939,50 +1821,6 @@ export interface ApiUserProductMappingUserProductMapping
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     user_role: Schema.Attribute.String;
-  };
-}
-
-export interface ApiLenderMasterZipCode extends Struct.CollectionTypeSchema {
-  collectionName: 'zip_codes_to_lenders';
-  info: {
-    description: 'Serviceable pincodes per lender';
-    displayName: 'Zip Codes';
-    pluralName: 'zip-codes';
-    singularName: 'zip-code';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  pluginOptions: {
-    'content-manager': {
-      visible: false;
-    };
-    'content-type-builder': {
-      visible: false;
-    };
-  };
-  attributes: {
-    coversAllPincodes: Schema.Attribute.Boolean &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<false>;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    isActive: Schema.Attribute.Boolean &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<true>;
-    lenderCode: Schema.Attribute.String & Schema.Attribute.Required;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::lender-master.zip-code'
-    > &
-      Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    zipCode: Schema.Attribute.Integer;
   };
 }
 
@@ -2500,27 +2338,23 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::about-us-page.about-us-page': ApiAboutUsPageAboutUsPage;
       'api::activity-log.activity-log': ApiActivityLogActivityLog;
-      'api::advanced-lenders-criteria-pl.advanced-lenders-criteria-pl': ApiAdvancedLendersCriteriaPlAdvancedLendersCriteriaPl;
       'api::advisor-registration-page.advisor-registration-page': ApiAdvisorRegistrationPageAdvisorRegistrationPage;
       'api::advisor.advisor': ApiAdvisorAdvisor;
-      'api::axis-bank-page.axis-bank-page': ApiAxisBankPageAxisBankPage;
       'api::bureau-data-extraction.cibil-report-summary': ApiBureauDataExtractionCibilReportSummary;
       'api::contact-us-page.contact-us-page': ApiContactUsPageContactUsPage;
       'api::footer.footer': ApiFooterFooter;
       'api::global-setting.global-setting': ApiGlobalSettingGlobalSetting;
-      'api::hdfc-bank-page.hdfc-bank-page': ApiHdfcBankPageHdfcBankPage;
       'api::header.header': ApiHeaderHeader;
       'api::homepage.homepage': ApiHomepageHomepage;
       'api::lead-form-page.lead-form-page': ApiLeadFormPageLeadFormPage;
       'api::lead-remark.lead-remark': ApiLeadRemarkLeadRemark;
       'api::lead.lead': ApiLeadLead;
-      'api::lender-business-exclusion.lender-business-exclusion': ApiLenderBusinessExclusionLenderBusinessExclusion;
       'api::lender-master.lenders-catalog': ApiLenderMasterLendersCatalog;
       'api::lender-master.zip-code': ApiLenderMasterZipCode;
-      'api::lenders-criteria-pl.lenders-criteria-pl': ApiLendersCriteriaPlLendersCriteriaPl;
       'api::loan-app-section-permission.loan-app-section-permission': ApiLoanAppSectionPermissionLoanAppSectionPermission;
       'api::loan-application-page.loan-application-page': ApiLoanApplicationPageLoanApplicationPage;
       'api::loan-application.loan-application': ApiLoanApplicationLoanApplication;
+      'api::personal-loan-eligibility.lenders-criteria-pl': ApiPersonalLoanEligibilityLendersCriteriaPl;
       'api::product-page.product-page': ApiProductPageProductPage;
       'api::product.product': ApiProductProduct;
       'api::user-product-mapping.user-product-mapping': ApiUserProductMappingUserProductMapping;

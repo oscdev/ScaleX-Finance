@@ -19,8 +19,6 @@ async function run() {
             'api::lenders-page.lenders-page.find',
             'api::lead-form-page.lead-form-page.find',
             'api::loan-application-page.loan-application-page.find',
-            'api::axis-bank-page.axis-bank-page.find',
-            'api::hdfc-bank-page.hdfc-bank-page.find',
             'api::about-us-page.about-us-page.find',
             'api::contact-us-page.contact-us-page.find'
         ];
