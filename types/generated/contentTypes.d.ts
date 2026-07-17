@@ -538,6 +538,13 @@ export interface ApiActivityLogActivityLog extends Struct.CollectionTypeSchema {
         'LEAD_STATUS_CHANGED',
         'AI_MATCH_GENERATED',
         'LOAN_STATUS_CHANGED',
+        'PL_ELIGIBILITY_RUN_START',
+        'PL_ELIGIBILITY_BLOCKED',
+        'PL_ELIGIBILITY_RULE',
+        'PL_ELIGIBILITY_RULE_SKIP',
+        'PL_ELIGIBILITY_LENDER',
+        'PL_ELIGIBILITY_RUN_COMPLETE',
+        'PL_ELIGIBILITY_CONNECTION_FAILED',
       ]
     > &
       Schema.Attribute.Required;
@@ -1697,6 +1704,7 @@ export interface ApiPersonalLoanEligibilityLendersCriteriaPl
     maxEnquiries3months: Schema.Attribute.Integer;
     maxInterestRate: Schema.Attribute.Decimal;
     maxLoanAmount: Schema.Attribute.Decimal;
+    maxNewPersonalLoans6months: Schema.Attribute.Integer;
     minAge: Schema.Attribute.Integer;
     minCibil: Schema.Attribute.Integer;
     minEmploymentMonths: Schema.Attribute.Integer;
@@ -1710,6 +1718,7 @@ export interface ApiPersonalLoanEligibilityLendersCriteriaPl
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<false>;
     publishedAt: Schema.Attribute.DateTime;
+    typicalInterestRate: Schema.Attribute.Decimal;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
