@@ -3,6 +3,7 @@ import { DesignSystemProvider } from '@strapi/design-system';
 import { LeadOverviewDashboard } from '../../LeadOverview';
 import { reactRoots, unmountAndRemove } from './reactRoots';
 import { leadLabelMap } from './constants';
+import { lendersPageUrl, getFrontendBaseUrl } from '../frontendUrl';
 
 // ─── Role helpers ─────────────────────────────────────────────────────────────
 
@@ -463,7 +464,15 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
         aiBtn.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            window.open('/lenders', '_self');
+            const rIdCell = Array.from(row.querySelectorAll('td')).find((c) =>
+                /^\d+$/.test(c.textContent?.trim() || '')
+            );
+            const rId = rIdCell?.textContent?.trim();
+            if (!rId) {
+                window.open(`${getFrontendBaseUrl()}/lenders`, '_self');
+                return;
+            }
+            window.open(lendersPageUrl(rId, 'ai-match'), '_self');
         };
 
         const viewBtn = document.createElement('button');

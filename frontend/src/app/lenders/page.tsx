@@ -3,37 +3,87 @@ import Link from 'next/link';
 import { strapiInternalApi } from '@/lib/strapi';
 import './Lenders.css';
 
-async function getLendersData() {
+type MatchedLender = {
+    id?: number | string;
+    name: string;
+    type?: string;
+    code: string;
+    initials: string;
+};
+
+async function getMatchedLenders(
+    leadId: string,
+    source?: string
+): Promise<{
+    lenders: MatchedLender[];
+    error?: string;
+}> {
     try {
-        const res = await fetch(strapiInternalApi('/api/lenders-catalogs?filters[isActive][$eq]=true&pagination[pageSize]=100'), {
-            cache: 'no-store',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        if (!res.ok) return [];
-        const json = await res.json();
-        return json.data || [];
-    } catch (error) {
-        // console.error("Fetch error lenders-catalogs:", error);
-        return [];
+        const qs = new URLSearchParams({ leadId });
+        if (source) qs.set('source', source);
+        const res = await fetch(
+            strapiInternalApi(
+                `/api/personal-loan-eligibility/matched-lenders?${qs.toString()}`
+            ),
+            {
+                cache: 'no-store',
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+            }
+        );
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            const msg = json?.error?.message || json?.error?.code || `Match failed (${res.status})`;
+            return { lenders: [], error: String(msg) };
+        }
+        const list = Array.isArray(json.lenders) ? json.lenders : [];
+        return {
+            lenders: list.map((l: any, idx: number) => {
+                const name = l.lenderName || l.name || l.lenderCode || 'Lender';
+                return {
+                    id: l.lenderCode || idx,
+                    name,
+                    type: l.lenderType || l.type,
+                    code: l.lenderCode || l.code || '',
+                    initials: String(name)
+                        .split(' ')
+                        .map((n: string) => n[0])
+                        .join('')
+                        .substring(0, 2)
+                        .toUpperCase(),
+                };
+            }),
+        };
+    } catch {
+        return { lenders: [], error: 'Unable to load matched lenders' };
     }
 }
 
-export default async function LendersPage() {
-    const lendersResponse = await getLendersData();
+export default async function LendersPage({
+    searchParams,
+}: {
+    searchParams?: Promise<Record<string, string | string[] | undefined>> | Record<string, string | string[] | undefined>;
+}) {
+    const sp = (await Promise.resolve(searchParams)) || {};
+    const raw = sp.leadId;
+    const leadId = Array.isArray(raw) ? raw[0] : raw;
+    const rawSource = sp.source;
+    const source = Array.isArray(rawSource) ? rawSource[0] : rawSource;
 
     const title = 'Matched Lenders';
-    const description = 'Based on your application, these lenders are the best match for your requirements.';
+    let description =
+        'Based on your application, these lenders are the best match for your requirements.';
+    let lenders: MatchedLender[] = [];
+    let emptyMessage = 'Open AI Match from a lead to see eligible lenders.';
 
-    const lenders = Array.isArray(lendersResponse) ? lendersResponse.map((l: any) => {
-        const attr = l.attributes || l;
-        return {
-            id: l.id,
-            name: attr.lenderName,
-            type: attr.lenderType,
-            code: attr.lenderCode,
-            initials: attr.lenderName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
-        };
-    }) : [];
+    if (leadId) {
+        description = `Lenders that passed eligibility checks for lead #${leadId}.`;
+        const result = await getMatchedLenders(String(leadId), source ? String(source) : undefined);
+        lenders = result.lenders;
+        emptyMessage = result.error
+            ? result.error
+            : 'No matched lenders found at the moment.';
+    }
 
     return (
         <main className="lenders-main">
@@ -42,28 +92,26 @@ export default async function LendersPage() {
                     <h1 className="lenders-title">
                         {title} ({lenders.length})
                     </h1>
-                    <p className="lenders-subtitle">
-                        {description}
-                    </p>
+                    <p className="lenders-subtitle">{description}</p>
                 </div>
 
                 <div className="lenders-grid">
-                    {lenders.length > 0 ? lenders.map((lender: any) => (
-                        <div key={lender.id} className="lender-card">
-                            <div className="lender-logo-container">
-                                <span>{lender.initials}</span>
+                    {lenders.length > 0 ? (
+                        lenders.map((lender) => (
+                            <div key={String(lender.id)} className="lender-card">
+                                <div className="lender-logo-container">
+                                    <span>{lender.initials}</span>
+                                </div>
+                                <h3 className="lender-name">{lender.name}</h3>
+                                {lender.type ? <p className="lender-rate">{lender.type}</p> : null}
+                                <p className="lender-code">{lender.code}</p>
+                                <button type="button" className="btn btn-primary lender-apply-btn">
+                                    Apply Now
+                                </button>
                             </div>
-                            <h3 className="lender-name">{lender.name}</h3>
-                            <p className="lender-rate">{lender.type}</p>
-                            <p className="lender-code">{lender.code}</p>
-                            <button type="button" className="btn btn-primary lender-apply-btn">
-                                Apply Now
-                            </button>
-                        </div>
-                    )) : (
-                        <div className="lenders-empty">
-                            No matched lenders found at the moment.
-                        </div>
+                        ))
+                    ) : (
+                        <div className="lenders-empty">{emptyMessage}</div>
                     )}
                 </div>
 

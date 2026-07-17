@@ -140,8 +140,9 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 
 | Collection / module | Purpose | Key fields / notes |
 |---|---|---|
-| `personal-loan-eligibility` | Strapi API module for ON/OFF lender matching conditions | Module path `src/api/personal-loan-eligibility/` |
-| `lenders-criteria-pl` | Content type inside `personal-loan-eligibility`; per-lender PL eligibility thresholds | UID: `api::personal-loan-eligibility.lenders-criteria-pl`; table `lenders_criteria_pl`; REST `/api/lenders-criteria-pls`; soft-links via `lenderCode`; hidden from Content Manager |
+| `personal-loan-eligibility` | Strapi API module for ON/OFF lender matching (16-step engine) | Module path `src/api/personal-loan-eligibility/`; see [docs/Personal-Loan-Eligibility.md](docs/Personal-Loan-Eligibility.md) |
+| `lenders-criteria-pl` | Per-lender PL eligibility thresholds | UID: `api::personal-loan-eligibility.lenders-criteria-pl`; table `lenders_criteria_pl`; REST `/api/lenders-criteria-pls`; soft-links via `lenderCode`; hidden from Content Manager |
+| Match APIs | Run eligibility for a lead | `GET/POST /api/personal-loan-eligibility/matched-lenders?leadId=`; `POST /api/personal-loan-eligibility/evaluate`; compact text audit under `logs/pl-eligibility/YYYY-MM-DD.log`; Admin **AI Match** → `/lenders?leadId=` shows PASS lenders only |
 
 ### Personal Loan / Lender Matching & Bureau Extraction
 
@@ -269,7 +270,8 @@ Copy `.env.example` to `.env` and update:
 - **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create, links uploads to Media Library `API Uploads/{leadId}-{name}/` and moves them to `public/uploads/api_uploads/{leadId}-{name}/` only
 - **[src/api/bureau-data-extraction/](src/api/bureau-data-extraction/)** — Bureau PDF extraction (`POST /api/cibil-report-summaries/extract`; reads `public/uploads/api_uploads/`)
 - **[src/api/lender-master/](src/api/lender-master/)** — Lender master registry + zip coverage (`lenders-catalog`, `zip-code`)
-- **[src/api/personal-loan-eligibility/](src/api/personal-loan-eligibility/)** — PL lender matching ON/OFF criteria (`lenders-criteria-pl`)
+- **[src/api/personal-loan-eligibility/](src/api/personal-loan-eligibility/)** — PL eligibility thresholds + 16-step matching engine (`matched-lenders` / `evaluate`; JSONL in `logs/pl-eligibility/`)
+- **[docs/Personal-Loan-Eligibility.md](docs/Personal-Loan-Eligibility.md)** — PL eligibility rules, logging, AI Match → `/lenders`
 - **[docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md)** — `.venv` setup and extraction runbook
 - **[docs/Lender-Master.md](docs/Lender-Master.md)** — Lender Master module reference
 
