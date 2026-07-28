@@ -1698,13 +1698,11 @@ export interface ApiPersonalLoanEligibilityLendersCriteriaPl
     maxCCUtilizationRatio: Schema.Attribute.Decimal;
     maxDpdCount12months: Schema.Attribute.Integer;
     maxDpdCount3months: Schema.Attribute.Integer;
-    maxDpdCount6months: Schema.Attribute.Integer;
     maxDpdDaysAllowed: Schema.Attribute.Integer;
     maxEnquiries1month: Schema.Attribute.Integer;
     maxEnquiries3months: Schema.Attribute.Integer;
     maxInterestRate: Schema.Attribute.Decimal;
     maxLoanAmount: Schema.Attribute.Decimal;
-    maxNewPersonalLoans6months: Schema.Attribute.Integer;
     minAge: Schema.Attribute.Integer;
     minCibil: Schema.Attribute.Integer;
     minEmploymentMonths: Schema.Attribute.Integer;
@@ -1718,7 +1716,6 @@ export interface ApiPersonalLoanEligibilityLendersCriteriaPl
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<false>;
     publishedAt: Schema.Attribute.DateTime;
-    typicalInterestRate: Schema.Attribute.Decimal;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

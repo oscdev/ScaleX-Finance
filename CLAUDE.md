@@ -143,6 +143,9 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 | `personal-loan-eligibility` | Strapi API module for ON/OFF lender matching (16-step engine) | Module path `src/api/personal-loan-eligibility/`; see [docs/Personal-Loan-Eligibility.md](docs/Personal-Loan-Eligibility.md) |
 | `lenders-criteria-pl` | Per-lender PL eligibility thresholds | UID: `api::personal-loan-eligibility.lenders-criteria-pl`; table `lenders_criteria_pl`; REST `/api/lenders-criteria-pls`; soft-links via `lenderCode`; hidden from Content Manager |
 | Match APIs | Run eligibility for a lead | `GET/POST /api/personal-loan-eligibility/matched-lenders?leadId=`; `POST /api/personal-loan-eligibility/evaluate`; compact text audit under `logs/pl-eligibility/YYYY-MM-DD.log`; Admin **AI Match** → `/lenders?leadId=` shows PASS lenders only |
+| Step 5 (`A1-03-INCOME`) | Minimum Monthly Income | Uses `netSalary + otherIncomeAmount` when `hasOtherIncome` is true; otherwise `netSalary` vs `min_monthly_income`; SKIP when threshold null |
+| Step 8 (`A1-07` / `A1-08`) | DPD Last 3m / 12m | Per lender: count unique months where payment-history DPD days > `max_dpd_days_allowed`, then compare to `max_dpd_count_*months` |
+| Step 12 (`A1-05-PF`) | PF Deducted rule | Compares `form_data.incomeDetails.pfDeducted` vs `lenders_criteria_pl.pf_required`; SKIP when PF not required, FAIL when required but not true |
 
 ### Personal Loan / Lender Matching & Bureau Extraction
 
@@ -214,6 +217,7 @@ The platform has three distinct admin roles:
 1. Advisor shares referral link → customer submits **Lead** via `/lead-form`
 2. Advisor reviews lead in `/advisor-dashboard` → initiates **Loan Application**
 3. Customer completes loan application at `/loan-application` (multi-step form with document uploads)
+   - Income step (`form_data.incomeDetails`) for Personal Loan, Home Loan (salaried), and LAP (salaried) includes: `companyName`, `designation`, `companyAddress`, `netSalary`, `salaryMode`, `jobStability`, `pfDeducted` (boolean), `hasOtherIncome` (boolean), and when `hasOtherIncome` is true: `otherIncomeSource`, `otherIncomeAmount`
 4. Staff is assigned (`assignedStaffId`) to process the application
 5. Banker is assigned (`assignedBankerId`) for final review
 6. Remarks/conversation history tracked in `lead-remark` (separate fields per role type)
@@ -249,6 +253,7 @@ Recent migrations:
 - `2026.06.01` — Drop product columns from admin_users (moved to user-product-mapping)
 - `2026.06.01` — Rename advisor_remark → `advisor_admin_staff_remark`, add `banker_admin_staff_remark`
 - `2026.07.14` — Drop `advanced_lenders_criteria_pl`, `hdfc-bank-pages`, `axis-bank-pages`, `lender_business_exclusions` (removed modules)
+- `2026.07.28` — Drop unused PL criteria columns (`max_dpd_count_6months`, `max_new_personal_loans_6months`, `typical_interest_rate`)
 
 ## Environment Setup
 

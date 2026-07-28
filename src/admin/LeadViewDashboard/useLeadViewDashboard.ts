@@ -920,12 +920,20 @@ export const useLeadViewDashboard = (leadId: string) => {
         } catch (e) {}
     };
 
-    const handleSaveLoanFormData = async (section: string, fieldKey: string, value: string) => {
+    const handleSaveLoanFormData = async (section: string, fieldKey: string, value: string | boolean) => {
         if (!loanApp) return;
         try {
+            const sectionData: Record<string, unknown> = {
+                ...(loanApp.form_data?.[section] || {}),
+                [fieldKey]: value,
+            };
+            if (section === 'incomeDetails' && fieldKey === 'hasOtherIncome' && value === false) {
+                sectionData.otherIncomeSource = '';
+                sectionData.otherIncomeAmount = '';
+            }
             const updatedFormData = {
                 ...loanApp.form_data,
-                [section]: { ...(loanApp.form_data?.[section] || {}), [fieldKey]: value },
+                [section]: sectionData,
             };
             const loanDocId = loanApp.documentId || String(loanApp.id);
             const res = await fetch(`/api/loan-applications/${loanDocId}`, {

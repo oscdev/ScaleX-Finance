@@ -83,9 +83,6 @@
         "maxDpdCount3months": {
             "type": "integer"
         },
-        "maxDpdCount6months": {
-            "type": "integer"
-        },
         "maxDpdCount12months": {
             "type": "integer"
         },
@@ -99,12 +96,6 @@
             "type": "decimal"
         },
         "maxLoanAmount": {
-            "type": "decimal"
-        },
-        "maxNewPersonalLoans6months": {
-            "type": "integer"
-        },
-        "typicalInterestRate": {
             "type": "decimal"
         }
     }

@@ -95,11 +95,19 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
   'A1-03-INCOME': {
     step: 5,
     ruleId: 'A1-03-INCOME',
-    ruleName: 'Min monthly income',
-    condition: 'Net monthly income must meet lender minimum',
-    formula: 'net_monthly_income >= min_monthly_income',
+    ruleName: 'Minimum Monthly Income',
+    condition:
+      'When hasOtherIncome is true, netSalary + otherIncomeAmount must meet lender minimum; otherwise netSalary alone',
+    formula:
+      'hasOtherIncome=true → totalMonthlyIncome = netSalary + otherIncomeAmount >= min_monthly_income; hasOtherIncome=false → netSalary >= min_monthly_income; min_monthly_income null → SKIP',
     applicantSources: [
-      { table: 'loan_applications', column: 'form_data.incomeDetails.netSalary', description: 'Loan form net salary' },
+      { table: 'loan_applications', column: 'form_data.incomeDetails.hasOtherIncome' },
+      {
+        table: 'loan_applications',
+        column: 'form_data.incomeDetails.netSalary',
+        description: 'Loan form net salary',
+      },
+      { table: 'loan_applications', column: 'form_data.incomeDetails.otherIncomeAmount' },
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'min_monthly_income' }],
   },
@@ -136,32 +144,42 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
   'A1-07-DPD-3M': {
     step: 8,
     ruleId: 'A1-07-DPD-3M',
-    ruleName: 'DPD count 3 months',
-    condition: 'DPD instances in last 3 months must not exceed cap',
-    formula: 'dpd_count_3m <= max_dpd_count_3months',
+    ruleName: 'DPD Last 3 Months',
+    condition:
+      'Months in last 3 months where DPD days > max_dpd_days_allowed must not exceed max_dpd_count_3months',
+    formula:
+      'dpdViolationCount3Months = count(last 3m where dpdDays > max_dpd_days_allowed); dpdViolationCount3Months <= max_dpd_count_3months',
     applicantSources: [
       {
         table: 'cibil_report_summary',
         column: 'cibil_data.open_accounts[].payment_history',
-        description: 'Derived DPD count (3m window)',
+        description: 'Per-month max DPD days across accounts',
       },
     ],
-    thresholdSources: [{ table: 'lenders_criteria_pl', column: 'max_dpd_count_3months' }],
+    thresholdSources: [
+      { table: 'lenders_criteria_pl', column: 'max_dpd_days_allowed' },
+      { table: 'lenders_criteria_pl', column: 'max_dpd_count_3months' },
+    ],
   },
   'A1-08-DPD-12M': {
     step: 8,
     ruleId: 'A1-08-DPD-12M',
-    ruleName: 'DPD count 12 months',
-    condition: 'DPD instances in last 12 months must not exceed cap',
-    formula: 'dpd_count_12m <= max_dpd_count_12months',
+    ruleName: 'DPD Last 12 Months',
+    condition:
+      'Months in last 12 months where DPD days > max_dpd_days_allowed must not exceed max_dpd_count_12months',
+    formula:
+      'dpdViolationCount12Months = count(last 12m where dpdDays > max_dpd_days_allowed); dpdViolationCount12Months <= max_dpd_count_12months',
     applicantSources: [
       {
         table: 'cibil_report_summary',
         column: 'cibil_data.open_accounts[].payment_history',
-        description: 'Derived DPD count (12m window)',
+        description: 'Per-month max DPD days across accounts',
       },
     ],
-    thresholdSources: [{ table: 'lenders_criteria_pl', column: 'max_dpd_count_12months' }],
+    thresholdSources: [
+      { table: 'lenders_criteria_pl', column: 'max_dpd_days_allowed' },
+      { table: 'lenders_criteria_pl', column: 'max_dpd_count_12months' },
+    ],
   },
   'A1-09-DPD-DAYS': {
     step: 8,
@@ -177,21 +195,6 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
       },
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'max_dpd_days_allowed' }],
-  },
-  'A1-DPD-6M': {
-    step: 8,
-    ruleId: 'A1-DPD-6M',
-    ruleName: 'DPD count 6 months',
-    condition: 'DPD instances in last 6 months must not exceed cap (when threshold set)',
-    formula: 'dpd_count_6m <= max_dpd_count_6months',
-    applicantSources: [
-      {
-        table: 'cibil_report_summary',
-        column: 'cibil_data.open_accounts[].payment_history',
-        description: 'Derived DPD count (6m window)',
-      },
-    ],
-    thresholdSources: [{ table: 'lenders_criteria_pl', column: 'max_dpd_count_6months' }],
   },
   'A1-16-CC-UTIL': {
     step: 9,
@@ -243,11 +246,12 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
   'A1-05-PF': {
     step: 12,
     ruleId: 'A1-05-PF',
-    ruleName: 'PF required',
-    condition: 'PF deduction required by lender must be present on salary slip',
-    formula: '!pf_required OR is_pf_deducted = true',
+    ruleName: 'PF Deducted',
+    condition: 'When lender requires PF deduction, applicant pfDeducted on loan application must be true',
+    formula:
+      'pf_required = true && pfDeducted = true → PASS; pf_required = true && pfDeducted = false → FAIL; pf_required = false → SKIP',
     applicantSources: [
-      { table: 'cibil_report_summary', column: 'salary_slip_data.is_pf_deducted' },
+      { table: 'loan_applications', column: 'form_data.incomeDetails.pfDeducted' },
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'pf_required' }],
   },
@@ -334,7 +338,6 @@ export const PIPELINE_RULE_ORDER = [
   'A1-07-DPD-3M',
   'A1-08-DPD-12M',
   'A1-09-DPD-DAYS',
-  'A1-DPD-6M',
   'A1-16-CC-UTIL',
   'A1-UNSECURED',
   'A1-04-SALARY_TYPE',

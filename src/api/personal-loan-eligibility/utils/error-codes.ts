@@ -29,7 +29,6 @@ export const PlFail = {
   A1_07_DPD_3M: 'PL_FAIL_A1_07_DPD_3M',
   A1_08_DPD_12M: 'PL_FAIL_A1_08_DPD_12M',
   A1_09_DPD_DAYS: 'PL_FAIL_A1_09_DPD_DAYS',
-  A1_DPD_6M: 'PL_FAIL_A1_DPD_6M',
   A1_16_CC_UTIL: 'PL_FAIL_A1_16_CC_UTIL',
   A1_UNSECURED: 'PL_FAIL_A1_UNSECURED',
   A1_04_SALARY_TYPE: 'PL_FAIL_A1_04_SALARY_TYPE',
@@ -39,7 +38,6 @@ export const PlFail = {
   A1_11_ENQ_1M: 'PL_FAIL_A1_11_ENQ_1M',
   A1_12_ENQ_3M: 'PL_FAIL_A1_12_ENQ_3M',
   MISSING_APPLICANT_VALUE: 'PL_FAIL_MISSING_APPLICANT_VALUE',
-  MISSING_TYPICAL_RATE: 'PL_FAIL_MISSING_TYPICAL_RATE',
 } as const;
 
 export type PlErrorCode = (typeof PlErr)[keyof typeof PlErr] | (typeof PlFail)[keyof typeof PlFail];

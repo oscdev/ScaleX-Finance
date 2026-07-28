@@ -66,6 +66,11 @@ const SECTION_TREE = [
             { key: 'companyAddress', label: 'Company Address' },
             { key: 'netSalary', label: 'Net Salary' },
             { key: 'salaryMode', label: 'Salary Mode' },
+            { key: 'jobStability', label: 'Job Stability' },
+            { key: 'pfDeducted', label: 'PF Deducted' },
+            { key: 'hasOtherIncome', label: 'Other Income' },
+            { key: 'otherIncomeSource', label: 'Income Source' },
+            { key: 'otherIncomeAmount', label: 'Other Income Amount' },
         ],
     },
     {
