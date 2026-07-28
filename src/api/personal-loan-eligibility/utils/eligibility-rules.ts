@@ -241,24 +241,60 @@ export function evaluateIncome(
   profile: ApplicantProfile,
   criteria: LenderCriteria
 ): ConditionResult {
-  const formula = 'netMonthlyIncome >= minMonthlyIncome';
+  const ruleName = 'Minimum Monthly Income';
+
   if (criteria.minMonthlyIncome == null) {
-    return skip(step, 'A1-03-INCOME', 'Min monthly income', formula, {
-      minMonthlyIncome: null,
-    });
+    return {
+      step,
+      ruleId: 'A1-03-INCOME',
+      ruleName,
+      formula: 'SKIP -> min_monthly_income is null',
+      applicantValue: {
+        netSalary: profile.netMonthlyIncome,
+        hasOtherIncome: profile.hasOtherIncome,
+        otherIncomeAmount: profile.otherIncomeAmount,
+        totalMonthlyIncome: null,
+      },
+      threshold: { minMonthlyIncome: null },
+      result: 'SKIP',
+      errorCode: null,
+      reason: 'min_monthly_income is null',
+    };
   }
+
   if (profile.netMonthlyIncome == null) {
-    return missingFail(step, 'A1-03-INCOME', 'Min monthly income', formula, {
+    return missingFail(step, 'A1-03-INCOME', ruleName, 'netSalary >= min_monthly_income', {
       minMonthlyIncome: criteria.minMonthlyIncome,
     });
   }
-  const ok = profile.netMonthlyIncome >= Number(criteria.minMonthlyIncome);
+
+  const includeOther = profile.hasOtherIncome === true;
+  const otherAmount = includeOther ? (profile.otherIncomeAmount ?? 0) : 0;
+  const totalMonthlyIncome = includeOther
+    ? profile.netMonthlyIncome + otherAmount
+    : profile.netMonthlyIncome;
+
+  const ok = totalMonthlyIncome >= Number(criteria.minMonthlyIncome);
+
+  const formula = includeOther
+    ? ok
+      ? 'totalMonthlyIncome = netSalary + otherIncomeAmount; totalMonthlyIncome >= min_monthly_income → PASS'
+      : 'totalMonthlyIncome = netSalary + otherIncomeAmount; totalMonthlyIncome < min_monthly_income → FAIL'
+    : ok
+      ? 'netSalary >= min_monthly_income → PASS'
+      : 'netSalary < min_monthly_income → FAIL';
+
   return {
     step,
     ruleId: 'A1-03-INCOME',
-    ruleName: 'Min monthly income',
+    ruleName,
     formula,
-    applicantValue: profile.netMonthlyIncome,
+    applicantValue: {
+      netSalary: profile.netMonthlyIncome,
+      hasOtherIncome: profile.hasOtherIncome,
+      otherIncomeAmount: profile.otherIncomeAmount,
+      totalMonthlyIncome,
+    },
     threshold: { minMonthlyIncome: criteria.minMonthlyIncome },
     result: ok ? 'PASS' : 'FAIL',
     errorCode: ok ? null : PlFail.A1_03_INCOME,
@@ -349,66 +385,147 @@ export function evaluateDpd(
   criteria: LenderCriteria
 ): ConditionResult[] {
   const results: ConditionResult[] = [];
+  const months = profile.paymentHistoryMonths || [];
+  const allowedDpd = criteria.maxDpdDaysAllowed;
+  const asOf = new Date();
+  const cut3Key = monthKeyFromDate(new Date(asOf.getFullYear(), asOf.getMonth() - 2, 1));
+  const cut12Key = monthKeyFromDate(new Date(asOf.getFullYear(), asOf.getMonth() - 11, 1));
 
-  const check = (
+  const monthsInWindow = (cutKey: string) =>
+    months.filter((m) => m.monthKey >= cutKey);
+
+  const countViolations = (windowMonths: Array<{ monthKey: string; dpdDays: number }>, allowed: number) =>
+    windowMonths.filter((m) => m.dpdDays > allowed).length;
+
+  const pushCountRule = (
     ruleId: string,
+    ruleName: string,
     failCode: string,
-    count: number | null,
-    max: number | null | undefined,
-    formula: string
+    windowLabel: string,
+    cutKey: string,
+    maxCount: number | null | undefined
   ) => {
-    if (max == null) {
-      results.push(skip(step, ruleId, ruleId, formula, { max: null }));
+    const windowMonths = monthsInWindow(cutKey);
+    const paymentHistoryConsidered = windowMonths.map((m) => m.dpdDays);
+
+    if (allowedDpd == null) {
+      results.push({
+        step,
+        ruleId,
+        ruleName,
+        formula: 'SKIP -> max_dpd_days_allowed is null',
+        applicantValue: {
+          allowedDpd: null,
+          paymentHistoryConsidered,
+          dpdViolationCount: null,
+        },
+        threshold: { maxDpdDaysAllowed: null, maxCount: maxCount ?? null },
+        result: 'SKIP',
+        errorCode: null,
+        reason: 'max_dpd_days_allowed is null — cannot count DPD violations',
+      });
       return;
     }
-    if (count == null) {
-      results.push(missingFail(step, ruleId, ruleId, formula, { max }));
+
+    if (maxCount == null) {
+      results.push({
+        step,
+        ruleId,
+        ruleName,
+        formula: `SKIP -> ${ruleId} max count is null`,
+        applicantValue: {
+          allowedDpd,
+          paymentHistoryConsidered,
+          dpdViolationCount: null,
+        },
+        threshold: { maxDpdDaysAllowed: allowedDpd, maxCount: null },
+        result: 'SKIP',
+        errorCode: null,
+        reason: 'Null threshold — rule not applied',
+      });
       return;
     }
-    const ok = count <= Number(max);
+
+    const violations = countViolations(windowMonths, Number(allowedDpd));
+    const ok = violations <= Number(maxCount);
+    const compare = `${violations} <= ${maxCount}`;
+    const formula = ok
+      ? `Allowed DPD = ${allowedDpd}; ${windowLabel} violations = ${violations}; ${compare} → PASS`
+      : `Allowed DPD = ${allowedDpd}; ${windowLabel} violations = ${violations}; ${compare} → FAIL`;
+
     results.push({
       step,
       ruleId,
+      ruleName,
       formula,
-      applicantValue: count,
-      threshold: { max },
+      applicantValue: {
+        allowedDpd,
+        paymentHistoryConsidered,
+        dpdViolationCount: violations,
+        formula: compare,
+      },
+      threshold: {
+        maxDpdDaysAllowed: allowedDpd,
+        ...(ruleId === 'A1-07-DPD-3M'
+          ? { maxDpdCount3months: maxCount }
+          : { maxDpdCount12months: maxCount }),
+      },
       result: ok ? 'PASS' : 'FAIL',
       errorCode: ok ? null : failCode,
-      reason: ok ? null : `${ruleId} exceeded`,
+      reason: ok
+        ? null
+        : `DPD exceeded the lender threshold in ${violations} months during the ${windowLabel}. Allowed = ${maxCount} Actual = ${violations}`,
     });
   };
 
-  check(
+  pushCountRule(
     'A1-07-DPD-3M',
+    'DPD Last 3 Months',
     PlFail.A1_07_DPD_3M,
-    profile.dpdCount3m,
-    criteria.maxDpdCount3months,
-    'dpdCount3m <= maxDpdCount3months'
+    'last 3 months',
+    cut3Key,
+    criteria.maxDpdCount3months
   );
-  check(
+  pushCountRule(
     'A1-08-DPD-12M',
+    'DPD Last 12 Months',
     PlFail.A1_08_DPD_12M,
-    profile.dpdCount12m,
-    criteria.maxDpdCount12months,
-    'dpdCount12m <= maxDpdCount12months'
+    'last 12 months',
+    cut12Key,
+    criteria.maxDpdCount12months
   );
-  check(
-    'A1-09-DPD-DAYS',
-    PlFail.A1_09_DPD_DAYS,
-    profile.maxDpdDays,
-    criteria.maxDpdDaysAllowed,
-    'maxDpdDays <= maxDpdDaysAllowed'
-  );
-  if (criteria.maxDpdCount6months != null) {
-    check(
-      'A1-DPD-6M',
-      PlFail.A1_DPD_6M,
-      profile.dpdCount6m,
-      criteria.maxDpdCount6months,
-      'dpdCount6m <= maxDpdCount6months'
-    );
+
+  // A1-09 unchanged: absolute max DPD days vs lender allowed days
+  {
+    const formula = 'maxDpdDays <= maxDpdDaysAllowed';
+    const max = criteria.maxDpdDaysAllowed;
+    if (max == null) {
+      results.push(skip(step, 'A1-09-DPD-DAYS', 'Max DPD days', formula, { max: null }));
+    } else if (profile.maxDpdDays == null) {
+      results.push(
+        missingFail(step, 'A1-09-DPD-DAYS', 'Max DPD days', formula, { max })
+      );
+    } else {
+      const ok = profile.maxDpdDays <= Number(max);
+      results.push({
+        step,
+        ruleId: 'A1-09-DPD-DAYS',
+        ruleName: 'Max DPD days',
+        formula,
+        applicantValue: profile.maxDpdDays,
+        threshold: { max },
+        result: ok ? 'PASS' : 'FAIL',
+        errorCode: ok ? null : PlFail.A1_09_DPD_DAYS,
+        reason: ok ? null : 'A1-09-DPD-DAYS exceeded',
+      });
+    }
   }
+
   return results;
+}
+
+function monthKeyFromDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
 export function evaluateCcu(
@@ -536,33 +653,51 @@ export function evaluatePf(
   profile: ApplicantProfile,
   criteria: LenderCriteria
 ): ConditionResult {
-  const formula = '!pfRequired OR pfDeducted === true';
+  const ruleName = 'PF Deducted';
+
   if (!criteria.pfRequired) {
     return {
       step,
       ruleId: 'A1-05-PF',
-      ruleName: 'PF required',
-      formula,
+      ruleName,
+      formula: 'pf_required = false → SKIP',
+      applicantValue: profile.pfDeducted,
       threshold: { pfRequired: false },
-      result: 'PASS',
+      result: 'SKIP',
       errorCode: null,
-      reason: 'pfRequired=false',
+      reason: 'pf_required=false',
     };
   }
-  if (profile.pfDeducted == null) {
-    return missingFail(step, 'A1-05-PF', 'PF required', formula, { pfRequired: true });
+
+  if (profile.pfDeducted === true) {
+    return {
+      step,
+      ruleId: 'A1-05-PF',
+      ruleName,
+      formula: 'pf_required = true && pfDeducted = true → PASS',
+      applicantValue: true,
+      threshold: { pfRequired: true },
+      result: 'PASS',
+      errorCode: null,
+      reason: null,
+    };
   }
-  const ok = profile.pfDeducted === true;
+
+  const reason =
+    profile.pfDeducted === false
+      ? 'PF deduction required but applicant pfDeducted is false'
+      : 'PF deduction required but applicant pfDeducted is missing';
+
   return {
     step,
     ruleId: 'A1-05-PF',
-    ruleName: 'PF required',
-    formula,
-    applicantValue: profile.pfDeducted,
+    ruleName,
+    formula: 'pf_required = true && pfDeducted = false → FAIL',
+    applicantValue: profile.pfDeducted ?? null,
     threshold: { pfRequired: true },
-    result: ok ? 'PASS' : 'FAIL',
-    errorCode: ok ? null : PlFail.A1_05_PF,
-    reason: ok ? null : 'PF deduction required but not present',
+    result: 'FAIL',
+    errorCode: PlFail.A1_05_PF,
+    reason,
   };
 }
 

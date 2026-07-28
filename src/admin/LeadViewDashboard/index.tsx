@@ -157,9 +157,9 @@ const EditableField = ({
 }: {
     value: string;
     displayValue?: string;
-    onSave: (val: string) => Promise<void>;
+    onSave: (val: string | boolean) => Promise<void>;
     canEdit?: boolean;
-    type?: 'text' | 'number';
+    type?: 'text' | 'number' | 'boolean';
 }) => {
     const [editing, setEditing] = useState(false);
     const [draft, setDraft] = useState('');
@@ -169,7 +169,11 @@ const EditableField = ({
 
     const doSave = async () => {
         setSaving(true);
-        try { await onSave(draft); setEditing(false); }
+        try {
+            const saveVal = type === 'boolean' ? draft === 'true' : draft;
+            await onSave(saveVal);
+            setEditing(false);
+        }
         finally { setSaving(false); }
     };
 
@@ -180,17 +184,30 @@ const EditableField = ({
     if (editing) {
         return (
             <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                <input
-                    type={type}
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    autoFocus
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') doSave();
-                        if (e.key === 'Escape') setEditing(false);
-                    }}
-                    style={{ fontSize: '13px', border: '1px solid #4945ff', borderRadius: '4px', padding: '2px 6px', outline: 'none', flex: 1, minWidth: '80px' }}
-                />
+                {type === 'boolean' ? (
+                    <select
+                        value={draft}
+                        onChange={(e) => setDraft(e.target.value)}
+                        autoFocus
+                        style={{ fontSize: '13px', border: '1px solid #4945ff', borderRadius: '4px', padding: '2px 6px', outline: 'none', flex: 1, minWidth: '80px' }}
+                    >
+                        <option value="">Select</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                ) : (
+                    <input
+                        type={type}
+                        value={draft}
+                        onChange={(e) => setDraft(e.target.value)}
+                        autoFocus
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') doSave();
+                            if (e.key === 'Escape') setEditing(false);
+                        }}
+                        style={{ fontSize: '13px', border: '1px solid #4945ff', borderRadius: '4px', padding: '2px 6px', outline: 'none', flex: 1, minWidth: '80px' }}
+                    />
+                )}
                 <button onClick={doSave} disabled={saving}
                     style={{ fontSize: '11px', background: '#4945ff', color: '#fff', border: 'none', borderRadius: '3px', padding: '2px 6px', cursor: 'pointer' }}>
                     {saving ? '…' : '✓'}
@@ -1298,22 +1315,55 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                             </Typography>
                             <Box background="neutral0" padding={4} shadow="filterShadow" borderRadius="8px">
                                 <div style={styles.fourColGridTight}>
-                                    {[
-                                        { label: 'Company Name', rawVal: loanApp.form_data?.incomeDetails?.companyName || '', val: loanApp.form_data?.incomeDetails?.companyName || 'N/A', fk: 'companyName' },
-                                        { label: 'Designation', rawVal: loanApp.form_data?.incomeDetails?.designation || '', val: loanApp.form_data?.incomeDetails?.designation || 'N/A', fk: 'designation' },
-                                        { label: 'Company Address', rawVal: loanApp.form_data?.incomeDetails?.companyAddress || '', val: loanApp.form_data?.incomeDetails?.companyAddress || 'N/A', fk: 'companyAddress' },
-                                        {
-                                            label: 'Net Salary (Per Month)',
-                                            rawVal: loanApp.form_data?.incomeDetails?.netSalary || '',
-                                            val: loanApp.form_data?.incomeDetails?.netSalary
-                                                ? `₹ ${parseInt(loanApp.form_data.incomeDetails.netSalary).toLocaleString()}`
-                                                : 'N/A',
-                                            fk: 'netSalary',
-                                            editType: 'number',
-                                        },
-                                        { label: 'Salary Mode', rawVal: loanApp.form_data?.incomeDetails?.salaryMode || '', val: loanApp.form_data?.incomeDetails?.salaryMode || 'N/A', fk: 'salaryMode' },
-                                        { label: 'Current Job Stability', rawVal: loanApp.form_data?.incomeDetails?.jobStability || '', val: loanApp.form_data?.incomeDetails?.jobStability || 'N/A', fk: 'jobStability' },
-                                    ].filter((d) => canViewField('incomeDetails', d.fk)).map((d, i) => (
+                                    {(() => {
+                                        const income = loanApp.form_data?.incomeDetails || {};
+                                        const formatBool = (v: unknown) => (v === true ? 'Yes' : v === false ? 'No' : 'N/A');
+                                        const boolRaw = (v: unknown) => (v === true ? 'true' : v === false ? 'false' : '');
+                                        return [
+                                            { label: 'Company Name', rawVal: income.companyName || '', val: income.companyName || 'N/A', fk: 'companyName' },
+                                            { label: 'Designation', rawVal: income.designation || '', val: income.designation || 'N/A', fk: 'designation' },
+                                            { label: 'Company Address', rawVal: income.companyAddress || '', val: income.companyAddress || 'N/A', fk: 'companyAddress' },
+                                            {
+                                                label: 'Net Salary (Per Month)',
+                                                rawVal: income.netSalary || '',
+                                                val: income.netSalary
+                                                    ? `₹ ${parseInt(income.netSalary).toLocaleString()}`
+                                                    : 'N/A',
+                                                fk: 'netSalary',
+                                                editType: 'number',
+                                            },
+                                            { label: 'Salary Mode', rawVal: income.salaryMode || '', val: income.salaryMode || 'N/A', fk: 'salaryMode' },
+                                            { label: 'Current Job Stability', rawVal: income.jobStability || '', val: income.jobStability || 'N/A', fk: 'jobStability' },
+                                            {
+                                                label: 'PF Deducted',
+                                                rawVal: boolRaw(income.pfDeducted),
+                                                val: formatBool(income.pfDeducted),
+                                                fk: 'pfDeducted',
+                                                editType: 'boolean',
+                                            },
+                                            {
+                                                label: 'Other Income',
+                                                rawVal: boolRaw(income.hasOtherIncome),
+                                                val: formatBool(income.hasOtherIncome),
+                                                fk: 'hasOtherIncome',
+                                                editType: 'boolean',
+                                            },
+                                            ...(income.hasOtherIncome === true
+                                                ? [
+                                                    { label: 'Income Source', rawVal: income.otherIncomeSource || '', val: income.otherIncomeSource || 'N/A', fk: 'otherIncomeSource' },
+                                                    {
+                                                        label: 'Other Income Amount',
+                                                        rawVal: income.otherIncomeAmount || '',
+                                                        val: income.otherIncomeAmount
+                                                            ? `₹ ${parseFloat(income.otherIncomeAmount).toLocaleString()}`
+                                                            : 'N/A',
+                                                        fk: 'otherIncomeAmount',
+                                                        editType: 'number',
+                                                    },
+                                                ]
+                                                : []),
+                                        ];
+                                    })().filter((d) => canViewField('incomeDetails', d.fk)).map((d, i) => (
                                         <Box key={i}>
                                             <Typography variant="pi" textColor="neutral600" display="block" fontWeight="bold">
                                                 {d.label}

@@ -75,18 +75,9 @@ function dpdDaysFromValue(v: string): number {
   return 1;
 }
 
-function deriveDpd(openAccounts: any[], asOf = new Date()) {
-  const cut3 = new Date(asOf);
-  cut3.setMonth(cut3.getMonth() - 3);
-  const cut6 = new Date(asOf);
-  cut6.setMonth(cut6.getMonth() - 6);
-  const cut12 = new Date(asOf);
-  cut12.setMonth(cut12.getMonth() - 12);
-
-  let c3 = 0;
-  let c6 = 0;
-  let c12 = 0;
-  let maxDays = 0;
+function derivePaymentHistoryMonths(openAccounts: any[], asOf = new Date()) {
+  const cut12 = new Date(asOf.getFullYear(), asOf.getMonth() - 11, 1);
+  const byMonth = new Map<string, number>();
 
   for (const acct of openAccounts || []) {
     const hist = acct.payment_history || acct.paymentHistory || [];
@@ -97,20 +88,28 @@ function deriveDpd(openAccounts: any[], asOf = new Date()) {
       const period = parts[0]?.trim() || '';
       const status = (parts[1] ?? parts[0] ?? '').trim();
       const when = parsePaymentMonth(period) || parsePaymentMonth(str);
-      if (!when || !isDpdValue(status)) continue;
-      const days = dpdDaysFromValue(status);
-      if (days > maxDays) maxDays = days;
-      if (when >= cut12) c12 += 1;
-      if (when >= cut6) c6 += 1;
-      if (when >= cut3) c3 += 1;
+      if (!when) continue;
+      if (when < cut12 || when > asOf) continue;
+
+      const days = isDpdValue(status) ? dpdDaysFromValue(status) : 0;
+      const monthKey = `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}`;
+      const prev = byMonth.get(monthKey);
+      if (prev == null || days > prev) byMonth.set(monthKey, days);
     }
   }
 
+  const paymentHistoryMonths = Array.from(byMonth.entries())
+    .map(([monthKey, dpdDays]) => ({ monthKey, dpdDays }))
+    .sort((a, b) => (a.monthKey < b.monthKey ? 1 : a.monthKey > b.monthKey ? -1 : 0));
+
+  let maxDpdDays = 0;
+  for (const m of paymentHistoryMonths) {
+    if (m.dpdDays > maxDpdDays) maxDpdDays = m.dpdDays;
+  }
+
   return {
-    dpdCount3m: c3,
-    dpdCount6m: c6,
-    dpdCount12m: c12,
-    maxDpdDays: maxDays,
+    paymentHistoryMonths,
+    maxDpdDays: paymentHistoryMonths.length ? maxDpdDays : null,
   };
 }
 
@@ -173,16 +172,6 @@ function deriveCcUtil(openAccounts: any[]) {
   }
   const ccUtil = ccLimit > 0 ? ccOutstanding / ccLimit : null;
   return { ccOutstanding, ccLimit, ccUtil };
-}
-
-/** Standard reducing-balance EMI. */
-export function estimateEmi(principal: number, annualRatePct: number, tenureMonths: number): number {
-  if (!principal || principal <= 0 || !tenureMonths || tenureMonths <= 0) return 0;
-  if (!annualRatePct || annualRatePct <= 0) return principal / tenureMonths;
-  const r = annualRatePct / 12 / 100;
-  const n = tenureMonths;
-  const pow = Math.pow(1 + r, n);
-  return (principal * r * pow) / (pow - 1);
 }
 
 export async function buildApplicantProfile(
@@ -253,13 +242,19 @@ export async function buildApplicantProfile(
 
   const netMonthlyIncome = toNum(income.netSalary);
 
+  let hasOtherIncome: boolean | null = null;
+  if (income.hasOtherIncome != null) {
+    hasOtherIncome = Boolean(income.hasOtherIncome);
+  }
+  const otherIncomeAmount = toNum(income.otherIncomeAmount);
+
   // FOIR: sum EMI from non–credit-card open accounts (CC → step 9 CC utilization)
   const existingTotalEmi = deriveFoirEmi(openAccounts);
 
   const requestedAmount = toNum(lead.requiredAmount ?? lead.required_amount);
   const tenureMonths = toNum(form.loanDetails?.tenureMonths) || toNum(form.tenureMonths) || 36;
 
-  const dpd = deriveDpd(openAccounts);
+  const dpd = derivePaymentHistoryMonths(openAccounts);
   const enq = deriveEnquiries(enquiries);
   const cc = deriveCcUtil(openAccounts);
 
@@ -270,8 +265,8 @@ export async function buildApplicantProfile(
       openAccounts.length === 0);
 
   let pfDeducted: boolean | null = null;
-  if (salary.is_pf_deducted != null || salary.isPfDeducted != null) {
-    pfDeducted = Boolean(salary.is_pf_deducted ?? salary.isPfDeducted);
+  if (income.pfDeducted != null) {
+    pfDeducted = Boolean(income.pfDeducted);
   }
 
   return {
@@ -279,6 +274,8 @@ export async function buildApplicantProfile(
     pinCode: lead.pinCode != null ? String(lead.pinCode).trim() : null,
     requestedAmount,
     netMonthlyIncome,
+    hasOtherIncome,
+    otherIncomeAmount,
     salaryMode: income.salaryMode != null ? String(income.salaryMode) : null,
     employmentMonths: mapJobStability(income.jobStability),
     dob: dobRaw,
@@ -287,11 +284,8 @@ export async function buildApplicantProfile(
     isFirstTimeBorrower,
     pfDeducted,
     existingTotalEmi,
-    proposedEmi: null,
     tenureMonths,
-    dpdCount3m: dpd.dpdCount3m,
-    dpdCount6m: dpd.dpdCount6m,
-    dpdCount12m: dpd.dpdCount12m,
+    paymentHistoryMonths: dpd.paymentHistoryMonths,
     maxDpdDays: dpd.maxDpdDays,
     enquiries1m: enq.enquiries1m,
     enquiries3m: enq.enquiries3m,

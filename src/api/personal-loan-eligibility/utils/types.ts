@@ -32,7 +32,6 @@ export interface LenderCriteria {
   firstTimeBorrowerAllowed: boolean;
   minInterestRate?: number | null;
   maxInterestRate?: number | null;
-  typicalInterestRate?: number | null;
   pincodeCheckRequired: boolean;
   minAge?: number | null;
   maxAge?: number | null;
@@ -45,13 +44,11 @@ export interface LenderCriteria {
   minEmploymentMonths?: number | null;
   maxDpdDaysAllowed?: number | null;
   maxDpdCount3months?: number | null;
-  maxDpdCount6months?: number | null;
   maxDpdCount12months?: number | null;
   maxEnquiries1month?: number | null;
   maxEnquiries3months?: number | null;
   minLoanAmount?: number | null;
   maxLoanAmount?: number | null;
-  maxNewPersonalLoans6months?: number | null;
 }
 
 export interface CatalogLender {
@@ -67,6 +64,8 @@ export interface ApplicantProfile {
   pinCode: string | null;
   requestedAmount: number | null;
   netMonthlyIncome: number | null;
+  hasOtherIncome: boolean | null;
+  otherIncomeAmount: number | null;
   salaryMode: string | null;
   employmentMonths: number | null;
   dob: string | null;
@@ -75,11 +74,9 @@ export interface ApplicantProfile {
   isFirstTimeBorrower: boolean;
   pfDeducted: boolean | null;
   existingTotalEmi: number;
-  proposedEmi: number | null;
   tenureMonths: number;
-  dpdCount3m: number | null;
-  dpdCount6m: number | null;
-  dpdCount12m: number | null;
+  /** Unique calendar months from open_accounts payment_history (max DPD days per month), newest first. */
+  paymentHistoryMonths: Array<{ monthKey: string; dpdDays: number }>;
   maxDpdDays: number | null;
   enquiries1m: number;
   enquiries3m: number;

@@ -179,6 +179,49 @@ export const PropertyFields = ({ formData, handleChange, pageInfo, loanType, occ
     </div>
 );
 
+const YesNoRadio = ({
+    name,
+    label,
+    value,
+    handleChange,
+    required = false,
+}: {
+    name: string;
+    label: string;
+    value: boolean | null;
+    handleChange: FieldProps['handleChange'];
+    required?: boolean;
+}) => (
+    <div className="form-group">
+        <label className="form-label">
+            {label}
+            {required && <span className="required-star">*</span>}
+        </label>
+        <div className="loan-form-radio-group">
+            <label className="loan-form-radio-label">
+                <input
+                    type="radio"
+                    name={name}
+                    value="true"
+                    checked={value === true}
+                    onChange={handleChange}
+                />{' '}
+                Yes
+            </label>
+            <label className="loan-form-radio-label">
+                <input
+                    type="radio"
+                    name={name}
+                    value="false"
+                    checked={value === false}
+                    onChange={handleChange}
+                />{' '}
+                No
+            </label>
+        </div>
+    </div>
+);
+
 export const IncomeDetailsFields = ({ formData, handleChange, pageInfo }: FieldProps) => (
     <div className="animate-fade-in card-grid-2">
         <div className="form-group">
@@ -215,6 +258,47 @@ export const IncomeDetailsFields = ({ formData, handleChange, pageInfo }: FieldP
                 ))}
             </select>
         </div>
+        <YesNoRadio
+            name="pfDeducted"
+            label={pageInfo.pfDeductedLabel || 'PF Deducted'}
+            value={formData.pfDeducted}
+            handleChange={handleChange}
+            required
+        />
+        <YesNoRadio
+            name="hasOtherIncome"
+            label={pageInfo.hasOtherIncomeLabel || 'Other Income'}
+            value={formData.hasOtherIncome}
+            handleChange={handleChange}
+            required
+        />
+        {formData.hasOtherIncome === true && (
+            <>
+                <div className="form-group">
+                    <label className="form-label">{pageInfo.otherIncomeSourceLabel || 'Income Source'}<span className="required-star">*</span></label>
+                    <input
+                        name="otherIncomeSource"
+                        className="form-input"
+                        value={formData.otherIncomeSource}
+                        onChange={handleChange}
+                        placeholder={pageInfo.otherIncomeSourcePlaceholder || 'Enter income source'}
+                    />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">{pageInfo.otherIncomeAmountLabel || 'Income Amount'}<span className="required-star">*</span></label>
+                    <input
+                        type="number"
+                        name="otherIncomeAmount"
+                        className="form-input"
+                        value={formData.otherIncomeAmount}
+                        onChange={handleChange}
+                        min="0"
+                        step="any"
+                        placeholder={pageInfo.otherIncomeAmountPlaceholder || 'Enter income amount'}
+                    />
+                </div>
+            </>
+        )}
     </div>
 );
 
@@ -551,6 +635,14 @@ export const SummarySection = ({ formData, loanProfile, leadId, pageInfo, loanTy
                                 <p className="summary-p"><strong>{pageInfo.companyNameLabel || 'Company'}:</strong> {formData.companyName}</p>
                                 <p className="summary-p"><strong>{pageInfo.designationLabel || 'Designation'}:</strong> {formData.designation}</p>
                                 <p className="summary-p"><strong>{pageInfo.netSalaryLabel || 'Net Salary'}:</strong> ₹{parseInt(formData.netSalary || '0').toLocaleString('en-IN')}</p>
+                                <p className="summary-p"><strong>{pageInfo.pfDeductedLabel || 'PF Deducted'}:</strong> {formData.pfDeducted === true ? 'Yes' : formData.pfDeducted === false ? 'No' : '—'}</p>
+                                <p className="summary-p"><strong>{pageInfo.hasOtherIncomeLabel || 'Other Income'}:</strong> {formData.hasOtherIncome === true ? 'Yes' : formData.hasOtherIncome === false ? 'No' : '—'}</p>
+                                {formData.hasOtherIncome === true && (
+                                    <>
+                                        <p className="summary-p"><strong>{pageInfo.otherIncomeSourceLabel || 'Income Source'}:</strong> {formData.otherIncomeSource}</p>
+                                        <p className="summary-p"><strong>{pageInfo.otherIncomeAmountLabel || 'Income Amount'}:</strong> ₹{parseFloat(formData.otherIncomeAmount || '0').toLocaleString('en-IN')}</p>
+                                    </>
+                                )}
                                 {loanType === 'Home Loan' && (
                                     <div className="summary-property-detail">
                                         <p className="summary-prop-label">Property Detail:</p>

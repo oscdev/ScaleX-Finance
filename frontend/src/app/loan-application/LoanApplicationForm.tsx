@@ -106,6 +106,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         addressLine1: string; addressLine2: string; landmark: string; state: string; district: string; city: string; residenceType: string; propertyAddressPincode: string;
         propertyType: string; propertyStatus: string; propertyValue: string;
         companyName: string; designation: string; companyAddress: string; netSalary: string; salaryMode: string; jobStability: string;
+        pfDeducted: boolean | null; hasOtherIncome: boolean | null; otherIncomeSource: string; otherIncomeAmount: string;
         runningLoans: any[]; tempLoanId: string; tempLoanType: string; tempBankName: string; tempLoanAmount: string; tempEmiAmount: string; tempPaidEmi: string;
         proprietorshipDoc: File | null; panCard: File | null; cibilReport: File | null; aadharCardFront: File | null; aadharCardBack: File | null; businessRegProofDoc: File | null;
         bankStatement: File | null; propertyPapers: File | null; coAppPan: File | null; coAppAadharFront: File | null; coAppAadharBack: File | null;
@@ -146,6 +147,10 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         netSalary: '',
         salaryMode: '',
         jobStability: '',
+        pfDeducted: null,
+        hasOtherIncome: null,
+        otherIncomeSource: '',
+        otherIncomeAmount: '',
         runningLoans: [],
         tempLoanId: '',
         tempLoanType: '',
@@ -198,9 +203,18 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         const { name, value, type } = e.target;
         const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
 
-        // Reset district if state changes
         if (name === 'state') {
             setFormData(prev => ({ ...prev, state: value, district: '' }));
+        } else if (name === 'pfDeducted' || name === 'hasOtherIncome') {
+            const boolVal = value === 'true';
+            setFormData(prev => {
+                const next = { ...prev, [name]: boolVal };
+                if (name === 'hasOtherIncome' && !boolVal) {
+                    next.otherIncomeSource = '';
+                    next.otherIncomeAmount = '';
+                }
+                return next;
+            });
         } else {
             setFormData(prev => ({ ...prev, [name]: val }));
         }
@@ -388,7 +402,11 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                             companyName: formData.companyName, designation: formData.designation,
                             companyAddress: formData.companyAddress,
                             netSalary: formData.netSalary,
-                            salaryMode: formData.salaryMode, jobStability: formData.jobStability
+                            salaryMode: formData.salaryMode, jobStability: formData.jobStability,
+                            pfDeducted: formData.pfDeducted,
+                            hasOtherIncome: formData.hasOtherIncome,
+                            otherIncomeSource: formData.hasOtherIncome ? formData.otherIncomeSource : '',
+                            otherIncomeAmount: formData.hasOtherIncome ? formData.otherIncomeAmount : '',
                         },
                         propertyDetails: {
                             type: formData.propertyType, status: formData.propertyStatus, value: formData.propertyValue
@@ -525,6 +543,21 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         if (!formData.netSalary) errors.push(`Please enter "${pageInfo.netSalaryLabel || 'Net Salary'}*" in "Income" tab.`);
         if (!formData.salaryMode) errors.push(`Please enter "${pageInfo.salaryModeLabel || 'Salary Mode'}*" in "Income" tab.`);
         if (!formData.jobStability) errors.push(`Please enter "${pageInfo.jobStabilityLabel || 'Current Job Stability'}*" in "Income" tab.`);
+        if (formData.pfDeducted !== true && formData.pfDeducted !== false) {
+            errors.push(`Please select "${pageInfo.pfDeductedLabel || 'PF Deducted'}*" in "Income" tab.`);
+        }
+        if (formData.hasOtherIncome !== true && formData.hasOtherIncome !== false) {
+            errors.push(`Please select "${pageInfo.hasOtherIncomeLabel || 'Other Income'}*" in "Income" tab.`);
+        }
+        if (formData.hasOtherIncome === true) {
+            if (!formData.otherIncomeSource?.trim()) {
+                errors.push(`Please enter "${pageInfo.otherIncomeSourceLabel || 'Income Source'}*" in "Income" tab.`);
+            }
+            const otherAmt = parseFloat(formData.otherIncomeAmount);
+            if (!formData.otherIncomeAmount || isNaN(otherAmt) || otherAmt <= 0) {
+                errors.push(`Please enter a valid "${pageInfo.otherIncomeAmountLabel || 'Income Amount'}*" greater than 0 in "Income" tab.`);
+            }
+        }
 
         if (!formData.uploadedFields['panCard']) errors.push(`Please upload "${pageInfo.panCardLabel || 'Pan Card'}*" in "Docs" tab.`);
         if (!formData.uploadedFields['cibilReport']) errors.push(`Please upload "${pageInfo.cibilReportLabel || 'CIBIL Report'}*" in "Docs" tab.`);
