@@ -49,17 +49,51 @@ export default factories.createCoreController(
             ctx.query.source ||
             (ctx.request.method === 'GET' ? 'lenders-page' : 'matched-lenders'),
         });
+
+        const scoring = result.scoring;
+        const displayed = scoring?.rank?.displayed ?? [];
+        const belowThreshold = scoring?.rank?.belowThreshold ?? [];
+
+        const scoreByCode = new Map(
+          [...displayed, ...belowThreshold].map((l: any) => [l.lenderCode, l])
+        );
+
+        const lendersList =
+          displayed.length > 0
+            ? displayed.map((l: any) => ({
+                lenderCode: l.lenderCode,
+                lenderName: l.lenderName,
+                lenderType: l.lenderType,
+                eligible: true,
+                score: l.totalScore,
+                rank: l.rank,
+                ruleFailures: [],
+              }))
+            : result.response.eligible.map((e: any) => {
+                const scored = scoreByCode.get(e.lenderCode);
+                return {
+                  ...e,
+                  eligible: true,
+                  score: scored?.totalScore ?? null,
+                  rank: scored?.rank ?? null,
+                  ruleFailures: [],
+                };
+              });
+
         ctx.body = {
           leadId: result.leadId,
           runId: result.runId,
-          lenders: result.response.eligible.map((e: any) => ({
-            ...e,
-            eligible: true,
-            score: null,
-            rank: null,
-            ruleFailures: [],
-          })),
+          lenders: lendersList,
           excluded: result.response.excluded,
+          belowThreshold: belowThreshold.map((l: any) => ({
+            lenderCode: l.lenderCode,
+            lenderName: l.lenderName,
+            eligible: true,
+            score: l.totalScore,
+            rank: l.rank,
+            displayed: false,
+            errorCode: l.errorCode,
+          })),
           connectionFailures: result.connectionFailures,
         };
       } catch (err) {

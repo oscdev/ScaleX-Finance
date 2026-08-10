@@ -530,14 +530,27 @@ export interface ApiActivityLogActivityLog extends Struct.CollectionTypeSchema {
         'EMAIL_SKIPPED',
         'ADVISOR_LOGIN_SUCCESS',
         'ADVISOR_LOGIN_FAILURE',
+        'ADVISOR_REGISTRATION_SUCCESS',
+        'ADVISOR_REGISTRATION_FAILURE',
+        'ADVISOR_APPROVED',
+        'ADMIN_USER_CREATED',
+        'LOGIN_SUCCESS',
+        'LOGIN_FAILURE',
         'MAINTENANCE_TOGGLED',
         'LOGS_PURGED',
         'LOG_CLEANUP_CRON',
         'LEAD_SUBMISSION_SUCCESS',
         'LEAD_SUBMISSION_FAILURE',
         'LEAD_STATUS_CHANGED',
+        'LEAD_REMARK_ADDED',
         'AI_MATCH_GENERATED',
         'LOAN_STATUS_CHANGED',
+        'LOAN_ASSIGNMENT_CHANGED',
+        'LOAN_APP_SUBMITTED',
+        'LOAN_APP_SUBMIT_FAILED',
+        'BUREAU_EXTRACT_STARTED',
+        'BUREAU_EXTRACT_COMPLETED',
+        'BUREAU_EXTRACT_FAILED',
         'PL_ELIGIBILITY_RUN_START',
         'PL_ELIGIBILITY_BLOCKED',
         'PL_ELIGIBILITY_RULE',
@@ -545,14 +558,38 @@ export interface ApiActivityLogActivityLog extends Struct.CollectionTypeSchema {
         'PL_ELIGIBILITY_LENDER',
         'PL_ELIGIBILITY_RUN_COMPLETE',
         'PL_ELIGIBILITY_CONNECTION_FAILED',
+        'PL_SCORE_RUN_START',
+        'PL_SCORE_CRITERION',
+        'PL_SCORE_CRITERION_SKIP',
+        'PL_SCORE_CRITERION_INACTIVE',
+        'PL_SCORE_LENDER',
+        'PL_SCORE_RANK_COMPLETE',
+        'PL_SCORE_RUN_DONE',
+        'PL_SCORE_BLOCKED',
       ]
     > &
       Schema.Attribute.Required;
+    category: Schema.Attribute.Enumeration<
+      [
+        'LEAD_FORM',
+        'LOAN_APPLICATION',
+        'EMAIL',
+        'STATUS_REMARKS',
+        'BUREAU_EXTRACTION',
+        'LENDER_ELIGIBILITY',
+        'LENDER_SCORING',
+        'USER_REGISTRATION',
+        'SYSTEM',
+      ]
+    >;
+    correlationId: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     description: Schema.Attribute.Text;
     ipAddress: Schema.Attribute.String;
+    leadId: Schema.Attribute.Integer;
+    leadName: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -879,6 +916,12 @@ export interface ApiGlobalSettingGlobalSetting extends Struct.SingleTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    activityLoggingIsEnabled: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    codeLevelLoggingIsEnabled: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -890,15 +933,13 @@ export interface ApiGlobalSettingGlobalSetting extends Struct.SingleTypeSchema {
       'api::global-setting.global-setting'
     > &
       Schema.Attribute.Private;
-    loggingIsEnabled: Schema.Attribute.Boolean &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<true>;
+    loggingRetentionDays: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<30>;
     maintenanceModeIsEnabled: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
     notificationsIsEnabled: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<true>;
     publishedAt: Schema.Attribute.DateTime;
-    retentionDays: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<30>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1430,7 +1471,7 @@ export interface ApiLoanApplicationPageLoanApplicationPage
     docTypeOptions: Schema.Attribute.Text &
       Schema.Attribute.DefaultTo<'Pan Card, Aadhar Card Front, Aadhar Card Back, Salary Slip 1, Salary Slip 2, Salary Slip 3, 6 Month Bank Statement, Form 16 - 1, Form 16 - 2, Office ID Card Front, Office ID Card Back, Passport Size Photo, Co-Applicant Pan Card, Co-Applicant Aadhar Card Front, Co-Applicant Aadhar Card Back, Property Papers, Other Documents (if any)'>;
     jobStabilityLabel: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Current Job Stability'>;
+      Schema.Attribute.DefaultTo<'Current Job Stability (Months)'>;
     jobStabilityOptions: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'6 Months, 1 year, 2 year, 3 year+'>;
     landmarkLabel: Schema.Attribute.String &
@@ -1719,6 +1760,61 @@ export interface ApiPersonalLoanEligibilityLendersCriteriaPl
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiPersonalLoanScoringCriteriaLenderScoringCriteria
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'lender_scoring_criteria';
+  info: {
+    description: 'Platform catalog for PL scoring criterion weights and JSON band rules';
+    displayName: 'Lender Scoring Criteria';
+    pluralName: 'lender-scoring-criterias';
+    singularName: 'lender-scoring-criteria';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    category: Schema.Attribute.Enumeration<['Credit', 'Business', 'Loan']> &
+      Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    criterionCode: Schema.Attribute.String & Schema.Attribute.Required;
+    criterionName: Schema.Attribute.String & Schema.Attribute.Required;
+    isActive: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    loanType: Schema.Attribute.Enumeration<
+      ['Personal Loan', 'Business Loan', 'Home Loan', 'LAP Loan']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'Personal Loan'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::personal-loan-scoring-criteria.lender-scoring-criteria'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    rules: Schema.Attribute.JSON;
+    ruleType: Schema.Attribute.Enumeration<
+      ['JSON', 'FORMULA', 'STATIC', 'JSON+FORMULA']
+    > &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    weight: Schema.Attribute.Decimal & Schema.Attribute.Required;
   };
 }
 
@@ -2361,6 +2457,7 @@ declare module '@strapi/strapi' {
       'api::loan-application-page.loan-application-page': ApiLoanApplicationPageLoanApplicationPage;
       'api::loan-application.loan-application': ApiLoanApplicationLoanApplication;
       'api::personal-loan-eligibility.lenders-criteria-pl': ApiPersonalLoanEligibilityLendersCriteriaPl;
+      'api::personal-loan-scoring-criteria.lender-scoring-criteria': ApiPersonalLoanScoringCriteriaLenderScoringCriteria;
       'api::product-page.product-page': ApiProductPageProductPage;
       'api::product.product': ApiProductProduct;
       'api::user-product-mapping.user-product-mapping': ApiUserProductMappingUserProductMapping;

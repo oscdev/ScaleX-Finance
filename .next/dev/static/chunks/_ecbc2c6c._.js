@@ -75,6 +75,91 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
 }),
+"[project]/src/lib/plSubmissionLogger.ts [app-client] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "logPlSubmission",
+    ()=>logPlSubmission,
+    "sanitizeClientFields",
+    ()=>sanitizeClientFields
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$strapi$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/strapi.ts [app-client] (ecmascript)");
+;
+const FILE_FIELD_NAMES = new Set([
+    'proprietorshipDoc',
+    'panCard',
+    'cibilReport',
+    'aadharCardFront',
+    'aadharCardBack',
+    'businessRegProofDoc',
+    'bankStatement',
+    'propertyPapers',
+    'coAppPan',
+    'coAppAadharFront',
+    'coAppAadharBack',
+    'salarySlips',
+    'otherDocs'
+]);
+function sanitizeClientFields(data) {
+    if (!data) return null;
+    const out = {};
+    for (const [key, val] of Object.entries(data)){
+        if (val instanceof File) {
+            out[key] = {
+                fileName: val.name,
+                size: val.size
+            };
+            continue;
+        }
+        if (Array.isArray(val) && val.length > 0 && val[0] instanceof File) {
+            out[key] = val.map((f)=>({
+                    fileName: f.name,
+                    size: f.size
+                }));
+            continue;
+        }
+        if (FILE_FIELD_NAMES.has(key) && val) {
+            out[key] = Array.isArray(val) ? `[${val.length} file(s)]` : '[file]';
+            continue;
+        }
+        if (key === 'addedDocs' && Array.isArray(val)) {
+            out[key] = val.map((doc)=>({
+                    id: doc.id,
+                    name: doc.name,
+                    format: doc.format,
+                    status: doc.status
+                }));
+            continue;
+        }
+        if (val && typeof val === 'object' && !Array.isArray(val)) {
+            out[key] = sanitizeClientFields(val);
+            continue;
+        }
+        out[key] = val;
+    }
+    return out;
+}
+const logPlSubmission = async (params)=>{
+    try {
+        await fetch((0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$strapi$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["strapiPublicApi"])('/api/pl-submission-audit/log'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ...params,
+                fields: params.fields ? sanitizeClientFields(params.fields) : null
+            })
+        });
+    } catch  {
+    // never block UI
+    }
+};
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
+}
+}),
 "[project]/src/lib/safeStorage.ts [app-client] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
@@ -1358,6 +1443,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/navigation.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$strapi$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/strapi.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$logger$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/logger.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$plSubmissionLogger$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/plSubmissionLogger.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$safeStorage$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/safeStorage.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$lead$2d$form$2f$funnels$2f$BusinessLoanFunnel$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/lead-form/funnels/BusinessLoanFunnel.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$lead$2d$form$2f$funnels$2f$PersonalLoanFunnel$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/lead-form/funnels/PersonalLoanFunnel.tsx [app-client] (ecmascript)");
@@ -1367,6 +1453,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$lead$2d$form$2
 ;
 var _s = __turbopack_context__.k.signature();
 'use client';
+;
 ;
 ;
 ;
@@ -1443,7 +1530,7 @@ function LeadForm({ pageInfo }) {
                 }));
         }
     };
-    const validate = ()=>{
+    const buildValidationErrors = ()=>{
         const newErrors = {};
         const product = formData.selectedProduct;
         // Universal fields
@@ -1480,86 +1567,109 @@ function LeadForm({ pageInfo }) {
             if (!formData.leadType) newErrors.leadType = 'Lead Type is required';
             if (!formData.employmentType) newErrors.employmentType = 'Occupation is required';
         }
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        return newErrors;
     };
     const handleSubmit = async (e)=>{
         e.preventDefault();
         setSubmitError(null);
-        if (validate()) {
-            setIsSubmitting(true);
-            try {
-                const payload = {
-                    data: {
-                        fullName: formData.fullName,
-                        email: formData.email,
-                        requiredAmount: parseFloat(formData.requiredAmount),
-                        mobileNumber: formData.mobileNumber,
-                        pinCode: formData.pinCode,
-                        advisorReferralId: formData.advisorReferralId || null,
-                        selectedProduct: formData.selectedProduct || null,
-                        aadharCard: formData.aadharCard,
-                        panCard: formData.panCard,
-                        propertyType: formData.propertyType || null,
-                        propertyStatus: formData.propertyStatus || null,
-                        propertyValue: formData.propertyValue ? parseFloat(formData.propertyValue) : null,
-                        employmentType: formData.employmentType || null,
-                        leadType: formData.leadType || null,
-                        getEmailNotification: formData.getEmailNotification === 'Yes'
-                    }
-                };
-                const res = await fetch((0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$strapi$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["strapiPublicApi"])('/api/leads'), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-                if (!res.ok) {
-                    const errorData = await res.json();
-                    const failMsg = errorData?.error?.message || 'Failed to submit application';
-                    await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$logger$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["logEvent"])({
-                        action: 'LEAD_SUBMISSION_FAILURE',
-                        description: `Lead form submission failed for ${formData.email}`,
-                        severity: 'error',
-                        metadata: {
-                            email: formData.email,
-                            error: failMsg
-                        }
-                    });
-                    throw new Error(failMsg);
+        const validationErrors = buildValidationErrors();
+        setErrors(validationErrors);
+        if (Object.keys(validationErrors).length > 0) {
+            void (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$plSubmissionLogger$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["logPlSubmission"])({
+                form: 'lead',
+                event: 'VALIDATION_ERROR',
+                leadName: formData.fullName,
+                fields: formData,
+                errors: validationErrors
+            });
+            return;
+        }
+        setIsSubmitting(true);
+        try {
+            const payload = {
+                data: {
+                    fullName: formData.fullName,
+                    email: formData.email,
+                    requiredAmount: parseFloat(formData.requiredAmount),
+                    mobileNumber: formData.mobileNumber,
+                    pinCode: formData.pinCode,
+                    advisorReferralId: formData.advisorReferralId || null,
+                    selectedProduct: formData.selectedProduct || null,
+                    aadharCard: formData.aadharCard,
+                    panCard: formData.panCard,
+                    propertyType: formData.propertyType || null,
+                    propertyStatus: formData.propertyStatus || null,
+                    propertyValue: formData.propertyValue ? parseFloat(formData.propertyValue) : null,
+                    employmentType: formData.employmentType || null,
+                    leadType: formData.leadType || null,
+                    getEmailNotification: formData.getEmailNotification === 'Yes'
                 }
-                const responseData = await res.json();
-                const leadId = responseData?.data?.id;
+            };
+            const res = await fetch((0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$strapi$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["strapiPublicApi"])('/api/leads'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                const errorData = await res.json();
+                const failMsg = errorData?.error?.message || 'Failed to submit application';
+                void (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$plSubmissionLogger$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["logPlSubmission"])({
+                    form: 'lead',
+                    event: 'CLIENT_ERROR',
+                    leadName: formData.fullName,
+                    fields: formData,
+                    errors: failMsg
+                });
                 await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$logger$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["logEvent"])({
-                    action: 'LEAD_SUBMISSION_SUCCESS',
-                    description: `New lead submitted successfully: ${formData.fullName}`,
-                    severity: 'info',
+                    action: 'LEAD_SUBMISSION_FAILURE',
+                    description: `Lead form submission failed for ${formData.email}`,
+                    severity: 'error',
                     metadata: {
-                        leadId,
                         email: formData.email,
-                        product: formData.selectedProduct
+                        error: failMsg
                     }
                 });
-                // Save lead details for loan application pre-population
-                const ss = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$safeStorage$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["safeSessionStorage"])();
-                ss.setItem('requiredAmount', formData.requiredAmount);
-                ss.setItem('getEmailNotification', formData.getEmailNotification);
-                ss.setItem('leadName', formData.fullName);
-                ss.setItem('leadEmail', formData.email);
-                ss.setItem('leadPhone', formData.mobileNumber);
-                ss.setItem('leadAadhar', formData.aadharCard);
-                ss.setItem('leadPan', formData.panCard);
-                ss.setItem('leadOccupation', formData.employmentType);
-                if (leadId) {
-                    ss.setItem('lastLeadId', leadId.toString());
-                }
-                setIsSuccess(true);
-            } catch (err) {
-                setSubmitError(err.message || 'An unexpected error occurred. Please try again later.');
-            } finally{
-                setIsSubmitting(false);
+                throw new Error(failMsg);
             }
+            const responseData = await res.json();
+            const leadId = responseData?.data?.id;
+            await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$logger$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["logEvent"])({
+                action: 'LEAD_SUBMISSION_SUCCESS',
+                description: `New lead submitted successfully: ${formData.fullName}`,
+                severity: 'info',
+                metadata: {
+                    leadId,
+                    email: formData.email,
+                    product: formData.selectedProduct
+                }
+            });
+            // Save lead details for loan application pre-population
+            const ss = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$safeStorage$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["safeSessionStorage"])();
+            ss.setItem('requiredAmount', formData.requiredAmount);
+            ss.setItem('getEmailNotification', formData.getEmailNotification);
+            ss.setItem('leadName', formData.fullName);
+            ss.setItem('leadEmail', formData.email);
+            ss.setItem('leadPhone', formData.mobileNumber);
+            ss.setItem('leadAadhar', formData.aadharCard);
+            ss.setItem('leadPan', formData.panCard);
+            ss.setItem('leadOccupation', formData.employmentType);
+            if (leadId) {
+                ss.setItem('lastLeadId', leadId.toString());
+            }
+            setIsSuccess(true);
+        } catch (err) {
+            void (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$plSubmissionLogger$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["logPlSubmission"])({
+                form: 'lead',
+                event: 'CLIENT_ERROR',
+                leadName: formData.fullName,
+                fields: formData,
+                errors: err.message || 'An unexpected error occurred'
+            });
+            setSubmitError(err.message || 'An unexpected error occurred. Please try again later.');
+        } finally{
+            setIsSubmitting(false);
         }
     };
     if (isSuccess) {
@@ -1578,7 +1688,7 @@ function LeadForm({ pageInfo }) {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                            lineNumber: 205,
+                            lineNumber: 230,
                             columnNumber: 25
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1589,14 +1699,14 @@ function LeadForm({ pageInfo }) {
                                     children: formData.selectedProduct
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                                    lineNumber: 206,
+                                    lineNumber: 231,
                                     columnNumber: 114
                                 }, this),
                                 ". Please proceed to fill out the detailed loan application form."
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                            lineNumber: 206,
+                            lineNumber: 231,
                             columnNumber: 25
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1605,23 +1715,23 @@ function LeadForm({ pageInfo }) {
                             children: "Continue to Loan Application"
                         }, void 0, false, {
                             fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                            lineNumber: 207,
+                            lineNumber: 232,
                             columnNumber: 25
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                    lineNumber: 204,
+                    lineNumber: 229,
                     columnNumber: 21
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                lineNumber: 203,
+                lineNumber: 228,
                 columnNumber: 17
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-            lineNumber: 202,
+            lineNumber: 227,
             columnNumber: 13
         }, this);
     }
@@ -1638,7 +1748,7 @@ function LeadForm({ pageInfo }) {
                 pageInfo: pageInfo
             }, void 0, false, {
                 fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                lineNumber: 225,
+                lineNumber: 250,
                 columnNumber: 20
             }, this);
         }
@@ -1650,7 +1760,7 @@ function LeadForm({ pageInfo }) {
                 pageInfo: pageInfo
             }, void 0, false, {
                 fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                lineNumber: 228,
+                lineNumber: 253,
                 columnNumber: 20
             }, this);
         }
@@ -1662,7 +1772,7 @@ function LeadForm({ pageInfo }) {
                 pageInfo: pageInfo
             }, void 0, false, {
                 fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                lineNumber: 231,
+                lineNumber: 256,
                 columnNumber: 20
             }, this);
         }
@@ -1673,7 +1783,7 @@ function LeadForm({ pageInfo }) {
             pageInfo: pageInfo
         }, void 0, false, {
             fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-            lineNumber: 233,
+            lineNumber: 258,
             columnNumber: 16
         }, this);
     };
@@ -1687,7 +1797,7 @@ function LeadForm({ pageInfo }) {
                     children: formData.selectedProduct ? `${formData.selectedProduct} Lead Form` : 'Lead Form'
                 }, void 0, false, {
                     fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                    lineNumber: 239,
+                    lineNumber: 264,
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -1701,7 +1811,7 @@ function LeadForm({ pageInfo }) {
                             isAutoPopulated: isAdvisorAutoPopulated
                         }, void 0, false, {
                             fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                            lineNumber: 246,
+                            lineNumber: 271,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1712,7 +1822,7 @@ function LeadForm({ pageInfo }) {
                                     children: submitError
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                                    lineNumber: 254,
+                                    lineNumber: 279,
                                     columnNumber: 29
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1722,7 +1832,7 @@ function LeadForm({ pageInfo }) {
                                     children: backButtonLabel
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                                    lineNumber: 258,
+                                    lineNumber: 283,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1732,30 +1842,30 @@ function LeadForm({ pageInfo }) {
                                     children: isSubmitting ? 'Submitting...' : submitButtonLabel
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                                    lineNumber: 266,
+                                    lineNumber: 291,
                                     columnNumber: 25
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                            lineNumber: 252,
+                            lineNumber: 277,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-                    lineNumber: 242,
+                    lineNumber: 267,
                     columnNumber: 17
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-            lineNumber: 238,
+            lineNumber: 263,
             columnNumber: 13
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/lead-form/LeadForm.tsx",
-        lineNumber: 237,
+        lineNumber: 262,
         columnNumber: 9
     }, this);
 }
@@ -1777,4 +1887,4 @@ module.exports = __turbopack_context__.r("[project]/node_modules/next/dist/clien
 }),
 ]);
 
-//# sourceMappingURL=_92188aaf._.js.map
+//# sourceMappingURL=_ecbc2c6c._.js.map

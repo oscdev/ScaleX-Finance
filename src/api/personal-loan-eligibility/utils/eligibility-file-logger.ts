@@ -1,10 +1,13 @@
-import fs from 'fs';
-import path from 'path';
 import { randomUUID } from 'crypto';
 import type { ConditionResult, LenderEvalResult } from './types';
 import { getRuleCatalog } from './rule-catalog';
+import {
+  appendModuleLogIfEnabled,
+  isCodeLevelLoggingEnabled,
+  resetModuleLeadLog,
+} from '../../../utils/code-file-logger';
 
-const LOG_DIR = path.join(process.cwd(), 'logs', 'pl-eligibility');
+const MODULE = 'pl-eligibility';
 
 export type PlLogEvent =
   | 'RUN_START'
@@ -40,28 +43,8 @@ interface LenderBuffer {
   steps: StepRecord[];
 }
 
-function ensureLogDir() {
-  if (!fs.existsSync(LOG_DIR)) {
-    fs.mkdirSync(LOG_DIR, { recursive: true });
-  }
-}
-
-function logFilePath(d = new Date()) {
-  const yyyy = d.getUTCFullYear();
-  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const dd = String(d.getUTCDate()).padStart(2, '0');
-  return path.join(LOG_DIR, `${yyyy}-${mm}-${dd}.log`);
-}
-
 export function newRunId(): string {
   return randomUUID();
-}
-
-function appendText(text: string): string {
-  ensureLogDir();
-  const file = logFilePath();
-  fs.appendFileSync(file, `${text}\n`, 'utf8');
-  return file;
 }
 
 function fmtCols(fields: { table: string; column: string }[] | undefined): string[] {
@@ -90,6 +73,7 @@ function shapeStep(condition: ConditionResult): StepRecord {
 }
 
 function flushLenderBlock(
+  appendText: (text: string) => string,
   buffer: LenderBuffer,
   outcome: {
     eligible: boolean;
@@ -183,13 +167,38 @@ export interface EligibilityRunLogger {
   logRunError(message: string): string;
 }
 
-export function createEligibilityRunLogger(runId: string, leadId: number): EligibilityRunLogger {
+export interface EligibilityRunLoggerOptions {
+  leadName?: string | null;
+  overwriteLeadLog?: boolean;
+}
+
+export async function createEligibilityRunLogger(
+  runId: string,
+  leadId: number,
+  strapi?: any,
+  opts?: EligibilityRunLoggerOptions | string | null
+): Promise<EligibilityRunLogger> {
+  const options: EligibilityRunLoggerOptions =
+    typeof opts === 'string' || opts == null
+      ? { leadName: typeof opts === 'string' ? opts : null }
+      : opts;
+  const enabled = await isCodeLevelLoggingEnabled(strapi);
+  const overwriteLeadLog = options.overwriteLeadLog ?? false;
+  let leadName: string | null | undefined = options.leadName ?? null;
+  const leadCtx = () => ({ leadId, leadName });
+  const appendText = (text: string) =>
+    appendModuleLogIfEnabled(MODULE, text, enabled, leadCtx());
+
   let currentLender: LenderBuffer | null = null;
   let runSource = 'matched-lenders';
 
   const writeRunHeader = (profile: Record<string, unknown>) => {
+    if (overwriteLeadLog) {
+      resetModuleLeadLog(MODULE, leadCtx());
+    }
     const lines = [
       `leadId: ${leadId}`,
+      `leadName: ${leadName ?? '-'}`,
       `runId: ${runId.slice(0, 8)}`,
       `source: ${runSource}`,
       `profile: ${JSON.stringify({
@@ -212,8 +221,10 @@ export function createEligibilityRunLogger(runId: string, leadId: number): Eligi
       switch (event) {
         case 'RUN_START':
           runSource = String(payload.source ?? 'matched-lenders');
+          if (payload.leadName != null) leadName = String(payload.leadName);
           return '';
         case 'PROFILE_READY':
+          if (payload.leadName != null) leadName = String(payload.leadName);
           writeRunHeader(payload);
           return '';
         case 'RUN_BLOCKED':
@@ -246,7 +257,7 @@ export function createEligibilityRunLogger(runId: string, leadId: number): Eligi
 
     logLenderExit(lenderCode, lenderName, failedCondition, summary) {
       const buffer = currentLender ?? { lenderCode, lenderName, steps: [] };
-      flushLenderBlock(buffer, {
+      flushLenderBlock(appendText, buffer, {
         eligible: false,
         failedAt: failedCondition.ruleId,
         failedStep: failedCondition.step,
@@ -262,7 +273,7 @@ export function createEligibilityRunLogger(runId: string, leadId: number): Eligi
 
     logLenderComplete(lenderCode, lenderName, summary) {
       const buffer = currentLender ?? { lenderCode, lenderName, steps: [] };
-      flushLenderBlock(buffer, {
+      flushLenderBlock(appendText, buffer, {
         eligible: true,
         passed: summary.passed.length,
         failed: 0,
@@ -302,8 +313,17 @@ export function createEligibilityRunLogger(runId: string, leadId: number): Eligi
 }
 
 /** @deprecated Use createEligibilityRunLogger. */
-export function appendEligibilityRunLog(record: Record<string, unknown>): string {
-  return appendText(JSON.stringify(record, null, 2));
+export async function appendEligibilityRunLog(
+  record: Record<string, unknown>,
+  strapi?: any
+): Promise<string> {
+  const enabled = await isCodeLevelLoggingEnabled(strapi);
+  const leadId = record.leadId as number | string | undefined;
+  const leadName = (record.leadName as string | undefined) ?? null;
+  return appendModuleLogIfEnabled(MODULE, JSON.stringify(record, null, 2), enabled, {
+    leadId,
+    leadName,
+  });
 }
 
 /** @deprecated */

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { strapiPublicApi } from '@/lib/strapi';
 import { logEvent } from '@/lib/logger';
+import { logPlSubmission } from '@/lib/plSubmissionLogger';
 import { safeSessionStorage } from '@/lib/safeStorage';
 import './LeadForm.css';
 import BusinessLoanFunnel from './funnels/BusinessLoanFunnel';
@@ -66,7 +67,7 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
         }
     };
 
-    const validate = () => {
+    const buildValidationErrors = () => {
         const newErrors: any = {};
         const product = formData.selectedProduct;
 
@@ -109,18 +110,29 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
             if (!formData.employmentType) newErrors.employmentType = 'Occupation is required';
         }
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        return newErrors;
     };
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitError(null);
-        if (validate()) {
-            setIsSubmitting(true);
+        const validationErrors = buildValidationErrors();
+        setErrors(validationErrors);
+        if (Object.keys(validationErrors).length > 0) {
+            void logPlSubmission({
+                form: 'lead',
+                event: 'VALIDATION_ERROR',
+                leadName: formData.fullName,
+                fields: formData,
+                errors: validationErrors,
+            });
+            return;
+        }
+        setIsSubmitting(true);
 
-            try {
-                const payload = {
+        try {
+            const payload = {
                     data: {
                         fullName: formData.fullName,
                         email: formData.email,
@@ -151,6 +163,14 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
                 if (!res.ok) {
                     const errorData = await res.json();
                     const failMsg = errorData?.error?.message || 'Failed to submit application';
+
+                    void logPlSubmission({
+                        form: 'lead',
+                        event: 'CLIENT_ERROR',
+                        leadName: formData.fullName,
+                        fields: formData,
+                        errors: failMsg,
+                    });
 
                     await logEvent({
                         action: 'LEAD_SUBMISSION_FAILURE',
@@ -189,11 +209,17 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
 
                 setIsSuccess(true);
             } catch (err: any) {
+                void logPlSubmission({
+                    form: 'lead',
+                    event: 'CLIENT_ERROR',
+                    leadName: formData.fullName,
+                    fields: formData,
+                    errors: err.message || 'An unexpected error occurred',
+                });
                 setSubmitError(err.message || 'An unexpected error occurred. Please try again later.');
             } finally {
                 setIsSubmitting(false);
             }
-        }
     };
 
     if (isSuccess) {

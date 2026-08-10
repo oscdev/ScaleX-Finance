@@ -1,0 +1,59 @@
+{
+  "kind": "collectionType",
+  "collectionName": "lender_scoring_criteria",
+  "info": {
+    "singularName": "lender-scoring-criteria",
+    "pluralName": "lender-scoring-criterias",
+    "displayName": "Lender Scoring Criteria",
+    "description": "Platform catalog for PL scoring criterion weights and JSON band rules"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": false
+    },
+    "content-type-builder": {
+      "visible": false
+    }
+  },
+  "attributes": {
+    "criterionCode": {
+      "type": "string",
+      "required": true
+    },
+    "criterionName": {
+      "type": "string",
+      "required": true
+    },
+    "category": {
+      "type": "enumeration",
+      "enum": ["Credit", "Business", "Loan"],
+      "required": true
+    },
+    "loanType": {
+      "type": "enumeration",
+      "enum": ["Personal Loan", "Business Loan", "Home Loan", "LAP Loan"],
+      "required": true,
+      "default": "Personal Loan"
+    },
+    "weight": {
+      "type": "decimal",
+      "required": true
+    },
+    "ruleType": {
+      "type": "enumeration",
+      "enum": ["JSON", "FORMULA", "STATIC", "JSON+FORMULA"],
+      "required": true
+    },
+    "rules": {
+      "type": "json"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    }
+  }
+}

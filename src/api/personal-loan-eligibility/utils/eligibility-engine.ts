@@ -268,7 +268,14 @@ async function loadZipRows(
 async function logActivity(strapi: any, params: Record<string, unknown>) {
   try {
     const logger: any = strapi.service('api::activity-log.activity-log');
-    if (logger?.logEvent) await logger.logEvent(params);
+    if (!logger?.logEvent) return;
+    const meta = (params.metadata || {}) as Record<string, unknown>;
+    await logger.logEvent({
+      ...params,
+      leadId: params.leadId ?? meta.leadId,
+      leadName: params.leadName ?? meta.leadName,
+      correlationId: params.correlationId ?? meta.runId ?? meta.correlationId,
+    });
   } catch {
     // never break matching on activity-log failure
   }
@@ -292,7 +299,9 @@ export async function runEligibilityMatch(
   opts: { leadId: number; lenderCode?: string; source?: string }
 ): Promise<MatchRunResult> {
   const runId = newRunId();
-  const fileLog = createEligibilityRunLogger(runId, Number(opts.leadId));
+  const fileLog = await createEligibilityRunLogger(runId, Number(opts.leadId), strapi, {
+    overwriteLeadLog: true,
+  });
   const connectionFailures: ConnectionFailure[] = [];
   const leadId = Number(opts.leadId);
 
@@ -310,6 +319,8 @@ export async function runEligibilityMatch(
     description: `PL eligibility run start for lead ${leadId}`,
     severity: 'info',
     model: 'personal-loan-eligibility',
+    leadId,
+    correlationId: runId,
     metadata: { leadId, runId, source: opts.source || 'matched-lenders' },
   });
 
@@ -334,6 +345,7 @@ export async function runEligibilityMatch(
   }
 
   fileLog.log('PROFILE_READY', {
+    leadName: profile.fullName,
     applicantPin: profile.pinCode,
     requestedAmount: profile.requestedAmount,
     hasBureau: profile.hasBureau,
@@ -460,11 +472,13 @@ export async function runEligibilityMatch(
   const result: MatchRunResult = {
     leadId,
     runId,
+    profile,
     lenders,
     response,
     connectionFailures,
     validations: { ok: true, errors: [] },
     error: null,
+    scoring: null,
   };
 
   fileLog.logRunComplete({
@@ -508,6 +522,22 @@ export async function runEligibilityMatch(
       eligible: response.eligible.map((e) => e.lenderCode),
     },
   });
+
+  if (response.eligible.length > 0) {
+    try {
+      const { runFullScoringPipeline } = await import(
+        '../../personal-loan-scoring-criteria/utils/pipeline'
+      );
+      result.scoring = await runFullScoringPipeline(strapi, {
+        leadId,
+        eligResult: result,
+      });
+    } catch (err: any) {
+      strapi.log.warn(
+        `[PL Scoring] pipeline failed for lead ${leadId}: ${err?.message || err}`
+      );
+    }
+  }
 
   return result;
 }

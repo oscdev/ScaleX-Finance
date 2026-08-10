@@ -61,8 +61,12 @@ export interface CatalogLender {
 
 export interface ApplicantProfile {
   leadId: number;
+  /** Lead display name for log file stems */
+  fullName: string | null;
   pinCode: string | null;
   requestedAmount: number | null;
+  /** From loan_application.loanAmount (MAX_LOAN_ADEQUACY scoring) */
+  loanAmount: number | null;
   netMonthlyIncome: number | null;
   hasOtherIncome: boolean | null;
   otherIncomeAmount: number | null;
@@ -105,7 +109,19 @@ export interface LenderEvalResult {
 export interface MatchRunResult {
   leadId: number;
   runId: string;
+  profile?: ApplicantProfile;
   lenders: LenderEvalResult[];
+  scoring?: {
+    leadId: number;
+    runId: string;
+    loanType: string;
+    scored: Array<{ lenderCode: string; totalScore: number; lenderName?: string }>;
+    rank: {
+      minDisplayScore: number;
+      displayed: Array<{ lenderCode: string; totalScore: number; rank: number | null }>;
+      belowThreshold: Array<{ lenderCode: string; totalScore: number; errorCode?: string }>;
+    };
+  } | null;
   response: {
     eligible: Array<{ lenderCode: string; lenderName: string; lenderType?: string }>;
     excluded: Array<{

@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { randomUUID } from 'crypto';
 import type { Core } from '@strapi/strapi';
 import {
   buildLeadUploadFolderName,
@@ -36,6 +37,41 @@ export async function cibilReportExists(
   }
 }
 
+async function logBureau(
+  strapi: Core.Strapi,
+  params: {
+    action: string;
+    description: string;
+    severity?: 'info' | 'warning' | 'error' | 'critical';
+    leadId: number;
+    leadName: string;
+    correlationId: string;
+    metadata?: Record<string, unknown>;
+  }
+) {
+  try {
+    const logger: any = strapi.service('api::activity-log.activity-log');
+    if (!logger?.logEvent) return;
+    await logger.logEvent({
+      action: params.action,
+      description: params.description,
+      severity: params.severity || 'info',
+      model: 'api::bureau-data-extraction.cibil-report-summary',
+      leadId: params.leadId,
+      leadName: params.leadName,
+      correlationId: params.correlationId,
+      metadata: {
+        leadId: params.leadId,
+        leadName: params.leadName,
+        runId: params.correlationId,
+        ...(params.metadata || {}),
+      },
+    });
+  } catch {
+    // non-fatal
+  }
+}
+
 export function queueBureauExtraction(
   strapi: Core.Strapi,
   params: BureauExtractionParams
@@ -48,6 +84,7 @@ export function queueBureauExtraction(
 
   setImmediate(async () => {
     const cibilRelPath = buildCibilReportRelPath(params.leadId, params.applicantName);
+    const correlationId = randomUUID();
 
     try {
       const hasCibil = await cibilReportExists(params.leadId, params.applicantName);
@@ -59,6 +96,17 @@ export function queueBureauExtraction(
       }
 
       strapi.log.info(`[Bureau Auto] START extraction for ${cibilRelPath}`);
+      await logBureau(strapi, {
+        action: 'BUREAU_EXTRACT_STARTED',
+        description: `Bureau extraction started for ${cibilRelPath}`,
+        leadId: leadIdNum,
+        leadName: params.applicantName,
+        correlationId,
+        metadata: {
+          loanApplicationId: params.loanApplicationId ?? null,
+          file: cibilRelPath,
+        },
+      });
 
       const service = strapi.service(
         'api::bureau-data-extraction.cibil-report-summary'
@@ -79,8 +127,33 @@ export function queueBureauExtraction(
       });
 
       strapi.log.info(`[Bureau Auto] END extraction for ${cibilRelPath}`);
+      await logBureau(strapi, {
+        action: 'BUREAU_EXTRACT_COMPLETED',
+        description: `Bureau extraction completed for lead ${leadIdNum}`,
+        leadId: leadIdNum,
+        leadName: params.applicantName,
+        correlationId,
+        metadata: {
+          loanApplicationId: params.loanApplicationId ?? null,
+          file: cibilRelPath,
+        },
+      });
     } catch (err) {
       strapi.log.error(`[Bureau Auto] FAILED extraction for ${cibilRelPath}:`, err);
+      await logBureau(strapi, {
+        action: 'BUREAU_EXTRACT_FAILED',
+        description: `Bureau extraction failed for lead ${leadIdNum}: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+        severity: 'error',
+        leadId: leadIdNum,
+        leadName: params.applicantName,
+        correlationId,
+        metadata: {
+          loanApplicationId: params.loanApplicationId ?? null,
+          file: cibilRelPath,
+        },
+      });
     }
   });
 }

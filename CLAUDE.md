@@ -126,7 +126,7 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 | `product` | Financial product definitions | — |
 | `user-product-mapping` | Maps admin users (staff/bankers) to products | `adminUserId`, `user_role` (staff/banker), `product` |
 | `loan-app-section-permission` | Controls which sections a role can see in loan forms | `roleId`, `roleName`, `permissions` |
-| `activity-log` | System audit trail | `action`, `description`, `severity`, `model`, `metadata`, `ipAddress`, `userId` |
+| `activity-log` | System audit trail (global Activity Logs) | `action`, `description`, `severity`, `model`, `metadata`, `ipAddress`, `userId`, `leadId`, `leadName`, `category`, `correlationId` — see [docs/Activity-Log.md](docs/Activity-Log.md); admin UI domains: **Lead** \| **Users & Auth** \| **System** |
 
 ### Lender Master
 
@@ -142,10 +142,22 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 |---|---|---|
 | `personal-loan-eligibility` | Strapi API module for ON/OFF lender matching (16-step engine) | Module path `src/api/personal-loan-eligibility/`; see [docs/Personal-Loan-Eligibility.md](docs/Personal-Loan-Eligibility.md) |
 | `lenders-criteria-pl` | Per-lender PL eligibility thresholds | UID: `api::personal-loan-eligibility.lenders-criteria-pl`; table `lenders_criteria_pl`; REST `/api/lenders-criteria-pls`; soft-links via `lenderCode`; hidden from Content Manager |
-| Match APIs | Run eligibility for a lead | `GET/POST /api/personal-loan-eligibility/matched-lenders?leadId=`; `POST /api/personal-loan-eligibility/evaluate`; compact text audit under `logs/pl-eligibility/YYYY-MM-DD.log`; Admin **AI Match** → `/lenders?leadId=` shows PASS lenders only |
+| Match APIs | Run eligibility + scoring for a lead | `GET/POST /api/personal-loan-eligibility/matched-lenders?leadId=`; `POST /api/personal-loan-eligibility/evaluate`; compact text audit under `logs/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`; pipeline `ELIGIBILITY → SCORING → RANK`; Admin **AI Match** → `/lenders?leadId=` shows lenders with `score >= 40` only |
 | Step 5 (`A1-03-INCOME`) | Minimum Monthly Income | Uses `netSalary + otherIncomeAmount` when `hasOtherIncome` is true; otherwise `netSalary` vs `min_monthly_income`; SKIP when threshold null |
 | Step 8 (`A1-07` / `A1-08`) | DPD Last 3m / 12m | Per lender: count unique months where payment-history DPD days > `max_dpd_days_allowed`, then compare to `max_dpd_count_*months` |
 | Step 12 (`A1-05-PF`) | PF Deducted rule | Compares `form_data.incomeDetails.pfDeducted` vs `lenders_criteria_pl.pf_required`; SKIP when PF not required, FAIL when required but not true |
+
+### Personal Loan Scoring
+
+| Collection / module | Purpose | Key fields / notes |
+|---|---|---|
+| `personal-loan-scoring-criteria` | A.3 weighted scoring + rank (≥40 display) | Module path `src/api/personal-loan-scoring-criteria/`; see [docs/personal-loan-scoring-criteria/](docs/personal-loan-scoring-criteria/) |
+| `lender-scoring-criteria` | Platform criterion catalog (weights + JSON bands) | UID: `api::personal-loan-scoring-criteria.lender-scoring-criteria`; table `lender_scoring_criteria`; REST `/api/lender-scoring-criterias`; hidden from Content Manager |
+| Seed data | Import 11 PL criteria rows | `database/seed-data/lender-scoring-criteria.sql` — run via `psql` after Strapi creates the table |
+| Scoring APIs | Score / rank helpers | `POST /api/personal-loan-scoring-criteria/score`; `POST /api/personal-loan-scoring-criteria/rank`; orchestrated from `matched-lenders` after A.1 PASS |
+| Pipeline | Locked order | `ELIGIBILITY → SCORING → RANK`; 11 criteria (weights sum 100); `minDisplayScore = 40` for AI Match UI |
+| File audit | Per-lead scoring log | `logs/pl-scoring/<leadId>-<Name>_YYYY-MM-DD.log`; lender `summary.criterionScores` + `PL_SCORE_*` activity events |
+| Rounding | Criterion + total | Round half-up to integer on each criterion `points`; `totalScore` = sum of rounded points before rank/display |
 
 ### Personal Loan / Lender Matching & Bureau Extraction
 
@@ -217,7 +229,7 @@ The platform has three distinct admin roles:
 1. Advisor shares referral link → customer submits **Lead** via `/lead-form`
 2. Advisor reviews lead in `/advisor-dashboard` → initiates **Loan Application**
 3. Customer completes loan application at `/loan-application` (multi-step form with document uploads)
-   - Income step (`form_data.incomeDetails`) for Personal Loan, Home Loan (salaried), and LAP (salaried) includes: `companyName`, `designation`, `companyAddress`, `netSalary`, `salaryMode`, `jobStability`, `pfDeducted` (boolean), `hasOtherIncome` (boolean), and when `hasOtherIncome` is true: `otherIncomeSource`, `otherIncomeAmount`
+   - Income step (`form_data.incomeDetails`) for Personal Loan, Home Loan (salaried), and LAP (salaried) includes: `companyName`, `designation`, `companyAddress`, `netSalary`, `salaryMode`, `jobStability` (months as numeric string), `pfDeducted` (boolean), `hasOtherIncome` (boolean), and when `hasOtherIncome` is true: `otherIncomeSource`, `otherIncomeAmount`
 4. Staff is assigned (`assignedStaffId`) to process the application
 5. Banker is assigned (`assignedBankerId`) for final review
 6. Remarks/conversation history tracked in `lead-remark` (separate fields per role type)
@@ -254,6 +266,7 @@ Recent migrations:
 - `2026.06.01` — Rename advisor_remark → `advisor_admin_staff_remark`, add `banker_admin_staff_remark`
 - `2026.07.14` — Drop `advanced_lenders_criteria_pl`, `hdfc-bank-pages`, `axis-bank-pages`, `lender_business_exclusions` (removed modules)
 - `2026.07.28` — Drop unused PL criteria columns (`max_dpd_count_6months`, `max_new_personal_loans_6months`, `typical_interest_rate`)
+- `2026.08.07` — Activity log Lead Timeline columns (`lead_id`, `lead_name`, `category`, `correlation_id`) + enum/backfill
 
 ## Environment Setup
 
@@ -264,6 +277,45 @@ Copy `.env.example` to `.env` and update:
 - Database connection details (if not using default localhost)
 - **Python extraction:** bootstrap `ensurePythonEnvironment()` auto-creates `.venv` and installs deps on first `npm run dev`; optional `PYTHON_PATH` in `.env`
 
+### Global Setting — logging toggles
+
+Admin **Global Setting** single type:
+
+| Field | UI meaning | Controls |
+|-------|------------|----------|
+| `activityLoggingIsEnabled` | Activity Logs | DB `activity_logs` (errors/critical still write when off) |
+| `codeLevelLoggingIsEnabled` | Code-level logs | Disk files under `logs/<module>/` (per-lead when lead known) |
+| `loggingRetentionDays` | Log retention (days) | Midnight cron deletes Activity Log rows **and** code-level files under `logs/` older than this (default 30) |
+
+File log convention (lead runs): `logs/<module>/<leadId>-<NameNoSpaces>_YYYY-MM-DD.log`  
+Example: `logs/pl-eligibility/125-TestDeveloper_2026-08-07.log`  
+System / no-lead fallback: `logs/<module>/<module>_YYYY-MM-DD.log`
+
+**Overwrite on rerun:** When a per-lead log file already exists for the same UTC day, each module **truncates it at the start of a new run** (via `resetModuleLeadLog` in [`code-file-logger.ts`](src/utils/code-file-logger.ts)) instead of appending. Applies to pl-eligibility, pl-scoring, bureau-extraction (re-extract), and pl-lead-submission on new lead submit (`LEAD_SUBMIT_*`); loan-app / validation lines append within the same submission journey.
+
+| Module | Path |
+|--------|------|
+| PL eligibility | `logs/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log` |
+| Bureau extraction (Python) | `logs/bureau-extraction/<leadId>-<Name>_YYYY-MM-DD.log` |
+| PL lead submission | `logs/pl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log` (Strapi lead create, loan-app create, client audit) |
+| PL scoring | `logs/pl-scoring/<leadId>-<Name>_YYYY-MM-DD.log` |
+
+Shared helper: [`src/utils/code-file-logger.ts`](src/utils/code-file-logger.ts).  
+Submission audit helper: [`src/utils/pl-lead-submission-logger.ts`](src/utils/pl-lead-submission-logger.ts).
+
+**Events** (one JSON line each): `LEAD_SUBMIT_SUCCESS`, `LEAD_SUBMIT_ERROR`, `LOAN_APP_SUBMIT_SUCCESS`, `LOAN_APP_SUBMIT_ERROR`, `VALIDATION_ERROR`, `CLIENT_ERROR`.
+
+**Writers**
+
+| Trigger | Source |
+|---------|--------|
+| `POST /api/leads` success/error | [`src/api/lead/controllers/lead.ts`](src/api/lead/controllers/lead.ts) |
+| `POST /api/loan-applications` success/error | [`src/api/loan-application/controllers/loan-application.ts`](src/api/loan-application/controllers/loan-application.ts) |
+| Client validation / upload errors | `POST /api/pl-submission-audit/log` ← [`frontend/src/lib/plSubmissionLogger.ts`](frontend/src/lib/plSubmissionLogger.ts) |
+| Automation script | [`PL_LeadSubmittionScript/scripts/submitApplication.js`](PL_LeadSubmittionScript/scripts/submitApplication.js) |
+
+PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are omitted (keys only). Pre-lead-create client validation uses module daily fallback when `leadId` is absent.
+
 ## Key Files to Know
 
 - **[src/index.ts](src/index.ts)** — Bootstrap logic for advisor role creation and syncing
@@ -272,10 +324,14 @@ Copy `.env.example` to `.env` and update:
 - **[frontend/src/lib/safeStorage.ts](frontend/src/lib/safeStorage.ts)** — SSR-safe localStorage/sessionStorage wrappers
 - **[src/api/](src/api/)** — All Strapi collections
 - **[frontend/src/app/](frontend/src/app/)** — All frontend routes and pages
-- **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create, links uploads to Media Library `API Uploads/{leadId}-{name}/` and moves them to `public/uploads/api_uploads/{leadId}-{name}/` only
+- **[src/api/activity-log/](src/api/activity-log/)** — Activity audit; `logEvent` promotes `leadId`/`leadName`/`category`/`correlationId`; admin **Activity Logs** (**Lead** \| **Users & Auth** \| **System**); shared `/admin` login → `LOGIN_*` with `roleKind`; coverage in [docs/Activity-Log.md](docs/Activity-Log.md) (`PL_ELIGIBILITY_RULE*` remains file-only by design)
+- **[src/api/lead/](src/api/lead/)** — Lead API; on create logs `LEAD_SUBMIT_SUCCESS` / `LEAD_SUBMIT_ERROR` to `logs/pl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log`; exposes `POST /api/pl-submission-audit/log` for client validation errors
+- **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create logs `LOAN_APP_SUBMIT_*` to per-lead submission file, links uploads to Media Library `API Uploads/{leadId}-{name}/` and moves them to `public/uploads/api_uploads/{leadId}-{name}/`
 - **[src/api/bureau-data-extraction/](src/api/bureau-data-extraction/)** — Bureau PDF extraction (`POST /api/cibil-report-summaries/extract`; reads `public/uploads/api_uploads/`)
 - **[src/api/lender-master/](src/api/lender-master/)** — Lender master registry + zip coverage (`lenders-catalog`, `zip-code`)
-- **[src/api/personal-loan-eligibility/](src/api/personal-loan-eligibility/)** — PL eligibility thresholds + 16-step matching engine (`matched-lenders` / `evaluate`; JSONL in `logs/pl-eligibility/`)
+- **[src/api/personal-loan-eligibility/](src/api/personal-loan-eligibility/)** — PL eligibility thresholds + 16-step matching engine (`matched-lenders` / `evaluate`; file audit in `logs/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`)
+- **[src/api/personal-loan-scoring-criteria/](src/api/personal-loan-scoring-criteria/)** — PL scoring catalog + weighted scoring/ranking (`score` / `rank`; file audit in `logs/pl-scoring/<leadId>-<Name>_YYYY-MM-DD.log`)
+- **[docs/personal-loan-scoring-criteria/](docs/personal-loan-scoring-criteria/)** — PL scoring criteria, formulas, seed data, API contracts
 - **[docs/Personal-Loan-Eligibility.md](docs/Personal-Loan-Eligibility.md)** — PL eligibility rules, logging, AI Match → `/lenders`
 - **[docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md)** — `.venv` setup and extraction runbook
 - **[docs/Lender-Master.md](docs/Lender-Master.md)** — Lender Master module reference
@@ -294,7 +350,7 @@ Copy `.env.example` to `.env` and update:
 - The `lenders-page` / `lenders-catalog-page` single type (CMS copy for the `/lenders` page header) has been removed entirely, table `lenders_catalog_page` dropped. The `/lenders` page header text is now hardcoded ("Matched Lenders" / "Based on your application...") in `frontend/src/app/lenders/page.tsx`
 - The `lenders-catalog` and `zip-code` collections live under the **`lender-master`** API folder (UIDs `api::lender-master.lenders-catalog`, `api::lender-master.zip-code`), not top-level `src/api/lenders-catalog/` / `src/api/zip-code/` paths
 - The `cibil-report-summary` collection lives under the **`bureau-data-extraction`** API folder (UID `api::bureau-data-extraction.cibil-report-summary`), not a top-level `src/api/cibil-report-summary/` path
-- Bureau extraction auto-triggers when `cibil_report.pdf` lands in `public/uploads/api_uploads/` via `syncLeadDocumentsToDisk`; matching engine consumption remains open
+- Bureau extraction auto-triggers when `cibil_report.pdf` lands in `public/uploads/api_uploads/` via `syncLeadDocumentsToDisk`; PL scoring runs after A.1 eligibility in `matched-lenders` pipeline
 
 ## graphify
 

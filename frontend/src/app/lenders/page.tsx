@@ -8,8 +8,13 @@ type MatchedLender = {
     name: string;
     type?: string;
     code: string;
-    initials: string;
+    score?: number | null;
+    rank?: number | null;
 };
+
+function formatMatchScore(score: number): string {
+    return String(Math.round(score));
+}
 
 async function getMatchedLenders(
     leadId: string,
@@ -45,12 +50,8 @@ async function getMatchedLenders(
                     name,
                     type: l.lenderType || l.type,
                     code: l.lenderCode || l.code || '',
-                    initials: String(name)
-                        .split(' ')
-                        .map((n: string) => n[0])
-                        .join('')
-                        .substring(0, 2)
-                        .toUpperCase(),
+                    score: l.score ?? null,
+                    rank: l.rank ?? null,
                 };
             }),
         };
@@ -99,12 +100,20 @@ export default async function LendersPage({
                     {lenders.length > 0 ? (
                         lenders.map((lender) => (
                             <div key={String(lender.id)} className="lender-card">
-                                <div className="lender-logo-container">
-                                    <span>{lender.initials}</span>
+                                <div className="lender-logo-container" title={lender.code}>
+                                    <span className="lender-code-badge">{lender.code}</span>
                                 </div>
                                 <h3 className="lender-name">{lender.name}</h3>
+                                {lender.rank != null ? (
+                                    <p className="lender-rate">Rank #{lender.rank}</p>
+                                ) : null}
+                                {lender.score != null ? (
+                                    <p className="lender-match-score">
+                                        Match score:{' '}
+                                        <strong>{formatMatchScore(lender.score)}</strong>
+                                    </p>
+                                ) : null}
                                 {lender.type ? <p className="lender-rate">{lender.type}</p> : null}
-                                <p className="lender-code">{lender.code}</p>
                                 <button type="button" className="btn btn-primary lender-apply-btn">
                                     Apply Now
                                 </button>

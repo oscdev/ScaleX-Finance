@@ -1,6 +1,10 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import {
+  isCodeLevelLoggingEnabled,
+  moduleLogDir,
+} from '../../../utils/code-file-logger';
 
 const PDF_EXTRACTOR_DIR = path.join(
   process.cwd(),
@@ -189,10 +193,14 @@ export function getScriptPaths() {
 export async function runPython(
   leadId: number,
   leadName: string,
-  log: { info: (msg: string) => void; error: (msg: string) => void }
+  log: { info: (msg: string) => void; error: (msg: string) => void },
+  strapi?: any
 ): Promise<Record<string, unknown>> {
   const pythonExe = getPythonExe();
   const { scriptDir, scriptPath } = getScriptPaths();
+
+  const codeLogsOn = await isCodeLevelLoggingEnabled(strapi);
+  const bureauLogDir = moduleLogDir('bureau-extraction');
 
   log.info(`[Python Bridge] ${pythonExe} ${scriptPath} ${leadId} "${leadName}"`);
 
@@ -202,7 +210,14 @@ export async function runPython(
       [scriptPath, String(leadId), leadName],
       {
         cwd: scriptDir,
-        env: { ...process.env, PYTHONPATH: scriptDir },
+        env: {
+          ...process.env,
+          PYTHONPATH: scriptDir,
+          SCALEX_LOG_DIR: bureauLogDir,
+          SCALEX_CODE_LOGS: codeLogsOn ? '1' : '0',
+          SCALEX_LOG_LEAD_ID: String(leadId),
+          SCALEX_LOG_LEAD_NAME: leadName,
+        },
       }
     );
 
