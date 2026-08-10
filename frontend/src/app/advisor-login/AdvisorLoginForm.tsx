@@ -46,9 +46,13 @@ export default function AdvisorLoginForm() {
 
                 await logEvent({
                     action: 'ADVISOR_LOGIN_FAILURE',
-                    description: `Failed login attempt for ${formData.email}`,
+                    description: `Login failed (Advisor): ${formData.email}`,
                     severity: 'warning',
-                    metadata: { email: formData.email, error: failMsg }
+                    metadata: {
+                        email: formData.email,
+                        roleKind: 'Advisor',
+                        error: failMsg,
+                    },
                 });
 
                 throw new Error(failMsg);
@@ -58,10 +62,10 @@ export default function AdvisorLoginForm() {
 
             await logEvent({
                 action: 'ADVISOR_LOGIN_SUCCESS',
-                description: `Successful login for ${formData.email}`,
+                description: `Login success (Advisor): ${formData.email}`,
                 severity: 'info',
                 userId: data.user?.id?.toString(),
-                metadata: { email: formData.email }
+                metadata: { email: formData.email, roleKind: 'Advisor' },
             });
 
             safeLocalStorage().setItem('advisorToken', data.jwt);

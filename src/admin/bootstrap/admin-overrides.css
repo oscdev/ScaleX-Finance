@@ -104,25 +104,118 @@ aside li::before {
 
 /* ---------------------------------------------------------
    UNIFIED SELECTION THEME: Blue Background + White Text
+   Content Manager Collection Types / Single Types (parent + child)
    --------------------------------------------------------- */
 
-/* Active Links */
-nav a.active,
+/* Selected / current page — solid blue, white bold (Leads Overview reference) */
+aside a[aria-current="page"],
+aside a.active,
+aside a[data-active="true"],
 nav a[aria-current="page"],
-.custom-nav-link.active {
+nav a.active,
+nav a[data-active="true"],
+.custom-nav-link.active,
+#custom-leads-overview-link.is-nav-active,
+a.is-nav-active {
     background-color: #1d4ed8 !important;
+    background: #1d4ed8 !important;
     color: #ffffff !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
+    border-radius: 4px;
+    box-shadow: none !important;
+}
+
+aside a[aria-current="page"] *,
+aside a.active *,
+aside a[data-active="true"] *,
+nav a[aria-current="page"] *,
+nav a.active *,
+nav a[data-active="true"] *,
+a.is-nav-active *,
+#custom-leads-overview-link.is-nav-active * {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    fill: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+/* Kill Strapi primary100 light-blue on the active row itself */
+aside li:has(> a[aria-current="page"]),
+aside li:has(> a.active),
+aside li:has(> a[data-active="true"]),
+aside li:has(> a.is-nav-active),
+aside li.is-nav-active-parent,
+nav li:has(> a[aria-current="page"]),
+nav li:has(> a.active),
+nav li:has(> a[data-active="true"]),
+nav li:has(> a.is-nav-active),
+nav li.is-nav-active-parent {
+    background-color: #1d4ed8 !important;
+    background: #1d4ed8 !important;
+    box-shadow: none !important;
     border-radius: 4px;
 }
 
-/* Parent active state */
-nav li:has(a.active) > a,
-nav li:has(a[aria-current="page"]) > a {
+aside li:has(> a[aria-current="page"]) > *,
+aside li:has(> a.is-nav-active) > *,
+aside li.is-nav-active-parent > *,
+nav li:has(> a[aria-current="page"]) > *,
+nav li:has(> a.is-nav-active) > *,
+nav li.is-nav-active-parent > * {
+    background-color: transparent !important;
+    background: transparent !important;
+}
+
+/* Parent row when it or a nested link is the current page */
+aside li:has(> a[aria-current="page"]) > a,
+aside li:has(> a.active) > a,
+aside li:has(> a[data-active="true"]) > a,
+aside li:has(a[aria-current="page"]) > a,
+nav li:has(> a[aria-current="page"]) > a,
+nav li:has(> a.active) > a,
+nav li:has(a[aria-current="page"]) > a,
+aside li.is-nav-active-parent > a,
+nav li.is-nav-active-parent > a {
     background-color: #1d4ed8 !important;
+    background: #1d4ed8 !important;
     color: #ffffff !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     border-radius: 4px;
+    box-shadow: none !important;
+}
+
+aside li.is-nav-active-parent > a *,
+nav li.is-nav-active-parent > a *,
+aside li:has(> a[aria-current="page"]) > a *,
+nav li:has(> a[aria-current="page"]) > a * {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    fill: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+/* Inner wrappers Strapi may tint with primary100 */
+aside a[aria-current="page"] > *,
+aside a.active > *,
+aside a.is-nav-active > *,
+nav a[aria-current="page"] > *,
+nav a.active > *,
+nav a.is-nav-active > * {
+    background-color: transparent !important;
+    background: transparent !important;
+    color: #ffffff !important;
+}
+
+/* Unselected CM nav links — white/transparent bg, bold dark text */
+aside a:not([aria-current="page"]):not(.active):not([data-active="true"]):not(.is-nav-active),
+nav a:not([aria-current="page"]):not(.active):not([data-active="true"]):not(.is-nav-active) {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+aside li:not(:has(> a[aria-current="page"])):not(:has(> a.is-nav-active)):not(.is-nav-active-parent) {
+    background-color: transparent;
+    background: transparent;
 }
 
 /* ---------------------------------------------------------
@@ -133,24 +226,124 @@ body:not(.is-config-page) [role="option"][aria-selected="true"],
 body:not(.is-config-page) [role="menuitem"][aria-selected="true"],
 body:not(.is-config-page) [role="combobox"][aria-selected="true"],
 body:not(.is-config-page) [role="menuitemcheckbox"][aria-checked="true"],
-body:not(.is-config-page) [data-state="checked"],
-body:not(.is-config-page) div:has(> input[type="checkbox"]:checked),
-body:not(.is-config-page) label:has(input[type="checkbox"]:checked),
+body:not(.is-config-page) [data-state="checked"]:not([role="switch"]):not(button):not(input):not(:has(> input[type="checkbox"])),
 body:not(.is-config-page) [role="menuitem"]:has(input[type="checkbox"]:checked) {
     background-color: #1d4ed8 !important;
     color: #ffffff !important;
-    font-weight: 800 !important;
+    font-weight: 700 !important;
 }
 
 body:not(.is-config-page) [role="option"][aria-selected="true"] *,
 body:not(.is-config-page) [role="menuitem"][aria-selected="true"] *,
 body:not(.is-config-page) [role="menuitemcheckbox"][aria-checked="true"] *,
-body:not(.is-config-page) [data-state="checked"] *,
-body:not(.is-config-page) div:has(> input[type="checkbox"]:checked) *,
-body:not(.is-config-page) label:has(input[type="checkbox"]:checked) *,
+body:not(.is-config-page) [data-state="checked"]:not([role="switch"]):not(button):not(input):not(:has(> input[type="checkbox"])) *,
 body:not(.is-config-page) [role="menuitem"]:has(input[type="checkbox"]:checked) * {
     color: #ffffff !important;
-    font-weight: 800 !important;
+    font-weight: 700 !important;
+}
+
+/* Solid blue action / selected surfaces → always white bold text.
+   Exclude .adv-login-btn (outline white bg) — white-on-white would hide the label. */
+button.custom-action-btn:not(.adv-login-btn),
+.adv-view-btn,
+nav a.active,
+nav a[aria-current="page"],
+[data-custom-highlight="true"],
+.custom-filter-chip {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+/* White / light surfaces → black bold text (readable body UI) */
+body:not(.is-config-page) main,
+body:not(.is-config-page) [data-strapi-header],
+body:not(.is-config-page) form {
+    color: #0f172a;
+}
+
+/* Content Manager boolean True/False pills & switch labels */
+[role="switch"][data-state="checked"],
+[role="switch"][aria-checked="true"],
+button[role="switch"][data-state="checked"] {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border-color: #2563eb !important;
+}
+
+[role="switch"][data-state="checked"] *,
+[role="switch"][aria-checked="true"] *,
+button[role="switch"][data-state="checked"] * {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+[role="switch"][data-state="unchecked"],
+[role="switch"][aria-checked="false"],
+button[role="switch"][data-state="unchecked"] {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+[role="switch"][data-state="unchecked"] *,
+[role="switch"][aria-checked="false"] *,
+button[role="switch"][data-state="unchecked"] * {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+/*
+ * Strapi Design System Boolean Toggle (False | True dual pill).
+ * Used on Global Setting and other CM boolean fields.
+ * Selected True must NOT end up as white text on white/primary100.
+ * Structure: wrapper > [offHalf, onHalf, overlay checkbox]
+ */
+form *:has(> input[type="checkbox"]:nth-child(3)):not(:has(> :nth-child(4))) > *:nth-child(2) {
+    background-color: transparent !important;
+}
+form *:has(> input[type="checkbox"]:checked:nth-child(3)):not(:has(> :nth-child(4))) > *:nth-child(2) {
+    background-color: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+    box-shadow: none !important;
+}
+form *:has(> input[type="checkbox"]:checked:nth-child(3)):not(:has(> :nth-child(4))) > *:nth-child(2),
+form *:has(> input[type="checkbox"]:checked:nth-child(3)):not(:has(> :nth-child(4))) > *:nth-child(2) * {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+form *:has(> input[type="checkbox"]:not(:checked):nth-child(3)):not(:has(> :nth-child(4))) > *:nth-child(1) {
+    background-color: #ffffff !important;
+    border: 1px solid #fecaca !important;
+}
+form *:has(> input[type="checkbox"]:not(:checked):nth-child(3)):not(:has(> :nth-child(4))) > *:nth-child(1),
+form *:has(> input[type="checkbox"]:not(:checked):nth-child(3)):not(:has(> :nth-child(4))) > *:nth-child(1) * {
+    color: #b91c1c !important;
+    -webkit-text-fill-color: #b91c1c !important;
+    font-weight: 700 !important;
+}
+
+/* Dim unselected half so the active True/False stands out */
+form *:has(> input[type="checkbox"]:checked:nth-child(3)):not(:has(> :nth-child(4))) > *:nth-child(1),
+form *:has(> input[type="checkbox"]:checked:nth-child(3)):not(:has(> :nth-child(4))) > *:nth-child(1) * {
+    color: #64748b !important;
+    -webkit-text-fill-color: #64748b !important;
+    background-color: transparent !important;
+}
+form *:has(> input[type="checkbox"]:not(:checked):nth-child(3)):not(:has(> :nth-child(4))) > *:nth-child(2),
+form *:has(> input[type="checkbox"]:not(:checked):nth-child(3)):not(:has(> :nth-child(4))) > *:nth-child(2) * {
+    color: #64748b !important;
+    -webkit-text-fill-color: #64748b !important;
+    background-color: transparent !important;
+}
+
+/* Boolean field value badges near toggles (True / False text) */
+span:is([class*="Badge"], [class*="badge"]),
+div:is([class*="Badge"], [class*="badge"]) {
+    font-weight: 700 !important;
 }
 
 /* Icons and child text inside active nav links */
@@ -158,6 +351,47 @@ nav a.active *,
 nav a[aria-current="page"] * {
     color: #ffffff !important;
     stroke: #ffffff !important;
+}
+
+/* Boolean True/False visible labels (Content Manager Field) */
+label span,
+fieldset span {
+    font-weight: inherit;
+}
+
+/* When Strapi paints a checked boolean chip with primary tokens */
+[data-strapi-field] [data-state="checked"]:not(input):not([role="option"]),
+[data-strapi-field] button[aria-pressed="true"] {
+    background-color: #1d4ed8 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+[data-strapi-field] [data-state="checked"]:not(input):not([role="option"]) *,
+[data-strapi-field] button[aria-pressed="true"] * {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    font-weight: 700 !important;
+}
+[data-strapi-field] [data-state="unchecked"]:not(input),
+[data-strapi-field] button[aria-pressed="false"] {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+[data-strapi-field] [data-state="unchecked"]:not(input) *,
+[data-strapi-field] button[aria-pressed="false"] * {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+/*
+ * Do not let the global "selected = white text" rule paint Dual Toggle
+ * True labels white while Strapi still uses a light/white selected surface.
+ * Force primary text only when selected surface is clearly light.
+ */
+form *:has(> input[type="checkbox"]:checked:nth-child(3)):not(:has(> :nth-child(4))) {
+    --scalex-toggle-on-bg: #1d4ed8;
+    --scalex-toggle-on-fg: #ffffff;
 }
 
 /* ---------------------------------------------------------
@@ -216,19 +450,30 @@ tbody tr [role="button"],
 }
 .adv-view-btn:hover { background: #1e40af !important; }
 
-.adv-login-btn {
+button.custom-action-btn.adv-login-btn,
+button.adv-login-btn {
     background: #ffffff !important;
     color: #1d4ed8 !important;
+    -webkit-text-fill-color: #1d4ed8 !important;
     border: 1px solid #1d4ed8 !important;
     padding: 5px 12px;
     border-radius: 4px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
 }
-.adv-login-btn:hover { background: #1d4ed8 !important; color: #ffffff !important; }
-.adv-login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+button.custom-action-btn.adv-login-btn:hover,
+button.adv-login-btn:hover {
+    background: #1d4ed8 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+}
+button.custom-action-btn.adv-login-btn:disabled,
+button.adv-login-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 
 /* Button containers */
 .custom-actions-btn-row { display: flex; gap: 8px; justify-content: flex-end; }
@@ -269,12 +514,13 @@ tbody tr [role="button"],
 
 .custom-configure-btn {
     background-color: #ffffff !important;
-    color: #1d4ed8 !important;
+    color: #0f172a !important;
     border: 1px solid #1d4ed8 !important;
+    font-weight: 700 !important;
 }
 .custom-configure-btn span,
 .custom-configure-btn p,
-.custom-configure-btn div { color: #1d4ed8 !important; }
+.custom-configure-btn div { color: #0f172a !important; font-weight: 700 !important; }
 .custom-configure-btn:hover { background-color: #1d4ed8 !important; color: #ffffff !important; }
 .custom-configure-btn:hover span,
 .custom-configure-btn:hover p,

@@ -99,11 +99,31 @@ style.textContent = `
         display: none !important;
     }
 
-    /* Active nav link colours */
-    nav a.active, nav a[aria-current="page"] {
+    /* Active nav link colours — solid dark blue + white (covers Strapi primary100) */
+    nav a.active, nav a[aria-current="page"],
+    aside a.active, aside a[aria-current="page"],
+    a.is-nav-active {
         background-color: #1d4ed8 !important;
+        background: #1d4ed8 !important;
         color: #ffffff !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
+        border-radius: 4px;
+        box-shadow: none !important;
+    }
+    nav a.active *, nav a[aria-current="page"] *,
+    aside a.active *, aside a[aria-current="page"] *,
+    a.is-nav-active * {
+        color: #ffffff !important;
+    }
+    aside li:has(> a[aria-current="page"]),
+    aside li:has(> a.is-nav-active),
+    aside li.is-nav-active-parent,
+    nav li:has(> a[aria-current="page"]),
+    nav li:has(> a.is-nav-active),
+    nav li.is-nav-active-parent {
+        background-color: #1d4ed8 !important;
+        background: #1d4ed8 !important;
+        box-shadow: none !important;
         border-radius: 4px;
     }
 
