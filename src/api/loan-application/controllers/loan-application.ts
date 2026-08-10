@@ -1,6 +1,10 @@
 import { factories } from '@strapi/strapi';
 import { buildLeadUploadFolderName } from '../utils/lead-upload-folder';
 import { syncLeadDocumentsToDisk } from '../services/lead-document-sync';
+import {
+  appendPlLeadSubmissionLog,
+  extractErrorMessage,
+} from '../../../utils/pl-lead-submission-logger';
 
 const MEDIA_FIELDS = [
   'panCard',
@@ -48,137 +52,238 @@ function collectFileIdsWithFields(data: Record<string, unknown>): {
   return { fileIds, fileFieldById };
 }
 
+async function resolveLeadName(
+  strapi: any,
+  leadId: unknown,
+  applicantName: string | null | undefined
+): Promise<string | null> {
+  if (applicantName) return applicantName;
+  const id = Number(leadId);
+  if (!Number.isFinite(id) || id <= 0) return null;
+  try {
+    const lead = await strapi.db.query('api::lead.lead').findOne({
+      where: { id },
+      select: ['fullName'],
+    });
+    return lead?.fullName ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export default factories.createCoreController(
   'api::loan-application.loan-application',
   ({ strapi }) => ({
     async create(ctx: any) {
-      const { data } = ctx.request.body;
-      let createdRecord: any = null;
-      let result: any = null;
-      const { fileIds, fileFieldById } = data
-        ? collectFileIdsWithFields(data)
-        : { fileIds: new Set<number>(), fileFieldById: {} };
+      const { data } = ctx.request.body ?? {};
+      const requestData = (data ?? {}) as Record<string, unknown>;
 
-      if (data?.id) {
-        try {
-          const existing = await strapi.db
-            .query('api::loan-application.loan-application')
-            .findOne({ where: { id: data.id } });
+      try {
+        let createdRecord: any = null;
+        let result: any = null;
+        const { fileIds, fileFieldById } = data
+          ? collectFileIdsWithFields(data)
+          : { fileIds: new Set<number>(), fileFieldById: {} };
 
-          if (existing) {
-            result = await super.create(ctx);
-          } else {
-            const entry = await strapi.db
+        if (data?.id) {
+          try {
+            const existing = await strapi.db
               .query('api::loan-application.loan-application')
-              .create({ data });
-            result = { data: entry };
-            createdRecord = entry;
+              .findOne({ where: { id: data.id } });
+
+            if (existing) {
+              result = await super.create(ctx);
+            } else {
+              const entry = await strapi.db
+                .query('api::loan-application.loan-application')
+                .create({ data });
+              result = { data: entry };
+              createdRecord = entry;
+            }
+          } catch {
+            result = await super.create(ctx);
           }
-        } catch {
+        } else {
           result = await super.create(ctx);
         }
-      } else {
-        result = await super.create(ctx);
-      }
 
-      if (!createdRecord && result?.data) {
-        createdRecord = result.data.attributes || result.data;
-        if (!createdRecord.id && result.data.id) {
-          createdRecord.id = result.data.id;
+        if (!createdRecord && result?.data) {
+          createdRecord = result.data.attributes || result.data;
+          if (!createdRecord.id && result.data.id) {
+            createdRecord.id = result.data.id;
+          }
         }
-      }
 
-      if (createdRecord) {
-        try {
-          const leadId = data.leadId || createdRecord.leadId || 'Unknown_Lead';
-          const applicantName =
-            data.applicantName || createdRecord.applicantName || 'Applicant';
-          const folderName = buildLeadUploadFolderName(leadId, applicantName);
+        if (createdRecord) {
+          try {
+            const leadId = data.leadId || createdRecord.leadId || 'Unknown_Lead';
+            const applicantName =
+              data.applicantName || createdRecord.applicantName || 'Applicant';
+            const folderName = buildLeadUploadFolderName(leadId, applicantName);
 
-          if (fileIds.size > 0) {
-            let rootFolder = await strapi.db
-              .query('plugin::upload.folder')
-              .findOne({ where: { name: 'API Uploads', parent: null } });
-
-            const folderService = strapi.plugin('upload').service('folder');
-
-            if (!rootFolder) {
-              try {
-                rootFolder = await folderService.create({
-                  name: 'API Uploads',
-                  parent: null,
-                });
-              } catch {
-                rootFolder = await strapi.db
-                  .query('plugin::upload.folder')
-                  .findOne({ where: { name: 'API Uploads', parent: null } });
-              }
-            }
-
-            if (rootFolder) {
-              let leadFolder = await strapi.db
+            if (fileIds.size > 0) {
+              let rootFolder = await strapi.db
                 .query('plugin::upload.folder')
-                .findOne({
-                  where: { name: folderName, parent: rootFolder.id },
-                });
+                .findOne({ where: { name: 'API Uploads', parent: null } });
 
-              if (!leadFolder) {
+              const folderService = strapi.plugin('upload').service('folder');
+
+              if (!rootFolder) {
                 try {
-                  leadFolder = await folderService.create({
-                    name: folderName,
-                    parent: rootFolder.id,
+                  rootFolder = await folderService.create({
+                    name: 'API Uploads',
+                    parent: null,
                   });
                 } catch {
-                  leadFolder = await strapi.db
+                  rootFolder = await strapi.db
                     .query('plugin::upload.folder')
-                    .findOne({
-                      where: { name: folderName, parent: rootFolder.id },
-                    });
+                    .findOne({ where: { name: 'API Uploads', parent: null } });
                 }
               }
 
-              if (leadFolder) {
-                for (const fileId of fileIds) {
+              if (rootFolder) {
+                let leadFolder = await strapi.db
+                  .query('plugin::upload.folder')
+                  .findOne({
+                    where: { name: folderName, parent: rootFolder.id },
+                  });
+
+                if (!leadFolder) {
                   try {
-                    await strapi.entityService.update(
-                      'plugin::upload.file',
-                      fileId,
-                      {
-                        data: {
-                          folder: leadFolder.id,
-                          folderPath: leadFolder.path,
-                        },
-                      }
-                    );
-                  } catch (updateErr) {
-                    console.error(
-                      `[LoanApp] Failed to link file ${fileId} to folder ${folderName}:`,
-                      updateErr
-                    );
+                    leadFolder = await folderService.create({
+                      name: folderName,
+                      parent: rootFolder.id,
+                    });
+                  } catch {
+                    leadFolder = await strapi.db
+                      .query('plugin::upload.folder')
+                      .findOne({
+                        where: { name: folderName, parent: rootFolder.id },
+                      });
                   }
                 }
 
-                console.log(
-                  `[LoanApp] Linked ${fileIds.size} file(s) to Media Library folder: API Uploads/${folderName}`
-                );
+                if (leadFolder) {
+                  for (const fileId of fileIds) {
+                    try {
+                      await strapi.entityService.update(
+                        'plugin::upload.file',
+                        fileId,
+                        {
+                          data: {
+                            folder: leadFolder.id,
+                            folderPath: leadFolder.path,
+                          },
+                        }
+                      );
+                    } catch (updateErr) {
+                      console.error(
+                        `[LoanApp] Failed to link file ${fileId} to folder ${folderName}:`,
+                        updateErr
+                      );
+                    }
+                  }
+
+                  console.log(
+                    `[LoanApp] Linked ${fileIds.size} file(s) to Media Library folder: API Uploads/${folderName}`
+                  );
+                }
               }
+
+              await syncLeadDocumentsToDisk(
+                strapi,
+                leadId,
+                applicantName,
+                fileIds,
+                fileFieldById,
+                { loanApplicationId: createdRecord.id }
+              );
             }
-
-            await syncLeadDocumentsToDisk(
-              strapi,
-              leadId,
-              applicantName,
-              fileIds,
-              fileFieldById,
-              { loanApplicationId: createdRecord.id }
-            );
+          } catch (err) {
+            console.error('[LoanApp] Error organizing uploaded documents:', err);
           }
-        } catch (err) {
-          console.error('[LoanApp] Error organizing uploaded documents:', err);
         }
-      }
 
-      return result;
+        const leadId = requestData.leadId ?? createdRecord?.leadId ?? null;
+        const leadName = await resolveLeadName(
+          strapi,
+          leadId,
+          (requestData.applicantName as string) ?? createdRecord?.applicantName
+        );
+        const loanApplicationId =
+          createdRecord?.id ?? result?.data?.id ?? null;
+
+        await appendPlLeadSubmissionLog(strapi, {
+          leadId,
+          leadName,
+          loanApplicationId,
+          event: 'LOAN_APP_SUBMIT_SUCCESS',
+          form: 'loan-application',
+          fields: requestData,
+          source: 'api',
+        });
+
+        try {
+          const logger: any = strapi.service('api::activity-log.activity-log');
+          if (logger?.logEvent) {
+            await logger.logEvent({
+              action: 'LOAN_APP_SUBMITTED',
+              description: `Loan application submitted for lead ${leadId}${
+                leadName ? ` (${leadName})` : ''
+              }`,
+              severity: 'info',
+              model: 'api::loan-application.loan-application',
+              leadId,
+              leadName,
+              metadata: {
+                leadId,
+                leadName,
+                loanApplicationId,
+              },
+            });
+          }
+        } catch {
+          // non-fatal
+        }
+
+        return result;
+      } catch (err: unknown) {
+        const leadId =
+          (requestData.leadId as number | string | null | undefined) ?? null;
+        const leadName = await resolveLeadName(
+          strapi,
+          leadId,
+          requestData.applicantName as string
+        );
+
+        await appendPlLeadSubmissionLog(strapi, {
+          leadId,
+          leadName,
+          event: 'LOAN_APP_SUBMIT_ERROR',
+          form: 'loan-application',
+          fields: requestData,
+          errors: extractErrorMessage(err),
+          source: 'api',
+        });
+
+        try {
+          const logger: any = strapi.service('api::activity-log.activity-log');
+          if (logger?.logEvent) {
+            await logger.logEvent({
+              action: 'LOAN_APP_SUBMIT_FAILED',
+              description: `Loan application submit failed for lead ${leadId}: ${extractErrorMessage(err)}`,
+              severity: 'error',
+              model: 'api::loan-application.loan-application',
+              leadId,
+              leadName,
+              metadata: { leadId, leadName },
+            });
+          }
+        } catch {
+          // non-fatal
+        }
+        throw err;
+      }
     },
 
     async syncDocuments(ctx: any) {

@@ -252,6 +252,7 @@ export async function buildApplicantProfile(
   const existingTotalEmi = deriveFoirEmi(openAccounts);
 
   const requestedAmount = toNum(lead.requiredAmount ?? lead.required_amount);
+  const loanAmount = toNum(loan?.loanAmount ?? loan?.loan_amount);
   const tenureMonths = toNum(form.loanDetails?.tenureMonths) || toNum(form.tenureMonths) || 36;
 
   const dpd = derivePaymentHistoryMonths(openAccounts);
@@ -271,8 +272,10 @@ export async function buildApplicantProfile(
 
   return {
     leadId,
+    fullName: lead.fullName != null ? String(lead.fullName).trim() : null,
     pinCode: lead.pinCode != null ? String(lead.pinCode).trim() : null,
     requestedAmount,
+    loanAmount,
     netMonthlyIncome,
     hasOtherIncome,
     otherIncomeAmount,

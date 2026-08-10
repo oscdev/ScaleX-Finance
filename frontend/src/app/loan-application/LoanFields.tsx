@@ -250,13 +250,20 @@ export const IncomeDetailsFields = ({ formData, handleChange, pageInfo }: FieldP
             </select>
         </div>
         <div className="form-group">
-            <label className="form-label">{pageInfo.jobStabilityLabel || 'Current Job Stability'}<span className="required-star">*</span></label>
-            <select name="jobStability" className="form-select" value={formData.jobStability} onChange={handleChange}>
-                <option value="">Select</option>
-                {(pageInfo.jobStabilityOptions || '6 Months, 1 year, 2 year, 3 year+').split(',').map((opt: string) => (
-                    <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
-                ))}
-            </select>
+            <label className="form-label">{pageInfo.jobStabilityLabel || 'Current Job Stability (Months)'}<span className="required-star">*</span></label>
+            <div className="input-with-suffix">
+                <input
+                    type="number"
+                    name="jobStability"
+                    className="form-input"
+                    value={formData.jobStability}
+                    onChange={handleChange}
+                    min="0"
+                    step="1"
+                    placeholder="e.g. 24"
+                />
+                <span className="input-suffix" aria-hidden="true">Months</span>
+            </div>
         </div>
         <YesNoRadio
             name="pfDeducted"

@@ -41,6 +41,24 @@
     font-weight: 700;
 }
 
+.input-with-suffix {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.input-with-suffix .form-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.input-suffix {
+    flex-shrink: 0;
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
 .loan-profile-icon {
     font-size: 1.2rem;
     color: #10b981;

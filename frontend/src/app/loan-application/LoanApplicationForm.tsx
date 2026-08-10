@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { strapiPublicApi } from '@/lib/strapi';
+import { logPlSubmission } from '@/lib/plSubmissionLogger';
 import { safeSessionStorage } from '@/lib/safeStorage';
 import './LoanApplication.css';
 import BusinessLoanFunnel from './funnels/BusinessLoanFunnel';
@@ -316,6 +317,15 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
 
         const errors = getValidationErrors();
         if (errors.length > 0) {
+            const ss = safeSessionStorage();
+            void logPlSubmission({
+                form: 'loan-application',
+                event: 'VALIDATION_ERROR',
+                leadId: ss.getItem('lastLeadId'),
+                leadName: ss.getItem('leadName'),
+                fields: formData as Record<string, unknown>,
+                errors,
+            });
             setSubmitError(`Please fix all validation errors before submitting. (${errors.length} pending)`);
             return;
         }
@@ -462,6 +472,15 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
             }
         } catch (err: any) {
             console.error('Submission Error:', err);
+            const ss = safeSessionStorage();
+            void logPlSubmission({
+                form: 'loan-application',
+                event: 'CLIENT_ERROR',
+                leadId: ss.getItem('lastLeadId'),
+                leadName: ss.getItem('leadName'),
+                fields: formData as Record<string, unknown>,
+                errors: err.message,
+            });
             setSubmitError(err.message);
         } finally {
             setIsSubmitting(false);
@@ -542,7 +561,19 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         if (!formData.designation) errors.push(`Please enter "${pageInfo.designationLabel || 'Designation'}*" in "Income" tab.`);
         if (!formData.netSalary) errors.push(`Please enter "${pageInfo.netSalaryLabel || 'Net Salary'}*" in "Income" tab.`);
         if (!formData.salaryMode) errors.push(`Please enter "${pageInfo.salaryModeLabel || 'Salary Mode'}*" in "Income" tab.`);
-        if (!formData.jobStability) errors.push(`Please enter "${pageInfo.jobStabilityLabel || 'Current Job Stability'}*" in "Income" tab.`);
+        {
+            const months = Number(formData.jobStability);
+            if (
+                formData.jobStability === '' ||
+                formData.jobStability == null ||
+                !Number.isInteger(months) ||
+                months < 0
+            ) {
+                errors.push(
+                    `Please enter a valid "${pageInfo.jobStabilityLabel || 'Current Job Stability (Months)'}*" (whole number of months) in "Income" tab.`
+                );
+            }
+        }
         if (formData.pfDeducted !== true && formData.pfDeducted !== false) {
             errors.push(`Please select "${pageInfo.pfDeductedLabel || 'PF Deducted'}*" in "Income" tab.`);
         }

@@ -63,17 +63,27 @@
 }
 
 .lender-logo-container {
-    width: 60px;
-    height: 60px;
-    background: #f3f4f6;
+    min-width: 72px;
+    max-width: 100%;
+    min-height: 60px;
+    padding: 0.5rem 0.75rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    color: var(--primary);
     overflow: hidden;
     margin-bottom: 1rem;
+}
+
+.lender-code-badge {
+    font-weight: 700;
+    font-size: 0.72rem;
+    line-height: 1.2;
+    color: #1d4ed8;
+    text-align: center;
+    word-break: break-word;
 }
 
 .lender-logo-img {
@@ -93,16 +103,21 @@
     margin-top: 0.25rem;
 }
 
-.lender-code {
-    color: #059669;
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-top: 0.25rem;
-    margin-bottom: 1rem;
+.lender-match-score {
+    color: #1e40af;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.lender-match-score strong {
+    font-weight: 700;
+    color: #1d4ed8;
+    font-size: 1.15rem;
 }
 
 .lender-apply-btn {
-    margin-top: auto;
+    margin-top: 1rem;
     width: 100%;
     text-align: center;
 }

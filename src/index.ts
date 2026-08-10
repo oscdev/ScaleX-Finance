@@ -2,51 +2,107 @@ import type { Core } from '@strapi/strapi';
 import { getEmailTemplate } from './email-templates';
 import { ensurePythonEnvironment } from './api/bureau-data-extraction/services/python-bridge';
 
-const createAdminUserFromAdvisor = async (strapi: Core.Strapi, advisor: any, rawPassword?: string) => {
-  if (advisor.advisorStatus === 'Approved') {
-    const { email, fullName, password } = advisor;
+function classifyAdminRoleKind(roles: Array<{ code?: string; name?: string }> | null | undefined): string {
+  const list = roles || [];
+  const codes = list.map((r) => String(r.code || '').toLowerCase());
+  const names = list.map((r) => String(r.name || '').toLowerCase());
+  const hit = (needle: string) =>
+    codes.some((c) => c.includes(needle)) || names.some((n) => n.includes(needle));
 
-    try {
-      const adminUserService = strapi.service('admin::user');
-      const existingUser = await adminUserService.findOneByEmail(email);
+  if (hit('strapi-advisor') || hit('advisor')) return 'Advisor';
+  if (hit('banker')) return 'Banker';
+  if (hit('staff')) return 'Staff';
+  if (hit('super-admin') || hit('super admin') || hit('strapi-super-admin')) return 'Admin';
+  if (list.length === 0) return 'Admin';
+  return 'Admin';
+}
 
-      if (existingUser) {
-        if (!existingUser.isActive) {
-          await adminUserService.updateById(existingUser.id, { isActive: true });
-        }
-        return;
-      }
-
-      // Use strapi.db.query for more direct control on Admin Roles
-      const advisorRole = await strapi.db.query('admin::role').findOne({
-        where: { code: 'strapi-advisor' }
+async function logUserRegistrationEvent(strapi: Core.Strapi, params: Record<string, unknown>) {
+  try {
+    const logger: any = strapi.service('api::activity-log.activity-log');
+    if (logger?.logEvent) {
+      await logger.logEvent({
+        category: 'USER_REGISTRATION',
+        ...params,
       });
-
-      if (!advisorRole) {
-        // console.error('[Advisor Approval Sync] CRITICAL: strapi-advisor role missing.');
-        return;
-      }
-
-      const names = (fullName || '').trim().split(/\s+/);
-      const firstname = names[0] || 'Advisor';
-      const lastname = names.length > 1 ? names.slice(1).join(' ') : (names[0] || 'User');
-
-      const passToUse = rawPassword || password || 'Welcome@Scalex123';
-
-      await adminUserService.create({
-        email,
-        firstname,
-        lastname,
-        password: passToUse,
-        roles: [advisorRole.id],
-        isActive: true,
-        registrationToken: null,
-      });
-
-      // console.log(`[Advisor Approval Sync] SUCCESS: Admin User created for ${email}`);
-    } catch (err: any) {
-      // console.error(`[Advisor Approval Sync] FAILED for ${email}:`, err?.message || err);
     }
+  } catch {
+    // non-fatal
+  }
+}
+
+const createAdminUserFromAdvisor = async (strapi: Core.Strapi, advisor: any, rawPassword?: string) => {
+  if (advisor.advisorStatus !== 'Approved') return;
+
+  const { email, fullName, password } = advisor;
+
+  try {
+    const adminUserService = strapi.service('admin::user');
+    const existingUser = await adminUserService.findOneByEmail(email);
+
+    if (existingUser) {
+      let adminUserUpdated = false;
+      if (!existingUser.isActive) {
+        await adminUserService.updateById(existingUser.id, { isActive: true });
+        adminUserUpdated = true;
+      }
+      if (adminUserUpdated) {
+        await logUserRegistrationEvent(strapi, {
+          action: 'ADVISOR_APPROVED',
+          description: `Advisor approved (Advisor): admin user reactivated for ${email}`,
+          severity: 'info',
+          model: 'api::advisor.advisor',
+          metadata: {
+            advisorId: advisor.id,
+            email,
+            roleKind: 'Advisor',
+            adminUserCreated: false,
+            adminUserUpdated: true,
+          },
+        });
+      }
+      return;
+    }
+
+    const advisorRole = await strapi.db.query('admin::role').findOne({
+      where: { code: 'strapi-advisor' },
+    });
+
+    if (!advisorRole) {
+      return;
+    }
+
+    const names = (fullName || '').trim().split(/\s+/);
+    const firstname = names[0] || 'Advisor';
+    const lastname = names.length > 1 ? names.slice(1).join(' ') : names[0] || 'User';
+
+    const passToUse = rawPassword || password || 'Welcome@Scalex123';
+
+    await adminUserService.create({
+      email,
+      firstname,
+      lastname,
+      password: passToUse,
+      roles: [advisorRole.id],
+      isActive: true,
+      registrationToken: null,
+    });
+
+    await logUserRegistrationEvent(strapi, {
+      action: 'ADVISOR_APPROVED',
+      description: `Advisor approved (Advisor): admin user created for ${email}`,
+      severity: 'info',
+      model: 'api::advisor.advisor',
+      metadata: {
+        advisorId: advisor.id,
+        email,
+        roleKind: 'Advisor',
+        adminUserCreated: true,
+        adminUserUpdated: false,
+      },
+    });
+  } catch (err: any) {
+    // non-fatal
   }
 };
 
@@ -183,6 +239,78 @@ export default {
         limit: 500,
       });
       ctx.body = { data: advisors };
+    });
+
+    // Lead Activity Timeline aggregations (admin JWT — not Users & Permissions /api)
+    router.get('/admin/activity-logs/by-lead', async (ctx: any) => {
+      if (!requireAuth(ctx)) return;
+      try {
+        const service = strapi.service('api::activity-log.activity-log') as any;
+        ctx.body = await service.listByLead({
+          search: ctx.query.search,
+          page: ctx.query.page,
+          pageSize: ctx.query.pageSize,
+        });
+      } catch (e: any) {
+        ctx.status = 500;
+        ctx.body = { error: { message: e?.message || 'Internal server error' } };
+      }
+    });
+
+    router.get('/admin/activity-logs/by-lead/:leadId', async (ctx: any) => {
+      if (!requireAuth(ctx)) return;
+      try {
+        const leadId = Number(ctx.params.leadId);
+        if (!Number.isFinite(leadId) || leadId <= 0) {
+          ctx.status = 400;
+          ctx.body = { error: { message: 'leadId is required' } };
+          return;
+        }
+        const service = strapi.service('api::activity-log.activity-log') as any;
+        ctx.body = await service.listForLead(leadId, {
+          category: ctx.query.category,
+          page: ctx.query.page,
+          pageSize: ctx.query.pageSize,
+        });
+      } catch (e: any) {
+        ctx.status = 500;
+        ctx.body = { error: { message: e?.message || 'Internal server error' } };
+      }
+    });
+
+    router.get('/admin/activity-logs/system', async (ctx: any) => {
+      if (!requireAuth(ctx)) return;
+      try {
+        const pageSize = Math.min(100, Math.max(1, Number(ctx.query.pageSize) || 50));
+        const results = await strapi.db.query('api::activity-log.activity-log').findMany({
+          where: {
+            $or: [{ category: 'SYSTEM' }, { leadId: null }],
+          },
+          orderBy: { createdAt: 'desc' },
+          limit: pageSize,
+        });
+        ctx.body = { data: results };
+      } catch (e: any) {
+        ctx.status = 500;
+        ctx.body = { error: { message: e?.message || 'Internal server error' } };
+      }
+    });
+
+    router.get('/admin/activity-logs/events', async (ctx: any) => {
+      if (!requireAuth(ctx)) return;
+      try {
+        const service = strapi.service('api::activity-log.activity-log') as any;
+        ctx.body = await service.listEvents({
+          search: ctx.query.search,
+          category: ctx.query.category,
+          severity: ctx.query.severity,
+          page: ctx.query.page,
+          pageSize: ctx.query.pageSize,
+        });
+      } catch (e: any) {
+        ctx.status = 500;
+        ctx.body = { error: { message: e?.message || 'Internal server error' } };
+      }
     });
   },
 
@@ -327,6 +455,136 @@ export default {
       },
     });
 
+    // Admin user create → Users & Auth activity
+    strapi.db.lifecycles.subscribe({
+      models: ['admin::user'],
+      async afterCreate(event) {
+        const result = event.result as any;
+        if (!result) return;
+        try {
+          let roles: Array<{ code?: string; name?: string }> = [];
+          if (Array.isArray(result.roles) && result.roles.length && typeof result.roles[0] === 'object') {
+            roles = result.roles;
+          } else {
+            const full = await strapi.db.query('admin::user').findOne({
+              where: { id: result.id },
+              populate: ['roles'],
+            });
+            roles = (full?.roles || []) as Array<{ code?: string; name?: string }>;
+          }
+          const roleNames = roles.map((r) => r.name || r.code || 'unknown').filter(Boolean);
+          const roleKind = classifyAdminRoleKind(roles);
+          await logUserRegistrationEvent(strapi, {
+            action: 'ADMIN_USER_CREATED',
+            description: `Admin user created (${roleKind}): ${result.email || result.id}`,
+            severity: 'info',
+            model: 'admin::user',
+            userId: result.id != null ? String(result.id) : undefined,
+            metadata: {
+              adminUserId: result.id,
+              email: result.email ?? null,
+              roleNames,
+              roleKind,
+            },
+          });
+        } catch {
+          // non-fatal
+        }
+      },
+    });
+
+    // Shared /admin login → Users & Auth
+    const resolveLoginEmail = (): string | null => {
+      try {
+        const ctx = (strapi as any).requestContext?.get?.();
+        const body = ctx?.request?.body || {};
+        const email = body.email || body.identifier;
+        return email != null && String(email).trim() ? String(email).trim() : null;
+      } catch {
+        return null;
+      }
+    };
+
+    const resolveRolesForEmail = async (email: string | null) => {
+      if (!email) return { roles: [] as Array<{ code?: string; name?: string }>, adminUserId: null as number | null };
+      try {
+        const user = await strapi.db.query('admin::user').findOne({
+          where: { email },
+          populate: ['roles'],
+        });
+        if (!user) return { roles: [], adminUserId: null };
+        return {
+          roles: (user.roles || []) as Array<{ code?: string; name?: string }>,
+          adminUserId: user.id ?? null,
+        };
+      } catch {
+        return { roles: [], adminUserId: null };
+      }
+    };
+
+    strapi.eventHub.on('admin.auth.success', async (payload: any) => {
+      try {
+        const user = payload?.user || {};
+        const email = user.email || resolveLoginEmail();
+        let roles: Array<{ code?: string; name?: string }> = Array.isArray(user.roles)
+          ? user.roles
+          : [];
+        if (!roles.length && email) {
+          const looked = await resolveRolesForEmail(email);
+          roles = looked.roles;
+        }
+        const roleNames = roles.map((r) => r.name || r.code || 'unknown').filter(Boolean);
+        const roleKind = roles.length ? classifyAdminRoleKind(roles) : 'Unknown';
+        await logUserRegistrationEvent(strapi, {
+          action: 'LOGIN_SUCCESS',
+          description: `Login success (${roleKind}): ${email || user.id || 'unknown'}`,
+          severity: 'info',
+          model: 'admin::user',
+          userId: user.id != null ? String(user.id) : undefined,
+          metadata: {
+            email: email ?? null,
+            adminUserId: user.id ?? null,
+            roleNames,
+            roleKind,
+            provider: payload?.provider || 'local',
+          },
+        });
+      } catch {
+        // non-fatal
+      }
+    });
+
+    strapi.eventHub.on('admin.auth.error', async (payload: any) => {
+      try {
+        const email = resolveLoginEmail();
+        const looked = await resolveRolesForEmail(email);
+        const roleNames = looked.roles.map((r) => r.name || r.code || 'unknown').filter(Boolean);
+        const roleKind = looked.roles.length
+          ? classifyAdminRoleKind(looked.roles)
+          : 'Unknown';
+        const errorMessage =
+          payload?.error?.message ||
+          (payload?.error instanceof Error ? payload.error.message : null) ||
+          'Login failed';
+        await logUserRegistrationEvent(strapi, {
+          action: 'LOGIN_FAILURE',
+          description: `Login failed (${roleKind}): ${email || 'unknown'}`,
+          severity: 'warning',
+          model: 'admin::user',
+          metadata: {
+            email: email ?? null,
+            adminUserId: looked.adminUserId,
+            roleNames,
+            roleKind,
+            provider: payload?.provider || 'local',
+            errorMessage,
+          },
+        });
+      } catch {
+        // non-fatal
+      }
+    });
+
     // 4. Update Public Permissions
     try {
       const publicRole = await strapi.db.query('plugin::users-permissions.role').findOne({
@@ -345,6 +603,7 @@ export default {
           { action: 'api::about-us-page.about-us-page.find', role: publicRole.id },
           { action: 'api::contact-us-page.contact-us-page.find', role: publicRole.id },
           { action: 'api::activity-log.activity-log.createLog', role: publicRole.id },
+          { action: 'api::lead.lead.logSubmissionAudit', role: publicRole.id },
           { action: 'api::advisor.advisor.find', role: publicRole.id },
           { action: 'api::lead-remark.lead-remark.find', role: publicRole.id },
           { action: 'api::lead-remark.lead-remark.findOne', role: publicRole.id },
@@ -376,11 +635,29 @@ export default {
       if (!settings) {
         await strapi.db.query('api::global-setting.global-setting').create({
           data: {
-            loggingIsEnabled: true,
-            retentionDays: 30,
+            activityLoggingIsEnabled: true,
+            codeLevelLoggingIsEnabled: true,
+            loggingRetentionDays: 30,
             publishedAt: new Date()
           }
         });
+      } else {
+        const patch: Record<string, unknown> = {};
+        if (settings.activityLoggingIsEnabled == null) {
+          patch.activityLoggingIsEnabled = true;
+        }
+        if (settings.codeLevelLoggingIsEnabled == null) {
+          patch.codeLevelLoggingIsEnabled = true;
+        }
+        if (settings.loggingRetentionDays == null) {
+          patch.loggingRetentionDays = 30;
+        }
+        if (Object.keys(patch).length > 0) {
+          await strapi.db.query('api::global-setting.global-setting').update({
+            where: { id: settings.id },
+            data: patch,
+          });
+        }
       }
     } catch (err) { }
 
@@ -621,7 +898,9 @@ export default {
             description: `New lead created: ${result.fullName}`,
             severity: 'info',
             model: 'api::lead.lead',
-            metadata: { leadId: result.id, data: result }
+            leadId: result.id,
+            leadName: result.fullName,
+            metadata: { leadId: result.id, leadName: result.fullName },
           });
         }
 
@@ -641,7 +920,10 @@ export default {
               action: 'EMAIL_SKIPPED',
               description: `Emails are globally disabled. System bypassed email notifications for Lead ${result.fullName}.`,
               severity: 'info',
-              model: 'global-setting'
+              model: 'global-setting',
+              leadId: result.id,
+              leadName: result.fullName,
+              metadata: { leadId: result.id, leadName: result.fullName },
             });
           }
           return;
@@ -670,7 +952,16 @@ export default {
                 description: `Welcome email dispatched to lead: ${result.email}`,
                 severity: 'info',
                 model: 'email-service',
-                metadata: { template: 'welcome-lead', recipient: result.email, status: 'success', subject }
+                leadId: result.id,
+                leadName: result.fullName,
+                metadata: {
+                  leadId: result.id,
+                  leadName: result.fullName,
+                  template: 'welcome-lead',
+                  recipient: result.email,
+                  status: 'success',
+                  subject,
+                },
               });
             }
           } else if (result.email && result.getEmailNotification === false) {
@@ -679,18 +970,30 @@ export default {
                 action: 'EMAIL_SKIPPED',
                 description: `Lead opted out of email notifications: ${result.fullName}`,
                 severity: 'info',
-                model: 'lead'
+                model: 'lead',
+                leadId: result.id,
+                leadName: result.fullName,
+                metadata: { leadId: result.id, leadName: result.fullName },
               });
             }
           }
         } catch (emailError: any) {
           if (logger) {
             await logger.logEvent({
-              action: 'EMAIL_DISPATCHED',
+              action: 'EMAIL_FAILED',
               description: `CRITICAL: Welcome email failed for ${result.email}`,
               severity: 'error',
               model: 'email-service',
-              metadata: { template: 'welcome-lead', recipient: result.email, status: 'failure', error: emailError.message }
+              leadId: result.id,
+              leadName: result.fullName,
+              metadata: {
+                leadId: result.id,
+                leadName: result.fullName,
+                template: 'welcome-lead',
+                recipient: result.email,
+                status: 'failure',
+                error: emailError.message,
+              },
             });
           }
         }
@@ -725,7 +1028,17 @@ export default {
                   description: `Advisor notification dispatched for lead: ${result.fullName}`,
                   severity: 'info',
                   model: 'email-service',
-                  metadata: { template: 'advisor-notification', recipient: advisor.email, advisorId: advisor.id, status: 'success', subject }
+                  leadId: result.id,
+                  leadName: result.fullName,
+                  metadata: {
+                    leadId: result.id,
+                    leadName: result.fullName,
+                    template: 'advisor-notification',
+                    recipient: advisor.email,
+                    advisorId: advisor.id,
+                    status: 'success',
+                    subject,
+                  },
                 });
               }
             }
@@ -733,11 +1046,19 @@ export default {
         } catch (err: any) {
           if (logger) {
             await logger.logEvent({
-              action: 'EMAIL_DISPATCHED',
+              action: 'EMAIL_FAILED',
               description: `CRITICAL: Advisor notification failed for lead: ${result.fullName}`,
               severity: 'error',
               model: 'email-service',
-              metadata: { template: 'advisor-notification', status: 'failure', error: err.message }
+              leadId: result.id,
+              leadName: result.fullName,
+              metadata: {
+                leadId: result.id,
+                leadName: result.fullName,
+                template: 'advisor-notification',
+                status: 'failure',
+                error: err.message,
+              },
             });
           }
         }
@@ -756,8 +1077,11 @@ export default {
                 description: `Lead status updated from ${oldLead.leadStatus} to ${data.leadStatus} for ${oldLead.fullName}`,
                 severity: 'info',
                 model: 'api::lead.lead',
+                leadId: oldLead.id,
+                leadName: oldLead.fullName,
                 metadata: {
                   leadId: oldLead.id,
+                  leadName: oldLead.fullName,
                   oldStatus: oldLead.leadStatus,
                   newStatus: data.leadStatus
                 }
@@ -766,6 +1090,67 @@ export default {
           }
         }
       }
+    });
+
+    // Lead remarks → activity timeline
+    strapi.db.lifecycles.subscribe({
+      models: ['api::lead-remark.lead-remark'],
+      async afterCreate(event) {
+        const result = event.result as any;
+        if (!result?.leadId) return;
+        try {
+          const lead = await strapi.db.query('api::lead.lead').findOne({
+            where: { id: result.leadId },
+          });
+          const logger: any = strapi.service('api::activity-log.activity-log');
+          if (logger?.logEvent) {
+            await logger.logEvent({
+              action: 'LEAD_REMARK_ADDED',
+              description: `Remark added for lead ${result.leadId}${
+                lead?.fullName ? ` (${lead.fullName})` : ''
+              }`,
+              severity: 'info',
+              model: 'api::lead-remark.lead-remark',
+              leadId: result.leadId,
+              leadName: lead?.fullName ?? null,
+              metadata: {
+                leadId: result.leadId,
+                leadName: lead?.fullName ?? null,
+              },
+            });
+          }
+        } catch {
+          // non-fatal
+        }
+      },
+      async afterUpdate(event) {
+        const result = event.result as any;
+        if (!result?.leadId) return;
+        try {
+          const lead = await strapi.db.query('api::lead.lead').findOne({
+            where: { id: result.leadId },
+          });
+          const logger: any = strapi.service('api::activity-log.activity-log');
+          if (logger?.logEvent) {
+            await logger.logEvent({
+              action: 'LEAD_REMARK_ADDED',
+              description: `Remark updated for lead ${result.leadId}${
+                lead?.fullName ? ` (${lead.fullName})` : ''
+              }`,
+              severity: 'info',
+              model: 'api::lead-remark.lead-remark',
+              leadId: result.leadId,
+              leadName: lead?.fullName ?? null,
+              metadata: {
+                leadId: result.leadId,
+                leadName: lead?.fullName ?? null,
+              },
+            });
+          }
+        } catch {
+          // non-fatal
+        }
+      },
     });
 
     // 6. Global Loan Application Visibility Security (Database Level)
@@ -841,7 +1226,122 @@ export default {
             };
           }
         }
-      }
+      },
+      async beforeUpdate(event) {
+        const { params } = event;
+        const { where, data } = params;
+        if (!data) return;
+
+        const statusChanging = Object.prototype.hasOwnProperty.call(data, 'status');
+        const staffChanging = Object.prototype.hasOwnProperty.call(data, 'assignedStaffId');
+        const bankerChanging = Object.prototype.hasOwnProperty.call(data, 'assignedBankerId');
+        if (!statusChanging && !staffChanging && !bankerChanging) return;
+
+        try {
+          const existing = await strapi.db
+            .query('api::loan-application.loan-application')
+            .findOne({ where });
+          if (!existing) return;
+
+          const logger: any = strapi.service('api::activity-log.activity-log');
+          if (!logger?.logEvent) return;
+
+          let leadName: string | null = null;
+          if (existing.leadId != null) {
+            const lead = await strapi.db.query('api::lead.lead').findOne({
+              where: { id: existing.leadId },
+            });
+            leadName = lead?.fullName ?? null;
+          }
+
+          const leadId = existing.leadId ?? null;
+
+          if (statusChanging && existing.status !== data.status) {
+            await logger.logEvent({
+              action: 'LOAN_STATUS_CHANGED',
+              description: `Loan application ${existing.id} status updated from ${existing.status} to ${data.status}`,
+              severity: 'info',
+              model: 'api::loan-application.loan-application',
+              leadId,
+              leadName,
+              metadata: {
+                loanApplicationId: existing.id,
+                leadId,
+                leadName,
+                oldStatus: existing.status,
+                newStatus: data.status,
+              },
+            });
+          }
+
+          const norm = (v: unknown) =>
+            v === undefined || v === null || v === '' ? null : String(v);
+          const oldStaff = norm(existing.assignedStaffId);
+          const newStaff = staffChanging ? norm(data.assignedStaffId) : oldStaff;
+          const oldBanker = norm(existing.assignedBankerId);
+          const newBanker = bankerChanging ? norm(data.assignedBankerId) : oldBanker;
+
+          if (
+            (staffChanging && oldStaff !== newStaff) ||
+            (bankerChanging && oldBanker !== newBanker)
+          ) {
+            await logger.logEvent({
+              action: 'LOAN_ASSIGNMENT_CHANGED',
+              description: `Loan application ${existing.id} assignment updated`,
+              severity: 'info',
+              model: 'api::loan-application.loan-application',
+              leadId,
+              leadName,
+              metadata: {
+                loanApplicationId: existing.id,
+                leadId,
+                leadName,
+                oldAssignedStaffId: oldStaff,
+                newAssignedStaffId: newStaff,
+                oldAssignedBankerId: oldBanker,
+                newAssignedBankerId: newBanker,
+              },
+            });
+          }
+        } catch {
+          // non-fatal
+        }
+      },
+    });
+
+    // Global Setting — maintenance mode toggle
+    strapi.db.lifecycles.subscribe({
+      models: ['api::global-setting.global-setting'],
+      async beforeUpdate(event) {
+        const { params } = event;
+        const { where, data } = params;
+        if (!data || !Object.prototype.hasOwnProperty.call(data, 'maintenanceModeIsEnabled')) {
+          return;
+        }
+        try {
+          const existing = await strapi.db
+            .query('api::global-setting.global-setting')
+            .findOne({ where });
+          if (!existing) return;
+          if (existing.maintenanceModeIsEnabled === data.maintenanceModeIsEnabled) return;
+
+          const logger: any = strapi.service('api::activity-log.activity-log');
+          if (logger?.logEvent) {
+            await logger.logEvent({
+              action: 'MAINTENANCE_TOGGLED',
+              description: `Maintenance mode ${data.maintenanceModeIsEnabled ? 'enabled' : 'disabled'}`,
+              severity: 'warning',
+              model: 'api::global-setting.global-setting',
+              metadata: {
+                oldValue: existing.maintenanceModeIsEnabled,
+                newValue: data.maintenanceModeIsEnabled,
+              },
+            });
+          }
+        } catch {
+          // non-fatal
+        }
+      },
     });
 
     // 7. Robust Maintenance: Ensure Single Types are unique and published

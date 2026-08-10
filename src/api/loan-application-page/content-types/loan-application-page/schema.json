@@ -262,7 +262,7 @@
         },
         "jobStabilityLabel": {
             "type": "string",
-            "default": "Current Job Stability"
+            "default": "Current Job Stability (Months)"
         },
         "jobStabilityOptions": {
             "type": "string",
