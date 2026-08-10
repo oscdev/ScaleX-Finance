@@ -111,9 +111,13 @@ export default function AdvisorForm({ pageInfo }: { pageInfo: any }) {
 
                     await logEvent({
                         action: 'ADVISOR_REGISTRATION_FAILURE',
-                        description: `Advisor registration failed for ${formData.email}`,
+                        description: `Registration failed (Advisor): ${formData.email}`,
                         severity: 'warning',
-                        metadata: { email: formData.email, error: failMsg }
+                        metadata: {
+                            email: formData.email,
+                            roleKind: 'Advisor',
+                            error: failMsg,
+                        },
                     });
 
                     throw new Error(failMsg);
@@ -121,9 +125,9 @@ export default function AdvisorForm({ pageInfo }: { pageInfo: any }) {
 
                 await logEvent({
                     action: 'ADVISOR_REGISTRATION_SUCCESS',
-                    description: `New advisor registration submitted: ${formData.fullName}`,
+                    description: `Registration submitted (Advisor): ${formData.fullName}`,
                     severity: 'info',
-                    metadata: { email: formData.email }
+                    metadata: { email: formData.email, roleKind: 'Advisor' },
                 });
 
                 setIsSuccess(true);

@@ -12,19 +12,43 @@ interface AdminUserEntry {
 const isAdminUsersListPath = () =>
     window.location.pathname.replace(/\/+$/, '') === '/admin/settings/users';
 
-// ─── URL cleanup ──────────────────────────────────────────────────────────────
+// ─── URL cleanup + soft default ID sort ───────────────────────────────────────
 
 const cleanUrl = () => {
+    if ((window as any)._doingAdminUsersDefaultSort) return;
+
     const params = new URLSearchParams(window.location.search);
     let changed = false;
+    let appliedDefaultSort = false;
     const sort = decodeURIComponent(params.get('sort') || '');
-    // Only strip Strapi's default firstname sort; preserve id:ASC / id:DESC
-    if (!sort || sort === 'firstname') { params.delete('sort'); changed = true; }
+
+    // Soft default: missing or Strapi's firstname → id:DESC; preserve any other sort
+    if (!sort || sort === 'firstname') {
+        params.set('sort', 'id:DESC');
+        changed = true;
+        appliedDefaultSort = true;
+    }
     if (params.get('pageSize') === '10') { params.delete('pageSize'); changed = true; }
     if (params.get('page') === '1') { params.delete('page'); changed = true; }
     if (!changed) return;
+
     const qs = params.toString();
-    history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
+    const nextUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+
+    if (appliedDefaultSort) {
+        (window as any)._doingAdminUsersDefaultSort = true;
+        try {
+            history.replaceState(history.state, '', nextUrl);
+            window.dispatchEvent(new PopStateEvent('popstate', { state: history.state }));
+        } finally {
+            setTimeout(() => {
+                (window as any)._doingAdminUsersDefaultSort = false;
+            }, 0);
+        }
+        return;
+    }
+
+    history.replaceState(null, '', nextUrl);
 };
 
 // ─── Trigger Strapi to re-fetch users (server-side filter/sort) ───────────────

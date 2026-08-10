@@ -20,21 +20,42 @@
         "EMAIL_SKIPPED",
         "ADVISOR_LOGIN_SUCCESS",
         "ADVISOR_LOGIN_FAILURE",
+        "ADVISOR_REGISTRATION_SUCCESS",
+        "ADVISOR_REGISTRATION_FAILURE",
+        "ADVISOR_APPROVED",
+        "ADMIN_USER_CREATED",
+        "LOGIN_SUCCESS",
+        "LOGIN_FAILURE",
         "MAINTENANCE_TOGGLED",
         "LOGS_PURGED",
         "LOG_CLEANUP_CRON",
         "LEAD_SUBMISSION_SUCCESS",
         "LEAD_SUBMISSION_FAILURE",
         "LEAD_STATUS_CHANGED",
+        "LEAD_REMARK_ADDED",
         "AI_MATCH_GENERATED",
         "LOAN_STATUS_CHANGED",
+        "LOAN_ASSIGNMENT_CHANGED",
+        "LOAN_APP_SUBMITTED",
+        "LOAN_APP_SUBMIT_FAILED",
+        "BUREAU_EXTRACT_STARTED",
+        "BUREAU_EXTRACT_COMPLETED",
+        "BUREAU_EXTRACT_FAILED",
         "PL_ELIGIBILITY_RUN_START",
         "PL_ELIGIBILITY_BLOCKED",
         "PL_ELIGIBILITY_RULE",
         "PL_ELIGIBILITY_RULE_SKIP",
         "PL_ELIGIBILITY_LENDER",
         "PL_ELIGIBILITY_RUN_COMPLETE",
-        "PL_ELIGIBILITY_CONNECTION_FAILED"
+        "PL_ELIGIBILITY_CONNECTION_FAILED",
+        "PL_SCORE_RUN_START",
+        "PL_SCORE_CRITERION",
+        "PL_SCORE_CRITERION_SKIP",
+        "PL_SCORE_CRITERION_INACTIVE",
+        "PL_SCORE_LENDER",
+        "PL_SCORE_RANK_COMPLETE",
+        "PL_SCORE_RUN_DONE",
+        "PL_SCORE_BLOCKED"
       ],
       "required": true
     },
@@ -61,6 +82,29 @@
       "type": "string"
     },
     "userId": {
+      "type": "string"
+    },
+    "leadId": {
+      "type": "integer"
+    },
+    "leadName": {
+      "type": "string"
+    },
+    "category": {
+      "type": "enumeration",
+      "enum": [
+        "LEAD_FORM",
+        "LOAN_APPLICATION",
+        "EMAIL",
+        "STATUS_REMARKS",
+        "BUREAU_EXTRACTION",
+        "LENDER_ELIGIBILITY",
+        "LENDER_SCORING",
+        "USER_REGISTRATION",
+        "SYSTEM"
+      ]
+    },
+    "correlationId": {
       "type": "string"
     }
   }

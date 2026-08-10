@@ -13,11 +13,14 @@ export const appConfig = {
     theme: {
         light: {
             colors: {
-                primary100: '#1d4ed8',
-                primary200: '#c7d2fe',
-                primary500: '#6366f1',
-                primary600: '#2563eb',
-                primary700: '#1d4ed8',
+                // Boolean Toggle selected True uses primary600 text on neutral0.
+                // Keep these high-contrast so Global Setting labels stay readable
+                // even when custom CSS is partial.
+                primary100: '#dbeafe',
+                primary200: '#bfdbfe',
+                primary500: '#2563eb',
+                primary600: '#1d4ed8',
+                primary700: '#1e3a8a',
             },
         },
     },

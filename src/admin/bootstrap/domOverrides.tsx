@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import { DesignSystemProvider } from '@strapi/design-system';
 import { LeadDetailDashboard } from '../LeadViewDashboard';
+import { LeadActivityTimeline } from '../LeadActivityTimeline';
 import { AdminNotifications } from '../AdminNotifications';
 import { enforceDefaultListSettings } from '../LeadOverview/enforceListSettings';
 import { reactRoots, unmountAndRemove } from './overrides/reactRoots';
@@ -228,6 +229,35 @@ const showStrapiFrame = () => {
     }
 };
 
+/** Tear down overlays that do not belong on the current route.
+ *  Always runs at the start of initOverrides so SPA hops like Activity Log → Advisors
+ *  cannot leave a sticky overlay. Skips unmount when the current path still needs that overlay
+ *  (avoids remounting on MutationObserver ticks). */
+const clearCustomPageOverlays = () => {
+    const path = window.location.pathname;
+    const wantRaw = new URLSearchParams(window.location.search).get('raw') === '1';
+    const isActivityLogList =
+        path.includes('api::activity-log.activity-log') &&
+        !/\/api::activity-log\.activity-log\/[^/?]+/.test(path);
+    const wantTimeline = isActivityLogList && !wantRaw;
+
+    const isLoanPage = path.includes('api::loan-application.loan-application');
+    const leadId = sessionStorage.getItem('currentLeadId');
+    const wantDashboard = isLoanPage && !!leadId;
+
+    if (!wantTimeline) {
+        document.body.classList.remove('activity-timeline-mode');
+        unmountAndRemove('custom-activity-timeline-root');
+    }
+    if (!wantDashboard) {
+        document.body.classList.remove('dashboard-mode');
+        unmountAndRemove('custom-dashboard-root');
+    }
+    if (!wantTimeline && !wantDashboard) {
+        showStrapiFrame();
+    }
+};
+
 const applyLeadDashboardOverride = (_token: string) => {
     const isLoanPage = window.location.pathname.includes('api::loan-application.loan-application');
 
@@ -303,6 +333,55 @@ const ensureAdminNotifications = () => {
     }
 };
 
+// ─── Lead Activity Timeline (Activity Log content-manager list) ───────────────
+
+const applyLeadActivityTimelineOverride = () => {
+    const path = window.location.pathname;
+    const isActivityLog =
+        path.includes('api::activity-log.activity-log') &&
+        !/\/api::activity-log\.activity-log\/[^/?]+/.test(path);
+    const wantRaw = new URLSearchParams(window.location.search).get('raw') === '1';
+
+    if (!isActivityLog || wantRaw) {
+        unmountAndRemove('custom-activity-timeline-root');
+        if (document.body.classList.contains('activity-timeline-mode')) {
+            document.body.classList.remove('activity-timeline-mode');
+            showStrapiFrame();
+        }
+        return;
+    }
+
+    document.body.classList.add('activity-timeline-mode');
+    hideStrapiFrame();
+
+    let rootEl = document.getElementById('custom-activity-timeline-root');
+    if (!rootEl) {
+        rootEl = document.createElement('div');
+        rootEl.id = 'custom-activity-timeline-root';
+        Object.assign(rootEl.style, {
+            position: 'fixed',
+            top: '0',
+            right: '0',
+            bottom: '0',
+            left: '300px',
+            background: '#f6f6f9',
+            zIndex: '999',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            display: 'block',
+            visibility: 'visible',
+        });
+        document.body.prepend(rootEl);
+        const root = createRoot(rootEl);
+        reactRoots.set('custom-activity-timeline-root', root);
+        root.render(
+            <DesignSystemProvider>
+                <LeadActivityTimeline />
+            </DesignSystemProvider>
+        );
+    }
+};
+
 const ensureDebugBadge = () => {
     if (!document.getElementById('strapi-custom-debug')) {
         const debugDiv = document.createElement('div');
@@ -321,26 +400,39 @@ const initOverrides = () => {
     const safe = (fn: () => void) => { try { fn(); } catch (e) { console.warn('[ScaleX override error]', e); } };
 
     try {
+        // Always clear sticky overlays first — then re-apply only for the current route.
+        // Fixes: Activity Log → Advisors/Leads leaving the timeline covering Strapi.
+        safe(() => clearCustomPageOverlays());
+
         const path = window.location.pathname;
         const isAdvisorsPage = path.includes('api::advisor.advisor');
         const isLeadsPage = path.includes('api::lead.lead');
         const isLoanPage = path.includes('api::loan-application.loan-application');
+        const isActivityLogPage = path.includes('api::activity-log.activity-log');
         const isAdminUsersListPage = path.replace(/\/+$/, '') === '/admin/settings/users';
         const isAdminUserEditPage = /\/admin\/settings\/users\/\d+/.test(path);
         const isRoleEditPage = /\/admin\/settings\/roles\/\d+/.test(path);
 
-        // If we are NOT on a page we customize, ensure we are NOT in dashboard mode and return early.
-        // This is the most critical fix to prevent breaking pages like Activity Log.
-        if (!isAdvisorsPage && !isLeadsPage && !isLoanPage && !isAdminUsersListPage && !isAdminUserEditPage && !isRoleEditPage) {
-            if (document.body.classList.contains('dashboard-mode')) {
-                document.body.classList.remove('dashboard-mode');
-                showStrapiFrame();
-            }
-            // Still run these global ones that don't affect other pages' layouts
+        // Activity Log → custom Lead Activity Timeline (unless ?raw=1)
+        if (isActivityLogPage) {
+            (window as any).getStrapiToken = getStrapiToken;
             safe(() => applyLoginPageOverride());
             safe(() => applyNavOverride());
             safe(() => updateNavActiveStates());
-            safe(() => applyRoleTabOverride()); // cleans up any injected tab on non-role pages
+            safe(() => applyLeadActivityTimelineOverride());
+            safe(() => ensureAdminNotifications());
+            return;
+        }
+
+        // Pages we don't heavily customize — native CM UI only (overlays already cleared)
+        if (!isAdvisorsPage && !isLeadsPage && !isLoanPage && !isAdminUsersListPage && !isAdminUserEditPage && !isRoleEditPage) {
+            // Soft default sort for mapped collections (e.g. Lenders Catalog → id:DESC)
+            safe(() => enforceDefaultListSettings());
+            safe(() => applyLoginPageOverride());
+            safe(() => applyNavOverride());
+            safe(() => updateNavActiveStates());
+            safe(() => applyRoleTabOverride());
+            safe(() => ensureAdminNotifications());
             return;
         }
 
@@ -354,6 +446,7 @@ const initOverrides = () => {
 
         safe(() => applyAdminUserOverride(commonHeaders));
         safe(() => applyAdminUsersListOverride(commonHeaders));
+        // Re-enters dashboard-mode + mounts #custom-dashboard-root only when loan+leadId
         safe(() => applyLeadDashboardOverride(token));
 
         safe(() => enforceDefaultListSettings());

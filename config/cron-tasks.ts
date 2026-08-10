@@ -1,16 +1,15 @@
+import { purgeExpiredCodeLogs } from '../src/utils/code-file-logger';
+
 export default {
-  // Midnight log cleanup job
+  // Midnight log cleanup — Activity Logs (DB) + Code-level logs (disk)
   '0 0 * * *': async ({ strapi }) => {
     try {
-      // 1. Fetch Global Settings to get retentionDays
       const settings = (await strapi.db.query('api::global-setting.global-setting').findOne({})) as any;
-      const retentionDays = settings ? (settings.retentionDays || 30) : 30;
+      const loggingRetentionDays = settings ? (settings.loggingRetentionDays || 30) : 30;
 
-      // 2. Calculate the "Cutoff Date"
       const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+      cutoffDate.setDate(cutoffDate.getDate() - loggingRetentionDays);
 
-      // 3. Delete logs older than the cutoff
       const deleted = await strapi.db.query('api::activity-log.activity-log').deleteMany({
         where: {
           createdAt: {
@@ -18,15 +17,23 @@ export default {
           },
         },
       });
+      const activityDeleted = deleted?.count || 0;
 
-      if (deleted && deleted.count > 0) {
-        // We Use the internal logger to record that we CLEANED UP (silent audit)
+      const codePurge = purgeExpiredCodeLogs(loggingRetentionDays);
+      const codeDeleted = codePurge.deleted;
+
+      if (activityDeleted > 0 || codeDeleted > 0) {
         const logger: any = strapi.service('api::activity-log.activity-log');
         await logger.logEvent({
-          action: 'LOG_CLEANUP_CRON',
-          description: `Automatically deleted ${deleted.count} logs older than ${retentionDays} days.`,
+          action: 'LOGS_PURGED',
+          description: `Automatically deleted ${activityDeleted} activity log row(s) and ${codeDeleted} code log file(s) older than ${loggingRetentionDays} days.`,
           severity: 'info',
           model: 'system',
+          metadata: {
+            loggingRetentionDays,
+            activityDeleted,
+            codeDeleted,
+          },
         });
       }
     } catch (err: any) {

@@ -90,7 +90,7 @@ export const AdminNotifications = () => {
                             fullWidth
                             onClick={() =>
                                 (window.location.href =
-                                    '/admin/content-manager/collection-types/api::activity-log.activity-log?sort=createdAt:DESC')
+                                    '/admin/content-manager/collection-types/api::activity-log.activity-log')
                             }
                         >
                             View All Logs

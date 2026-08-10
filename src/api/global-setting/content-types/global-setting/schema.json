@@ -11,7 +11,12 @@
     "draftAndPublish": true
   },
   "attributes": {
-    "loggingIsEnabled": {
+    "activityLoggingIsEnabled": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "codeLevelLoggingIsEnabled": {
       "type": "boolean",
       "default": true,
       "required": true
@@ -20,7 +25,7 @@
       "type": "boolean",
       "default": false
     },
-    "retentionDays": {
+    "loggingRetentionDays": {
       "type": "integer",
       "default": 30
     },
