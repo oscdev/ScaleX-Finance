@@ -17,6 +17,7 @@ import {
   evaluateEnquiryExclude,
   evaluateFoir,
   evaluateIncome,
+  evaluateLatestDpd,
   evaluateLoanAmount,
   evaluatePf,
   evaluateSalaryType,
@@ -146,39 +147,43 @@ function evaluateLenderSteps(
   const fail3 = runOne(evaluateCibilOrFtb(3, profile, criteria));
   if (fail3) return finishEarly(fail3);
 
-  // Steps 4–7
-  const fail4 = runOne(evaluateAge(4, profile, criteria));
+  // Step 4 — latest open-account DPD vs max_dpd_days_allowed
+  const fail4 = runOne(evaluateLatestDpd(4, profile, criteria));
   if (fail4) return finishEarly(fail4);
-  const fail5 = runOne(evaluateIncome(5, profile, criteria));
-  if (fail5) return finishEarly(fail5);
-  const fail6 = runOne(evaluateLoanAmount(6, profile, criteria));
-  if (fail6) return finishEarly(fail6);
-  const fail7 = runOne(evaluateFoir(7, profile, criteria));
-  if (fail7) return finishEarly(fail7);
 
-  // Step 8 — DPD sub-rules
-  const fail8 = runMany(evaluateDpd(8, profile, criteria));
+  // Steps 5–8
+  const fail5 = runOne(evaluateAge(5, profile, criteria));
+  if (fail5) return finishEarly(fail5);
+  const fail6 = runOne(evaluateIncome(6, profile, criteria));
+  if (fail6) return finishEarly(fail6);
+  const fail7 = runOne(evaluateLoanAmount(7, profile, criteria));
+  if (fail7) return finishEarly(fail7);
+  const fail8 = runOne(evaluateFoir(8, profile, criteria));
   if (fail8) return finishEarly(fail8);
 
-  // Steps 9–13
-  const fail9 = runOne(evaluateCcu(9, profile, criteria));
-  if (fail9) return finishEarly(fail9);
-  const fail10 = runOne(evaluateUnsecured(10, profile, criteria));
-  if (fail10) return finishEarly(fail10);
-  const fail11 = runOne(evaluateSalaryType(11, profile, criteria));
-  if (fail11) return finishEarly(fail11);
-  const fail12 = runOne(evaluatePf(12, profile, criteria));
+  // Steps 9–11 — DPD 3m / 12m / max days
+  const failDpd = runMany(evaluateDpd(profile, criteria));
+  if (failDpd) return finishEarly(failDpd);
+
+  // Steps 12–16
+  const fail12 = runOne(evaluateCcu(12, profile, criteria));
   if (fail12) return finishEarly(fail12);
-  const fail13 = runOne(evaluateEmployment(13, profile, criteria));
+  const fail13 = runOne(evaluateUnsecured(13, profile, criteria));
   if (fail13) return finishEarly(fail13);
-
-  // Step 15 — enquiry exclude (step 14 reserved)
-  const fail15 = runOne(evaluateEnquiryExclude(15, profile, catalog));
+  const fail14 = runOne(evaluateSalaryType(14, profile, criteria));
+  if (fail14) return finishEarly(fail14);
+  const fail15 = runOne(evaluatePf(15, profile, criteria));
   if (fail15) return finishEarly(fail15);
-
-  // Step 16 — enquiry counts
-  const fail16 = runMany(evaluateEnquiryCounts(16, profile, criteria));
+  const fail16 = runOne(evaluateEmployment(16, profile, criteria));
   if (fail16) return finishEarly(fail16);
+
+  // Step 17 — enquiry exclude
+  const fail17 = runOne(evaluateEnquiryExclude(17, profile, catalog));
+  if (fail17) return finishEarly(fail17);
+
+  // Steps 18–19 — enquiry counts
+  const failEnq = runMany(evaluateEnquiryCounts(profile, criteria));
+  if (failEnq) return finishEarly(failEnq);
 
   const result = buildLenderResult(catalog, conditions);
   hooks?.onComplete(summarize(conditions));
@@ -351,6 +356,7 @@ export async function runEligibilityMatch(
     hasBureau: profile.hasBureau,
     cibilScore: profile.cibilScore,
     isFirstTimeBorrower: profile.isFirstTimeBorrower,
+    latestPaymentMonth: profile.latestPaymentMonth,
   });
 
   if (!profile.hasBureau) {
@@ -427,6 +433,30 @@ export async function runEligibilityMatch(
       lenderHooks(fileLog, cat.lenderCode, cat.lenderName)
     );
     lenders.push(evalResult);
+
+    const latestDpdCond = evalResult.conditions.find((c) => c.ruleId === 'A1-DPD-LATEST');
+    if (latestDpdCond && latestDpdCond.result !== 'NOT_EVALUATED') {
+      const isSkip = latestDpdCond.result === 'SKIP';
+      await logActivity(strapi, {
+        action: isSkip ? 'PL_ELIGIBILITY_RULE_SKIP' : 'PL_ELIGIBILITY_RULE',
+        description: `${cat.lenderCode} A1-DPD-LATEST ${latestDpdCond.result}`,
+        severity: latestDpdCond.result === 'FAIL' ? 'warning' : 'info',
+        model: 'personal-loan-eligibility',
+        leadId,
+        correlationId: runId,
+        metadata: {
+          leadId,
+          runId,
+          lenderCode: cat.lenderCode,
+          ruleId: 'A1-DPD-LATEST',
+          result: latestDpdCond.result,
+          errorCode: latestDpdCond.errorCode,
+          applicantValue: latestDpdCond.applicantValue,
+          threshold: latestDpdCond.threshold,
+          reason: latestDpdCond.reason,
+        },
+      });
+    }
 
     await logActivity(strapi, {
       action: 'PL_ELIGIBILITY_LENDER',

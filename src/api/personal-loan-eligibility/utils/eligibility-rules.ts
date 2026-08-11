@@ -205,6 +205,59 @@ export function evaluateCibilOrFtb(
   };
 }
 
+/**
+ * Early gate (before Age): latest open-account payment month vs max_dpd_days_allowed.
+ * FAIL when latestDpdDays > max_dpd_days_allowed (same inequality as A1-07/08).
+ */
+export function evaluateLatestDpd(
+  step: number,
+  profile: ApplicantProfile,
+  criteria: LenderCriteria
+): ConditionResult {
+  const formula = 'latestDpdDays <= max_dpd_days_allowed';
+  const latest = profile.latestPaymentMonth;
+  const allowed = criteria.maxDpdDaysAllowed;
+
+  if (allowed == null) {
+    return skip(step, 'A1-DPD-LATEST', 'Latest open-account DPD', formula, {
+      maxDpdDaysAllowed: null,
+    });
+  }
+
+  if (!latest) {
+    return {
+      step,
+      ruleId: 'A1-DPD-LATEST',
+      ruleName: 'Latest open-account DPD',
+      formula,
+      applicantValue: { monthKey: null, latestDpdDays: null },
+      threshold: { maxDpdDaysAllowed: allowed },
+      result: 'SKIP',
+      errorCode: null,
+      reason: 'No open-account payment-history month to evaluate as latest',
+    };
+  }
+
+  const ok = latest.dpdDays <= Number(allowed);
+  return {
+    step,
+    ruleId: 'A1-DPD-LATEST',
+    ruleName: 'Latest open-account DPD',
+    formula,
+    applicantValue: {
+      monthKey: latest.monthKey,
+      latestDpdDays: latest.dpdDays,
+      compare: `${latest.dpdDays} <= ${allowed}`,
+    },
+    threshold: { maxDpdDaysAllowed: allowed },
+    result: ok ? 'PASS' : 'FAIL',
+    errorCode: ok ? null : PlFail.A1_DPD_LATEST,
+    reason: ok
+      ? null
+      : `Latest open-account DPD ${latest.dpdDays} days (${latest.monthKey}) exceeds max_dpd_days_allowed ${allowed}`,
+  };
+}
+
 export function evaluateAge(
   step: number,
   profile: ApplicantProfile,
@@ -380,7 +433,6 @@ export function evaluateFoir(
 }
 
 export function evaluateDpd(
-  step: number,
   profile: ApplicantProfile,
   criteria: LenderCriteria
 ): ConditionResult[] {
@@ -398,6 +450,7 @@ export function evaluateDpd(
     windowMonths.filter((m) => m.dpdDays > allowed).length;
 
   const pushCountRule = (
+    step: number,
     ruleId: string,
     ruleName: string,
     failCode: string,
@@ -479,6 +532,7 @@ export function evaluateDpd(
   };
 
   pushCountRule(
+    9,
     'A1-07-DPD-3M',
     'DPD Last 3 Months',
     PlFail.A1_07_DPD_3M,
@@ -487,6 +541,7 @@ export function evaluateDpd(
     criteria.maxDpdCount3months
   );
   pushCountRule(
+    10,
     'A1-08-DPD-12M',
     'DPD Last 12 Months',
     PlFail.A1_08_DPD_12M,
@@ -495,8 +550,9 @@ export function evaluateDpd(
     criteria.maxDpdCount12months
   );
 
-  // A1-09 unchanged: absolute max DPD days vs lender allowed days
+  // A1-09: absolute max DPD days vs lender allowed days
   {
+    const step = 11;
     const formula = 'maxDpdDays <= maxDpdDaysAllowed';
     const max = criteria.maxDpdDaysAllowed;
     if (max == null) {
@@ -774,12 +830,12 @@ export function evaluateEnquiryExclude(
 }
 
 export function evaluateEnquiryCounts(
-  step: number,
   profile: ApplicantProfile,
   criteria: LenderCriteria
 ): ConditionResult[] {
   const out: ConditionResult[] = [];
   const one = (() => {
+    const step = 18;
     const formula = 'enquiries1m <= maxEnquiries1month';
     if (criteria.maxEnquiries1month == null) {
       return skip(step, 'A1-11-ENQ-1M', 'Enquiries 1m', formula, { maxEnquiries1month: null });
@@ -798,6 +854,7 @@ export function evaluateEnquiryCounts(
     };
   })();
   const three = (() => {
+    const step = 19;
     const formula = 'enquiries3m <= maxEnquiries3months';
     if (criteria.maxEnquiries3months == null) {
       return skip(step, 'A1-12-ENQ-3M', 'Enquiries 3m', formula, { maxEnquiries3months: null });
