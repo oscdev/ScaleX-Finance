@@ -81,6 +81,8 @@ export interface ApplicantProfile {
   tenureMonths: number;
   /** Unique calendar months from open_accounts payment_history (max DPD days per month), newest first. */
   paymentHistoryMonths: Array<{ monthKey: string; dpdDays: number }>;
+  /** Newest month from paymentHistoryMonths (same rollup); null when no open-account history. */
+  latestPaymentMonth: { monthKey: string; dpdDays: number } | null;
   maxDpdDays: number | null;
   enquiries1m: number;
   enquiries3m: number;

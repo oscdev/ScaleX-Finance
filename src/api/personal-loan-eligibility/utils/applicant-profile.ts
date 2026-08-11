@@ -109,6 +109,7 @@ function derivePaymentHistoryMonths(openAccounts: any[], asOf = new Date()) {
 
   return {
     paymentHistoryMonths,
+    latestPaymentMonth: paymentHistoryMonths.length ? paymentHistoryMonths[0] : null,
     maxDpdDays: paymentHistoryMonths.length ? maxDpdDays : null,
   };
 }
@@ -289,6 +290,7 @@ export async function buildApplicantProfile(
     existingTotalEmi,
     tenureMonths,
     paymentHistoryMonths: dpd.paymentHistoryMonths,
+    latestPaymentMonth: dpd.latestPaymentMonth,
     maxDpdDays: dpd.maxDpdDays,
     enquiries1m: enq.enquiries1m,
     enquiries3m: enq.enquiries3m,
