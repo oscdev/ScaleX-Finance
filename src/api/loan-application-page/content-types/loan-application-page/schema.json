@@ -86,7 +86,7 @@
         },
         "businessRegProofOptions": {
             "type": "text",
-            "default": "GST, TIN, MSME, Shop Establishment Certificate, Trade License, Fssai License, Udyam Certificate, Gumasta Certificate"
+            "default": "GST, TIN, MSME, Shop Registration Certificate, Trade License, Fssai License, Udyam Certificate, Gumasta Certificate"
         },
         "businessAddressLabel": {
             "type": "string",

@@ -94,6 +94,38 @@
         },
         "businessRegProofDoc": {
             "type": "media",
+            "multiple": true,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "itrYear1": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "itrYear2": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "itrYear3": {
+            "type": "media",
+            "multiple": false,
+            "allowedTypes": [
+                "files",
+                "images"
+            ]
+        },
+        "auditedBooksDoc": {
+            "type": "media",
             "multiple": false,
             "allowedTypes": [
                 "files",

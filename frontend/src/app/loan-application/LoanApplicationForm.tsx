@@ -10,6 +10,12 @@ import BusinessLoanFunnel from './funnels/BusinessLoanFunnel';
 import HomeLoanFunnel from './funnels/HomeLoanFunnel';
 import LAPFunnel from './funnels/LAPFunnel';
 import PersonalLoanFunnel from './funnels/PersonalLoanFunnel';
+import {
+    buildBusinessLoanDocFields,
+    parseNonNegativeInt,
+    parsePositiveInt,
+    slugifyRegProof,
+} from './businessLoanConfig';
 
 const getSteps = (loanType: string, occupation: string) => {
     const isSelfEmployed = occupation === 'Self Employed';
@@ -103,6 +109,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
 
     interface LoanFormData {
         businessName: string; businessPremises: string; businessType: string; annualTurnover: string; businessAge: string; businessRegProof: string; businessAddress: string;
+        businessRegProofs: string[]; auditedBooks: boolean | null;
         applicantName: string; dob: string; maritalStatus: string; spouseName: string; motherName: string; alternateNumber: string; dependents: string;
         addressLine1: string; addressLine2: string; landmark: string; state: string; district: string; city: string; residenceType: string; propertyAddressPincode: string;
         propertyType: string; propertyStatus: string; propertyValue: string;
@@ -111,6 +118,8 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         runningLoans: any[]; tempLoanId: string; tempLoanType: string; tempBankName: string; tempLoanAmount: string; tempEmiAmount: string; tempPaidEmi: string;
         proprietorshipDoc: File | null; panCard: File | null; cibilReport: File | null; aadharCardFront: File | null; aadharCardBack: File | null; businessRegProofDoc: File | null;
         bankStatement: File | null; propertyPapers: File | null; coAppPan: File | null; coAppAadharFront: File | null; coAppAadharBack: File | null;
+        itrYear1: File | null; itrYear2: File | null; itrYear3: File | null; auditedBooksDoc: File | null;
+        businessRegProofFiles: Record<string, File | null>;
         salarySlips: File[]; otherDocs: File[];
         addedDocs: any[]; uploadedFields: Record<string, boolean>;
         pdfPasswords: Record<string, string>; docType: string; declarationAccepted: boolean; loanAmount: number;
@@ -123,6 +132,8 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         annualTurnover: '',
         businessAge: '',
         businessRegProof: '',
+        businessRegProofs: [],
+        auditedBooks: null,
         businessAddress: '',
         applicantName: '',
         dob: '',
@@ -170,6 +181,11 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         coAppPan: null,
         coAppAadharFront: null,
         coAppAadharBack: null,
+        itrYear1: null,
+        itrYear2: null,
+        itrYear3: null,
+        auditedBooksDoc: null,
+        businessRegProofFiles: {},
         salarySlips: [],
         otherDocs: [],
         addedDocs: [],
@@ -206,13 +222,20 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
 
         if (name === 'state') {
             setFormData(prev => ({ ...prev, state: value, district: '' }));
-        } else if (name === 'pfDeducted' || name === 'hasOtherIncome') {
+        } else if (name === 'pfDeducted' || name === 'hasOtherIncome' || name === 'auditedBooks') {
             const boolVal = value === 'true';
             setFormData(prev => {
                 const next = { ...prev, [name]: boolVal };
                 if (name === 'hasOtherIncome' && !boolVal) {
                     next.otherIncomeSource = '';
                     next.otherIncomeAmount = '';
+                }
+                if (name === 'auditedBooks' && !boolVal) {
+                    next.auditedBooksDoc = null;
+                    const nextUploaded = { ...next.uploadedFields };
+                    delete nextUploaded.auditedBooksDoc;
+                    next.uploadedFields = nextUploaded;
+                    next.addedDocs = (next.addedDocs || []).filter((d: any) => d.key !== 'auditedBooksDoc');
                 }
                 return next;
             });
@@ -339,8 +362,9 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
             const uploadedFileIds: Record<string, any> = {};
             const filesToUpload = [
                 'proprietorshipDoc', 'panCard', 'cibilReport', 'aadharCardFront', 'aadharCardBack',
-                'businessRegProofDoc', 'bankStatement', 'propertyPapers',
-                'coAppPan', 'coAppAadharFront', 'coAppAadharBack'
+                'bankStatement', 'propertyPapers',
+                'coAppPan', 'coAppAadharFront', 'coAppAadharBack',
+                'itrYear1', 'itrYear2', 'itrYear3', 'auditedBooksDoc',
             ];
 
             for (const field of filesToUpload) {
@@ -356,6 +380,45 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                         const errBody = await res.text().catch(() => 'No body');
                         console.error(`Upload failed for ${field} (${res.status}):`, errBody.substring(0, 500));
                         throw new Error(`Upload failed for ${field} (${res.status}): ${res.statusText}`);
+                    }
+                }
+            }
+
+            // Business Loan: multi registration-proof uploads → businessRegProofDoc array
+            const regProofMeta: { proofType: string; key: string }[] = [];
+            if (loanType === 'Business Loan' && formData.businessRegProofs?.length) {
+                const regProofIds: number[] = [];
+                for (const proof of formData.businessRegProofs) {
+                    const key = slugifyRegProof(proof);
+                    const file =
+                        formData.businessRegProofFiles?.[key] ||
+                        (formData as any)[key];
+                    if (!file) continue;
+                    const uploadData = new FormData();
+                    uploadData.append('files', file);
+                    const res = await fetch(strapiPublicApi('/strapi-api/upload'), { method: 'POST', body: uploadData });
+                    if (res.ok) {
+                        const data = await res.json();
+                        regProofIds.push(data[0].id);
+                        regProofMeta.push({ proofType: proof, key });
+                    } else {
+                        const errBody = await res.text().catch(() => 'No body');
+                        console.error(`Upload failed for ${key} (${res.status}):`, errBody.substring(0, 500));
+                        throw new Error(`Upload failed for ${proof} (${res.status}): ${res.statusText}`);
+                    }
+                }
+                if (regProofIds.length > 0) {
+                    uploadedFileIds.businessRegProofDoc = regProofIds;
+                }
+            } else {
+                const legacyReg = (formData as any).businessRegProofDoc;
+                if (legacyReg) {
+                    const uploadData = new FormData();
+                    uploadData.append('files', legacyReg);
+                    const res = await fetch(strapiPublicApi('/strapi-api/upload'), { method: 'POST', body: uploadData });
+                    if (res.ok) {
+                        const data = await res.json();
+                        uploadedFileIds.businessRegProofDoc = data[0].id;
                     }
                 }
             }
@@ -380,6 +443,111 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
             const cleanLeadId = (leadId && leadId !== 'N/A') ? parseInt(leadId, 10) : null;
             const cleanLoanAmount = parseFloat(String(formData.loanAmount)) || 0;
 
+            const isBusinessLoan = loanType === 'Business Loan';
+            const stepNames = new Set(STEPS.map((s) => s.name));
+
+            /** Only persist form_data sections that belong to this loan-type funnel. */
+            const formDataPayload: Record<string, any> = {};
+
+            if (stepNames.has('Business')) {
+                formDataPayload.businessDetails = isBusinessLoan
+                    ? {
+                        name: formData.businessName,
+                        premises: formData.businessPremises,
+                        type: formData.businessType,
+                        turnover: parsePositiveInt(formData.annualTurnover) ?? Number(formData.annualTurnover),
+                        age: parseNonNegativeInt(formData.businessAge) ?? Number(formData.businessAge),
+                        regProofs: formData.businessRegProofs,
+                        auditedBooks: formData.auditedBooks === true,
+                        address: formData.businessAddress,
+                    }
+                    : {
+                        name: formData.businessName,
+                        premises: formData.businessPremises,
+                        type: formData.businessType,
+                        turnover: formData.annualTurnover,
+                        age: formData.businessAge,
+                        regProof: formData.businessRegProof,
+                        address: formData.businessAddress,
+                    };
+            }
+
+            if (stepNames.has('Personal')) {
+                formDataPayload.personalDetails = {
+                    dob: formData.dob,
+                    maritalStatus: formData.maritalStatus,
+                    spouseName: formData.spouseName,
+                    motherName: formData.motherName,
+                    alternateNumber: formData.alternateNumber,
+                    ...(isBusinessLoan ? {} : { dependents: formData.dependents }),
+                };
+            }
+
+            if (stepNames.has('Residence')) {
+                formDataPayload.addressDetails = {
+                    line1: formData.addressLine1,
+                    line2: formData.addressLine2,
+                    landmark: formData.landmark,
+                    state: formData.state,
+                    district: formData.district,
+                    city: formData.city,
+                    residenceType: formData.residenceType,
+                    ...(stepNames.has('Property')
+                        ? { propertyAddressPincode: formData.propertyAddressPincode }
+                        : {}),
+                };
+            }
+
+            if (stepNames.has('Income')) {
+                formDataPayload.incomeDetails = {
+                    companyName: formData.companyName,
+                    designation: formData.designation,
+                    companyAddress: formData.companyAddress,
+                    netSalary: formData.netSalary,
+                    salaryMode: formData.salaryMode,
+                    jobStability: formData.jobStability,
+                    pfDeducted: formData.pfDeducted,
+                    hasOtherIncome: formData.hasOtherIncome,
+                    ...(formData.hasOtherIncome
+                        ? {
+                            otherIncomeSource: formData.otherIncomeSource,
+                            otherIncomeAmount: formData.otherIncomeAmount,
+                        }
+                        : {}),
+                };
+            }
+
+            if (stepNames.has('Property')) {
+                formDataPayload.propertyDetails = {
+                    type: formData.propertyType,
+                    status: formData.propertyStatus,
+                    value: formData.propertyValue,
+                };
+            }
+
+            if (stepNames.has('Other')) {
+                formDataPayload.otherDetails = { runningLoans: formData.runningLoans };
+            }
+
+            if (stepNames.has('Docs')) {
+                formDataPayload.documents = formData.addedDocs.map((doc: any) => ({
+                    id: doc.id,
+                    key: doc.key,
+                    name: doc.name,
+                    format: doc.format,
+                    password: doc.password,
+                    date: doc.date,
+                    status: doc.status,
+                }));
+                if (isBusinessLoan && regProofMeta.length) {
+                    formDataPayload.regProofDocuments = regProofMeta;
+                }
+                formDataPayload.pdfPasswords = formData.addedDocs.reduce((acc: Record<string, string>, doc: any) => {
+                    if (doc.password && doc.password !== 'No') acc[doc.key || doc.name] = doc.password;
+                    return acc;
+                }, {});
+            }
+
             const payload = {
                 data: {
                     leadId: cleanLeadId,
@@ -390,51 +558,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                     phone: ss.getItem('leadPhone') || '',
                     aadharNumber: ss.getItem('leadAadhar') || '',
                     panNumber: ss.getItem('leadPan') || '',
-                    form_data: {
-                        businessDetails: {
-                            name: formData.businessName, premises: formData.businessPremises,
-                            type: formData.businessType, turnover: formData.annualTurnover,
-                            age: formData.businessAge, regProof: formData.businessRegProof,
-                            address: formData.businessAddress
-                        },
-                        personalDetails: {
-                            dob: formData.dob, maritalStatus: formData.maritalStatus,
-                            spouseName: formData.spouseName, motherName: formData.motherName,
-                            alternateNumber: formData.alternateNumber, dependents: formData.dependents
-                        },
-                        addressDetails: {
-                            line1: formData.addressLine1, line2: formData.addressLine2,
-                            landmark: formData.landmark, state: formData.state,
-                            district: formData.district, city: formData.city,
-                            residenceType: formData.residenceType, propertyAddressPincode: formData.propertyAddressPincode
-                        },
-                        incomeDetails: {
-                            companyName: formData.companyName, designation: formData.designation,
-                            companyAddress: formData.companyAddress,
-                            netSalary: formData.netSalary,
-                            salaryMode: formData.salaryMode, jobStability: formData.jobStability,
-                            pfDeducted: formData.pfDeducted,
-                            hasOtherIncome: formData.hasOtherIncome,
-                            otherIncomeSource: formData.hasOtherIncome ? formData.otherIncomeSource : '',
-                            otherIncomeAmount: formData.hasOtherIncome ? formData.otherIncomeAmount : '',
-                        },
-                        propertyDetails: {
-                            type: formData.propertyType, status: formData.propertyStatus, value: formData.propertyValue
-                        },
-                        otherDetails: { runningLoans: formData.runningLoans },
-                        documents: formData.addedDocs.map((doc: any) => ({
-                            id: doc.id,
-                            name: doc.name,
-                            format: doc.format,
-                            password: doc.password,
-                            date: doc.date,
-                            status: doc.status
-                        })),
-                        pdfPasswords: formData.addedDocs.reduce((acc: Record<string, string>, doc: any) => {
-                            if (doc.password && doc.password !== 'No') acc[doc.key || doc.name] = doc.password;
-                            return acc;
-                        }, {})
-                    },
+                    form_data: formDataPayload,
                     ...uploadedFileIds,
                     status: 'Pending',
                     declarationAccepted: formData.declarationAccepted,
@@ -489,10 +613,48 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
 
     const getValidationErrors = () => {
         const errors = [];
-        const isBusinessStyleFlow = loanType === 'Business Loan' || occupation === 'Self Employed';
 
-        // 1. Business Tab (Required for Business Loan or Self Employed LAP/Home)
-        if (isBusinessStyleFlow) {
+        // ── Business Loan (dedicated rules) ──────────────────────────────────
+        if (loanType === 'Business Loan') {
+            if (!formData.businessName) errors.push(`Please enter "${pageInfo.businessNameLabel || 'Business Name'}*" in "Business" tab.`);
+            if (!formData.businessPremises) errors.push(`Please enter "${pageInfo.businessPremisesLabel || 'Business Premises'}*" in "Business" tab.`);
+            if (!formData.businessType) errors.push(`Please enter "${pageInfo.businessTypeLabel || 'Business Type'}*" in "Business" tab.`);
+            if (parsePositiveInt(formData.annualTurnover) == null) {
+                errors.push(`Please enter a valid "Annual Turnover (Lakh)*" (positive whole number) in "Business" tab.`);
+            }
+            if (parseNonNegativeInt(formData.businessAge) == null) {
+                errors.push(`Please enter a valid "Business Age (Years)*" (whole number of years) in "Business" tab.`);
+            }
+            if (!formData.businessRegProofs || formData.businessRegProofs.length === 0) {
+                errors.push(`Please select at least one "Business Registration Proof*" in "Business" tab.`);
+            }
+            if (formData.auditedBooks !== true && formData.auditedBooks !== false) {
+                errors.push(`Please select "Audited Books*" in "Business" tab.`);
+            }
+            if (!formData.businessAddress) errors.push(`Please enter "${pageInfo.businessAddressLabel || 'Business Address'}*" in "Business" tab.`);
+
+            if (!formData.dob) errors.push(`Please enter "${pageInfo.dobLabel || 'Date of Birth'}*" in "Personal" tab.`);
+            if (!formData.maritalStatus) errors.push(`Please enter "${pageInfo.maritalStatusLabel || 'Marital Status'}*" in "Personal" tab.`);
+            if (!formData.motherName) errors.push(`Please enter "${pageInfo.motherNameLabel || 'Mother Name'}*" in "Personal" tab.`);
+
+            if (!formData.addressLine1) errors.push(`Please enter "${pageInfo.addressLine1Label || 'Address Line 1'}*" in "Residence" tab.`);
+            if (!formData.landmark) errors.push(`Please enter "${pageInfo.landmarkLabel || 'Landmark'}*" in "Residence" tab.`);
+            if (!formData.state) errors.push(`Please enter "${pageInfo.stateLabel || 'State'}*" in "Residence" tab.`);
+            if (!formData.district) errors.push(`Please enter "${pageInfo.districtLabel || 'District'}*" in "Residence" tab.`);
+            if (!formData.city) errors.push(`Please enter "${pageInfo.cityLabel || 'City'}*" in "Residence" tab.`);
+            if (!formData.residenceType) errors.push(`Please enter "${pageInfo.residenceTypeLabel || 'Residence Type'}*" in "Residence" tab.`);
+
+            const blDocs = buildBusinessLoanDocFields(formData, pageInfo);
+            for (const doc of blDocs) {
+                if (doc.required && !formData.uploadedFields[doc.key]) {
+                    errors.push(`Please upload "${doc.name}*" in "Docs" tab.`);
+                }
+            }
+            return errors;
+        }
+
+        // ── Self Employed (Home/LAP) — legacy business-style flow ────────────
+        if (occupation === 'Self Employed') {
             if (!formData.businessName) errors.push(`Please enter "${pageInfo.businessNameLabel || 'Business Name'}*" in "Business" tab.`);
             if (!formData.businessPremises) errors.push(`Please enter "${pageInfo.businessPremisesLabel || 'Business Premises'}*" in "Business" tab.`);
             if (!formData.businessType) errors.push(`Please enter "${pageInfo.businessTypeLabel || 'Business Type'}*" in "Business" tab.`);
@@ -501,7 +663,6 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
             if (!formData.businessRegProof) errors.push(`Please select "${pageInfo.businessRegProofLabel || 'Business Registration Proof'}*" in "Business" tab.`);
             if (!formData.businessAddress) errors.push(`Please enter "${pageInfo.businessAddressLabel || 'Business Address'}*" in "Business" tab.`);
 
-            // Require Personal, Residence, Property for SE if applicable
             if (!formData.dob) errors.push(`Please enter "${pageInfo.dobLabel || 'Date of Birth'}*" in "Personal" tab.`);
             if (!formData.maritalStatus) errors.push(`Please enter "${pageInfo.maritalStatusLabel || 'Marital Status'}*" in "Personal" tab.`);
             if (!formData.motherName) errors.push(`Please enter "${pageInfo.motherNameLabel || 'Mother Name'}*" in "Personal" tab.`);
@@ -532,7 +693,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
             return errors;
         }
 
-        // 2. Standard Validation for other loans (Personal, Home Salaried, LAP Salaried)
+        // ── Standard Validation for other loans (Personal, Home Salaried, LAP Salaried)
         const isLAPStandard = loanType === 'LAP' || loanType === 'LAP (Loan Against Property)';
         if (!formData.dob) errors.push(`Please enter "${pageInfo.dobLabel || 'Date of Birth'}*" in "Personal" tab.`);
         if (!formData.maritalStatus) errors.push(`Please enter "${pageInfo.maritalStatusLabel || 'Marital Status'}*" in "Personal" tab.`);

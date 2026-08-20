@@ -1,6 +1,12 @@
 
 import React, { useState } from 'react';
 import { INDIA_STATES_DISTRICTS } from '@/data/india-states-districts';
+import {
+    BUSINESS_LOAN_NOTES,
+    BUSINESS_REG_PROOF_OPTIONS,
+    buildBusinessLoanDocFields,
+    slugifyRegProof,
+} from './businessLoanConfig';
 
 interface FieldProps {
     formData: any;
@@ -8,63 +14,274 @@ interface FieldProps {
     pageInfo: any;
 }
 
-export const BusinessDetailsFields = ({ formData, handleChange, pageInfo }: FieldProps) => (
-    <div className="animate-fade-in card-grid-2">
-        <div className="form-group">
-            <label className="form-label">{pageInfo.businessNameLabel || 'Business Name'}<span className="required-star">*</span></label>
-            <input name="businessName" className="form-input" value={formData.businessName} onChange={handleChange} placeholder={pageInfo.businessNamePlaceholder || 'Enter Business Name'} />
+const FieldNote = ({ children }: { children: React.ReactNode }) => (
+    <div className="bl-field-note" role="note">{children}</div>
+);
+
+const YesNoRadio = ({
+    name,
+    label,
+    value,
+    handleChange,
+    required = false,
+    note,
+    className = '',
+}: {
+    name: string;
+    label: string;
+    value: boolean | null;
+    handleChange: FieldProps['handleChange'];
+    required?: boolean;
+    note?: React.ReactNode;
+    className?: string;
+}) => (
+    <div className={`form-group${className ? ` ${className}` : ''}`}>
+        <label className="form-label">
+            {label}
+            {required && <span className="required-star">*</span>}
+        </label>
+        <div className="loan-form-radio-group">
+            <label className="loan-form-radio-label">
+                <input
+                    type="radio"
+                    name={name}
+                    value="true"
+                    checked={value === true}
+                    onChange={handleChange}
+                />{' '}
+                Yes
+            </label>
+            <label className="loan-form-radio-label">
+                <input
+                    type="radio"
+                    name={name}
+                    value="false"
+                    checked={value === false}
+                    onChange={handleChange}
+                />{' '}
+                No
+            </label>
         </div>
-        <div className="form-group">
-            <label className="form-label">{pageInfo.businessPremisesLabel || 'Business Premises'}<span className="required-star">*</span></label>
-            <select name="businessPremises" className="form-select" value={formData.businessPremises} onChange={handleChange}>
-                <option value="">Select</option>
-                {(pageInfo.businessPremisesOptions || 'Owned, Rented, Lease').split(',').map((opt: string) => (
-                    <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
-                ))}
-            </select>
-        </div>
-        <div className="form-group">
-            <label className="form-label">{pageInfo.businessTypeLabel || 'Business Type'}<span className="required-star">*</span></label>
-            <select name="businessType" className="form-select" value={formData.businessType} onChange={handleChange}>
-                <option value="">Select Type</option>
-                {(pageInfo.businessTypeOptions || 'Proprietorship, Partnership, Private Limited').split(',').map((opt: string) => (
-                    <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
-                ))}
-            </select>
-        </div>
-        <div className="form-group">
-            <label className="form-label">{pageInfo.annualTurnoverLabel || 'Annual Turnover'}<span className="required-star">*</span></label>
-            <select name="annualTurnover" className="form-select" value={formData.annualTurnover} onChange={handleChange}>
-                <option value="">Select Turnover</option>
-                {(pageInfo.annualTurnoverOptions || '20 Lakh, 50 Lakh, 80 Lakh, 1 Crore+, 2 Crore+, 3 Crore+, 5 Crore+').split(',').map((opt: string) => (
-                    <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
-                ))}
-            </select>
-        </div>
-        <div className="form-group">
-            <label className="form-label">{pageInfo.businessAgeLabel || 'Business Age'}<span className="required-star">*</span></label>
-            <select name="businessAge" className="form-select" value={formData.businessAge} onChange={handleChange}>
-                <option value="">Select Age</option>
-                {(pageInfo.businessAgeOptions || '6 Months, 1 years, 2 Years, 3 Years+').split(',').map((opt: string) => (
-                    <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
-                ))}
-            </select>
-        </div>
-        <div className="form-group">
-            <label className="form-label">{pageInfo.businessRegProofLabel || 'Business Registration Proof'}<span className="required-star">*</span></label>
-            <select name="businessRegProof" className="form-select" value={formData.businessRegProof} onChange={handleChange}>
-                <option value="">Select Proof</option>
-                {(pageInfo.businessRegProofOptions || 'GST, TIN, MSME, Shop Establishment Certificate, Trade License, Fssai License, Udyam Certificate, Gumasta Certificate').split(',').map((opt: string) => (
-                    <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
-                ))}
-            </select>
-        </div>
-        <div className="form-group business-address-container">
-            <label className="form-label">{pageInfo.businessAddressLabel || 'Business Address'}<span className="required-star">*</span></label>
-            <textarea name="businessAddress" className="form-textarea" value={formData.businessAddress} onChange={handleChange} placeholder={pageInfo.businessAddressPlaceholder || 'Enter full business address'} />
-        </div>
+        {note}
     </div>
 );
+
+export const BusinessDetailsFields = ({
+    formData,
+    handleChange,
+    pageInfo,
+    loanType,
+    setFormData,
+}: FieldProps & { loanType?: string; setFormData?: (updater: any) => void }) => {
+    const isBusinessLoan = loanType === 'Business Loan';
+
+    const regProofOptions = (
+        pageInfo.businessRegProofOptions
+            ? String(pageInfo.businessRegProofOptions).split(',').map((o: string) => o.trim()).filter(Boolean)
+            : [...BUSINESS_REG_PROOF_OPTIONS]
+    );
+
+    const toggleRegProof = (proof: string) => {
+        if (!setFormData) return;
+        setFormData((prev: any) => {
+            const current: string[] = Array.isArray(prev.businessRegProofs) ? prev.businessRegProofs : [];
+            const selected = current.includes(proof);
+            const nextProofs = selected ? current.filter((p) => p !== proof) : [...current, proof];
+            const key = slugifyRegProof(proof);
+            if (!selected) {
+                return { ...prev, businessRegProofs: nextProofs };
+            }
+            const nextUploaded = { ...prev.uploadedFields };
+            delete nextUploaded[key];
+            const nextFiles = { ...(prev.businessRegProofFiles || {}) };
+            delete nextFiles[key];
+            const nextPasswords = { ...prev.pdfPasswords };
+            delete nextPasswords[key];
+            return {
+                ...prev,
+                businessRegProofs: nextProofs,
+                uploadedFields: nextUploaded,
+                businessRegProofFiles: nextFiles,
+                pdfPasswords: nextPasswords,
+                addedDocs: (prev.addedDocs || []).filter((d: any) => d.key !== key),
+                [key]: null,
+            };
+        });
+    };
+
+    if (!isBusinessLoan) {
+        return (
+            <div className="animate-fade-in card-grid-2">
+                <div className="form-group">
+                    <label className="form-label">{pageInfo.businessNameLabel || 'Business Name'}<span className="required-star">*</span></label>
+                    <input name="businessName" className="form-input" value={formData.businessName} onChange={handleChange} placeholder={pageInfo.businessNamePlaceholder || 'Enter Business Name'} />
+                </div>
+                <div className="form-group">
+                    <label className="form-label">{pageInfo.businessPremisesLabel || 'Business Premises'}<span className="required-star">*</span></label>
+                    <select name="businessPremises" className="form-select" value={formData.businessPremises} onChange={handleChange}>
+                        <option value="">Select</option>
+                        {(pageInfo.businessPremisesOptions || 'Owned, Rented, Lease').split(',').map((opt: string) => (
+                            <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="form-group">
+                    <label className="form-label">{pageInfo.businessTypeLabel || 'Business Type'}<span className="required-star">*</span></label>
+                    <select name="businessType" className="form-select" value={formData.businessType} onChange={handleChange}>
+                        <option value="">Select Type</option>
+                        {(pageInfo.businessTypeOptions || 'Proprietorship, Partnership, Private Limited').split(',').map((opt: string) => (
+                            <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="form-group">
+                    <label className="form-label">{pageInfo.annualTurnoverLabel || 'Annual Turnover'}<span className="required-star">*</span></label>
+                    <select name="annualTurnover" className="form-select" value={formData.annualTurnover} onChange={handleChange}>
+                        <option value="">Select Turnover</option>
+                        {(pageInfo.annualTurnoverOptions || '20 Lakh, 50 Lakh, 80 Lakh, 1 Crore+, 2 Crore+, 3 Crore+, 5 Crore+').split(',').map((opt: string) => (
+                            <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="form-group">
+                    <label className="form-label">{pageInfo.businessAgeLabel || 'Business Age'}<span className="required-star">*</span></label>
+                    <select name="businessAge" className="form-select" value={formData.businessAge} onChange={handleChange}>
+                        <option value="">Select Age</option>
+                        {(pageInfo.businessAgeOptions || '6 Months, 1 years, 2 Years, 3 Years+').split(',').map((opt: string) => (
+                            <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="form-group">
+                    <label className="form-label">{pageInfo.businessRegProofLabel || 'Business Registration Proof'}<span className="required-star">*</span></label>
+                    <select name="businessRegProof" className="form-select" value={formData.businessRegProof} onChange={handleChange}>
+                        <option value="">Select Proof</option>
+                        {regProofOptions.map((opt: string) => (
+                            <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="form-group business-address-container">
+                    <label className="form-label">{pageInfo.businessAddressLabel || 'Business Address'}<span className="required-star">*</span></label>
+                    <textarea name="businessAddress" className="form-textarea" value={formData.businessAddress} onChange={handleChange} placeholder={pageInfo.businessAddressPlaceholder || 'Enter full business address'} />
+                </div>
+            </div>
+        );
+    }
+
+    const selectedProofs: string[] = formData.businessRegProofs || [];
+
+    return (
+        <div className="animate-fade-in bl-details">
+            <section className="bl-section">
+                <h3 className="bl-section-title">Business profile</h3>
+                <div className="card-grid-2 bl-profile-grid">
+                    <div className="form-group">
+                        <label className="form-label">{pageInfo.businessNameLabel || 'Business Name'}<span className="required-star">*</span></label>
+                        <input name="businessName" className="form-input" value={formData.businessName} onChange={handleChange} placeholder={pageInfo.businessNamePlaceholder || 'Enter Business Name'} />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">{pageInfo.businessPremisesLabel || 'Business Premises'}<span className="required-star">*</span></label>
+                        <select name="businessPremises" className="form-select" value={formData.businessPremises} onChange={handleChange}>
+                            <option value="">Select</option>
+                            {(pageInfo.businessPremisesOptions || 'Owned, Rented, Lease').split(',').map((opt: string) => (
+                                <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="form-group bl-field-with-note">
+                        <label className="form-label">{pageInfo.businessTypeLabel || 'Business Type'}<span className="required-star">*</span></label>
+                        <select name="businessType" className="form-select" value={formData.businessType} onChange={handleChange}>
+                            <option value="">Select Type</option>
+                            {(pageInfo.businessTypeOptions || 'Proprietorship, Partnership, Private Limited').split(',').map((opt: string) => (
+                                <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
+                            ))}
+                        </select>
+                        <FieldNote>{BUSINESS_LOAN_NOTES.businessType}</FieldNote>
+                    </div>
+                    <YesNoRadio
+                        name="auditedBooks"
+                        label="Audited Books"
+                        value={formData.auditedBooks}
+                        handleChange={handleChange}
+                        required
+                        className="bl-field-with-note"
+                        note={<FieldNote>{BUSINESS_LOAN_NOTES.auditedBooks}</FieldNote>}
+                    />
+
+                    <div className="form-group">
+                        <label className="form-label">Annual Turnover (Lakh)<span className="required-star">*</span></label>
+                        <input
+                            type="number"
+                            name="annualTurnover"
+                            className="form-input"
+                            min={0}
+                            step={1}
+                            value={formData.annualTurnover}
+                            onChange={handleChange}
+                            placeholder="Enter annual turnover in Lakh"
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label className="form-label">Business Age (Years)<span className="required-star">*</span></label>
+                        <input
+                            type="number"
+                            name="businessAge"
+                            className="form-input"
+                            min={0}
+                            step={1}
+                            value={formData.businessAge}
+                            onChange={handleChange}
+                            placeholder="Enter business age in years"
+                        />
+                    </div>
+
+                    <div className="bl-address-reg-row">
+                        <div className="form-group bl-reg-proof-col">
+                            <label className="form-label">
+                                {pageInfo.businessRegProofLabel || 'Business Registration Proof'}
+                                <span className="required-star">*</span>
+                                {selectedProofs.length > 0 && (
+                                    <span className="bl-selected-count">
+                                        ({selectedProofs.length} selected)
+                                    </span>
+                                )}
+                            </label>
+                            <div className="bl-checkbox-grid" role="group" aria-label="Business Registration Proof">
+                                {regProofOptions.map((opt: string) => {
+                                    const checked = selectedProofs.includes(opt);
+                                    return (
+                                        <label key={opt} className={`bl-checkbox-item${checked ? ' is-selected' : ''}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={checked}
+                                                onChange={() => toggleRegProof(opt)}
+                                            />
+                                            <span>{opt}</span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                            <FieldNote>{BUSINESS_LOAN_NOTES.regProofs}</FieldNote>
+                        </div>
+                        <div className="form-group bl-address-col">
+                            <label className="form-label">{pageInfo.businessAddressLabel || 'Business Address'}<span className="required-star">*</span></label>
+                            <textarea
+                                name="businessAddress"
+                                className="form-textarea"
+                                value={formData.businessAddress}
+                                onChange={handleChange}
+                                placeholder={pageInfo.businessAddressPlaceholder || 'Enter full business address'}
+                                rows={6}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    );
+};
 
 export const PersonalDetailsFields = ({ formData, handleChange, pageInfo, loanType }: any) => (
     <div className="animate-fade-in card-grid-2">
@@ -176,49 +393,6 @@ export const PropertyFields = ({ formData, handleChange, pageInfo, loanType, occ
                 <textarea name="propertyAddressPincode" className="form-textarea" value={formData.propertyAddressPincode} onChange={handleChange} placeholder={pageInfo.propertyAddressPincodePlaceholder || 'Enter full property address with pincode'} />
             </div>
         )}
-    </div>
-);
-
-const YesNoRadio = ({
-    name,
-    label,
-    value,
-    handleChange,
-    required = false,
-}: {
-    name: string;
-    label: string;
-    value: boolean | null;
-    handleChange: FieldProps['handleChange'];
-    required?: boolean;
-}) => (
-    <div className="form-group">
-        <label className="form-label">
-            {label}
-            {required && <span className="required-star">*</span>}
-        </label>
-        <div className="loan-form-radio-group">
-            <label className="loan-form-radio-label">
-                <input
-                    type="radio"
-                    name={name}
-                    value="true"
-                    checked={value === true}
-                    onChange={handleChange}
-                />{' '}
-                Yes
-            </label>
-            <label className="loan-form-radio-label">
-                <input
-                    type="radio"
-                    name={name}
-                    value="false"
-                    checked={value === false}
-                    onChange={handleChange}
-                />{' '}
-                No
-            </label>
-        </div>
     </div>
 );
 
@@ -403,150 +577,276 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
         }
     };
 
+    const isBusinessLoan = loanType === 'Business Loan';
     const isSelfEmployedDoc = occupation === 'Self Employed';
-    const cibilField = { name: pageInfo.cibilReportLabel || 'CIBIL Report', key: 'cibilReport', id: '#CIBIL' };
-    const docFields = (loanType === 'Business Loan' || isSelfEmployedDoc) ? [
-        { name: formData.businessType ? `Document for ${formData.businessType}` : 'Select Business Type in Business Details', key: 'proprietorshipDoc', id: '#1' },
-        cibilField,
-    ] : loanType === 'Home Loan' ? [
-        { name: pageInfo.panCardLabel || 'Pan Card', key: 'panCard', id: '#1' },
-        cibilField,
-        { name: pageInfo.adharFrontLabel || 'Aadhar Card Front', key: 'aadharCardFront', id: '#2' },
-        { name: pageInfo.adharBackLabel || 'Aadhar Card Back', key: 'aadharCardBack', id: '#3' },
-        { name: pageInfo.coAppPanLabel || 'Co-Applicant Pan Card', key: 'coAppPan', id: '#4' },
-        { name: pageInfo.coAppAadharFrontLabel || 'Co-Applicant Aadhar Card Front', key: 'coAppAadharFront', id: '#5' },
-        { name: pageInfo.coAppAadharBackLabel || 'Co-Applicant Aadhar Card Back', key: 'coAppAadharBack', id: '#6' },
-        { name: pageInfo.salarySlipsLabel || 'Salary Slip 1 year', key: 'salarySlips', id: '#7' },
-        { name: pageInfo.bankStatementLabel || '6 Month Bank Statement', key: 'bankStatement', id: '#8' },
-        { name: pageInfo.propertyPapersLabel || 'Property Papers', key: 'propertyPapers', id: '#9' },
-    ] : [
-        { name: pageInfo.panCardLabel || 'Pan Card', key: 'panCard', id: '#1' },
-        cibilField,
-        { name: pageInfo.adharFrontLabel || 'Aadhar Card Front', key: 'aadharCardFront', id: '#2' },
-        { name: pageInfo.adharBackLabel || 'Aadhar Card Back', key: 'aadharCardBack', id: '#3' },
-        { name: pageInfo.salarySlipsLabel || 'Salary Slip 1 year', key: 'salarySlips', id: '#4' },
-        { name: pageInfo.bankStatementLabel || '6 Month Bank Statement', key: 'bankStatement', id: '#5' },
-    ];
+    type DocField = { name: any; key: string; id: string; required: boolean; note?: string };
+    const withSequentialIds = (fields: Omit<DocField, 'id'>[]): DocField[] =>
+        fields.map((field, index) => ({ ...field, id: `#${index + 1}` }));
 
-    return (
-        <div className="animate-fade-in">
-            <div className="doc-upload-grid">
-                {docFields.map((field) => {
-                    const isUploaded = formData.uploadedFields[field.key];
-                    return (
-                        <div key={field.key} className="doc-card shadow-sm">
-                            <h4 className="doc-card-title">{field.id} - {field.name}<span className="required-star">*</span></h4>
-                            <div className={`doc-status-badge ${isUploaded ? 'doc-status-uploaded' : 'doc-status-pending'}`}>
-                                {isUploaded ? (pageInfo.uploadedStatusText || '✔ UPLOADED') : (pageInfo.pendingStatusText || '⏳ PENDING')}
-                            </div>
-                            <label className="form-label doc-label">{pageInfo.pdfPasswordLabel || 'PDF Password (If any)'}</label>
-                            <input className="form-input doc-input" value={formData.pdfPasswords[field.key] || ''} onChange={(e) => setFormData((p: any) => ({ ...p, pdfPasswords: { ...p.pdfPasswords, [field.key]: e.target.value } }))} placeholder={pageInfo.pdfPasswordPlaceholder || 'Enter password if PDF is protected'} />
-                            <div className="doc-file-row">
-                                <div className="doc-file-item">
-                                    <span style={{ opacity: 0.7, whiteSpace: 'nowrap', flexShrink: 0 }}>{pageInfo.selectFileLabel || '☁️ Select File'}</span>
-                                    <input
-                                        type="file"
-                                        key={`${field.key}-${formData.uploadedFields[field.key]}`}
-                                        onChange={(e) => handleFileChange(e, field.key)}
-                                        className="doc-file-input"
-                                    />
-                                </div>
-                                <button
-                                    type="button"
-                                    className={`btn ${isUploaded ? 'btn-secondary' : 'btn-primary'} doc-upload-btn`}
-                                    disabled={isUploaded}
-                                    onClick={() => handleSingleUpload(field.key, field.name)}
-                                >
-                                    {isUploaded ? (pageInfo.uploadedSuccessfullyText || 'Uploaded Successfully') : (pageInfo.uploadButtonLabel || 'Upload Document')}
-                                </button>
-                            </div>
+    const docFields: DocField[] = isBusinessLoan
+        ? buildBusinessLoanDocFields(formData, pageInfo)
+        : withSequentialIds(
+            isSelfEmployedDoc
+                ? [
+                    {
+                        name: formData.businessType
+                            ? `Document for ${formData.businessType}`
+                            : 'Select Business Type in Business Details',
+                        key: 'proprietorshipDoc',
+                        required: true,
+                    },
+                    {
+                        name: pageInfo.cibilReportLabel || 'CIBIL Report',
+                        key: 'cibilReport',
+                        required: true,
+                    },
+                ]
+                : loanType === 'Home Loan'
+                    ? [
+                        { name: pageInfo.adharFrontLabel || 'Aadhaar Card (Front)', key: 'aadharCardFront', required: true },
+                        { name: pageInfo.adharBackLabel || 'Aadhaar Card (Back)', key: 'aadharCardBack', required: true },
+                        { name: pageInfo.panCardLabel || 'PAN Card', key: 'panCard', required: true },
+                        { name: pageInfo.cibilReportLabel || 'CIBIL Report', key: 'cibilReport', required: true },
+                        { name: pageInfo.coAppPanLabel || 'Co-Applicant Pan Card', key: 'coAppPan', required: true },
+                        { name: pageInfo.coAppAadharFrontLabel || 'Co-Applicant Aadhar Card Front', key: 'coAppAadharFront', required: true },
+                        { name: pageInfo.coAppAadharBackLabel || 'Co-Applicant Aadhar Card Back', key: 'coAppAadharBack', required: true },
+                        { name: pageInfo.salarySlipsLabel || 'Salary Slip 1 year', key: 'salarySlips', required: true },
+                        { name: pageInfo.bankStatementLabel || '6 Month Bank Statement', key: 'bankStatement', required: true },
+                        { name: pageInfo.propertyPapersLabel || 'Property Papers', key: 'propertyPapers', required: true },
+                    ]
+                    : [
+                        { name: pageInfo.adharFrontLabel || 'Aadhaar Card (Front)', key: 'aadharCardFront', required: true },
+                        { name: pageInfo.adharBackLabel || 'Aadhaar Card (Back)', key: 'aadharCardBack', required: true },
+                        { name: pageInfo.panCardLabel || 'PAN Card', key: 'panCard', required: true },
+                        { name: pageInfo.cibilReportLabel || 'CIBIL Report', key: 'cibilReport', required: true },
+                        { name: pageInfo.salarySlipsLabel || 'Salary Slip 1 year', key: 'salarySlips', required: true },
+                        { name: pageInfo.bankStatementLabel || '6 Month Bank Statement', key: 'bankStatement', required: true },
+                    ]
+        );
+
+    const showOtherDocs =
+        isBusinessLoan ||
+        (loanType !== 'Business Loan' &&
+            !(occupation === 'Self Employed' && (loanType === 'Home Loan' || loanType === 'LAP' || loanType === 'LAP (Loan Against Property)')));
+
+    const onFileChangeForField = (e: React.ChangeEvent<HTMLInputElement>, fieldKey: string) => {
+        if (fieldKey.startsWith('regProof_')) {
+            if (e.target.files?.[0]) {
+                const file = e.target.files[0];
+                setFormData((p: any) => ({
+                    ...p,
+                    businessRegProofFiles: { ...(p.businessRegProofFiles || {}), [fieldKey]: file },
+                    [fieldKey]: file,
+                }));
+            }
+            return;
+        }
+        handleFileChange(e, fieldKey);
+    };
+
+    const renderDocCard = (field: DocField) => {
+        const isUploaded = formData.uploadedFields[field.key];
+        const required = field.required !== false;
+        return (
+            <div key={field.key} className={`doc-card shadow-sm${isBusinessLoan ? ' has-note' : ''}`}>
+                <h4 className="doc-card-title">
+                    <span className="doc-num">{field.id}</span>
+                    <span className="doc-name">{field.name}</span>
+                    {required
+                        ? <span className="doc-req-badge">Required</span>
+                        : <span className="doc-opt-badge">Optional</span>}
+                </h4>
+                {isBusinessLoan && (
+                    <div className="doc-card-note-slot">
+                        {field.note
+                            ? <p className="doc-card-note">{field.note}</p>
+                            : <p className="doc-card-note doc-card-note-empty" aria-hidden="true" />}
+                    </div>
+                )}
+                <div className={`doc-status-badge ${isUploaded ? 'doc-status-uploaded' : 'doc-status-pending'}`}>
+                    {isUploaded ? (pageInfo.uploadedStatusText || '✔ UPLOADED') : (pageInfo.pendingStatusText || '⏳ PENDING')}
+                </div>
+                <div className="doc-card-body">
+                    <label className="form-label doc-label">{pageInfo.pdfPasswordLabel || 'PDF Password (If any)'}</label>
+                    <input
+                        className="form-input doc-input"
+                        value={formData.pdfPasswords[field.key] || ''}
+                        onChange={(e) => setFormData((p: any) => ({ ...p, pdfPasswords: { ...p.pdfPasswords, [field.key]: e.target.value } }))}
+                        placeholder={pageInfo.pdfPasswordPlaceholder || 'Enter password if PDF is protected'}
+                    />
+                    <div className="doc-file-row">
+                        <div className="doc-file-item">
+                            <span style={{ opacity: 0.7, whiteSpace: 'nowrap', flexShrink: 0 }}>{pageInfo.selectFileLabel || '☁️ Select File'}</span>
+                            <input
+                                type="file"
+                                key={`${field.key}-${formData.uploadedFields[field.key]}`}
+                                onChange={(e) => onFileChangeForField(e, field.key)}
+                                className="doc-file-input"
+                            />
                         </div>
-                    );
-                })}
+                        <button
+                            type="button"
+                            className={`btn ${isUploaded ? 'btn-secondary' : 'btn-primary'} doc-upload-btn`}
+                            disabled={isUploaded}
+                            onClick={() => handleSingleUpload(field.key, field.name)}
+                        >
+                            {isUploaded ? (pageInfo.uploadedSuccessfullyText || 'Uploaded Successfully') : (pageInfo.uploadButtonLabel || 'Upload Document')}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
-                {loanType !== 'Business Loan' && !(occupation === 'Self Employed' && (loanType === 'Home Loan' || loanType === 'LAP' || loanType === 'LAP (Loan Against Property)')) && (
-                    <div className="doc-card shadow-sm doc-other-card">
-                        <h4>{pageInfo.otherDocsTitle || 'Other Documents'}</h4>
-                        <p style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: '1rem' }}>{pageInfo.otherDocsSubtitle || '( If there is any additional documents )'}</p>
-                        <label className="form-label" style={{ color: '#cbd5e1' }}>{pageInfo.docTypeLabel || 'Document Type'}</label>
-                        <select className="form-select doc-other-select" value={formData.docType} onChange={(e) => setFormData((p: any) => ({ ...p, docType: e.target.value }))}>
-                            <option value="">Select Document Type</option>
-                            {(pageInfo.docTypeOptions || 'Pan Card, Aadhar Card Front, Aadhar Card Back, Salary Slip 1, Salary Slip 2, Salary Slip 3, 6 Month Bank Statement, Form 16 - 1, Form 16 - 2, Office ID Card Front, Office ID Card Back, Passport Size Photo, Co-Applicant Pan Card, Co-Applicant Aadhar Card Front, Co-Applicant Aadhar Card Back, Property Papers, Other Documents (if any)').split(',').map((opt: string) => (
-                                <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
-                            ))}
-                        </select>
-                        <label className="form-label" style={{ color: '#cbd5e1' }}>{pageInfo.pdfPasswordLabel || 'PDF Password (If any)'}</label>
-                        <input className="form-input doc-other-input" value={formData.pdfPasswords['otherDocs'] || ''} onChange={(e) => setFormData((p: any) => ({ ...p, pdfPasswords: { ...p.pdfPasswords, otherDocs: e.target.value } }))} placeholder={pageInfo.pdfPasswordPlaceholder || 'Enter password'} />
-                        <div className="doc-file-row">
-                            <div className="doc-other-file-row">
-                                <span style={{ color: '#000', fontSize: '0.7rem', opacity: 0.7, whiteSpace: 'nowrap', flexShrink: 0 }}>{pageInfo.selectFileLabel || '☁️ Select File'}</span>
-                                <input
-                                    type="file"
-                                    key={`otherDocs-${formData.addedDocs.length}`}
-                                    multiple
-                                    onChange={(e) => handleFileChange(e, 'otherDocs')}
-                                    className="doc-other-file-input"
-                                />
+    const otherDocNumber = `#${docFields.length + 1}`;
+    const otherDocsCard = showOtherDocs ? (
+        <div className={`doc-card shadow-sm doc-other-card${isBusinessLoan ? ' has-note' : ''}`}>
+            <h4 className="doc-card-title">
+                <span className="doc-num">{otherDocNumber}</span>
+                <span className="doc-name">{pageInfo.otherDocsTitle || 'Other Documents'}</span>
+                <span className="doc-opt-badge">Optional</span>
+            </h4>
+            {isBusinessLoan && (
+                <div className="doc-card-note-slot">
+                    <p className="doc-card-note">{pageInfo.otherDocsSubtitle || 'Upload any additional supporting documents if available.'}</p>
+                </div>
+            )}
+            <div className="doc-card-body">
+                <label className="form-label" style={{ color: '#cbd5e1' }}>{pageInfo.docTypeLabel || 'Document Type'}</label>
+                <select className="form-select doc-other-select" value={formData.docType} onChange={(e) => setFormData((p: any) => ({ ...p, docType: e.target.value }))}>
+                    <option value="">Select Document Type</option>
+                    {(pageInfo.docTypeOptions || 'Pan Card, Aadhar Card Front, Aadhar Card Back, Salary Slip 1, Salary Slip 2, Salary Slip 3, 6 Month Bank Statement, Form 16 - 1, Form 16 - 2, Office ID Card Front, Office ID Card Back, Passport Size Photo, Co-Applicant Pan Card, Co-Applicant Aadhar Card Front, Co-Applicant Aadhar Card Back, Property Papers, Other Documents (if any)').split(',').map((opt: string) => (
+                        <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
+                    ))}
+                </select>
+                <label className="form-label" style={{ color: '#cbd5e1' }}>{pageInfo.pdfPasswordLabel || 'PDF Password (If any)'}</label>
+                <input className="form-input doc-other-input" value={formData.pdfPasswords['otherDocs'] || ''} onChange={(e) => setFormData((p: any) => ({ ...p, pdfPasswords: { ...p.pdfPasswords, otherDocs: e.target.value } }))} placeholder={pageInfo.pdfPasswordPlaceholder || 'Enter password'} />
+                <div className="doc-file-row">
+                    <div className="doc-other-file-row">
+                        <span style={{ color: '#000', fontSize: '0.7rem', opacity: 0.7, whiteSpace: 'nowrap', flexShrink: 0 }}>{pageInfo.selectFileLabel || '☁️ Select File'}</span>
+                        <input
+                            type="file"
+                            key={`otherDocs-${formData.addedDocs.length}`}
+                            multiple
+                            onChange={(e) => handleFileChange(e, 'otherDocs')}
+                            className="doc-other-file-input"
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        className="btn btn-primary doc-upload-btn"
+                        onClick={() => handleSingleUpload('otherDocs', formData.docType || 'Other Document')}
+                    >
+                        {pageInfo.uploadButtonLabel || 'Upload'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    ) : null;
+
+    const docsTable = (
+        <div className="card loan-list-card">
+            <table className="loan-list-table">
+                <thead>
+                    <tr>
+                        <th>{pageInfo.docTableIdHeader || 'Document ID'}</th>
+                        <th>{pageInfo.docTableTypeHeader || 'Document Type'}</th>
+                        <th>{pageInfo.docTableFormatHeader || 'File Format'}</th>
+                        <th>{pageInfo.docTablePasswordHeader || 'Password'}</th>
+                        <th>{pageInfo.docTableDateHeader || 'Date'}</th>
+                        <th>{pageInfo.docTableStatusHeader || 'Status'}</th>
+                        <th className="doc-td-center">{pageInfo.docTableActionHeader || 'View'}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {formData.addedDocs.length === 0 ? (
+                        <tr>
+                            <td colSpan={7} className="table-empty-row">{pageInfo.noDocsUploadedText || 'No documents uploaded yet.'}</td>
+                        </tr>
+                    ) : (
+                        formData.addedDocs.map((doc: any, idx: number) => (
+                            <tr key={idx}>
+                                <td className="doc-td-name">{doc.id}</td>
+                                <td>{doc.name}</td>
+                                <td><span className="doc-td-badge">{doc.format}</span></td>
+                                <td>{doc.password}</td>
+                                <td>{doc.date}</td>
+                                <td>
+                                    <span className="doc-status-uploaded-text">
+                                        ● {doc.status}
+                                    </span>
+                                </td>
+                                <td className="doc-td-center">
+                                    <button
+                                        type="button"
+                                        className="doc-view-btn"
+                                        onClick={() => handleViewClick(doc)}
+                                        disabled={!doc.previewUrl}
+                                        title={doc.previewUrl ? 'View document' : 'No preview available'}
+                                    >
+                                        {pageInfo.viewButtonLabel || '👁 View'}
+                                    </button>
+                                </td>
+                            </tr>
+                        ))
+                    )}
+                </tbody>
+            </table>
+        </div>
+    );
+
+    if (isBusinessLoan) {
+        return (
+            <div className="animate-fade-in bl-docs">
+                <div className="bl-docs-section-head">
+                    <h3 className="bl-docs-section-title">Required & supporting documents</h3>
+                    <p className="bl-docs-section-hint">Upload boxes appear only for applicable documents and are numbered in display order.</p>
+                </div>
+                <div className="doc-upload-grid">
+                    {docFields.map(renderDocCard)}
+                    {otherDocsCard}
+                </div>
+                {docsTable}
+
+                {pendingDoc && (
+                    <div className="doc-pw-overlay" onClick={() => setPendingDoc(null)}>
+                        <div className="doc-pw-modal" onClick={(e) => e.stopPropagation()}>
+                            <div className="doc-pw-modal-header">
+                                <span className="doc-pw-lock-icon">🔒</span>
+                                <h3 className="doc-pw-title">Password Required</h3>
                             </div>
-                            <button
-                                type="button"
-                                className="btn btn-primary doc-upload-btn"
-                                onClick={() => handleSingleUpload('otherDocs', formData.docType || 'Other Document')}
-                            >
-                                {pageInfo.uploadButtonLabel || 'Upload'}
-                            </button>
+                            <p className="doc-pw-desc">
+                                <strong>{pendingDoc.name}</strong> is password protected.<br />
+                                Enter the password to view this document.
+                            </p>
+                            <input
+                                type="password"
+                                className={`form-input doc-pw-input${passwordError ? ' doc-pw-input-error' : ''}`}
+                                placeholder="Enter document password"
+                                value={inputPassword}
+                                onChange={(e) => { setInputPassword(e.target.value); setPasswordError(''); }}
+                                onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                                autoFocus
+                            />
+                            {passwordError && <p className="doc-pw-error">{passwordError}</p>}
+                            <div className="doc-pw-actions">
+                                <button type="button" className="btn btn-secondary" onClick={() => setPendingDoc(null)}>Cancel</button>
+                                <button type="button" className="btn btn-primary" onClick={handlePasswordSubmit}>Open Document</button>
+                            </div>
                         </div>
                     </div>
                 )}
             </div>
-            <div className="card loan-list-card">
-                <table className="loan-list-table">
-                    <thead>
-                        <tr>
-                            <th>{pageInfo.docTableIdHeader || 'Document ID'}</th>
-                            <th>{pageInfo.docTableTypeHeader || 'Document Type'}</th>
-                            <th>{pageInfo.docTableFormatHeader || 'File Format'}</th>
-                            <th>{pageInfo.docTablePasswordHeader || 'Password'}</th>
-                            <th>{pageInfo.docTableDateHeader || 'Date'}</th>
-                            <th>{pageInfo.docTableStatusHeader || 'Status'}</th>
-                            <th className="doc-td-center">{pageInfo.docTableActionHeader || 'View'}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {formData.addedDocs.length === 0 ? (
-                            <tr>
-                                <td colSpan={7} className="table-empty-row">{pageInfo.noDocsUploadedText || 'No documents uploaded yet.'}</td>
-                            </tr>
-                        ) : (
-                            formData.addedDocs.map((doc: any, idx: number) => (
-                                <tr key={idx}>
-                                    <td className="doc-td-name">{doc.id}</td>
-                                    <td>{doc.name}</td>
-                                    <td><span className="doc-td-badge">{doc.format}</span></td>
-                                    <td>{doc.password}</td>
-                                    <td>{doc.date}</td>
-                                    <td>
-                                        <span className="doc-status-uploaded-text">
-                                            ● {doc.status}
-                                        </span>
-                                    </td>
-                                    <td className="doc-td-center">
-                                        <button
-                                            type="button"
-                                            className="doc-view-btn"
-                                            onClick={() => handleViewClick(doc)}
-                                            disabled={!doc.previewUrl}
-                                            title={doc.previewUrl ? 'View document' : 'No preview available'}
-                                        >
-                                            {pageInfo.viewButtonLabel || '👁 View'}
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+        );
+    }
+
+    return (
+        <div className="animate-fade-in">
+            <div className="doc-upload-grid">
+                {docFields.map(renderDocCard)}
+                {otherDocsCard}
             </div>
+            {docsTable}
 
             {pendingDoc && (
                 <div className="doc-pw-overlay" onClick={() => setPendingDoc(null)}>
@@ -627,8 +927,28 @@ export const SummarySection = ({ formData, loanProfile, leadId, pageInfo, loanTy
                                 <p className="summary-p"><strong>{pageInfo.businessNameLabel || 'Business Name'}:</strong> {formData.businessName}</p>
                                 <p className="summary-p"><strong>{pageInfo.businessPremisesLabel || 'Premises'}:</strong> {formData.businessPremises}</p>
                                 <p className="summary-p"><strong>{pageInfo.businessTypeLabel || 'Type'}:</strong> {formData.businessType}</p>
-                                <p className="summary-p"><strong>{pageInfo.annualTurnoverLabel || 'Turnover'}:</strong> {formData.annualTurnover}</p>
-                                <p className="summary-p"><strong>{pageInfo.businessAgeLabel || 'Age'}:</strong> {formData.businessAge}</p>
+                                <p className="summary-p">
+                                    <strong>{loanType === 'Business Loan' ? 'Annual Turnover (Lakh)' : (pageInfo.annualTurnoverLabel || 'Turnover')}:</strong>{' '}
+                                    {loanType === 'Business Loan'
+                                        ? `${formData.annualTurnover || '—'} Lakh`
+                                        : formData.annualTurnover}
+                                </p>
+                                <p className="summary-p">
+                                    <strong>{loanType === 'Business Loan' ? 'Business Age (Years)' : (pageInfo.businessAgeLabel || 'Age')}:</strong>{' '}
+                                    {formData.businessAge}
+                                </p>
+                                {loanType === 'Business Loan' && (
+                                    <>
+                                        <p className="summary-p">
+                                            <strong>Business Registration Proof:</strong>{' '}
+                                            {(formData.businessRegProofs || []).join(', ') || '—'}
+                                        </p>
+                                        <p className="summary-p">
+                                            <strong>Audited Books:</strong>{' '}
+                                            {formData.auditedBooks === true ? 'Yes' : formData.auditedBooks === false ? 'No' : '—'}
+                                        </p>
+                                    </>
+                                )}
                                 <p className="summary-p" style={{ marginTop: '0.5rem' }}><strong>Business Address:</strong></p>
                                 <p className="summary-p-muted">{formData.businessAddress}</p>
                             </div>

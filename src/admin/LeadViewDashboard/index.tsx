@@ -472,6 +472,10 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
         coAppAadharFront:    'documentDetails',
         coAppAadharBack:     'documentDetails',
         otherDocs:           'documentDetails',
+        itrYear1:            'documentDetails',
+        itrYear2:            'documentDetails',
+        itrYear3:            'documentDetails',
+        auditedBooksDoc:     'documentDetails',
     };
 
     // Section renders if section-level view=true OR any individual field has view=true
@@ -1151,9 +1155,26 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                                         { label: 'Business Name', val: loanApp.form_data?.businessDetails?.name || '', fk: 'name' },
                                         { label: 'Business Premises', val: loanApp.form_data?.businessDetails?.premises || '', fk: 'premises' },
                                         { label: 'Business Type', val: loanApp.form_data?.businessDetails?.type || '', fk: 'type' },
-                                        { label: 'Annual Turnover', val: loanApp.form_data?.businessDetails?.turnover || '', fk: 'turnover' },
-                                        { label: 'Business Age', val: loanApp.form_data?.businessDetails?.age || '', fk: 'age' },
-                                        { label: 'Business Registration Proof', val: loanApp.form_data?.businessDetails?.regProof || '', fk: 'regProof' },
+                                        { label: 'Annual Turnover (Lakh)', val: String(loanApp.form_data?.businessDetails?.turnover ?? ''), fk: 'turnover' },
+                                        { label: productType === 'Business Loan' ? 'Business Age (Years)' : 'Business Age', val: String(loanApp.form_data?.businessDetails?.age ?? ''), fk: 'age' },
+                                        {
+                                            label: 'Business Registration Proof',
+                                            val: Array.isArray(loanApp.form_data?.businessDetails?.regProofs)
+                                                ? loanApp.form_data.businessDetails.regProofs.join(', ')
+                                                : (loanApp.form_data?.businessDetails?.regProof || ''),
+                                            fk: Array.isArray(loanApp.form_data?.businessDetails?.regProofs) ? 'regProofs' : 'regProof',
+                                        },
+                                        ...(productType === 'Business Loan'
+                                            ? [{
+                                                label: 'Audited Books',
+                                                val: loanApp.form_data?.businessDetails?.auditedBooks === true
+                                                    ? 'Yes'
+                                                    : loanApp.form_data?.businessDetails?.auditedBooks === false
+                                                        ? 'No'
+                                                        : '',
+                                                fk: 'auditedBooks',
+                                            }]
+                                            : []),
                                     ].filter((d) => canViewField('businessInfo', d.fk)).map((d, i) => (
                                         <Box key={i}>
                                             <Typography variant="pi" textColor="neutral600" display="block" fontWeight="bold">

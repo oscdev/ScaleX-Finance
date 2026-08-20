@@ -77,12 +77,12 @@ export const PRODUCT_CONFIG: Record<string, { leadFields: any[] }> = {
 };
 
 export const DOC_LABELS: Record<string, string> = {
-    proprietorshipDoc: 'Proprietorship Doc',
+    proprietorshipDoc: 'Business Type',
     panCard: 'Pan Card',
     cibilReport: 'CIBIL Report',
     aadharCardFront: 'Aadhar Card Front',
     aadharCardBack: 'Aadhar Card Back',
-    bankStatement: '6 Month Bank Statement',
+    bankStatement: 'Bank Statement',
     salarySlips: 'Salary Slip',
     coAppPan: 'Co-App PAN',
     otherDocs: 'Other Documents',
@@ -90,6 +90,10 @@ export const DOC_LABELS: Record<string, string> = {
     coAppAadharFront: 'Co-App Aadhar Front',
     coAppAadharBack: 'Co-App Aadhar Back',
     businessRegProofDoc: 'Business Reg Proof',
+    itrYear1: 'ITR (1st Year)',
+    itrYear2: 'ITR (2nd Year)',
+    itrYear3: 'ITR (3rd Year)',
+    auditedBooksDoc: 'Audited Books',
 };
 
 export interface DocumentEntry {
@@ -108,6 +112,8 @@ export const buildDocuments = (loanApp: any): DocumentEntry[] => {
     const pdfPw = loanApp.form_data?.pdfPasswords || {};
     let salaryCounter = 1;
     let otherCounter = 1;
+    let regProofCounter = 0;
+    const usedRegProofKeys = new Set<string>();
 
     // Build a lookup from form_data.documents by doc name (handles old display-name keyed records)
     const pwByDocName: Record<string, string> = {};
@@ -159,6 +165,24 @@ export const buildDocuments = (loanApp: any): DocumentEntry[] => {
             let displayType = DOC_LABELS[label] || label;
             if (label === 'salarySlips') displayType = `Salary Slip ${salaryCounter++}`;
             if (label === 'otherDocs') displayType = `Other Document ${otherCounter++}`;
+            if (label === 'businessRegProofDoc') {
+                const meta = loanApp.form_data?.regProofDocuments;
+                if (Array.isArray(meta) && meta[regProofCounter]) {
+                    displayType = `Business Reg Proof — ${meta[regProofCounter].proofType}`;
+                    regProofCounter++;
+                } else {
+                    const fromDocs = (loanApp.form_data?.documents || []).find(
+                        (d: any) =>
+                            typeof d?.key === 'string' &&
+                            d.key.startsWith('regProof_') &&
+                            !usedRegProofKeys.has(d.key)
+                    );
+                    if (fromDocs) {
+                        usedRegProofKeys.add(fromDocs.key);
+                        displayType = fromDocs.name || displayType;
+                    }
+                }
+            }
 
             if (fileId) {
                 docs.push({

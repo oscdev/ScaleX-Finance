@@ -24,6 +24,10 @@ const FILE_FIELD_NAMES = new Set([
   'coAppAadharBack',
   'salarySlips',
   'otherDocs',
+  'itrYear1',
+  'itrYear2',
+  'itrYear3',
+  'auditedBooksDoc',
 ]);
 
 /** Strip File blobs before sending to audit API. */
