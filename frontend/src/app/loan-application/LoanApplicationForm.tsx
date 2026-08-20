@@ -346,7 +346,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                 event: 'VALIDATION_ERROR',
                 leadId: ss.getItem('lastLeadId'),
                 leadName: ss.getItem('leadName'),
-                fields: formData as Record<string, unknown>,
+                fields: formData as unknown as Record<string, unknown>,
                 errors,
             });
             setSubmitError(`Please fix all validation errors before submitting. (${errors.length} pending)`);
@@ -602,7 +602,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                 event: 'CLIENT_ERROR',
                 leadId: ss.getItem('lastLeadId'),
                 leadName: ss.getItem('leadName'),
-                fields: formData as Record<string, unknown>,
+                fields: formData as unknown as Record<string, unknown>,
                 errors: err.message,
             });
             setSubmitError(err.message);
