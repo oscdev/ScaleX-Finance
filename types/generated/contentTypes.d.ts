@@ -1409,7 +1409,7 @@ export interface ApiLoanApplicationPageLoanApplicationPage
     businessRegProofLabel: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Business Registration Proof'>;
     businessRegProofOptions: Schema.Attribute.Text &
-      Schema.Attribute.DefaultTo<'GST, TIN, MSME, Shop Establishment Certificate, Trade License, Fssai License, Udyam Certificate, Gumasta Certificate'>;
+      Schema.Attribute.DefaultTo<'GST, TIN, MSME, Shop Registration Certificate, Trade License, Fssai License, Udyam Certificate, Gumasta Certificate'>;
     businessTypeLabel: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Business Type'>;
     businessTypeOptions: Schema.Attribute.String &
@@ -1653,9 +1653,10 @@ export interface ApiLoanApplicationLoanApplication
     applicantName: Schema.Attribute.String;
     assignedBankerId: Schema.Attribute.Integer;
     assignedStaffId: Schema.Attribute.Integer;
+    auditedBooksDoc: Schema.Attribute.Media<'files' | 'images'>;
     bankStatement: Schema.Attribute.Media<'files' | 'images'>;
     businessName: Schema.Attribute.String;
-    businessRegProofDoc: Schema.Attribute.Media<'files' | 'images'>;
+    businessRegProofDoc: Schema.Attribute.Media<'files' | 'images', true>;
     cibilReport: Schema.Attribute.Media<'files' | 'images'>;
     coAppAadharBack: Schema.Attribute.Media<'files' | 'images'>;
     coAppAadharFront: Schema.Attribute.Media<'files' | 'images'>;
@@ -1666,6 +1667,9 @@ export interface ApiLoanApplicationLoanApplication
     declarationAccepted: Schema.Attribute.Boolean;
     email: Schema.Attribute.String;
     form_data: Schema.Attribute.JSON;
+    itrYear1: Schema.Attribute.Media<'files' | 'images'>;
+    itrYear2: Schema.Attribute.Media<'files' | 'images'>;
+    itrYear3: Schema.Attribute.Media<'files' | 'images'>;
     leadId: Schema.Attribute.Integer;
     loanAmount: Schema.Attribute.Decimal;
     loanType: Schema.Attribute.String;

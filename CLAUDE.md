@@ -121,7 +121,7 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 |---|---|---|
 | `advisor` | Advisor accounts (DSAs) | `advisorId`, `fullName`, `email`, `password`, `advisorStatus`, `state`, `district`, `pinCode`, `panNumber`, `specialization`, `earnings` |
 | `lead` | Customer leads submitted via advisor referral | `fullName`, `email`, `mobileNumber`, `requiredAmount`, `selectedProduct`, `leadType`, `leadStatus`, `advisorReferralId`, `parentAdvisorId`, `employmentType`, `propertyType`, `pinCode`, `panCard`, `aadharCard` |
-| `loan-application` | Full loan application tied to a lead | `leadId`, `applicantName`, `loanType`, `loanAmount`, `status`, `form_data`, `assignedStaffId`, `assignedBankerId`, docs fields (panCard, aadharCardFront/Back, salarySlips, etc.) |
+| `loan-application` | Full loan application tied to a lead | `leadId`, `applicantName`, `loanType`, `loanAmount`, `status`, `form_data`, `assignedStaffId`, `assignedBankerId`, docs fields (panCard, aadharCardFront/Back, salarySlips, itrYear1/2/3, auditedBooksDoc, businessRegProofDoc multiple, etc.) |
 | `lead-remark` | Conversation/remarks history on a lead | `leadId`, `advisor_admin_staff_remark`, `banker_admin_staff_remark` |
 | `product` | Financial product definitions | — |
 | `user-product-mapping` | Maps admin users (staff/bankers) to products | `adminUserId`, `user_role` (staff/banker), `product` |
@@ -230,7 +230,12 @@ The platform has three distinct admin roles:
 1. Advisor shares referral link → customer submits **Lead** via `/lead-form`
 2. Advisor reviews lead in `/advisor-dashboard` → initiates **Loan Application**
 3. Customer completes loan application at `/loan-application` (multi-step form with document uploads)
+   - `form_data` on `loan_applications` stores **only sections for steps in the selected loan-type funnel** (from `getSteps(loanType, occupation)`). Unused steps are omitted — e.g. Business Loan has no `incomeDetails` / `propertyDetails`; Personal Loan has no `businessDetails` / `propertyDetails`. See [docs/business-loan/business-loan-flow.md](docs/business-loan/business-loan-flow.md) for the step → section map.
    - Income step (`form_data.incomeDetails`) for Personal Loan, Home Loan (salaried), and LAP (salaried) includes: `companyName`, `designation`, `companyAddress`, `netSalary`, `salaryMode`, `jobStability` (months as numeric string), `pfDeducted` (boolean), `hasOtherIncome` (boolean), and when `hasOtherIncome` is true: `otherIncomeSource`, `otherIncomeAmount`
+   - **Business Loan** funnel: Business → Personal → Residence → Other → Docs → Submit.
+     - **Business Details:** numeric `turnover` in **Lakh**, `age` in years, multi-select `regProofs` (options include Shop Registration Certificate), Yes/No `auditedBooks`; layout pairs Business Type + Audited Books, and Registration Proof (left) + Address (right).
+     - **Documents:** Aadhaar/PAN/CIBIL/Bank Statement/ITR years + `Business Type - {type}` (`proprietorshipDoc`) + conditional `auditedBooksDoc` + one upload per selected reg proof (`businessRegProofDoc` multiple); 3-col grid with equal note slots (empty amber boxes when no note); sequential `#` for visible docs only.
+     - See [docs/business-loan/business-loan-flow.md](docs/business-loan/business-loan-flow.md).
 4. Staff is assigned (`assignedStaffId`) to process the application
 5. Banker is assigned (`assignedBankerId`) for final review
 6. Remarks/conversation history tracked in `lead-remark` (separate fields per role type)
@@ -327,7 +332,10 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - **[frontend/src/app/](frontend/src/app/)** — All frontend routes and pages
 - **[src/api/activity-log/](src/api/activity-log/)** — Activity audit; `logEvent` promotes `leadId`/`leadName`/`category`/`correlationId`; admin **Activity Logs** (**Lead** \| **Users & Auth** \| **System**); shared `/admin` login → `LOGIN_*` with `roleKind`; coverage in [docs/Activity-Log.md](docs/Activity-Log.md) (most `PL_ELIGIBILITY_RULE*` file-only; `A1-DPD-LATEST` also writes DB `PL_ELIGIBILITY_RULE` / `_SKIP`)
 - **[src/api/lead/](src/api/lead/)** — Lead API; on create logs `LEAD_SUBMIT_SUCCESS` / `LEAD_SUBMIT_ERROR` to `logs/pl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log`; exposes `POST /api/pl-submission-audit/log` for client validation errors
-- **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create logs `LOAN_APP_SUBMIT_*` to per-lead submission file, links uploads to Media Library `API Uploads/{leadId}-{name}/` and moves them to `public/uploads/api_uploads/{leadId}-{name}/`
+- **[docs/business-loan/business-loan-flow.md](docs/business-loan/business-loan-flow.md)** — Business Loan funnel steps, Business Details layout, documents UI, funnel-scoped `form_data` shape (turnover in Lakh; no unused sections), and database schema
+- **[frontend/src/app/loan-application/LoanApplicationForm.tsx](frontend/src/app/loan-application/LoanApplicationForm.tsx)** — `getSteps()` + submit; builds `form_data` only for steps in the selected funnel
+- **[frontend/src/app/loan-application/businessLoanConfig.ts](frontend/src/app/loan-application/businessLoanConfig.ts)** — BL reg-proof options, slugs, notes, `buildBusinessLoanDocFields`, turnover/age parsers
+- **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create logs `LOAN_APP_SUBMIT_*` to per-lead submission file, links uploads to Media Library `API Uploads/{leadId}-{name}/` and moves them to `public/uploads/api_uploads/{leadId}-{name}/`; Business Loan payloads validated via `utils/validate-business-loan.ts`
 - **[src/api/bureau-data-extraction/](src/api/bureau-data-extraction/)** — Bureau PDF extraction (`POST /api/cibil-report-summaries/extract`; reads `public/uploads/api_uploads/`)
 - **[src/api/lender-master/](src/api/lender-master/)** — Lender master registry + zip coverage (`lenders-catalog`, `zip-code`)
 - **[src/api/personal-loan-eligibility/](src/api/personal-loan-eligibility/)** — PL eligibility thresholds + 19-step matching engine (`matched-lenders` / `evaluate`; file audit in `logs/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`)

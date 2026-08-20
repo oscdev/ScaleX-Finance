@@ -25,7 +25,7 @@ export default function BusinessLoanFunnel({
     occupation
 }: any) {
     switch (stepName) {
-        case 'Business': return <BusinessDetailsFields formData={formData} handleChange={handleChange} pageInfo={pageInfo} />;
+        case 'Business': return <BusinessDetailsFields formData={formData} handleChange={handleChange} pageInfo={pageInfo} loanType={loanType} setFormData={setFormData} />;
         case 'Personal': return <PersonalDetailsFields formData={formData} handleChange={handleChange} pageInfo={pageInfo} loanType={loanType} />;
         case 'Residence': return <ResidenceDetailsFields formData={formData} handleChange={handleChange} pageInfo={pageInfo} />;
         case 'Other': return <OtherDetailsFields formData={formData} handleChange={handleChange} pageInfo={pageInfo} handleAddLoan={handleAddLoan} />;

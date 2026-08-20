@@ -99,7 +99,11 @@ const FILE_FIELD_NAMES = new Set([
     'coAppAadharFront',
     'coAppAadharBack',
     'salarySlips',
-    'otherDocs'
+    'otherDocs',
+    'itrYear1',
+    'itrYear2',
+    'itrYear3',
+    'auditedBooksDoc'
 ]);
 function sanitizeClientFields(data) {
     if (!data) return null;

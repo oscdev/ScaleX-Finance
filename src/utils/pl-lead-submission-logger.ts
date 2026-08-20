@@ -26,6 +26,10 @@ const MEDIA_FIELDS = new Set([
   'coAppAadharBack',
   'propertyPapers',
   'otherDocs',
+  'itrYear1',
+  'itrYear2',
+  'itrYear3',
+  'auditedBooksDoc',
 ]);
 
 const PAN_KEYS = new Set(['panCard', 'panNumber']);

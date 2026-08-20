@@ -5,6 +5,7 @@ import {
   appendPlLeadSubmissionLog,
   extractErrorMessage,
 } from '../../../utils/pl-lead-submission-logger';
+import { validateBusinessLoanPayload } from '../utils/validate-business-loan';
 
 const MEDIA_FIELDS = [
   'panCard',
@@ -20,6 +21,10 @@ const MEDIA_FIELDS = [
   'coAppAadharBack',
   'propertyPapers',
   'otherDocs',
+  'itrYear1',
+  'itrYear2',
+  'itrYear3',
+  'auditedBooksDoc',
 ];
 
 function collectFileIdsWithFields(data: Record<string, unknown>): {
@@ -77,6 +82,13 @@ export default factories.createCoreController(
     async create(ctx: any) {
       const { data } = ctx.request.body ?? {};
       const requestData = (data ?? {}) as Record<string, unknown>;
+
+      if (requestData.loanType === 'Business Loan') {
+        const blErrors = validateBusinessLoanPayload(requestData);
+        if (blErrors.length > 0) {
+          return ctx.badRequest('Business Loan validation failed', { errors: blErrors });
+        }
+      }
 
       try {
         let createdRecord: any = null;

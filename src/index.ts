@@ -362,6 +362,7 @@ export default {
         'proprietorshipDoc', 'panCard', 'cibilReport', 'aadharCardFront', 'aadharCardBack',
         'businessRegProofDoc', 'bankStatement', 'propertyPapers', 'coAppPan',
         'coAppAadharFront', 'coAppAadharBack', 'salarySlips', 'otherDocs',
+        'itrYear1', 'itrYear2', 'itrYear3', 'auditedBooksDoc',
         'declarationAccepted', 'assignedStaffId', 'assignedBankerId',
       ];
       const permLinks = await strapi.db.connection('admin_permissions_role_lnk')
@@ -693,6 +694,7 @@ export default {
             'proprietorshipDoc', 'panCard', 'cibilReport', 'aadharCardFront', 'aadharCardBack',
             'businessRegProofDoc', 'bankStatement', 'propertyPapers', 'coAppPan',
             'coAppAadharFront', 'coAppAadharBack', 'salarySlips', 'otherDocs',
+            'itrYear1', 'itrYear2', 'itrYear3', 'auditedBooksDoc',
             'declarationAccepted', 'assignedStaffId', 'assignedBankerId',
           ];
           const loanAppActions = [
