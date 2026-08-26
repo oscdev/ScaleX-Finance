@@ -39,7 +39,7 @@ Logs in Strapi terminal:
 [Bureau Auto] END extraction for {leadId}-{name}/cibil_report.pdf
 ```
 
-Python log file: `logs/bureau-extraction_YYYY_MM_DD/<leadId>_<LeadName>_HH_MM_SS.log` (project root; gated by `SCALEX_CODE_LOGS` / Global Setting `codeLevelLoggingIsEnabled`).
+Python log file: `logs/personal-loan/pl-bureau-extraction/<leadId>-<Name>_YYYY-MM-DD.log` (Personal Loan) or `logs/business-loan/bl-bureau-extraction/<leadId>-<Name>_YYYY-MM-DD.log` (Business Loan); project root; gated by `SCALEX_CODE_LOGS` / Global Setting `codeLevelLoggingIsEnabled`.
 
 ---
 
@@ -175,7 +175,7 @@ pdf_extractor/
 │   ├── embeddings/              # local_embedder, base_embedder
 │   ├── retrieval/               # bm25, vector_search, hybrid, extract_*
 │   ├── validator/               # address, payment_history, enquiry, etc.
-│   └── utils/                   # logger → project logs/bureau-extraction_YYYY_MM_DD/<leadId>_<LeadName>_HH_MM_SS.log
+│   └── utils/                   # logger → project logs/<personal-loan|business-loan>/…-bureau-extraction/<leadId>-<Name>_YYYY-MM-DD.log
 │   ├── schemas/
 │   └── utils/                   # logger, normalizer, recency
 └── tests/
@@ -237,7 +237,7 @@ See **[§18 Server deployment](../../../../../../docs/Python-Integration-Bureau-
 | `Directory does not exist` | Lead folder not created — submit loan application first |
 | `ModuleNotFoundError: yaml` / `fitz` | Install requirements into `.venv` |
 | `ModuleNotFoundError: src` | Run from `pdf_extractor/` cwd or set `PYTHONPATH=.` |
-| Empty or wrong fields | Check `logs/bureau-extraction_YYYY_MM_DD/<leadId>_<LeadName>_HH_MM_SS.log`; adjust patterns in `configs/fields.yaml` |
+| Empty or wrong fields | Check `logs/personal-loan/pl-bureau-extraction/` or `logs/business-loan/bl-bureau-extraction/` per loan type; adjust patterns in `configs/fields.yaml` |
 | Slow extraction | Normal on first run (model download) |
 
 ---
@@ -267,5 +267,5 @@ For business rules, API contracts, and gaps see [docs/Python-Integration-Bureau-
 | Vector search | `faiss-cpu` |
 | Keyword search | `rank_bm25` |
 | Config | PyYAML (`configs/*.yaml`) |
-| Logging | Custom logger → `logs/bureau-extraction_YYYY_MM_DD/<leadId>_<LeadName>_HH_MM_SS.log` |
+| Logging | Custom logger → `logs/personal-loan/pl-bureau-extraction/` or `logs/business-loan/bl-bureau-extraction/` |
 | Tests | `pytest` |

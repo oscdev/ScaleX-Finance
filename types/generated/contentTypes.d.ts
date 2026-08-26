@@ -558,6 +558,13 @@ export interface ApiActivityLogActivityLog extends Struct.CollectionTypeSchema {
         'PL_ELIGIBILITY_LENDER',
         'PL_ELIGIBILITY_RUN_COMPLETE',
         'PL_ELIGIBILITY_CONNECTION_FAILED',
+        'BL_ELIGIBILITY_RUN_START',
+        'BL_ELIGIBILITY_BLOCKED',
+        'BL_ELIGIBILITY_RULE',
+        'BL_ELIGIBILITY_RULE_SKIP',
+        'BL_ELIGIBILITY_LENDER',
+        'BL_ELIGIBILITY_RUN_COMPLETE',
+        'BL_ELIGIBILITY_CONNECTION_FAILED',
         'PL_SCORE_RUN_START',
         'PL_SCORE_CRITERION',
         'PL_SCORE_CRITERION_SKIP',
@@ -809,6 +816,83 @@ export interface ApiBureauDataExtractionCibilReportSummary
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
     salarySlipData: Schema.Attribute.JSON;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiBusinessLoanEligibilityLendersCriteriaBl
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'lenders_criteria_bl';
+  info: {
+    description: 'Business loan eligibility thresholds per lender';
+    displayName: 'Lenders Criteria BL';
+    pluralName: 'lenders-criteria-bls';
+    singularName: 'lenders-criteria-bl';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    auditedBooksRequired: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    bankStatementMonthsRequired: Schema.Attribute.Integer;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    currentOverdue: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    eligibleEntityTypes: Schema.Attribute.JSON;
+    firstTimeBorrowerAllowed: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    foirMax: Schema.Attribute.Decimal;
+    gstMandatory: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    isActive: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    itrFilingYearsRequired: Schema.Attribute.Integer;
+    lenderCode: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::business-loan-eligibility.lenders-criteria-bl'
+    > &
+      Schema.Attribute.Private;
+    maxActiveUnsecured6Months: Schema.Attribute.Integer;
+    maxAgeYears: Schema.Attribute.Integer;
+    maxCcUtilizationRatio: Schema.Attribute.Decimal;
+    maxDpdCount12Months: Schema.Attribute.Integer;
+    maxDpdCount3Months: Schema.Attribute.Integer;
+    maxDpdDaysAllowed: Schema.Attribute.Integer;
+    maxEnquiries1Month: Schema.Attribute.Integer;
+    maxEnquiries3Months: Schema.Attribute.Integer;
+    maxLoanAmount: Schema.Attribute.Decimal;
+    minAgeYears: Schema.Attribute.Integer;
+    minAnnualTurnover: Schema.Attribute.Decimal;
+    minCibil: Schema.Attribute.Integer;
+    minCreditHistoryMonths: Schema.Attribute.Integer;
+    minLoanAmount: Schema.Attribute.Decimal;
+    minVintageYears: Schema.Attribute.Integer;
+    publishedAt: Schema.Attribute.DateTime;
+    settledWriteOff36Months: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2447,6 +2531,7 @@ declare module '@strapi/strapi' {
       'api::advisor-registration-page.advisor-registration-page': ApiAdvisorRegistrationPageAdvisorRegistrationPage;
       'api::advisor.advisor': ApiAdvisorAdvisor;
       'api::bureau-data-extraction.cibil-report-summary': ApiBureauDataExtractionCibilReportSummary;
+      'api::business-loan-eligibility.lenders-criteria-bl': ApiBusinessLoanEligibilityLendersCriteriaBl;
       'api::contact-us-page.contact-us-page': ApiContactUsPageContactUsPage;
       'api::footer.footer': ApiFooterFooter;
       'api::global-setting.global-setting': ApiGlobalSettingGlobalSetting;

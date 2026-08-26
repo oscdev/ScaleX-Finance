@@ -5,7 +5,7 @@ import {
 } from '../../../utils/code-file-logger';
 import type { CriterionScoreResult, LenderScoreResult, RankResult } from './types';
 
-const MODULE = 'pl-scoring';
+const MODULE = 'personal-loan/pl-scoring';
 
 export interface ScoringRunLogger {
   runId: string;

@@ -42,7 +42,7 @@ export default factories.createCoreController('api::lead.lead', ({ strapi }) => 
   async logSubmissionAudit(ctx: any) {
     try {
       const body = ctx.request?.body ?? {};
-      const { leadId, leadName, form, event, fields, errors } = body;
+      const { leadId, leadName, form, event, fields, errors, loanType } = body;
 
       if (!form || !event) {
         return ctx.badRequest('form and event are required');
@@ -58,6 +58,7 @@ export default factories.createCoreController('api::lead.lead', ({ strapi }) => 
         form,
         fields: fields ?? null,
         errors: errors ?? null,
+        loanType: loanType ?? null,
         source: 'client',
       });
 

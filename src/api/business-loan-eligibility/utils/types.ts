@@ -24,31 +24,34 @@ export interface ConnectionFailure {
   lenderCode?: string | null;
 }
 
-export interface LenderCriteria {
+export interface BlLenderCriteria {
   id?: number;
   lenderCode: string;
   isActive: boolean;
   minCibil?: number | null;
   firstTimeBorrowerAllowed: boolean;
-  minInterestRate?: number | null;
-  maxInterestRate?: number | null;
-  pincodeCheckRequired: boolean;
-  minAge?: number | null;
-  maxAge?: number | null;
-  minMonthlyIncome?: number | null;
-  foir?: number | null;
-  maxCCUtilizationRatio?: number | null;
-  maxActiveUnsecuredAccount?: number | null;
-  acceptedSalaryTypes?: string[] | null;
-  pfRequired: boolean;
-  minEmploymentMonths?: number | null;
-  maxDpdDaysAllowed?: number | null;
-  maxDpdCount3months?: number | null;
-  maxDpdCount12months?: number | null;
-  maxEnquiries1month?: number | null;
-  maxEnquiries3months?: number | null;
+  maxAgeYears?: number | null;
+  minAgeYears?: number | null;
+  eligibleEntityTypes?: string[] | null;
+  currentOverdue: boolean;
+  settledWriteOff36Months: boolean;
+  minCreditHistoryMonths?: number | null;
+  minAnnualTurnover?: number | null;
+  minVintageYears?: number | null;
+  itrFilingYearsRequired?: number | null;
+  gstMandatory: boolean;
+  auditedBooksRequired: boolean;
+  bankStatementMonthsRequired?: number | null;
   minLoanAmount?: number | null;
   maxLoanAmount?: number | null;
+  foirMax?: number | null;
+  maxCcUtilizationRatio?: number | null;
+  maxActiveUnsecured6Months?: number | null;
+  maxEnquiries1Month?: number | null;
+  maxEnquiries3Months?: number | null;
+  maxDpdCount3Months?: number | null;
+  maxDpdCount12Months?: number | null;
+  maxDpdDaysAllowed?: number | null;
 }
 
 export interface CatalogLender {
@@ -59,44 +62,47 @@ export interface CatalogLender {
   isActive: boolean;
 }
 
-export interface ApplicantProfile {
+export interface WriteOffAccount {
+  paymentStartDate: string | null;
+  writtenOffAmount: number;
+  monthsSinceStart: number | null;
+}
+
+export interface BlApplicantProfile {
   leadId: number;
-  /** Lead display name for log file stems */
   fullName: string | null;
   pinCode: string | null;
   requestedAmount: number | null;
-  /** From loan_application.loanAmount (MAX_LOAN_ADEQUACY scoring) */
   loanAmount: number | null;
-  netMonthlyIncome: number | null;
-  hasOtherIncome: boolean | null;
-  otherIncomeAmount: number | null;
-  salaryMode: string | null;
-  employmentMonths: number | null;
+  loanType: string | null;
+  applicationDate: Date | null;
+  /** Form businessDetails.type */
+  entityType: string | null;
+  /** Form turnover in Lakh */
+  turnoverLakh: number | null;
+  /** turnoverLakh * 100000 */
+  annualTurnoverInr: number | null;
+  /** Form businessDetails.age (years) */
+  businessVintageYears: number | null;
+  auditedBooks: boolean | null;
   dob: string | null;
   age: number | null;
   cibilScore: number | null;
   isFirstTimeBorrower: boolean;
-  pfDeducted: boolean | null;
   existingTotalEmi: number;
-  tenureMonths: number;
-  /**
-   * Account–month payment-history cells (delay-event units), newest monthKey first.
-   * Same calendar month on two open accounts = two entries (not collapsed).
-   * PL-DPD-3M / PL-DPD-12M count entries where dpdDays > max_dpd_days_allowed.
-   */
   paymentHistoryMonths: Array<{ monthKey: string; dpdDays: number }>;
-  /** Newest calendar month max DPD across accounts; null when no open-account history. */
   latestPaymentMonth: { monthKey: string; dpdDays: number } | null;
   maxDpdDays: number | null;
   enquiries1m: number;
   enquiries3m: number;
-  /** Bureau enquiry member names within the last 3 months (for PL-ENQ-EXCLUDE). */
   enquiryMembers: string[];
   ccOutstanding: number;
   ccLimit: number;
   ccUtil: number | null;
   activeUnsecured: number | null;
+  writeOffAccounts: WriteOffAccount[];
   hasBureau: boolean;
+  hasLoanApp: boolean;
 }
 
 export interface LenderEvalResult {
@@ -115,24 +121,26 @@ export interface LenderEvalResult {
 export interface MatchRunResult {
   leadId: number;
   runId: string;
-  profile?: ApplicantProfile;
+  loanType: string;
+  profile?: BlApplicantProfile;
   lenders: LenderEvalResult[];
-  scoring?: {
-    leadId: number;
-    runId: string;
-    loanType: string;
-    scored: Array<{ lenderCode: string; totalScore: number; lenderName?: string }>;
-    rank: {
-      minDisplayScore: number;
-      displayed: Array<{ lenderCode: string; totalScore: number; rank: number | null }>;
-      belowThreshold: Array<{ lenderCode: string; totalScore: number; errorCode?: string }>;
-    };
-  } | null;
   response: {
-    eligible: Array<{ lenderCode: string; lenderName: string; lenderType?: string }>;
+    eligible: Array<{
+      lenderCode: string;
+      lenderName: string;
+      lenderType?: string;
+      eligible: boolean;
+      ruleFailures: string[];
+      passed: string[];
+      failed: string[];
+    }>;
     excluded: Array<{
       lenderCode: string;
       lenderName: string;
+      eligible: boolean;
+      failedAt?: string;
+      failedStep?: number;
+      errorCode?: string | null;
       ruleFailures: string[];
       errorCodes: string[];
     }>;
@@ -140,4 +148,5 @@ export interface MatchRunResult {
   connectionFailures: ConnectionFailure[];
   error?: { code: string; message: string } | null;
   validations: { ok: boolean; errors: Array<{ code: string; message: string }> };
+  logFile?: string | null;
 }

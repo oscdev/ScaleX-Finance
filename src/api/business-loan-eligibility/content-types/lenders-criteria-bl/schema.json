@@ -1,0 +1,127 @@
+{
+  "kind": "collectionType",
+  "collectionName": "lenders_criteria_bl",
+  "info": {
+    "singularName": "lenders-criteria-bl",
+    "pluralName": "lenders-criteria-bls",
+    "displayName": "Lenders Criteria BL",
+    "description": "Business loan eligibility thresholds per lender"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": false
+    },
+    "content-type-builder": {
+      "visible": false
+    }
+  },
+  "attributes": {
+    "lenderCode": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "minCibil": {
+      "type": "integer"
+    },
+    "firstTimeBorrowerAllowed": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "maxAgeYears": {
+      "type": "integer"
+    },
+    "minAgeYears": {
+      "type": "integer"
+    },
+    "eligibleEntityTypes": {
+      "type": "json"
+    },
+    "currentOverdue": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "settledWriteOff36Months": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "minCreditHistoryMonths": {
+      "type": "integer"
+    },
+    "minAnnualTurnover": {
+      "type": "decimal",
+      "column": {
+        "type": "decimal",
+        "args": [14, 2]
+      }
+    },
+    "minVintageYears": {
+      "type": "integer"
+    },
+    "itrFilingYearsRequired": {
+      "type": "integer"
+    },
+    "gstMandatory": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "auditedBooksRequired": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "bankStatementMonthsRequired": {
+      "type": "integer"
+    },
+    "minLoanAmount": {
+      "type": "decimal",
+      "column": {
+        "type": "decimal",
+        "args": [14, 2]
+      }
+    },
+    "maxLoanAmount": {
+      "type": "decimal",
+      "column": {
+        "type": "decimal",
+        "args": [14, 2]
+      }
+    },
+    "foirMax": {
+      "type": "decimal"
+    },
+    "maxCcUtilizationRatio": {
+      "type": "decimal"
+    },
+    "maxActiveUnsecured6Months": {
+      "type": "integer"
+    },
+    "maxEnquiries1Month": {
+      "type": "integer"
+    },
+    "maxEnquiries3Months": {
+      "type": "integer"
+    },
+    "maxDpdCount3Months": {
+      "type": "integer"
+    },
+    "maxDpdCount12Months": {
+      "type": "integer"
+    },
+    "maxDpdDaysAllowed": {
+      "type": "integer"
+    }
+  }
+}
