@@ -20,9 +20,9 @@ export interface RuleCatalogEntry {
 }
 
 export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
-  PRE_ACTIVE_LENDERS: {
+  'PL-PRE-ACTIVE': {
     step: 1,
-    ruleId: 'PRE_ACTIVE_LENDERS',
+    ruleId: 'PL-PRE-ACTIVE',
     ruleName: 'Active lenders',
     condition: 'Catalog lender and PL criteria row must both be active',
     formula: 'lenders_catalog.is_active && lenders_criteria_pl.is_active && criteriaExists',
@@ -33,9 +33,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
       { table: 'lenders_criteria_pl', column: 'lender_code', description: 'Criteria row must exist for lender' },
     ],
   },
-  'A1-14-PINCODE': {
+  'PL-PINCODE': {
     step: 2,
-    ruleId: 'A1-14-PINCODE',
+    ruleId: 'PL-PINCODE',
     ruleName: 'Zipcode availability',
     condition: 'Applicant pin must be serviceable when pincode check is required',
     formula: 'covers_all_pincodes OR zip_codes_to_lenders.zip_code = leads.pin_code',
@@ -47,9 +47,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
       { table: 'zip_codes_to_lenders', column: 'is_active' },
     ],
   },
-  'A1-01-CIBIL': {
+  'PL-CIBIL': {
     step: 3,
-    ruleId: 'A1-01-CIBIL',
+    ruleId: 'PL-CIBIL',
     ruleName: 'Min CIBIL',
     condition: 'CIBIL score must meet lender minimum (non-FTB branch)',
     formula: 'cibil_score >= min_cibil',
@@ -58,9 +58,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'min_cibil' }],
   },
-  'A1-FTB': {
+  'PL-FTB': {
     step: 3,
-    ruleId: 'A1-FTB',
+    ruleId: 'PL-FTB',
     ruleName: 'First-time borrower',
     condition: 'First-time / thin-file applicant allowed by lender',
     formula: 'first_time_borrower_allowed = true',
@@ -78,9 +78,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'first_time_borrower_allowed' }],
   },
-  'A1-DPD-LATEST': {
+  'PL-DPD-LATEST': {
     step: 4,
-    ruleId: 'A1-DPD-LATEST',
+    ruleId: 'PL-DPD-LATEST',
     ruleName: 'Latest open-account DPD',
     condition:
       'Most recent open-account payment-history month DPD days must not exceed max_dpd_days_allowed (runs before Age)',
@@ -94,9 +94,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'max_dpd_days_allowed' }],
   },
-  'A1-02-AGE': {
+  'PL-AGE': {
     step: 5,
-    ruleId: 'A1-02-AGE',
+    ruleId: 'PL-AGE',
     ruleName: 'Age',
     condition: 'Applicant age must be within lender band',
     formula: 'min_age <= age <= max_age',
@@ -108,9 +108,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
       { table: 'lenders_criteria_pl', column: 'max_age' },
     ],
   },
-  'A1-03-INCOME': {
+  'PL-INCOME': {
     step: 6,
-    ruleId: 'A1-03-INCOME',
+    ruleId: 'PL-INCOME',
     ruleName: 'Minimum Monthly Income',
     condition:
       'When hasOtherIncome is true, netSalary + otherIncomeAmount must meet lender minimum; otherwise netSalary alone',
@@ -127,9 +127,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'min_monthly_income' }],
   },
-  'A1-13-AMOUNT': {
+  'PL-AMOUNT': {
     step: 7,
-    ruleId: 'A1-13-AMOUNT',
+    ruleId: 'PL-AMOUNT',
     ruleName: 'Loan amount',
     condition: 'Requested loan amount must be within lender band',
     formula: 'min_loan_amount <= requested_amount <= max_loan_amount',
@@ -141,9 +141,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
       { table: 'lenders_criteria_pl', column: 'max_loan_amount' },
     ],
   },
-  'A1-15-FOIR': {
+  'PL-FOIR': {
     step: 8,
-    ruleId: 'A1-15-FOIR',
+    ruleId: 'PL-FOIR',
     ruleName: 'FOIR',
     condition: 'Existing obligation to income ratio must be within lender cap',
     formula: 'existingTotalEmi / netMonthlyIncome <= foir',
@@ -157,9 +157,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'foir' }],
   },
-  'A1-07-DPD-3M': {
+  'PL-DPD-3M': {
     step: 9,
-    ruleId: 'A1-07-DPD-3M',
+    ruleId: 'PL-DPD-3M',
     ruleName: 'DPD Last 3 Months',
     condition:
       'Months in last 3 months where DPD days > max_dpd_days_allowed must not exceed max_dpd_count_3months',
@@ -177,9 +177,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
       { table: 'lenders_criteria_pl', column: 'max_dpd_count_3months' },
     ],
   },
-  'A1-08-DPD-12M': {
+  'PL-DPD-12M': {
     step: 10,
-    ruleId: 'A1-08-DPD-12M',
+    ruleId: 'PL-DPD-12M',
     ruleName: 'DPD Last 12 Months',
     condition:
       'Months in last 12 months where DPD days > max_dpd_days_allowed must not exceed max_dpd_count_12months',
@@ -197,9 +197,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
       { table: 'lenders_criteria_pl', column: 'max_dpd_count_12months' },
     ],
   },
-  'A1-09-DPD-DAYS': {
+  'PL-DPD-DAYS': {
     step: 11,
-    ruleId: 'A1-09-DPD-DAYS',
+    ruleId: 'PL-DPD-DAYS',
     ruleName: 'Max DPD days',
     condition: 'Maximum DPD days on record must not exceed cap',
     formula: 'max_dpd_days <= max_dpd_days_allowed',
@@ -212,9 +212,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'max_dpd_days_allowed' }],
   },
-  'A1-16-CC-UTIL': {
+  'PL-CC-UTIL': {
     step: 12,
-    ruleId: 'A1-16-CC-UTIL',
+    ruleId: 'PL-CC-UTIL',
     ruleName: 'Credit card utilization',
     condition: 'Credit card utilization ratio must be within lender cap',
     formula: 'ccOutstanding / ccLimit <= maxCCUtilizationRatio',
@@ -237,9 +237,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'max_cc_utilization_ratio' }],
   },
-  'A1-UNSECURED': {
+  'PL-UNSECURED': {
     step: 13,
-    ruleId: 'A1-UNSECURED',
+    ruleId: 'PL-UNSECURED',
     ruleName: 'Active unsecured accounts',
     condition: 'Active unsecured loan count must not exceed lender cap',
     formula: 'active_unsecured <= max_active_unsecured_account',
@@ -248,9 +248,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'max_active_unsecured_account' }],
   },
-  'A1-04-SALARY_TYPE': {
+  'PL-SALARY-TYPE': {
     step: 14,
-    ruleId: 'A1-04-SALARY_TYPE',
+    ruleId: 'PL-SALARY-TYPE',
     ruleName: 'Accepted salary types',
     condition: 'Salary mode must be in lender accepted list',
     formula: 'salary_mode IN accepted_salary_types',
@@ -259,9 +259,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'accepted_salary_types' }],
   },
-  'A1-05-PF': {
+  'PL-PF': {
     step: 15,
-    ruleId: 'A1-05-PF',
+    ruleId: 'PL-PF',
     ruleName: 'PF Deducted',
     condition: 'When lender requires PF deduction, applicant pfDeducted on loan application must be true',
     formula:
@@ -271,9 +271,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'pf_required' }],
   },
-  'A1-06-EMPLOYMENT': {
+  'PL-EMPLOYMENT': {
     step: 16,
-    ruleId: 'A1-06-EMPLOYMENT',
+    ruleId: 'PL-EMPLOYMENT',
     ruleName: 'Min employment months',
     condition: 'Employment tenure must meet lender minimum',
     formula: 'employment_months >= min_employment_months',
@@ -286,9 +286,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'min_employment_months' }],
   },
-  'A1-ENQ-EXCLUDE': {
+  'PL-ENQ-EXCLUDE': {
     step: 17,
-    ruleId: 'A1-ENQ-EXCLUDE',
+    ruleId: 'PL-ENQ-EXCLUDE',
     ruleName: 'Enquiry already with lender',
     condition: 'No bureau enquiry with this lender in the last 3 months',
     formula: 'NOT EXISTS enquiry (last 3m) WHERE member_name matches lender_name OR lender_code',
@@ -309,9 +309,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
       { table: 'lenders_catalog', column: 'lender_code' },
     ],
   },
-  'A1-11-ENQ-1M': {
+  'PL-ENQ-1M': {
     step: 18,
-    ruleId: 'A1-11-ENQ-1M',
+    ruleId: 'PL-ENQ-1M',
     ruleName: 'Enquiries 1 month',
     condition: 'Enquiry count in last 1 month must not exceed cap',
     formula: 'enquiries_1m <= max_enquiries_1month',
@@ -324,9 +324,9 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'max_enquiries_1month' }],
   },
-  'A1-12-ENQ-3M': {
+  'PL-ENQ-3M': {
     step: 19,
-    ruleId: 'A1-12-ENQ-3M',
+    ruleId: 'PL-ENQ-3M',
     ruleName: 'Enquiries 3 months',
     condition: 'Enquiry count in last 3 months must not exceed cap',
     formula: 'enquiries_3m <= max_enquiries_3months',
@@ -343,26 +343,26 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
 
 /** Pipeline order for remaining-rule resolution on early exit. */
 export const PIPELINE_RULE_ORDER = [
-  'PRE_ACTIVE_LENDERS',
-  'A1-14-PINCODE',
-  'A1-01-CIBIL',
-  'A1-FTB',
-  'A1-DPD-LATEST',
-  'A1-02-AGE',
-  'A1-03-INCOME',
-  'A1-13-AMOUNT',
-  'A1-15-FOIR',
-  'A1-07-DPD-3M',
-  'A1-08-DPD-12M',
-  'A1-09-DPD-DAYS',
-  'A1-16-CC-UTIL',
-  'A1-UNSECURED',
-  'A1-04-SALARY_TYPE',
-  'A1-05-PF',
-  'A1-06-EMPLOYMENT',
-  'A1-ENQ-EXCLUDE',
-  'A1-11-ENQ-1M',
-  'A1-12-ENQ-3M',
+  'PL-PRE-ACTIVE',
+  'PL-PINCODE',
+  'PL-CIBIL',
+  'PL-FTB',
+  'PL-DPD-LATEST',
+  'PL-AGE',
+  'PL-INCOME',
+  'PL-AMOUNT',
+  'PL-FOIR',
+  'PL-DPD-3M',
+  'PL-DPD-12M',
+  'PL-DPD-DAYS',
+  'PL-CC-UTIL',
+  'PL-UNSECURED',
+  'PL-SALARY-TYPE',
+  'PL-PF',
+  'PL-EMPLOYMENT',
+  'PL-ENQ-EXCLUDE',
+  'PL-ENQ-1M',
+  'PL-ENQ-3M',
 ] as const;
 
 export function getRuleCatalog(ruleId: string): RuleCatalogEntry | undefined {

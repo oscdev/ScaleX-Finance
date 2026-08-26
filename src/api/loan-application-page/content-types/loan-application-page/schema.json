@@ -62,7 +62,7 @@
         },
         "businessTypeOptions": {
             "type": "string",
-            "default": "Proprietorship, Partnership, Private Limited"
+            "default": "Proprietorship, Partnership, Private Limited, Limited Liability Partnership, Hindu Undivided Family"
         },
         "annualTurnoverLabel": {
             "type": "string",

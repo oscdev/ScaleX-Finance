@@ -66,13 +66,13 @@ function markRemainingNotEvaluated(
   priorFailRuleId: string
 ) {
   const evaluated = new Set(conditions.map((c) => c.ruleId));
-  const cibilEvaluated = evaluated.has('A1-01-CIBIL');
-  const ftbEvaluated = evaluated.has('A1-FTB');
+  const cibilEvaluated = evaluated.has('PL-CIBIL');
+  const ftbEvaluated = evaluated.has('PL-FTB');
 
   for (const ruleId of PIPELINE_RULE_ORDER) {
     if (evaluated.has(ruleId)) continue;
-    if (ruleId === 'A1-01-CIBIL' && ftbEvaluated) continue;
-    if (ruleId === 'A1-FTB' && cibilEvaluated) continue;
+    if (ruleId === 'PL-CIBIL' && ftbEvaluated) continue;
+    if (ruleId === 'PL-FTB' && cibilEvaluated) continue;
 
     const catalog = getRuleCatalog(ruleId);
     const ne = notEvaluated(catalog?.step ?? 0, ruleId, priorFailRuleId);
@@ -434,12 +434,12 @@ export async function runEligibilityMatch(
     );
     lenders.push(evalResult);
 
-    const latestDpdCond = evalResult.conditions.find((c) => c.ruleId === 'A1-DPD-LATEST');
+    const latestDpdCond = evalResult.conditions.find((c) => c.ruleId === 'PL-DPD-LATEST');
     if (latestDpdCond && latestDpdCond.result !== 'NOT_EVALUATED') {
       const isSkip = latestDpdCond.result === 'SKIP';
       await logActivity(strapi, {
         action: isSkip ? 'PL_ELIGIBILITY_RULE_SKIP' : 'PL_ELIGIBILITY_RULE',
-        description: `${cat.lenderCode} A1-DPD-LATEST ${latestDpdCond.result}`,
+        description: `${cat.lenderCode} PL-DPD-LATEST ${latestDpdCond.result}`,
         severity: latestDpdCond.result === 'FAIL' ? 'warning' : 'info',
         model: 'personal-loan-eligibility',
         leadId,
@@ -448,7 +448,7 @@ export async function runEligibilityMatch(
           leadId,
           runId,
           lenderCode: cat.lenderCode,
-          ruleId: 'A1-DPD-LATEST',
+          ruleId: 'PL-DPD-LATEST',
           result: latestDpdCond.result,
           errorCode: latestDpdCond.errorCode,
           applicantValue: latestDpdCond.applicantValue,

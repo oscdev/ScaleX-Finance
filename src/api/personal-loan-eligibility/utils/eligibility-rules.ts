@@ -58,7 +58,7 @@ export function evaluateActive(
   if (!catalog || !catalog.isActive) {
     return {
       step,
-      ruleId: 'PRE_ACTIVE_LENDERS',
+      ruleId: 'PL-PRE-ACTIVE',
       ruleName: 'Active lenders',
       formula,
       threshold: { catalogIsActive: catalog?.isActive ?? false },
@@ -70,7 +70,7 @@ export function evaluateActive(
   if (!criteria || !criteria.isActive) {
     return {
       step,
-      ruleId: 'PRE_ACTIVE_LENDERS',
+      ruleId: 'PL-PRE-ACTIVE',
       ruleName: 'Active lenders',
       formula,
       threshold: { criteriaIsActive: criteria?.isActive ?? false },
@@ -81,7 +81,7 @@ export function evaluateActive(
   }
   return {
     step,
-    ruleId: 'PRE_ACTIVE_LENDERS',
+    ruleId: 'PL-PRE-ACTIVE',
     ruleName: 'Active lenders',
     formula,
     threshold: { catalogIsActive: true, criteriaIsActive: true },
@@ -101,7 +101,7 @@ export function evaluateZipcode(
   if (!criteria.pincodeCheckRequired) {
     return {
       step,
-      ruleId: 'A1-14-PINCODE',
+      ruleId: 'PL-PINCODE',
       ruleName: 'Zipcode availability',
       formula,
       threshold,
@@ -113,14 +113,14 @@ export function evaluateZipcode(
     };
   }
   if (!profile.pinCode) {
-    return missingFail(step, 'A1-14-PINCODE', 'Zipcode availability', formula, threshold);
+    return missingFail(step, 'PL-PINCODE', 'Zipcode availability', formula, threshold);
   }
   const active = (zipRows || []).filter((z) => z.isActive !== false);
   const all = active.find((z) => z.coversAllPincodes === true);
   if (all) {
     return {
       step,
-      ruleId: 'A1-14-PINCODE',
+      ruleId: 'PL-PINCODE',
       ruleName: 'Zipcode availability',
       formula,
       threshold,
@@ -135,7 +135,7 @@ export function evaluateZipcode(
   if (match) {
     return {
       step,
-      ruleId: 'A1-14-PINCODE',
+      ruleId: 'PL-PINCODE',
       ruleName: 'Zipcode availability',
       formula,
       threshold,
@@ -147,14 +147,14 @@ export function evaluateZipcode(
   }
   return {
     step,
-    ruleId: 'A1-14-PINCODE',
+    ruleId: 'PL-PINCODE',
     ruleName: 'Zipcode availability',
     formula,
     threshold,
     applicantValue: profile.pinCode,
     result: 'FAIL',
     matchMode: 'NO_MATCH',
-    errorCode: PlFail.A1_14_PINCODE,
+    errorCode: PlFail.PINCODE,
     reason: 'Applicant pin not in lender serviceable zip set',
   };
 }
@@ -169,45 +169,45 @@ export function evaluateCibilOrFtb(
     const ok = criteria.firstTimeBorrowerAllowed === true;
     return {
       step,
-      ruleId: 'A1-FTB',
+      ruleId: 'PL-FTB',
       ruleName: 'First-time borrower',
       formula,
       branchUsed: 'FTB',
       applicantValue: true,
       threshold: { firstTimeBorrowerAllowed: criteria.firstTimeBorrowerAllowed },
       result: ok ? 'PASS' : 'FAIL',
-      errorCode: ok ? null : PlFail.A1_FTB,
+      errorCode: ok ? null : PlFail.FTB,
       reason: ok ? null : 'First-time borrower not allowed for this lender',
     };
   }
   const formula = 'applicantCibil >= minCibil';
   if (criteria.minCibil == null) {
-    return skip(step, 'A1-01-CIBIL', 'Min CIBIL', formula, { minCibil: null });
+    return skip(step, 'PL-CIBIL', 'Min CIBIL', formula, { minCibil: null });
   }
   if (profile.cibilScore == null) {
     return {
-      ...missingFail(step, 'A1-01-CIBIL', 'Min CIBIL', formula, { minCibil: criteria.minCibil }),
+      ...missingFail(step, 'PL-CIBIL', 'Min CIBIL', formula, { minCibil: criteria.minCibil }),
       branchUsed: 'CIBIL',
     };
   }
   const ok = profile.cibilScore >= criteria.minCibil;
   return {
     step,
-    ruleId: 'A1-01-CIBIL',
+    ruleId: 'PL-CIBIL',
     ruleName: 'Min CIBIL',
     formula,
     branchUsed: 'CIBIL',
     applicantValue: profile.cibilScore,
     threshold: { minCibil: criteria.minCibil },
     result: ok ? 'PASS' : 'FAIL',
-    errorCode: ok ? null : PlFail.A1_01_CIBIL,
+    errorCode: ok ? null : PlFail.CIBIL,
     reason: ok ? null : 'CIBIL below lender minimum',
   };
 }
 
 /**
  * Early gate (before Age): latest open-account payment month vs max_dpd_days_allowed.
- * FAIL when latestDpdDays > max_dpd_days_allowed (same inequality as A1-07/08).
+ * FAIL when latestDpdDays > max_dpd_days_allowed (same inequality as PL-DPD-3M / PL-DPD-12M).
  */
 export function evaluateLatestDpd(
   step: number,
@@ -219,7 +219,7 @@ export function evaluateLatestDpd(
   const allowed = criteria.maxDpdDaysAllowed;
 
   if (allowed == null) {
-    return skip(step, 'A1-DPD-LATEST', 'Latest open-account DPD', formula, {
+    return skip(step, 'PL-DPD-LATEST', 'Latest open-account DPD', formula, {
       maxDpdDaysAllowed: null,
     });
   }
@@ -227,7 +227,7 @@ export function evaluateLatestDpd(
   if (!latest) {
     return {
       step,
-      ruleId: 'A1-DPD-LATEST',
+      ruleId: 'PL-DPD-LATEST',
       ruleName: 'Latest open-account DPD',
       formula,
       applicantValue: { monthKey: null, latestDpdDays: null },
@@ -241,7 +241,7 @@ export function evaluateLatestDpd(
   const ok = latest.dpdDays <= Number(allowed);
   return {
     step,
-    ruleId: 'A1-DPD-LATEST',
+    ruleId: 'PL-DPD-LATEST',
     ruleName: 'Latest open-account DPD',
     formula,
     applicantValue: {
@@ -251,7 +251,7 @@ export function evaluateLatestDpd(
     },
     threshold: { maxDpdDaysAllowed: allowed },
     result: ok ? 'PASS' : 'FAIL',
-    errorCode: ok ? null : PlFail.A1_DPD_LATEST,
+    errorCode: ok ? null : PlFail.DPD_LATEST,
     reason: ok
       ? null
       : `Latest open-account DPD ${latest.dpdDays} days (${latest.monthKey}) exceeds max_dpd_days_allowed ${allowed}`,
@@ -265,10 +265,10 @@ export function evaluateAge(
 ): ConditionResult {
   const formula = 'minAge <= age <= maxAge';
   if (criteria.minAge == null && criteria.maxAge == null) {
-    return skip(step, 'A1-02-AGE', 'Age', formula, { minAge: null, maxAge: null });
+    return skip(step, 'PL-AGE', 'Age', formula, { minAge: null, maxAge: null });
   }
   if (profile.age == null) {
-    return missingFail(step, 'A1-02-AGE', 'Age', formula, {
+    return missingFail(step, 'PL-AGE', 'Age', formula, {
       minAge: criteria.minAge,
       maxAge: criteria.maxAge,
     });
@@ -278,13 +278,13 @@ export function evaluateAge(
   const ok = geMin && leMax;
   return {
     step,
-    ruleId: 'A1-02-AGE',
+    ruleId: 'PL-AGE',
     ruleName: 'Age',
     formula,
     applicantValue: profile.age,
     threshold: { minAge: criteria.minAge, maxAge: criteria.maxAge },
     result: ok ? 'PASS' : 'FAIL',
-    errorCode: ok ? null : PlFail.A1_02_AGE,
+    errorCode: ok ? null : PlFail.AGE,
     reason: ok ? null : 'Age outside lender band',
   };
 }
@@ -299,7 +299,7 @@ export function evaluateIncome(
   if (criteria.minMonthlyIncome == null) {
     return {
       step,
-      ruleId: 'A1-03-INCOME',
+      ruleId: 'PL-INCOME',
       ruleName,
       formula: 'SKIP -> min_monthly_income is null',
       applicantValue: {
@@ -316,7 +316,7 @@ export function evaluateIncome(
   }
 
   if (profile.netMonthlyIncome == null) {
-    return missingFail(step, 'A1-03-INCOME', ruleName, 'netSalary >= min_monthly_income', {
+    return missingFail(step, 'PL-INCOME', ruleName, 'netSalary >= min_monthly_income', {
       minMonthlyIncome: criteria.minMonthlyIncome,
     });
   }
@@ -339,7 +339,7 @@ export function evaluateIncome(
 
   return {
     step,
-    ruleId: 'A1-03-INCOME',
+    ruleId: 'PL-INCOME',
     ruleName,
     formula,
     applicantValue: {
@@ -350,7 +350,7 @@ export function evaluateIncome(
     },
     threshold: { minMonthlyIncome: criteria.minMonthlyIncome },
     result: ok ? 'PASS' : 'FAIL',
-    errorCode: ok ? null : PlFail.A1_03_INCOME,
+    errorCode: ok ? null : PlFail.INCOME,
     reason: ok ? null : 'Income below lender minimum',
   };
 }
@@ -362,13 +362,13 @@ export function evaluateLoanAmount(
 ): ConditionResult {
   const formula = 'minLoanAmount <= requestedAmount <= maxLoanAmount';
   if (criteria.minLoanAmount == null && criteria.maxLoanAmount == null) {
-    return skip(step, 'A1-13-AMOUNT', 'Loan amount', formula, {
+    return skip(step, 'PL-AMOUNT', 'Loan amount', formula, {
       minLoanAmount: null,
       maxLoanAmount: null,
     });
   }
   if (profile.requestedAmount == null) {
-    return missingFail(step, 'A1-13-AMOUNT', 'Loan amount', formula, {
+    return missingFail(step, 'PL-AMOUNT', 'Loan amount', formula, {
       minLoanAmount: criteria.minLoanAmount,
       maxLoanAmount: criteria.maxLoanAmount,
     });
@@ -380,13 +380,13 @@ export function evaluateLoanAmount(
   const ok = geMin && leMax;
   return {
     step,
-    ruleId: 'A1-13-AMOUNT',
+    ruleId: 'PL-AMOUNT',
     ruleName: 'Loan amount',
     formula,
     applicantValue: profile.requestedAmount,
     threshold: { minLoanAmount: criteria.minLoanAmount, maxLoanAmount: criteria.maxLoanAmount },
     result: ok ? 'PASS' : 'FAIL',
-    errorCode: ok ? null : PlFail.A1_13_AMOUNT,
+    errorCode: ok ? null : PlFail.AMOUNT,
     reason: ok ? null : 'Requested amount outside lender band',
   };
 }
@@ -398,18 +398,18 @@ export function evaluateFoir(
 ): ConditionResult {
   const formula = 'existingTotalEmi / netMonthlyIncome <= foir';
   if (criteria.foir == null) {
-    return skip(step, 'A1-15-FOIR', 'FOIR', formula, { foir: null });
+    return skip(step, 'PL-FOIR', 'FOIR', formula, { foir: null });
   }
   if (profile.netMonthlyIncome == null || profile.netMonthlyIncome <= 0) {
     return {
       step,
-      ruleId: 'A1-15-FOIR',
+      ruleId: 'PL-FOIR',
       ruleName: 'FOIR',
       formula,
       applicantValue: profile.netMonthlyIncome,
       threshold: { foir: criteria.foir },
       result: 'FAIL',
-      errorCode: PlFail.A1_15_FOIR,
+      errorCode: PlFail.FOIR,
       reason: 'Missing or zero net salary for FOIR',
     };
   }
@@ -417,7 +417,7 @@ export function evaluateFoir(
   const ok = foirApplicant <= Number(criteria.foir);
   return {
     step,
-    ruleId: 'A1-15-FOIR',
+    ruleId: 'PL-FOIR',
     ruleName: 'FOIR',
     formula,
     applicantValue: {
@@ -427,7 +427,7 @@ export function evaluateFoir(
     },
     threshold: { foir: criteria.foir },
     result: ok ? 'PASS' : 'FAIL',
-    errorCode: ok ? null : PlFail.A1_15_FOIR,
+    errorCode: ok ? null : PlFail.FOIR,
     reason: ok ? null : 'FOIR exceeds lender maximum',
   };
 }
@@ -519,7 +519,7 @@ export function evaluateDpd(
       },
       threshold: {
         maxDpdDaysAllowed: allowedDpd,
-        ...(ruleId === 'A1-07-DPD-3M'
+        ...(ruleId === 'PL-DPD-3M'
           ? { maxDpdCount3months: maxCount }
           : { maxDpdCount12months: maxCount }),
       },
@@ -533,46 +533,46 @@ export function evaluateDpd(
 
   pushCountRule(
     9,
-    'A1-07-DPD-3M',
+    'PL-DPD-3M',
     'DPD Last 3 Months',
-    PlFail.A1_07_DPD_3M,
+    PlFail.DPD_3M,
     'last 3 months',
     cut3Key,
     criteria.maxDpdCount3months
   );
   pushCountRule(
     10,
-    'A1-08-DPD-12M',
+    'PL-DPD-12M',
     'DPD Last 12 Months',
-    PlFail.A1_08_DPD_12M,
+    PlFail.DPD_12M,
     'last 12 months',
     cut12Key,
     criteria.maxDpdCount12months
   );
 
-  // A1-09: absolute max DPD days vs lender allowed days
+  // PL-DPD-DAYS: absolute max DPD days vs lender allowed days
   {
     const step = 11;
     const formula = 'maxDpdDays <= maxDpdDaysAllowed';
     const max = criteria.maxDpdDaysAllowed;
     if (max == null) {
-      results.push(skip(step, 'A1-09-DPD-DAYS', 'Max DPD days', formula, { max: null }));
+      results.push(skip(step, 'PL-DPD-DAYS', 'Max DPD days', formula, { max: null }));
     } else if (profile.maxDpdDays == null) {
       results.push(
-        missingFail(step, 'A1-09-DPD-DAYS', 'Max DPD days', formula, { max })
+        missingFail(step, 'PL-DPD-DAYS', 'Max DPD days', formula, { max })
       );
     } else {
       const ok = profile.maxDpdDays <= Number(max);
       results.push({
         step,
-        ruleId: 'A1-09-DPD-DAYS',
+        ruleId: 'PL-DPD-DAYS',
         ruleName: 'Max DPD days',
         formula,
         applicantValue: profile.maxDpdDays,
         threshold: { max },
         result: ok ? 'PASS' : 'FAIL',
-        errorCode: ok ? null : PlFail.A1_09_DPD_DAYS,
-        reason: ok ? null : 'A1-09-DPD-DAYS exceeded',
+        errorCode: ok ? null : PlFail.DPD_DAYS,
+        reason: ok ? null : 'PL-DPD-DAYS exceeded',
       });
     }
   }
@@ -592,13 +592,13 @@ export function evaluateCcu(
   const formula =
     'ccOutstanding / ccLimit <= maxCCUtilizationRatio (per CC: credit_limit - current_balance)';
   if (criteria.maxCCUtilizationRatio == null) {
-    return skip(step, 'A1-16-CC-UTIL', 'CCU', formula, { maxCCUtilizationRatio: null });
+    return skip(step, 'PL-CC-UTIL', 'CCU', formula, { maxCCUtilizationRatio: null });
   }
   // No credit-card accounts on file → skip CCU (cannot evaluate util)
   if (profile.ccLimit <= 0 && profile.ccOutstanding <= 0) {
     return {
       step,
-      ruleId: 'A1-16-CC-UTIL',
+      ruleId: 'PL-CC-UTIL',
       ruleName: 'CCU',
       formula,
       applicantValue: { ccOutstanding: 0, ccLimit: 0 },
@@ -611,13 +611,13 @@ export function evaluateCcu(
   if (profile.ccLimit <= 0) {
     return {
       step,
-      ruleId: 'A1-16-CC-UTIL',
+      ruleId: 'PL-CC-UTIL',
       ruleName: 'CCU',
       formula,
       applicantValue: { ccOutstanding: profile.ccOutstanding, ccLimit: profile.ccLimit },
       threshold: { maxCCUtilizationRatio: criteria.maxCCUtilizationRatio },
       result: 'FAIL',
-      errorCode: PlFail.A1_16_CC_UTIL,
+      errorCode: PlFail.CC_UTIL,
       reason: 'ccLimit <= 0',
     };
   }
@@ -630,13 +630,13 @@ export function evaluateCcu(
   };
   return {
     step,
-    ruleId: 'A1-16-CC-UTIL',
+    ruleId: 'PL-CC-UTIL',
     ruleName: 'CCU',
     formula,
     applicantValue,
     threshold: { maxCCUtilizationRatio: criteria.maxCCUtilizationRatio },
     result: ok ? 'PASS' : 'FAIL',
-    errorCode: ok ? null : PlFail.A1_16_CC_UTIL,
+    errorCode: ok ? null : PlFail.CC_UTIL,
     reason: ok ? null : 'CC utilization above lender maximum',
   };
 }
@@ -648,25 +648,25 @@ export function evaluateUnsecured(
 ): ConditionResult {
   const formula = 'activeUnsecured <= maxActiveUnsecuredAccount';
   if (criteria.maxActiveUnsecuredAccount == null) {
-    return skip(step, 'A1-UNSECURED', 'Active unsecured', formula, {
+    return skip(step, 'PL-UNSECURED', 'Active unsecured', formula, {
       maxActiveUnsecuredAccount: null,
     });
   }
   if (profile.activeUnsecured == null) {
-    return missingFail(step, 'A1-UNSECURED', 'Active unsecured', formula, {
+    return missingFail(step, 'PL-UNSECURED', 'Active unsecured', formula, {
       maxActiveUnsecuredAccount: criteria.maxActiveUnsecuredAccount,
     });
   }
   const ok = profile.activeUnsecured <= Number(criteria.maxActiveUnsecuredAccount);
   return {
     step,
-    ruleId: 'A1-UNSECURED',
+    ruleId: 'PL-UNSECURED',
     ruleName: 'Active unsecured',
     formula,
     applicantValue: profile.activeUnsecured,
     threshold: { maxActiveUnsecuredAccount: criteria.maxActiveUnsecuredAccount },
     result: ok ? 'PASS' : 'FAIL',
-    errorCode: ok ? null : PlFail.A1_UNSECURED,
+    errorCode: ok ? null : PlFail.UNSECURED,
     reason: ok ? null : 'Active unsecured accounts exceed maximum',
   };
 }
@@ -679,12 +679,12 @@ export function evaluateSalaryType(
   const formula = 'salaryMode ∈ acceptedSalaryTypes';
   const list = criteria.acceptedSalaryTypes;
   if (!list || !Array.isArray(list) || list.length === 0) {
-    return skip(step, 'A1-04-SALARY_TYPE', 'Accepted salary types', formula, {
+    return skip(step, 'PL-SALARY-TYPE', 'Accepted salary types', formula, {
       acceptedSalaryTypes: list,
     });
   }
   if (!profile.salaryMode) {
-    return missingFail(step, 'A1-04-SALARY_TYPE', 'Accepted salary types', formula, {
+    return missingFail(step, 'PL-SALARY-TYPE', 'Accepted salary types', formula, {
       acceptedSalaryTypes: list,
     });
   }
@@ -693,13 +693,13 @@ export function evaluateSalaryType(
   const ok = allowed.includes(mode);
   return {
     step,
-    ruleId: 'A1-04-SALARY_TYPE',
+    ruleId: 'PL-SALARY-TYPE',
     ruleName: 'Accepted salary types',
     formula,
     applicantValue: profile.salaryMode,
     threshold: { acceptedSalaryTypes: list },
     result: ok ? 'PASS' : 'FAIL',
-    errorCode: ok ? null : PlFail.A1_04_SALARY_TYPE,
+    errorCode: ok ? null : PlFail.SALARY_TYPE,
     reason: ok ? null : 'Salary mode not in accepted list',
   };
 }
@@ -714,7 +714,7 @@ export function evaluatePf(
   if (!criteria.pfRequired) {
     return {
       step,
-      ruleId: 'A1-05-PF',
+      ruleId: 'PL-PF',
       ruleName,
       formula: 'pf_required = false → SKIP',
       applicantValue: profile.pfDeducted,
@@ -728,7 +728,7 @@ export function evaluatePf(
   if (profile.pfDeducted === true) {
     return {
       step,
-      ruleId: 'A1-05-PF',
+      ruleId: 'PL-PF',
       ruleName,
       formula: 'pf_required = true && pfDeducted = true → PASS',
       applicantValue: true,
@@ -746,13 +746,13 @@ export function evaluatePf(
 
   return {
     step,
-    ruleId: 'A1-05-PF',
+    ruleId: 'PL-PF',
     ruleName,
     formula: 'pf_required = true && pfDeducted = false → FAIL',
     applicantValue: profile.pfDeducted ?? null,
     threshold: { pfRequired: true },
     result: 'FAIL',
-    errorCode: PlFail.A1_05_PF,
+    errorCode: PlFail.PF,
     reason,
   };
 }
@@ -764,25 +764,25 @@ export function evaluateEmployment(
 ): ConditionResult {
   const formula = 'employmentMonths >= minEmploymentMonths';
   if (criteria.minEmploymentMonths == null) {
-    return skip(step, 'A1-06-EMPLOYMENT', 'Min employment months', formula, {
+    return skip(step, 'PL-EMPLOYMENT', 'Min employment months', formula, {
       minEmploymentMonths: null,
     });
   }
   if (profile.employmentMonths == null) {
-    return missingFail(step, 'A1-06-EMPLOYMENT', 'Min employment months', formula, {
+    return missingFail(step, 'PL-EMPLOYMENT', 'Min employment months', formula, {
       minEmploymentMonths: criteria.minEmploymentMonths,
     });
   }
   const ok = profile.employmentMonths >= Number(criteria.minEmploymentMonths);
   return {
     step,
-    ruleId: 'A1-06-EMPLOYMENT',
+    ruleId: 'PL-EMPLOYMENT',
     ruleName: 'Min employment months',
     formula,
     applicantValue: profile.employmentMonths,
     threshold: { minEmploymentMonths: criteria.minEmploymentMonths },
     result: ok ? 'PASS' : 'FAIL',
-    errorCode: ok ? null : PlFail.A1_06_EMPLOYMENT,
+    errorCode: ok ? null : PlFail.EMPLOYMENT,
     reason: ok ? null : 'Employment tenure below minimum',
   };
 }
@@ -807,19 +807,19 @@ export function evaluateEnquiryExclude(
   if (hit) {
     return {
       step,
-      ruleId: 'A1-ENQ-EXCLUDE',
+      ruleId: 'PL-ENQ-EXCLUDE',
       ruleName: 'Enquiry already with lender',
       formula,
       applicantValue: hit,
       threshold: { lenderName: catalog.lenderName, lenderCode: catalog.lenderCode },
       result: 'FAIL',
-      errorCode: PlFail.A1_ENQ_EXCLUDE,
+      errorCode: PlFail.ENQ_EXCLUDE,
       reason: `Enquiry with lender in last 3 months (matched: ${hit})`,
     };
   }
   return {
     step,
-    ruleId: 'A1-ENQ-EXCLUDE',
+    ruleId: 'PL-ENQ-EXCLUDE',
     ruleName: 'Enquiry already with lender',
     formula,
     applicantValue: profile.enquiryMembers,
@@ -838,18 +838,18 @@ export function evaluateEnquiryCounts(
     const step = 18;
     const formula = 'enquiries1m <= maxEnquiries1month';
     if (criteria.maxEnquiries1month == null) {
-      return skip(step, 'A1-11-ENQ-1M', 'Enquiries 1m', formula, { maxEnquiries1month: null });
+      return skip(step, 'PL-ENQ-1M', 'Enquiries 1m', formula, { maxEnquiries1month: null });
     }
     const ok = profile.enquiries1m <= Number(criteria.maxEnquiries1month);
     return {
       step,
-      ruleId: 'A1-11-ENQ-1M',
+      ruleId: 'PL-ENQ-1M',
       ruleName: 'Enquiries 1m',
       formula,
       applicantValue: profile.enquiries1m,
       threshold: { maxEnquiries1month: criteria.maxEnquiries1month },
       result: (ok ? 'PASS' : 'FAIL') as ConditionResult['result'],
-      errorCode: ok ? null : PlFail.A1_11_ENQ_1M,
+      errorCode: ok ? null : PlFail.ENQ_1M,
       reason: ok ? null : 'Too many enquiries in 1 month',
     };
   })();
@@ -857,18 +857,18 @@ export function evaluateEnquiryCounts(
     const step = 19;
     const formula = 'enquiries3m <= maxEnquiries3months';
     if (criteria.maxEnquiries3months == null) {
-      return skip(step, 'A1-12-ENQ-3M', 'Enquiries 3m', formula, { maxEnquiries3months: null });
+      return skip(step, 'PL-ENQ-3M', 'Enquiries 3m', formula, { maxEnquiries3months: null });
     }
     const ok = profile.enquiries3m <= Number(criteria.maxEnquiries3months);
     return {
       step,
-      ruleId: 'A1-12-ENQ-3M',
+      ruleId: 'PL-ENQ-3M',
       ruleName: 'Enquiries 3m',
       formula,
       applicantValue: profile.enquiries3m,
       threshold: { maxEnquiries3months: criteria.maxEnquiries3months },
       result: (ok ? 'PASS' : 'FAIL') as ConditionResult['result'],
-      errorCode: ok ? null : PlFail.A1_12_ENQ_3M,
+      errorCode: ok ? null : PlFail.ENQ_3M,
       reason: ok ? null : 'Too many enquiries in 3 months',
     };
   })();
