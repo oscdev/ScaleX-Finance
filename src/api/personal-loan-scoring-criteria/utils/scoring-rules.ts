@@ -22,6 +22,7 @@ function monthKeyFromDate(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
+/** Count account–month delay events (same as PL-DPD-3M); duplicate monthKeys across accounts each count. */
 export function countDpdViolations3m(
   paymentHistoryMonths: Array<{ monthKey: string; dpdDays: number }>,
   maxDpdDaysAllowed: number,
@@ -34,6 +35,7 @@ export function countDpdViolations3m(
   ).length;
 }
 
+/** Count account–month delay events (same as PL-DPD-12M); duplicate monthKeys across accounts each count. */
 export function countDpdViolations12m(
   paymentHistoryMonths: Array<{ monthKey: string; dpdDays: number }>,
   maxDpdDaysAllowed: number,

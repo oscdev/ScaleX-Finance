@@ -2,8 +2,11 @@ import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import {
+  bureauLogModule,
   isCodeLevelLoggingEnabled,
+  moduleLogBasename,
   moduleLogDir,
+  resolveLoanTypeHint,
 } from '../../../utils/code-file-logger';
 
 const PDF_EXTRACTOR_DIR = path.join(
@@ -190,17 +193,68 @@ export function getScriptPaths() {
   return { scriptDir, scriptPath };
 }
 
+async function resolveLoanTypeForBureau(
+  strapi: any,
+  opts: {
+    leadId: number;
+    loanApplicationId?: number;
+    loanType?: string | null;
+  }
+): Promise<string | null> {
+  const explicit = resolveLoanTypeHint(opts.loanType);
+  if (explicit) return explicit;
+  if (!strapi?.db?.query) return null;
+
+  try {
+    if (opts.loanApplicationId != null) {
+      const app = await strapi.db
+        .query('api::loan-application.loan-application')
+        .findOne({ where: { id: opts.loanApplicationId } });
+      const fromApp = resolveLoanTypeHint(app?.loanType);
+      if (fromApp) return fromApp;
+    }
+
+    const lead = await strapi.db
+      .query('api::lead.lead')
+      .findOne({ where: { id: opts.leadId } });
+    const fromLead = resolveLoanTypeHint(
+      lead?.selectedProduct,
+      lead?.loanType
+    );
+    if (fromLead) return fromLead;
+
+    const apps = await strapi.db
+      .query('api::loan-application.loan-application')
+      .findMany({
+        where: { leadId: opts.leadId },
+        orderBy: { id: 'desc' },
+        limit: 1,
+      });
+    return resolveLoanTypeHint(apps?.[0]?.loanType);
+  } catch {
+    return null;
+  }
+}
+
 export async function runPython(
   leadId: number,
   leadName: string,
   log: { info: (msg: string) => void; error: (msg: string) => void },
-  strapi?: any
+  strapi?: any,
+  opts?: { loanApplicationId?: number; loanType?: string | null }
 ): Promise<Record<string, unknown>> {
   const pythonExe = getPythonExe();
   const { scriptDir, scriptPath } = getScriptPaths();
 
   const codeLogsOn = await isCodeLevelLoggingEnabled(strapi);
-  const bureauLogDir = moduleLogDir('bureau-extraction');
+  const loanType = await resolveLoanTypeForBureau(strapi, {
+    leadId,
+    loanApplicationId: opts?.loanApplicationId,
+    loanType: opts?.loanType,
+  });
+  const bureauModule = bureauLogModule(loanType);
+  const bureauLogDir = moduleLogDir(bureauModule);
+  const bureauLogBasename = moduleLogBasename(bureauModule);
 
   log.info(`[Python Bridge] ${pythonExe} ${scriptPath} ${leadId} "${leadName}"`);
 
@@ -214,6 +268,8 @@ export async function runPython(
           ...process.env,
           PYTHONPATH: scriptDir,
           SCALEX_LOG_DIR: bureauLogDir,
+          SCALEX_BUREAU_LOG_MODULE: bureauModule,
+          SCALEX_LOG_BASENAME: bureauLogBasename,
           SCALEX_CODE_LOGS: codeLogsOn ? '1' : '0',
           SCALEX_LOG_LEAD_ID: String(leadId),
           SCALEX_LOG_LEAD_NAME: leadName,

@@ -4,6 +4,16 @@
 export default {
   routes: [
     {
+      method: 'GET',
+      path: '/personal-loan-eligibility/loan-type',
+      handler: 'lenders-criteria-pl.loanType',
+      config: {
+        policies: [],
+        middlewares: [],
+        auth: false,
+      },
+    },
+    {
       method: 'POST',
       path: '/personal-loan-eligibility/matched-lenders',
       handler: 'lenders-criteria-pl.matchedLenders',

@@ -1,14 +1,13 @@
 import { factories } from '@strapi/strapi';
-import { PlEligibilityError } from '../utils/error-codes';
-import { BlEligibilityError } from '../../business-loan-eligibility/utils/error-codes';
+import { BlEligibilityError } from '../utils/error-codes';
+import { PlEligibilityError } from '../../personal-loan-eligibility/utils/error-codes';
 import {
   isBusinessLoanType,
-  loanLogProduct,
   resolveLeadLoanTypeFromDb,
 } from '../../../utils/code-file-logger';
 
 function sendError(ctx: any, err: unknown) {
-  if (err instanceof PlEligibilityError || err instanceof BlEligibilityError) {
+  if (err instanceof BlEligibilityError || err instanceof PlEligibilityError) {
     ctx.status = err.httpStatus;
     ctx.body = {
       error: {
@@ -20,6 +19,7 @@ function sendError(ctx: any, err: unknown) {
           ctx.query?.leadId ??
           null,
         details: err.details || {},
+        httpStatus: err.httpStatus,
       },
     };
     return;
@@ -28,27 +28,11 @@ function sendError(ctx: any, err: unknown) {
   ctx.status = 500;
   ctx.body = {
     error: {
-      code: 'PL_ERR_INTERNAL',
+      code: 'BL_ERR_INTERNAL',
       message,
       details: {},
+      httpStatus: 500,
     },
-  };
-}
-
-function formatBlMatchedBody(result: any, source: string) {
-  return {
-    leadId: result.leadId,
-    leadName: result.profile?.fullName ?? null,
-    loanType: result.loanType || 'Business Loan',
-    source,
-    runId: result.runId,
-    eligibleCount: result.response.eligible.length,
-    excludedCount: result.response.excluded.length,
-    lenders: result.response.eligible,
-    excluded: result.response.excluded,
-    validations: result.validations,
-    connectionFailures: result.connectionFailures,
-    logFile: result.logFile ?? null,
   };
 }
 
@@ -102,40 +86,9 @@ function formatPlMatchedBody(result: any) {
   };
 }
 
-/**
- * Attach custom match actions onto the existing criteria controller,
- * and also register a thin matched-lenders controller file for route handlers.
- */
 export default factories.createCoreController(
-  'api::personal-loan-eligibility.lenders-criteria-pl',
+  'api::business-loan-eligibility.lenders-criteria-bl',
   ({ strapi }) => ({
-    async loanType(ctx: any) {
-      try {
-        const leadId = Number(ctx.query.leadId ?? ctx.request?.body?.leadId);
-        if (!Number.isFinite(leadId)) {
-          ctx.status = 400;
-          ctx.body = {
-            error: {
-              code: 'PL_ERR_VALIDATION',
-              message: 'leadId is required',
-              details: {},
-            },
-          };
-          return;
-        }
-        const loanType =
-          (await resolveLeadLoanTypeFromDb(strapi, leadId)) || 'Personal Loan';
-        ctx.body = {
-          leadId,
-          loanType,
-          product: loanLogProduct(loanType),
-        };
-      } catch (err) {
-        strapi.log.error('[PL Eligibility loanType]', err);
-        sendError(ctx, err);
-      }
-    },
-
     async matchedLenders(ctx: any) {
       try {
         const body = ctx.request.body || {};
@@ -146,22 +99,39 @@ export default factories.createCoreController(
           (ctx.request.method === 'GET' ? 'lenders-page' : 'matched-lenders');
 
         const loanType = await resolveLeadLoanTypeFromDb(strapi, leadId);
-        if (isBusinessLoanType(loanType)) {
-          const blService = strapi.service(
-            'api::business-loan-eligibility.matching-engine'
+        // If we know the lead is Personal Loan, run PL engine (correct logs + scoring).
+        // Unknown / null → stay on BL path only when explicitly Business; otherwise if
+        // not business, delegate to PL (default product).
+        if (loanType != null && !isBusinessLoanType(loanType)) {
+          const plService = strapi.service(
+            'api::personal-loan-eligibility.matching-engine'
           ) as any;
-          const result = await blService.runMatch(leadId, { source });
-          ctx.body = formatBlMatchedBody(result, String(source));
+          const result = await plService.runMatch(leadId, { source });
+          ctx.body = formatPlMatchedBody(result);
           return;
         }
 
         const service = strapi.service(
-          'api::personal-loan-eligibility.matching-engine'
+          'api::business-loan-eligibility.matching-engine'
         ) as any;
         const result = await service.runMatch(leadId, { source });
-        ctx.body = formatPlMatchedBody(result);
+
+        ctx.body = {
+          leadId: result.leadId,
+          leadName: result.profile?.fullName ?? null,
+          loanType: result.loanType || 'Business Loan',
+          source: body.source || ctx.query.source || 'ai-match',
+          runId: result.runId,
+          eligibleCount: result.response.eligible.length,
+          excludedCount: result.response.excluded.length,
+          lenders: result.response.eligible,
+          excluded: result.response.excluded,
+          validations: result.validations,
+          connectionFailures: result.connectionFailures,
+          logFile: result.logFile ?? null,
+        };
       } catch (err) {
-        strapi.log.error('[PL Eligibility matchedLenders]', err);
+        strapi.log.error('[BL Eligibility matchedLenders]', err);
         sendError(ctx, err);
       }
     },
@@ -173,54 +143,55 @@ export default factories.createCoreController(
           ctx.status = 400;
           ctx.body = {
             error: {
-              code: 'PL_ERR_VALIDATION',
+              code: 'BL_ERR_VALIDATION',
               message: 'lenderCode is required',
               details: {},
+              httpStatus: 400,
             },
           };
           return;
         }
         const id = Number(leadId);
         const loanType = await resolveLeadLoanTypeFromDb(strapi, id);
-        if (isBusinessLoanType(loanType)) {
-          const blService = strapi.service(
-            'api::business-loan-eligibility.matching-engine'
+        if (loanType != null && !isBusinessLoanType(loanType)) {
+          const plService = strapi.service(
+            'api::personal-loan-eligibility.matching-engine'
           ) as any;
-          const result = await blService.evaluateOne(id, String(lenderCode));
+          const result = await plService.evaluateOne(id, String(lenderCode));
           const one = result.lenders[0] || null;
           ctx.body = {
             leadId: result.leadId,
             runId: result.runId,
-            loanType: result.loanType || 'Business Loan',
+            loanType: 'Personal Loan',
             lenderCode,
             eligible: one?.eligible ?? false,
             rules: one?.conditions || [],
             passed: one?.passed || [],
             failed: one?.failed || [],
             connectionFailures: result.connectionFailures,
-            logFile: result.logFile ?? null,
           };
           return;
         }
 
         const service = strapi.service(
-          'api::personal-loan-eligibility.matching-engine'
+          'api::business-loan-eligibility.matching-engine'
         ) as any;
         const result = await service.evaluateOne(id, String(lenderCode));
         const one = result.lenders[0] || null;
         ctx.body = {
           leadId: result.leadId,
           runId: result.runId,
-          loanType: 'Personal Loan',
+          loanType: result.loanType || 'Business Loan',
           lenderCode,
           eligible: one?.eligible ?? false,
           rules: one?.conditions || [],
           passed: one?.passed || [],
           failed: one?.failed || [],
           connectionFailures: result.connectionFailures,
+          logFile: result.logFile ?? null,
         };
       } catch (err) {
-        strapi.log.error('[PL Eligibility evaluate]', err);
+        strapi.log.error('[BL Eligibility evaluate]', err);
         sendError(ctx, err);
       }
     },

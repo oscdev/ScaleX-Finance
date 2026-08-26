@@ -142,25 +142,22 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 |---|---|---|
 | `personal-loan-eligibility` | Strapi API module for ON/OFF lender matching (19-step engine) | Module path `src/api/personal-loan-eligibility/`; see [docs/Personal-Loan-Eligibility.md](docs/Personal-Loan-Eligibility.md) |
 | `lenders-criteria-pl` | Per-lender PL eligibility thresholds | UID: `api::personal-loan-eligibility.lenders-criteria-pl`; table `lenders_criteria_pl`; REST `/api/lenders-criteria-pls`; soft-links via `lenderCode`; hidden from Content Manager |
-| Match APIs | Run eligibility + scoring for a lead | `GET/POST /api/personal-loan-eligibility/matched-lenders?leadId=`; `POST /api/personal-loan-eligibility/evaluate`; compact text audit under `logs/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`; pipeline `ELIGIBILITY → SCORING → RANK`; Admin **AI Match** → `/lenders?leadId=` shows lenders with `score >= 40` only |
+| Match APIs | Run eligibility + scoring for a lead | `GET /api/personal-loan-eligibility/loan-type?leadId=` (DB product resolve for AI Match); `GET/POST /api/personal-loan-eligibility/matched-lenders?leadId=` (auto-routes Business Loan → BL engine); `POST /api/personal-loan-eligibility/evaluate`; compact text audit under `logs/personal-loan/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`; pipeline `ELIGIBILITY → SCORING → RANK`; Admin **AI Match** → `/lenders?leadId=` shows lenders with `score >= 40` only |
 | Step 3 (`PL-CIBIL` / `PL-FTB`) | CIBIL or first-time borrower | FTB when `cibil_score` ∈ `{−1, 0, 1}` or no open accounts → `PL-FTB`; else `PL-CIBIL` (`score >= min_cibil`) |
 | Step 4 (`PL-DPD-LATEST`) | Latest open-account DPD | `latestDpdDays <= max_dpd_days_allowed`; SKIP if threshold null or no history; activity `PL_ELIGIBILITY_RULE` / `_SKIP` + file `logStep` |
 | Step 6 (`PL-INCOME`) | Minimum Monthly Income | Uses `netSalary + otherIncomeAmount` when `hasOtherIncome` is true; otherwise `netSalary` vs `min_monthly_income`; SKIP when threshold null |
-| Step 9–10 (`PL-DPD-3M` / `PL-DPD-12M`) | DPD Last 3m / 12m | Per lender: count unique months where payment-history DPD days > `max_dpd_days_allowed`, then compare to `max_dpd_count_*months` |
+| Step 9–10 (`PL-DPD-3M` / `PL-DPD-12M`) | DPD Last 3m / 12m | Per lender: count **account–month delay events** where payment-history `dpdDays > max_dpd_days_allowed` (same month on two accounts = 2), then compare to `max_dpd_count_*months` |
 | Step 15 (`PL-PF`) | PF Deducted rule | Compares `form_data.incomeDetails.pfDeducted` vs `lenders_criteria_pl.pf_required`; SKIP when PF not required, FAIL when required but not true |
 
-### Business Loan Eligibility (schema / seed docs only)
+### Business Loan Eligibility
 
-| Item | Purpose | Notes |
+| Collection / module | Purpose | Key fields / notes |
 |---|---|---|
-| `lenders_criteria_bl` | Planned per-lender BL eligibility thresholds table | Soft-link via `lender_code` → `lenders_catalog`; Strapi module / matching engine **not** implemented yet |
-| Schema doc | Column → SQL types, constraints, indexes, relationships | [`docs/business-loan/business-loan-eligibility/Database-Schema.md`](docs/business-loan/business-loan-eligibility/Database-Schema.md) |
-| Eligibility rules | 20-step ON/OFF contract (AI Match; docs only; includes loan amount band) | [`docs/business-loan/business-loan-eligibility/eligibility_rules.md`](docs/business-loan/business-loan-eligibility/eligibility_rules.md) |
-| Business rules + data contract | ON/OFF BRs, field map, per-rule JSON with `BL_FAIL_*` | [`docs/business-loan/business-loan-eligibility/Business-Rules-Data-Contract.md`](docs/business-loan/business-loan-eligibility/Business-Rules-Data-Contract.md) |
-| API references | Planned criteria CRUD + `matched-lenders` / `evaluate` (ON/OFF only) | [`docs/business-loan/business-loan-eligibility/API-References.md`](docs/business-loan/business-loan-eligibility/API-References.md) |
-| Validation + logging | Match-run validation, `BL_ERR_*` / `BL_FAIL_*`, AI Match file audit | [`docs/business-loan/business-loan-eligibility/Validation-Rules.md`](docs/business-loan/business-loan-eligibility/Validation-Rules.md); planned log `logs/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log` |
-| Seed doc | 44 lender criteria rows (exact entity phrases; turnover/loan amounts in ₹) | [`docs/business-loan/business-loan-eligibility/Seed-Data.md`](docs/business-loan/business-loan-eligibility/Seed-Data.md) |
-| Seed SQL | `INSERT` for `lenders_criteria_bl` | [`database/lenders-criteria-bl.sql`](database/lenders-criteria-bl.sql) — run via `psql` after the table exists |
+| `business-loan-eligibility` | Strapi API module for ON/OFF BL lender matching (20-step engine) | Module path `src/api/business-loan-eligibility/`; APIs `GET/POST /api/business-loan-eligibility/matched-lenders`, `POST /api/business-loan-eligibility/evaluate`, CRUD `/api/lenders-criteria-bls`; see [docs/business-loan/business-loan-eligibility/](docs/business-loan/business-loan-eligibility/) |
+| `lenders-criteria-bl` | Per-lender BL eligibility thresholds | UID: `api::business-loan-eligibility.lenders-criteria-bl`; table `lenders_criteria_bl`; REST `/api/lenders-criteria-bls`; soft-links via `lenderCode`; hidden from Content Manager |
+| Match engine | 20 ON/OFF rules (no scoring handoff) | Order: ACTIVE → PINCODE → CIBIL\|FTB → CURRENT-OVERDUE → AGE → ENTITY → TURNOVER → VINTAGE → AMOUNT → FOIR → CC-UTIL → DPD-3M/12M/DAYS → UNSECURED → ENQ-EXCLUDE → ENQ-1M/3M → AUDITED → SETTLED-WO; blocks without loan app / bureau (`BL_ERR_*` 422); file audit `logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`; reserved scoring dir `logs/business-loan/bl-scoring/` (not implemented); activity `BL_ELIGIBILITY_*` |
+| Seed | 44 lender criteria rows | [`database/lenders-criteria-bl.sql`](database/lenders-criteria-bl.sql) — run via `psql` after Strapi creates the table |
+| Frontend AI Match | `/lenders?leadId=` | Business Loan → BL matched-lenders; Personal Loan → PL matched-lenders (+ scoring) |
 
 ### Personal Loan Scoring
 
@@ -171,7 +168,7 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 | Seed data | Import 11 PL criteria rows | `database/seed-data/lender-scoring-criteria.sql` — run via `psql` after Strapi creates the table |
 | Scoring APIs | Score / rank helpers | `POST /api/personal-loan-scoring-criteria/score`; `POST /api/personal-loan-scoring-criteria/rank`; orchestrated from `matched-lenders` after A.1 PASS |
 | Pipeline | Locked order | `ELIGIBILITY → SCORING → RANK`; 11 criteria (weights sum 100); `minDisplayScore = 40` for AI Match UI |
-| File audit | Per-lead scoring log | `logs/pl-scoring/<leadId>-<Name>_YYYY-MM-DD.log`; lender `summary.criterionScores` + `PL_SCORE_*` activity events |
+| File audit | Per-lead scoring log | `logs/personal-loan/pl-scoring/<leadId>-<Name>_YYYY-MM-DD.log`; lender `summary.criterionScores` + `PL_SCORE_*` activity events |
 | Rounding | Criterion + total | Round half-up to integer on each criterion `points`; `totalScore` = sum of rounded points before rank/display |
 
 ### Personal Loan / Lender Matching & Bureau Extraction
@@ -307,18 +304,22 @@ Admin **Global Setting** single type:
 | `codeLevelLoggingIsEnabled` | Code-level logs | Disk files under `logs/<module>/` (per-lead when lead known) |
 | `loggingRetentionDays` | Log retention (days) | Midnight cron deletes Activity Log rows **and** code-level files under `logs/` older than this (default 30) |
 
-File log convention (lead runs): `logs/<module>/<leadId>-<NameNoSpaces>_YYYY-MM-DD.log`  
-Example: `logs/pl-eligibility/125-TestDeveloper_2026-08-07.log`  
-System / no-lead fallback: `logs/<module>/<module>_YYYY-MM-DD.log`
+File log convention (lead runs): `logs/<product>/<module>/<leadId>-<NameNoSpaces>_YYYY-MM-DD.log`  
+Example: `logs/personal-loan/pl-eligibility/125-TestDeveloper_2026-08-07.log`  
+System / no-lead fallback: `logs/<product>/<module>/<basename>_YYYY-MM-DD.log` (basename only — nested module keys like `personal-loan/pl-eligibility` do not embed `/` in the filename).
 
-**Overwrite on rerun:** When a per-lead log file already exists for the same UTC day, each module **truncates it at the start of a new run** (via `resetModuleLeadLog` in [`code-file-logger.ts`](src/utils/code-file-logger.ts)) instead of appending. Applies to pl-eligibility, pl-scoring, bureau-extraction (re-extract), and pl-lead-submission on new lead submit (`LEAD_SUBMIT_*`); loan-app / validation lines append within the same submission journey.
+**Overwrite on rerun:** When a per-lead log file already exists for the same UTC day, each module **truncates it at the start of a new run** (via `resetModuleLeadLog` in [`code-file-logger.ts`](src/utils/code-file-logger.ts)) instead of appending. Applies to PL/BL eligibility, PL scoring, bureau extraction (re-extract), and lead submission on new lead submit (`LEAD_SUBMIT_*`); loan-app / validation lines append within the same submission journey.
 
 | Module | Path |
 |--------|------|
-| PL eligibility | `logs/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log` |
-| Bureau extraction (Python) | `logs/bureau-extraction/<leadId>-<Name>_YYYY-MM-DD.log` |
-| PL lead submission | `logs/pl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log` (Strapi lead create, loan-app create, client audit) |
-| PL scoring | `logs/pl-scoring/<leadId>-<Name>_YYYY-MM-DD.log` |
+| PL eligibility | `logs/personal-loan/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log` |
+| PL scoring | `logs/personal-loan/pl-scoring/<leadId>-<Name>_YYYY-MM-DD.log` |
+| PL lead submission | `logs/personal-loan/pl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log` (Strapi lead create, loan-app create, client audit) |
+| PL bureau extraction (Python) | `logs/personal-loan/pl-bureau-extraction/<leadId>-<Name>_YYYY-MM-DD.log` |
+| BL eligibility | `logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log` |
+| BL scoring | `logs/business-loan/bl-scoring/` (reserved convention — no BL scoring engine yet) |
+| BL lead submission | `logs/business-loan/bl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log` (same writer as PL; routed by `loanType` / `selectedProduct`) |
+| BL bureau extraction (Python) | `logs/business-loan/bl-bureau-extraction/<leadId>-<Name>_YYYY-MM-DD.log` |
 
 Shared helper: [`src/utils/code-file-logger.ts`](src/utils/code-file-logger.ts).  
 Submission audit helper: [`src/utils/pl-lead-submission-logger.ts`](src/utils/pl-lead-submission-logger.ts).
@@ -345,21 +346,22 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - **[src/api/](src/api/)** — All Strapi collections
 - **[frontend/src/app/](frontend/src/app/)** — All frontend routes and pages
 - **[src/api/activity-log/](src/api/activity-log/)** — Activity audit; `logEvent` promotes `leadId`/`leadName`/`category`/`correlationId`; admin **Activity Logs** (**Lead** \| **Users & Auth** \| **System**); shared `/admin` login → `LOGIN_*` with `roleKind`; coverage in [docs/Activity-Log.md](docs/Activity-Log.md) (most `PL_ELIGIBILITY_RULE*` file-only; `PL-DPD-LATEST` also writes DB `PL_ELIGIBILITY_RULE` / `_SKIP`)
-- **[src/api/lead/](src/api/lead/)** — Lead API; on create logs `LEAD_SUBMIT_SUCCESS` / `LEAD_SUBMIT_ERROR` to `logs/pl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log`; exposes `POST /api/pl-submission-audit/log` for client validation errors
+- **[src/api/lead/](src/api/lead/)** — Lead API; on create logs `LEAD_SUBMIT_SUCCESS` / `LEAD_SUBMIT_ERROR` to `logs/personal-loan/pl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log`; exposes `POST /api/pl-submission-audit/log` for client validation errors
 - **[docs/business-loan/business-loan-flow/business-loan-flow.md](docs/business-loan/business-loan-flow/business-loan-flow.md)** — Business Loan funnel steps, Business Details layout, documents UI, funnel-scoped `form_data` shape (turnover in Lakh; no unused sections), and database schema
 - **[docs/business-loan/business-loan-eligibility/Database-Schema.md](docs/business-loan/business-loan-eligibility/Database-Schema.md)** — Planned `lenders_criteria_bl` SQL column map; `min_annual_turnover` / loan amounts in ₹ (absolute)
-- **[docs/business-loan/business-loan-eligibility/eligibility_rules.md](docs/business-loan/business-loan-eligibility/eligibility_rules.md)** — Planned 20-step BL ON/OFF eligibility rules (AI Match; includes `BL-AMOUNT`; engine not coded)
+- **[src/api/business-loan-eligibility/](src/api/business-loan-eligibility/)** — BL eligibility thresholds + 20-step matching engine (`runBlEligibilityMatch`; file audit in `logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`)
+- **[docs/business-loan/business-loan-eligibility/eligibility_rules.md](docs/business-loan/business-loan-eligibility/eligibility_rules.md)** — 20-step BL ON/OFF eligibility rules (AI Match; includes `BL-AMOUNT`)
 - **[docs/business-loan/business-loan-eligibility/Business-Rules-Data-Contract.md](docs/business-loan/business-loan-eligibility/Business-Rules-Data-Contract.md)** — BL ON/OFF business rules + data contract (JSON)
-- **[docs/business-loan/business-loan-eligibility/API-References.md](docs/business-loan/business-loan-eligibility/API-References.md)** — Planned BL eligibility APIs (criteria CRUD, matched-lenders, evaluate)
-- **[docs/business-loan/business-loan-eligibility/Validation-Rules.md](docs/business-loan/business-loan-eligibility/Validation-Rules.md)** — BL match validation, `BL_ERR_*` / `BL_FAIL_*`, planned `logs/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`
+- **[docs/business-loan/business-loan-eligibility/API-References.md](docs/business-loan/business-loan-eligibility/API-References.md)** — BL eligibility APIs (criteria CRUD, matched-lenders, evaluate) — **Implemented**
+- **[docs/business-loan/business-loan-eligibility/Validation-Rules.md](docs/business-loan/business-loan-eligibility/Validation-Rules.md)** — BL match validation, `BL_ERR_*` / `BL_FAIL_*`, `logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`
 - **[docs/business-loan/business-loan-eligibility/Seed-Data.md](docs/business-loan/business-loan-eligibility/Seed-Data.md)** — Seed JSON for 44 BL lender criteria rows (`eligible_entity_types` full phrases)
 - **[frontend/src/app/loan-application/LoanApplicationForm.tsx](frontend/src/app/loan-application/LoanApplicationForm.tsx)** — `getSteps()` + submit; builds `form_data` only for steps in the selected funnel
 - **[frontend/src/app/loan-application/businessLoanConfig.ts](frontend/src/app/loan-application/businessLoanConfig.ts)** — BL reg-proof options, slugs, notes, `buildBusinessLoanDocFields`, turnover/age parsers
 - **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create logs `LOAN_APP_SUBMIT_*` to per-lead submission file, links uploads to Media Library `API Uploads/{leadId}-{name}/` and moves them to `public/uploads/api_uploads/{leadId}-{name}/`; Business Loan payloads validated via `utils/validate-business-loan.ts`
 - **[src/api/bureau-data-extraction/](src/api/bureau-data-extraction/)** — Bureau PDF extraction (`POST /api/cibil-report-summaries/extract`; reads `public/uploads/api_uploads/`)
 - **[src/api/lender-master/](src/api/lender-master/)** — Lender master registry + zip coverage (`lenders-catalog`, `zip-code`)
-- **[src/api/personal-loan-eligibility/](src/api/personal-loan-eligibility/)** — PL eligibility thresholds + 19-step matching engine (`matched-lenders` / `evaluate`; file audit in `logs/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`)
-- **[src/api/personal-loan-scoring-criteria/](src/api/personal-loan-scoring-criteria/)** — PL scoring catalog + weighted scoring/ranking (`score` / `rank`; file audit in `logs/pl-scoring/<leadId>-<Name>_YYYY-MM-DD.log`)
+- **[src/api/personal-loan-eligibility/](src/api/personal-loan-eligibility/)** — PL eligibility thresholds + 19-step matching engine (`matched-lenders` / `evaluate`; file audit in `logs/personal-loan/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`)
+- **[src/api/personal-loan-scoring-criteria/](src/api/personal-loan-scoring-criteria/)** — PL scoring catalog + weighted scoring/ranking (`score` / `rank`; file audit in `logs/personal-loan/pl-scoring/<leadId>-<Name>_YYYY-MM-DD.log`)
 - **[docs/personal-loan-scoring-criteria/](docs/personal-loan-scoring-criteria/)** — PL scoring criteria, formulas, seed data, API contracts
 - **[docs/Personal-Loan-Eligibility.md](docs/Personal-Loan-Eligibility.md)** — PL eligibility rules, logging, AI Match → `/lenders`
 - **[docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md)** — `.venv` setup and extraction runbook

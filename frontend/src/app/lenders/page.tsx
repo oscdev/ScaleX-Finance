@@ -16,20 +16,44 @@ function formatMatchScore(score: number): string {
     return String(Math.round(score));
 }
 
+async function resolveLeadProduct(leadId: string): Promise<string> {
+    try {
+        // Public Content API cannot read leads (no find permission). Use auth:false
+        // loan-type helper that resolves from DB (loan app loanType → lead.selectedProduct).
+        const res = await fetch(
+            strapiInternalApi(
+                `/api/personal-loan-eligibility/loan-type?leadId=${encodeURIComponent(leadId)}`
+            ),
+            { cache: 'no-store' }
+        );
+        const json = await res.json().catch(() => ({}));
+        if (res.ok && json?.loanType) return String(json.loanType);
+        return 'Personal Loan';
+    } catch {
+        return 'Personal Loan';
+    }
+}
+
+function matchApiPath(product: string): string {
+    return /business\s*loan/i.test(product)
+        ? '/api/business-loan-eligibility/matched-lenders'
+        : '/api/personal-loan-eligibility/matched-lenders';
+}
+
 async function getMatchedLenders(
     leadId: string,
     source?: string
 ): Promise<{
     lenders: MatchedLender[];
     error?: string;
+    product?: string;
 }> {
     try {
+        const product = await resolveLeadProduct(leadId);
         const qs = new URLSearchParams({ leadId });
         if (source) qs.set('source', source);
         const res = await fetch(
-            strapiInternalApi(
-                `/api/personal-loan-eligibility/matched-lenders?${qs.toString()}`
-            ),
+            strapiInternalApi(`${matchApiPath(product)}?${qs.toString()}`),
             {
                 cache: 'no-store',
                 method: 'GET',
@@ -39,10 +63,11 @@ async function getMatchedLenders(
         const json = await res.json().catch(() => ({}));
         if (!res.ok) {
             const msg = json?.error?.message || json?.error?.code || `Match failed (${res.status})`;
-            return { lenders: [], error: String(msg) };
+            return { lenders: [], error: String(msg), product };
         }
         const list = Array.isArray(json.lenders) ? json.lenders : [];
         return {
+            product,
             lenders: list.map((l: any, idx: number) => {
                 const name = l.lenderName || l.name || l.lenderCode || 'Lender';
                 return {

@@ -162,14 +162,14 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ruleId: 'PL-DPD-3M',
     ruleName: 'DPD Last 3 Months',
     condition:
-      'Months in last 3 months where DPD days > max_dpd_days_allowed must not exceed max_dpd_count_3months',
+      'Account–month delay events in last 3 months where dpdDays > max_dpd_days_allowed must not exceed max_dpd_count_3months (same month on two accounts = 2)',
     formula:
-      'dpdViolationCount3Months = count(last 3m where dpdDays > max_dpd_days_allowed); dpdViolationCount3Months <= max_dpd_count_3months',
+      'dpdViolationCount3Months = count(account–month events in last 3m where dpdDays > max_dpd_days_allowed); dpdViolationCount3Months <= max_dpd_count_3months',
     applicantSources: [
       {
         table: 'cibil_report_summary',
         column: 'cibil_data.open_accounts[].payment_history',
-        description: 'Per-month max DPD days across accounts',
+        description: 'Per open-account month cells (not collapsed across accounts)',
       },
     ],
     thresholdSources: [
@@ -182,14 +182,14 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ruleId: 'PL-DPD-12M',
     ruleName: 'DPD Last 12 Months',
     condition:
-      'Months in last 12 months where DPD days > max_dpd_days_allowed must not exceed max_dpd_count_12months',
+      'Account–month delay events in last 12 months where dpdDays > max_dpd_days_allowed must not exceed max_dpd_count_12months (same month on two accounts = 2)',
     formula:
-      'dpdViolationCount12Months = count(last 12m where dpdDays > max_dpd_days_allowed); dpdViolationCount12Months <= max_dpd_count_12months',
+      'dpdViolationCount12Months = count(account–month events in last 12m where dpdDays > max_dpd_days_allowed); dpdViolationCount12Months <= max_dpd_count_12months',
     applicantSources: [
       {
         table: 'cibil_report_summary',
         column: 'cibil_data.open_accounts[].payment_history',
-        description: 'Per-month max DPD days across accounts',
+        description: 'Per open-account month cells (not collapsed across accounts)',
       },
     ],
     thresholdSources: [

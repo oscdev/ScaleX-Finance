@@ -1,15 +1,18 @@
 import { randomUUID } from 'crypto';
+import path from 'path';
 import type { ConditionResult, LenderEvalResult } from './types';
 import { getRuleCatalog } from './rule-catalog';
 import {
   appendModuleLogIfEnabled,
   isCodeLevelLoggingEnabled,
   resetModuleLeadLog,
+  sanitizeLeadName,
+  utcDateStamp,
 } from '../../../utils/code-file-logger';
 
-const MODULE = 'personal-loan/pl-eligibility';
+const MODULE = 'business-loan/bl-eligibility';
 
-export type PlLogEvent =
+export type BlLogEvent =
   | 'RUN_START'
   | 'PROFILE_READY'
   | 'RUN_BLOCKED'
@@ -45,6 +48,16 @@ interface LenderBuffer {
 
 export function newRunId(): string {
   return randomUUID();
+}
+
+/** Relative path suggestion: logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log */
+export function getLogFilePath(
+  leadId: number | string,
+  leadName?: string | null,
+  d = new Date()
+): string {
+  const stem = `${leadId}-${sanitizeLeadName(leadName)}`;
+  return path.posix.join('logs', MODULE, `${stem}_${utcDateStamp(d)}.log`);
 }
 
 function fmtCols(fields: { table: string; column: string }[] | undefined): string[] {
@@ -149,7 +162,7 @@ function buildStepFailureSummary(lenders: LenderEvalResult[]): string {
 export interface EligibilityRunLogger {
   runId: string;
   leadId: number;
-  log(event: PlLogEvent, payload?: Record<string, unknown>): string;
+  log(event: BlLogEvent, payload?: Record<string, unknown>): string;
   beginLender(lenderCode: string, lenderName: string): void;
   logStep(lenderCode: string, _lenderName: string, condition: ConditionResult): string;
   logLenderExit(
@@ -203,8 +216,10 @@ export async function createEligibilityRunLogger(
       `source: ${runSource}`,
       `profile: ${JSON.stringify({
         pin: profile.applicantPin ?? null,
-        amount: profile.requestedAmount ?? null,
+        amount: profile.loanAmount ?? profile.requestedAmount ?? null,
+        loanType: profile.loanType ?? 'Business Loan',
         bureau: profile.hasBureau ?? false,
+        loanApp: profile.hasLoanApp ?? false,
         cibil: profile.cibilScore ?? null,
         ftb: profile.isFirstTimeBorrower ?? false,
       })}`,
@@ -312,43 +327,25 @@ export async function createEligibilityRunLogger(
   };
 }
 
-/** @deprecated Use createEligibilityRunLogger. */
-export async function appendEligibilityRunLog(
-  record: Record<string, unknown>,
-  strapi?: any
-): Promise<string> {
-  const enabled = await isCodeLevelLoggingEnabled(strapi);
-  const leadId = record.leadId as number | string | undefined;
-  const leadName = (record.leadName as string | undefined) ?? null;
-  return appendModuleLogIfEnabled(MODULE, JSON.stringify(record, null, 2), enabled, {
-    leadId,
-    leadName,
-  });
-}
-
-/** @deprecated */
-export function shapeConditionForLog(condition: ConditionResult) {
-  return shapeStep(condition);
-}
-
-export const PL_PIPELINE = [
-  'PL-PRE-ACTIVE',
-  'PL-PINCODE',
-  'PL-CIBIL|PL-FTB',
-  'PL-DPD-LATEST',
-  'PL-AGE',
-  'PL-INCOME',
-  'PL-AMOUNT',
-  'PL-FOIR',
-  'PL-DPD-3M',
-  'PL-DPD-12M',
-  'PL-DPD-DAYS',
-  'PL-CC-UTIL',
-  'PL-UNSECURED',
-  'PL-SALARY-TYPE',
-  'PL-PF',
-  'PL-EMPLOYMENT',
-  'PL-ENQ-EXCLUDE',
-  'PL-ENQ-1M',
-  'PL-ENQ-3M',
+export const BL_PIPELINE = [
+  'BL-PRE-ACTIVE',
+  'BL-PINCODE',
+  'BL-CIBIL|BL-FTB',
+  'BL-CURRENT-OVERDUE',
+  'BL-AGE',
+  'BL-ENTITY',
+  'BL-TURNOVER',
+  'BL-VINTAGE',
+  'BL-AMOUNT',
+  'BL-FOIR',
+  'BL-CC-UTIL',
+  'BL-DPD-3M',
+  'BL-DPD-12M',
+  'BL-DPD-DAYS',
+  'BL-UNSECURED',
+  'BL-ENQ-EXCLUDE',
+  'BL-ENQ-1M',
+  'BL-ENQ-3M',
+  'BL-AUDITED',
+  'BL-SETTLED-WO',
 ] as const;

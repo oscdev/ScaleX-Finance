@@ -1,6 +1,12 @@
-import { appendModuleLog, resetModuleLeadLog } from './code-file-logger';
+import {
+  appendModuleLog,
+  resetModuleLeadLog,
+  resolveLoanTypeHint,
+  submissionLogModule,
+} from './code-file-logger';
 
-export const PL_LEAD_SUBMISSION_MODULE = 'pl-lead-submission';
+/** @deprecated Prefer submissionLogModule(loanType) — default PL path. */
+export const PL_LEAD_SUBMISSION_MODULE = 'personal-loan/pl-lead-submission';
 
 export type PlSubmissionForm = 'lead' | 'loan-application';
 
@@ -137,6 +143,17 @@ export function sanitizeSubmissionFields(
   return out;
 }
 
+function loanTypeFromFields(
+  fields: Record<string, unknown> | null | undefined
+): string | null {
+  if (!fields || typeof fields !== 'object') return null;
+  return resolveLoanTypeHint(
+    fields.loanType as string | undefined,
+    fields.selectedProduct as string | undefined,
+    (fields as { product?: string }).product
+  );
+}
+
 export interface PlLeadSubmissionLogInput {
   leadId?: number | string | null;
   leadName?: string | null;
@@ -146,6 +163,8 @@ export interface PlLeadSubmissionLogInput {
   errors?: unknown;
   source?: string;
   loanApplicationId?: number | string | null;
+  /** Explicit loan type / product; else derived from fields (default PL). */
+  loanType?: string | null;
 }
 
 export async function appendPlLeadSubmissionLog(
@@ -153,6 +172,11 @@ export async function appendPlLeadSubmissionLog(
   input: PlLeadSubmissionLogInput
 ): Promise<void> {
   try {
+    const loanType = resolveLoanTypeHint(
+      input.loanType,
+      loanTypeFromFields(input.fields)
+    );
+    const moduleName = submissionLogModule(loanType);
     const line = JSON.stringify({
       timestamp: new Date().toISOString(),
       event: input.event,
@@ -169,12 +193,12 @@ export async function appendPlLeadSubmissionLog(
       input.event === 'LEAD_SUBMIT_SUCCESS' ||
       input.event === 'LEAD_SUBMIT_ERROR'
     ) {
-      resetModuleLeadLog(PL_LEAD_SUBMISSION_MODULE, leadCtx);
+      resetModuleLeadLog(moduleName, leadCtx);
     }
-    await appendModuleLog(PL_LEAD_SUBMISSION_MODULE, line, strapi, leadCtx);
+    await appendModuleLog(moduleName, line, strapi, leadCtx);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    strapi?.log?.warn?.(`[pl-lead-submission] Failed to write log: ${message}`);
+    strapi?.log?.warn?.(`[lead-submission] Failed to write log: ${message}`);
   }
 }
 

@@ -1,19 +1,5 @@
-import type { ApplicantProfile, ConnectionFailure } from './types';
-import { PlErr } from './error-codes';
-
-const JOB_STABILITY_MONTHS: Record<string, number> = {
-  'less than 6 months': 3,
-  '< 6 months': 3,
-  '6 months': 6,
-  '6 months - 1 year': 9,
-  '1 year': 12,
-  '1-2 years': 18,
-  '2 years': 24,
-  '2-3 years': 30,
-  '3 years': 36,
-  '3+ years': 42,
-  'more than 3 years': 48,
-};
+import type { BlApplicantProfile, ConnectionFailure, WriteOffAccount } from './types';
+import { BlErr } from './error-codes';
 
 function toNum(v: unknown): number | null {
   if (v == null || v === '') return null;
@@ -24,7 +10,6 @@ function toNum(v: unknown): number | null {
 function parseDob(raw: string | null | undefined): Date | null {
   if (!raw) return null;
   const s = String(raw).trim();
-  // dd/mm/yyyy
   const m1 = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/.exec(s);
   if (m1) {
     const d = new Date(Number(m1[3]), Number(m1[2]) - 1, Number(m1[1]));
@@ -41,18 +26,13 @@ function ageFromDob(dob: Date, asOf = new Date()): number {
   return age;
 }
 
-function mapJobStability(raw: string | null | undefined): number | null {
-  if (!raw) return null;
-  const key = String(raw).trim().toLowerCase();
-  if (JOB_STABILITY_MONTHS[key] != null) return JOB_STABILITY_MONTHS[key];
-  const n = toNum(raw.replace(/[^0-9.]/g, ''));
-  if (n == null) return null;
-  if (/year/i.test(raw)) return Math.round(n * 12);
-  return Math.round(n);
+function monthsBetween(from: Date, to: Date): number {
+  let months = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
+  if (to.getDate() < from.getDate()) months -= 1;
+  return months;
 }
 
 function parsePaymentMonth(token: string): Date | null {
-  // "MM/YYYY: value" or "MMM-YY"
   const m = /(\d{1,2})[\/\-](\d{4})/.exec(token);
   if (m) return new Date(Number(m[2]), Number(m[1]) - 1, 1);
   return null;
@@ -75,11 +55,10 @@ function dpdDaysFromValue(v: string): number {
   return 1;
 }
 
+/** One delay-event cell per (open account, calendar month); same month on two accounts = two events. */
 function derivePaymentHistoryMonths(openAccounts: any[], asOf = new Date()) {
   const cut12 = new Date(asOf.getFullYear(), asOf.getMonth() - 11, 1);
-  /** One delay-event cell per (open account, calendar month); same month on two accounts = two events. */
   const byAccountMonth = new Map<string, { monthKey: string; dpdDays: number }>();
-  /** Max DPD per calendar month across accounts — used for latestPaymentMonth / maxDpdDays. */
   const byMonth = new Map<string, number>();
 
   const accounts = openAccounts || [];
@@ -132,10 +111,13 @@ function derivePaymentHistoryMonths(openAccounts: any[], asOf = new Date()) {
 
 function parseEnquiryDate(raw: string | null | undefined): Date | null {
   if (!raw) return null;
-  return parseDob(raw) || (() => {
-    const d = new Date(raw);
-    return Number.isNaN(d.getTime()) ? null : d;
-  })();
+  return (
+    parseDob(raw) ||
+    (() => {
+      const d = new Date(raw);
+      return Number.isNaN(d.getTime()) ? null : d;
+    })()
+  );
 }
 
 function deriveEnquiries(enquiries: any[], asOf = new Date()) {
@@ -183,25 +165,62 @@ function deriveCcUtil(openAccounts: any[]) {
     if (!isCreditCard(type)) continue;
     const limit = toNum(a.credit_limit ?? a.creditLimit) || 0;
     const balance = toNum(a.current_balance ?? a.currentBalance) || 0;
-    const totalCreditCardUtilize = limit - balance;
-    ccOutstanding += totalCreditCardUtilize;
+    ccOutstanding += limit - balance;
     ccLimit += limit;
   }
   const ccUtil = ccLimit > 0 ? ccOutstanding / ccLimit : null;
   return { ccOutstanding, ccLimit, ccUtil };
 }
 
-export async function buildApplicantProfile(
+function truthyYes(raw: unknown): boolean | null {
+  if (raw == null || raw === '') return null;
+  if (typeof raw === 'boolean') return raw;
+  const s = String(raw).trim().toLowerCase();
+  if (s === 'yes' || s === 'true' || s === '1') return true;
+  if (s === 'no' || s === 'false' || s === '0') return false;
+  return Boolean(raw);
+}
+
+function deriveWriteOffAccounts(
+  openAccounts: any[],
+  applicationDate: Date | null
+): WriteOffAccount[] {
+  const asOf = applicationDate || new Date();
+  const out: WriteOffAccount[] = [];
+  for (const a of openAccounts || []) {
+    const total = toNum(a.written_off_amount_total ?? a.writtenOffAmountTotal);
+    const principal = toNum(a.written_off_amount_principal ?? a.writtenOffAmountPrincipal);
+    const hasWo =
+      (total != null && total > 0) || (principal != null && principal > 0);
+    if (!hasWo) continue;
+
+    const startRaw = a.payment_start_date ?? a.paymentStartDate ?? null;
+    const startDate = startRaw != null ? parseEnquiryDate(String(startRaw)) : null;
+    let monthsSinceStart: number | null = null;
+    if (startDate) {
+      monthsSinceStart = monthsBetween(startDate, asOf);
+    }
+
+    out.push({
+      paymentStartDate: startRaw != null ? String(startRaw) : null,
+      writtenOffAmount: (total != null && total > 0 ? total : principal) || 0,
+      monthsSinceStart,
+    });
+  }
+  return out;
+}
+
+export async function buildBlApplicantProfile(
   strapi: any,
   leadId: number,
   connectionFailures: ConnectionFailure[]
-): Promise<ApplicantProfile> {
+): Promise<BlApplicantProfile> {
   let lead: any = null;
   try {
     lead = await strapi.db.query('api::lead.lead').findOne({ where: { id: leadId } });
   } catch (err: any) {
     connectionFailures.push({
-      code: PlErr.CONN_LEAD,
+      code: BlErr.CONN_LEAD,
       target: 'api::lead.lead',
       reason: err?.message || String(err),
       step: 0,
@@ -210,7 +229,8 @@ export async function buildApplicantProfile(
   }
   if (!lead) {
     const e: any = new Error(`Lead ${leadId} not found`);
-    e.plCode = PlErr.LEAD_NOT_FOUND;
+    e.plCode = BlErr.LEAD_NOT_FOUND;
+    e.blCode = BlErr.LEAD_NOT_FOUND;
     e.httpStatus = 404;
     throw e;
   }
@@ -223,12 +243,14 @@ export async function buildApplicantProfile(
     });
   } catch (err: any) {
     connectionFailures.push({
-      code: PlErr.CONN_LOAN_APP,
+      code: BlErr.CONN_LOAN_APP,
       target: 'api::loan-application.loan-application',
       reason: err?.message || String(err),
       step: 0,
     });
   }
+
+  const hasLoanApp = !!loan;
 
   let summary: any = null;
   try {
@@ -237,7 +259,7 @@ export async function buildApplicantProfile(
       .findOne({ where: { leadId }, orderBy: { id: 'desc' } });
   } catch (err: any) {
     connectionFailures.push({
-      code: PlErr.CONN_BUREAU,
+      code: BlErr.CONN_BUREAU,
       target: 'api::bureau-data-extraction.cibil-report-summary',
       reason: err?.message || String(err),
       step: 0,
@@ -246,35 +268,47 @@ export async function buildApplicantProfile(
 
   const form = (loan?.form_data || loan?.formData || {}) as any;
   const personal = form.personalDetails || {};
-  const income = form.incomeDetails || {};
+  const business = form.businessDetails || {};
   const cibilData = (summary?.cibilData || summary?.cibil_data || {}) as any;
-  const salary = (summary?.salarySlipData || summary?.salary_slip_data || {}) as any;
 
   const openAccounts = cibilData.open_accounts || cibilData.openAccounts || [];
   const enquiries = cibilData.enquiries || [];
 
+  const applicationDateRaw = loan?.createdAt || loan?.created_at || null;
+  const applicationDate = applicationDateRaw ? new Date(applicationDateRaw) : null;
+  const asOf =
+    applicationDate && !Number.isNaN(applicationDate.getTime()) ? applicationDate : new Date();
+
   const dobRaw = personal.dob != null && String(personal.dob).trim() !== '' ? personal.dob : null;
   const dobDate = parseDob(dobRaw);
-  const age = dobDate ? ageFromDob(dobDate) : null;
+  const age = dobDate ? ageFromDob(dobDate, asOf) : null;
 
-  const netMonthlyIncome = toNum(income.netSalary);
+  const entityType =
+    business.type != null && String(business.type).trim() !== ''
+      ? String(business.type).trim()
+      : null;
+  const turnoverLakh = toNum(business.turnover);
+  const annualTurnoverInr =
+    turnoverLakh != null ? turnoverLakh * 100000 : null;
+  const businessVintageYears = toNum(business.age);
+  const auditedBooks = truthyYes(business.auditedBooks);
 
-  let hasOtherIncome: boolean | null = null;
-  if (income.hasOtherIncome != null) {
-    hasOtherIncome = Boolean(income.hasOtherIncome);
-  }
-  const otherIncomeAmount = toNum(income.otherIncomeAmount);
-
-  // FOIR: sum EMI from non–credit-card open accounts (CC → step 9 CC utilization)
   const existingTotalEmi = deriveFoirEmi(openAccounts);
-
   const requestedAmount = toNum(lead.requiredAmount ?? lead.required_amount);
   const loanAmount = toNum(loan?.loanAmount ?? loan?.loan_amount);
-  const tenureMonths = toNum(form.loanDetails?.tenureMonths) || toNum(form.tenureMonths) || 36;
+  const loanType =
+    loan?.loanType != null
+      ? String(loan.loanType)
+      : loan?.loan_type != null
+        ? String(loan.loan_type)
+        : lead.selectedProduct != null
+          ? String(lead.selectedProduct)
+          : null;
 
-  const dpd = derivePaymentHistoryMonths(openAccounts);
-  const enq = deriveEnquiries(enquiries);
+  const dpd = derivePaymentHistoryMonths(openAccounts, asOf);
+  const enq = deriveEnquiries(enquiries, asOf);
   const cc = deriveCcUtil(openAccounts);
+  const writeOffAccounts = deriveWriteOffAccounts(openAccounts, asOf);
 
   const cibilScore = toNum(cibilData.cibil_score ?? cibilData.cibilScore);
   const isFirstTimeBorrower =
@@ -284,29 +318,24 @@ export async function buildApplicantProfile(
     !Array.isArray(openAccounts) ||
     openAccounts.length === 0;
 
-  let pfDeducted: boolean | null = null;
-  if (income.pfDeducted != null) {
-    pfDeducted = Boolean(income.pfDeducted);
-  }
-
   return {
     leadId,
     fullName: lead.fullName != null ? String(lead.fullName).trim() : null,
     pinCode: lead.pinCode != null ? String(lead.pinCode).trim() : null,
     requestedAmount,
     loanAmount,
-    netMonthlyIncome,
-    hasOtherIncome,
-    otherIncomeAmount,
-    salaryMode: income.salaryMode != null ? String(income.salaryMode) : null,
-    employmentMonths: mapJobStability(income.jobStability),
+    loanType,
+    applicationDate: applicationDate && !Number.isNaN(applicationDate.getTime()) ? applicationDate : null,
+    entityType,
+    turnoverLakh,
+    annualTurnoverInr,
+    businessVintageYears,
+    auditedBooks,
     dob: dobRaw,
     age,
     cibilScore,
     isFirstTimeBorrower,
-    pfDeducted,
     existingTotalEmi,
-    tenureMonths,
     paymentHistoryMonths: dpd.paymentHistoryMonths,
     latestPaymentMonth: dpd.latestPaymentMonth,
     maxDpdDays: dpd.maxDpdDays,
@@ -319,6 +348,8 @@ export async function buildApplicantProfile(
     activeUnsecured: toNum(
       cibilData.active_unsecured_loan_count ?? cibilData.activeUnsecuredLoanCount
     ),
+    writeOffAccounts,
     hasBureau: !!summary,
+    hasLoanApp,
   };
 }

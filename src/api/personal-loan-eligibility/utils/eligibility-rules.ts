@@ -437,17 +437,18 @@ export function evaluateDpd(
   criteria: LenderCriteria
 ): ConditionResult[] {
   const results: ConditionResult[] = [];
-  const months = profile.paymentHistoryMonths || [];
+  // paymentHistoryMonths = account–month delay-event cells (not unique calendar months)
+  const events = profile.paymentHistoryMonths || [];
   const allowedDpd = criteria.maxDpdDaysAllowed;
   const asOf = new Date();
   const cut3Key = monthKeyFromDate(new Date(asOf.getFullYear(), asOf.getMonth() - 2, 1));
   const cut12Key = monthKeyFromDate(new Date(asOf.getFullYear(), asOf.getMonth() - 11, 1));
 
-  const monthsInWindow = (cutKey: string) =>
-    months.filter((m) => m.monthKey >= cutKey);
+  const eventsInWindow = (cutKey: string) =>
+    events.filter((m) => m.monthKey >= cutKey);
 
-  const countViolations = (windowMonths: Array<{ monthKey: string; dpdDays: number }>, allowed: number) =>
-    windowMonths.filter((m) => m.dpdDays > allowed).length;
+  const countViolations = (windowEvents: Array<{ monthKey: string; dpdDays: number }>, allowed: number) =>
+    windowEvents.filter((m) => m.dpdDays > allowed).length;
 
   const pushCountRule = (
     step: number,
@@ -458,8 +459,8 @@ export function evaluateDpd(
     cutKey: string,
     maxCount: number | null | undefined
   ) => {
-    const windowMonths = monthsInWindow(cutKey);
-    const paymentHistoryConsidered = windowMonths.map((m) => m.dpdDays);
+    const windowEvents = eventsInWindow(cutKey);
+    const paymentHistoryConsidered = windowEvents.map((m) => m.dpdDays);
 
     if (allowedDpd == null) {
       results.push({
@@ -499,12 +500,12 @@ export function evaluateDpd(
       return;
     }
 
-    const violations = countViolations(windowMonths, Number(allowedDpd));
+    const violations = countViolations(windowEvents, Number(allowedDpd));
     const ok = violations <= Number(maxCount);
     const compare = `${violations} <= ${maxCount}`;
     const formula = ok
-      ? `Allowed DPD = ${allowedDpd}; ${windowLabel} violations = ${violations}; ${compare} → PASS`
-      : `Allowed DPD = ${allowedDpd}; ${windowLabel} violations = ${violations}; ${compare} → FAIL`;
+      ? `Allowed DPD = ${allowedDpd}; ${windowLabel} delay events = ${violations}; ${compare} → PASS`
+      : `Allowed DPD = ${allowedDpd}; ${windowLabel} delay events = ${violations}; ${compare} → FAIL`;
 
     results.push({
       step,
@@ -527,7 +528,7 @@ export function evaluateDpd(
       errorCode: ok ? null : failCode,
       reason: ok
         ? null
-        : `DPD exceeded the lender threshold in ${violations} months during the ${windowLabel}. Allowed = ${maxCount} Actual = ${violations}`,
+        : `DPD exceeded the lender threshold in ${violations} account–month delay events during the ${windowLabel}. Allowed = ${maxCount} Actual = ${violations}`,
     });
   };
 

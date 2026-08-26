@@ -31,6 +31,7 @@ type ExtractionParams = {
   leadName: string;
   loanApplicationId?: number;
   dataSource?: DataSource;
+  loanType?: string | null;
 };
 
 export default factories.createCoreService(UID, ({ strapi }) => ({
@@ -85,8 +86,12 @@ export default factories.createCoreService(UID, ({ strapi }) => ({
     leadName,
     loanApplicationId,
     dataSource = 'PDF_EXTRACTION',
+    loanType,
   }: ExtractionParams) {
-    const extraction = await runPython(leadId, leadName, strapi.log, strapi);
+    const extraction = await runPython(leadId, leadName, strapi.log, strapi, {
+      loanApplicationId,
+      loanType,
+    });
     const { cibilData, salarySlipData } = await this.readExtractionOutputs();
     const database = await this.saveFromExtraction({
       leadId,
