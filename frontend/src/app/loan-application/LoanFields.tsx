@@ -129,7 +129,7 @@ export const BusinessDetailsFields = ({
                     <label className="form-label">{pageInfo.businessTypeLabel || 'Business Type'}<span className="required-star">*</span></label>
                     <select name="businessType" className="form-select" value={formData.businessType} onChange={handleChange}>
                         <option value="">Select Type</option>
-                        {(pageInfo.businessTypeOptions || 'Proprietorship, Partnership, Private Limited').split(',').map((opt: string) => (
+                        {(pageInfo.businessTypeOptions || 'Proprietorship, Partnership, Private Limited, Limited Liability Partnership, Hindu Undivided Family').split(',').map((opt: string) => (
                             <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
                         ))}
                     </select>
@@ -194,7 +194,7 @@ export const BusinessDetailsFields = ({
                         <label className="form-label">{pageInfo.businessTypeLabel || 'Business Type'}<span className="required-star">*</span></label>
                         <select name="businessType" className="form-select" value={formData.businessType} onChange={handleChange}>
                             <option value="">Select Type</option>
-                            {(pageInfo.businessTypeOptions || 'Proprietorship, Partnership, Private Limited').split(',').map((opt: string) => (
+                            {(pageInfo.businessTypeOptions || 'Proprietorship, Partnership, Private Limited, Limited Liability Partnership, Hindu Undivided Family').split(',').map((opt: string) => (
                                 <option key={opt.trim()} value={opt.trim()}>{opt.trim()}</option>
                             ))}
                         </select>

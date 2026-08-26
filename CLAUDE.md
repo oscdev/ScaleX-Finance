@@ -143,10 +143,24 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 | `personal-loan-eligibility` | Strapi API module for ON/OFF lender matching (19-step engine) | Module path `src/api/personal-loan-eligibility/`; see [docs/Personal-Loan-Eligibility.md](docs/Personal-Loan-Eligibility.md) |
 | `lenders-criteria-pl` | Per-lender PL eligibility thresholds | UID: `api::personal-loan-eligibility.lenders-criteria-pl`; table `lenders_criteria_pl`; REST `/api/lenders-criteria-pls`; soft-links via `lenderCode`; hidden from Content Manager |
 | Match APIs | Run eligibility + scoring for a lead | `GET/POST /api/personal-loan-eligibility/matched-lenders?leadId=`; `POST /api/personal-loan-eligibility/evaluate`; compact text audit under `logs/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`; pipeline `ELIGIBILITY → SCORING → RANK`; Admin **AI Match** → `/lenders?leadId=` shows lenders with `score >= 40` only |
-| Step 4 (`A1-DPD-LATEST`) | Latest open-account DPD | `latestDpdDays <= max_dpd_days_allowed`; SKIP if threshold null or no history; activity `PL_ELIGIBILITY_RULE` / `_SKIP` + file `logStep` |
-| Step 6 (`A1-03-INCOME`) | Minimum Monthly Income | Uses `netSalary + otherIncomeAmount` when `hasOtherIncome` is true; otherwise `netSalary` vs `min_monthly_income`; SKIP when threshold null |
-| Step 9–10 (`A1-07` / `A1-08`) | DPD Last 3m / 12m | Per lender: count unique months where payment-history DPD days > `max_dpd_days_allowed`, then compare to `max_dpd_count_*months` |
-| Step 15 (`A1-05-PF`) | PF Deducted rule | Compares `form_data.incomeDetails.pfDeducted` vs `lenders_criteria_pl.pf_required`; SKIP when PF not required, FAIL when required but not true |
+| Step 3 (`PL-CIBIL` / `PL-FTB`) | CIBIL or first-time borrower | FTB when `cibil_score` ∈ `{−1, 0, 1}` or no open accounts → `PL-FTB`; else `PL-CIBIL` (`score >= min_cibil`) |
+| Step 4 (`PL-DPD-LATEST`) | Latest open-account DPD | `latestDpdDays <= max_dpd_days_allowed`; SKIP if threshold null or no history; activity `PL_ELIGIBILITY_RULE` / `_SKIP` + file `logStep` |
+| Step 6 (`PL-INCOME`) | Minimum Monthly Income | Uses `netSalary + otherIncomeAmount` when `hasOtherIncome` is true; otherwise `netSalary` vs `min_monthly_income`; SKIP when threshold null |
+| Step 9–10 (`PL-DPD-3M` / `PL-DPD-12M`) | DPD Last 3m / 12m | Per lender: count unique months where payment-history DPD days > `max_dpd_days_allowed`, then compare to `max_dpd_count_*months` |
+| Step 15 (`PL-PF`) | PF Deducted rule | Compares `form_data.incomeDetails.pfDeducted` vs `lenders_criteria_pl.pf_required`; SKIP when PF not required, FAIL when required but not true |
+
+### Business Loan Eligibility (schema / seed docs only)
+
+| Item | Purpose | Notes |
+|---|---|---|
+| `lenders_criteria_bl` | Planned per-lender BL eligibility thresholds table | Soft-link via `lender_code` → `lenders_catalog`; Strapi module / matching engine **not** implemented yet |
+| Schema doc | Column → SQL types, constraints, indexes, relationships | [`docs/business-loan/business-loan-eligibility/Database-Schema.md`](docs/business-loan/business-loan-eligibility/Database-Schema.md) |
+| Eligibility rules | 20-step ON/OFF contract (AI Match; docs only; includes loan amount band) | [`docs/business-loan/business-loan-eligibility/eligibility_rules.md`](docs/business-loan/business-loan-eligibility/eligibility_rules.md) |
+| Business rules + data contract | ON/OFF BRs, field map, per-rule JSON with `BL_FAIL_*` | [`docs/business-loan/business-loan-eligibility/Business-Rules-Data-Contract.md`](docs/business-loan/business-loan-eligibility/Business-Rules-Data-Contract.md) |
+| API references | Planned criteria CRUD + `matched-lenders` / `evaluate` (ON/OFF only) | [`docs/business-loan/business-loan-eligibility/API-References.md`](docs/business-loan/business-loan-eligibility/API-References.md) |
+| Validation + logging | Match-run validation, `BL_ERR_*` / `BL_FAIL_*`, AI Match file audit | [`docs/business-loan/business-loan-eligibility/Validation-Rules.md`](docs/business-loan/business-loan-eligibility/Validation-Rules.md); planned log `logs/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log` |
+| Seed doc | 44 lender criteria rows (exact entity phrases; turnover/loan amounts in ₹) | [`docs/business-loan/business-loan-eligibility/Seed-Data.md`](docs/business-loan/business-loan-eligibility/Seed-Data.md) |
+| Seed SQL | `INSERT` for `lenders_criteria_bl` | [`database/lenders-criteria-bl.sql`](database/lenders-criteria-bl.sql) — run via `psql` after the table exists |
 
 ### Personal Loan Scoring
 
@@ -230,12 +244,12 @@ The platform has three distinct admin roles:
 1. Advisor shares referral link → customer submits **Lead** via `/lead-form`
 2. Advisor reviews lead in `/advisor-dashboard` → initiates **Loan Application**
 3. Customer completes loan application at `/loan-application` (multi-step form with document uploads)
-   - `form_data` on `loan_applications` stores **only sections for steps in the selected loan-type funnel** (from `getSteps(loanType, occupation)`). Unused steps are omitted — e.g. Business Loan has no `incomeDetails` / `propertyDetails`; Personal Loan has no `businessDetails` / `propertyDetails`. See [docs/business-loan/business-loan-flow.md](docs/business-loan/business-loan-flow.md) for the step → section map.
+   - `form_data` on `loan_applications` stores **only sections for steps in the selected loan-type funnel** (from `getSteps(loanType, occupation)`). Unused steps are omitted — e.g. Business Loan has no `incomeDetails` / `propertyDetails`; Personal Loan has no `businessDetails` / `propertyDetails`. See [docs/business-loan/business-loan-flow/business-loan-flow.md](docs/business-loan/business-loan-flow/business-loan-flow.md) for the step → section map.
    - Income step (`form_data.incomeDetails`) for Personal Loan, Home Loan (salaried), and LAP (salaried) includes: `companyName`, `designation`, `companyAddress`, `netSalary`, `salaryMode`, `jobStability` (months as numeric string), `pfDeducted` (boolean), `hasOtherIncome` (boolean), and when `hasOtherIncome` is true: `otherIncomeSource`, `otherIncomeAmount`
    - **Business Loan** funnel: Business → Personal → Residence → Other → Docs → Submit.
      - **Business Details:** numeric `turnover` in **Lakh**, `age` in years, multi-select `regProofs` (options include Shop Registration Certificate), Yes/No `auditedBooks`; layout pairs Business Type + Audited Books, and Registration Proof (left) + Address (right).
      - **Documents:** Aadhaar/PAN/CIBIL/Bank Statement/ITR years + `Business Type - {type}` (`proprietorshipDoc`) + conditional `auditedBooksDoc` + one upload per selected reg proof (`businessRegProofDoc` multiple); 3-col grid with equal note slots (empty amber boxes when no note); sequential `#` for visible docs only.
-     - See [docs/business-loan/business-loan-flow.md](docs/business-loan/business-loan-flow.md).
+     - See [docs/business-loan/business-loan-flow/business-loan-flow.md](docs/business-loan/business-loan-flow/business-loan-flow.md).
 4. Staff is assigned (`assignedStaffId`) to process the application
 5. Banker is assigned (`assignedBankerId`) for final review
 6. Remarks/conversation history tracked in `lead-remark` (separate fields per role type)
@@ -330,9 +344,15 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - **[frontend/src/lib/safeStorage.ts](frontend/src/lib/safeStorage.ts)** — SSR-safe localStorage/sessionStorage wrappers
 - **[src/api/](src/api/)** — All Strapi collections
 - **[frontend/src/app/](frontend/src/app/)** — All frontend routes and pages
-- **[src/api/activity-log/](src/api/activity-log/)** — Activity audit; `logEvent` promotes `leadId`/`leadName`/`category`/`correlationId`; admin **Activity Logs** (**Lead** \| **Users & Auth** \| **System**); shared `/admin` login → `LOGIN_*` with `roleKind`; coverage in [docs/Activity-Log.md](docs/Activity-Log.md) (most `PL_ELIGIBILITY_RULE*` file-only; `A1-DPD-LATEST` also writes DB `PL_ELIGIBILITY_RULE` / `_SKIP`)
+- **[src/api/activity-log/](src/api/activity-log/)** — Activity audit; `logEvent` promotes `leadId`/`leadName`/`category`/`correlationId`; admin **Activity Logs** (**Lead** \| **Users & Auth** \| **System**); shared `/admin` login → `LOGIN_*` with `roleKind`; coverage in [docs/Activity-Log.md](docs/Activity-Log.md) (most `PL_ELIGIBILITY_RULE*` file-only; `PL-DPD-LATEST` also writes DB `PL_ELIGIBILITY_RULE` / `_SKIP`)
 - **[src/api/lead/](src/api/lead/)** — Lead API; on create logs `LEAD_SUBMIT_SUCCESS` / `LEAD_SUBMIT_ERROR` to `logs/pl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log`; exposes `POST /api/pl-submission-audit/log` for client validation errors
-- **[docs/business-loan/business-loan-flow.md](docs/business-loan/business-loan-flow.md)** — Business Loan funnel steps, Business Details layout, documents UI, funnel-scoped `form_data` shape (turnover in Lakh; no unused sections), and database schema
+- **[docs/business-loan/business-loan-flow/business-loan-flow.md](docs/business-loan/business-loan-flow/business-loan-flow.md)** — Business Loan funnel steps, Business Details layout, documents UI, funnel-scoped `form_data` shape (turnover in Lakh; no unused sections), and database schema
+- **[docs/business-loan/business-loan-eligibility/Database-Schema.md](docs/business-loan/business-loan-eligibility/Database-Schema.md)** — Planned `lenders_criteria_bl` SQL column map; `min_annual_turnover` / loan amounts in ₹ (absolute)
+- **[docs/business-loan/business-loan-eligibility/eligibility_rules.md](docs/business-loan/business-loan-eligibility/eligibility_rules.md)** — Planned 20-step BL ON/OFF eligibility rules (AI Match; includes `BL-AMOUNT`; engine not coded)
+- **[docs/business-loan/business-loan-eligibility/Business-Rules-Data-Contract.md](docs/business-loan/business-loan-eligibility/Business-Rules-Data-Contract.md)** — BL ON/OFF business rules + data contract (JSON)
+- **[docs/business-loan/business-loan-eligibility/API-References.md](docs/business-loan/business-loan-eligibility/API-References.md)** — Planned BL eligibility APIs (criteria CRUD, matched-lenders, evaluate)
+- **[docs/business-loan/business-loan-eligibility/Validation-Rules.md](docs/business-loan/business-loan-eligibility/Validation-Rules.md)** — BL match validation, `BL_ERR_*` / `BL_FAIL_*`, planned `logs/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`
+- **[docs/business-loan/business-loan-eligibility/Seed-Data.md](docs/business-loan/business-loan-eligibility/Seed-Data.md)** — Seed JSON for 44 BL lender criteria rows (`eligible_entity_types` full phrases)
 - **[frontend/src/app/loan-application/LoanApplicationForm.tsx](frontend/src/app/loan-application/LoanApplicationForm.tsx)** — `getSteps()` + submit; builds `form_data` only for steps in the selected funnel
 - **[frontend/src/app/loan-application/businessLoanConfig.ts](frontend/src/app/loan-application/businessLoanConfig.ts)** — BL reg-proof options, slugs, notes, `buildBusinessLoanDocFields`, turnover/age parsers
 - **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create logs `LOAN_APP_SUBMIT_*` to per-lead submission file, links uploads to Media Library `API Uploads/{leadId}-{name}/` and moves them to `public/uploads/api_uploads/{leadId}-{name}/`; Business Loan payloads validated via `utils/validate-business-loan.ts`

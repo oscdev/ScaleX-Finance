@@ -1413,7 +1413,7 @@ export interface ApiLoanApplicationPageLoanApplicationPage
     businessTypeLabel: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Business Type'>;
     businessTypeOptions: Schema.Attribute.String &
-      Schema.Attribute.DefaultTo<'Proprietorship, Partnership, Private Limited'>;
+      Schema.Attribute.DefaultTo<'Proprietorship, Partnership, Private Limited, Limited Liability Partnership, Hindu Undivided Family'>;
     cityLabel: Schema.Attribute.String & Schema.Attribute.DefaultTo<'City'>;
     cityPlaceholder: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Enter city'>;

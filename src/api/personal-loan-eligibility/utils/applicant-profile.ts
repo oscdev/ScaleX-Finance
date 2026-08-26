@@ -260,11 +260,13 @@ export async function buildApplicantProfile(
   const enq = deriveEnquiries(enquiries);
   const cc = deriveCcUtil(openAccounts);
 
+  const cibilScore = toNum(cibilData.cibil_score ?? cibilData.cibilScore);
   const isFirstTimeBorrower =
+    cibilScore === -1 ||
+    cibilScore === 0 ||
+    cibilScore === 1 ||
     !Array.isArray(openAccounts) ||
-    openAccounts.length === 0 ||
-    (toNum(cibilData.active_unsecured_loan_count ?? cibilData.activeUnsecuredLoanCount) === 0 &&
-      openAccounts.length === 0);
+    openAccounts.length === 0;
 
   let pfDeducted: boolean | null = null;
   if (income.pfDeducted != null) {
@@ -284,7 +286,7 @@ export async function buildApplicantProfile(
     employmentMonths: mapJobStability(income.jobStability),
     dob: dobRaw,
     age,
-    cibilScore: toNum(cibilData.cibil_score ?? cibilData.cibilScore),
+    cibilScore,
     isFirstTimeBorrower,
     pfDeducted,
     existingTotalEmi,

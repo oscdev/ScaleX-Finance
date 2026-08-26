@@ -86,7 +86,7 @@ export interface ApplicantProfile {
   maxDpdDays: number | null;
   enquiries1m: number;
   enquiries3m: number;
-  /** Bureau enquiry member names within the last 3 months (for A1-ENQ-EXCLUDE). */
+  /** Bureau enquiry member names within the last 3 months (for PL-ENQ-EXCLUDE). */
   enquiryMembers: string[];
   ccOutstanding: number;
   ccLimit: number;
