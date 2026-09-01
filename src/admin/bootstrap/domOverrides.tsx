@@ -3,6 +3,7 @@ import { DesignSystemProvider } from '@strapi/design-system';
 import { LeadDetailDashboard } from '../LeadViewDashboard';
 import { LeadActivityTimeline } from '../LeadActivityTimeline';
 import { AdminNotifications } from '../AdminNotifications';
+import { LoanApplicationEditForm } from '../LoanForm/LoanApplicationEditForm';
 import { enforceDefaultListSettings } from '../LeadOverview/enforceListSettings';
 import { reactRoots, unmountAndRemove } from './overrides/reactRoots';
 import { getStrapiToken, getCommonHeaders } from './overrides/strapiToken';
@@ -208,6 +209,17 @@ const hideStrapiFrame = () => {
     });
 };
 
+/** Prevent hidden native CM fields from anchoring browser autofill on the custom overlay. */
+const disableNativeCmAutofill = () => {
+    const selector = `[${DASHBOARD_HIDDEN_ATTR}] input, [${DASHBOARD_HIDDEN_ATTR}] textarea, [${DASHBOARD_HIDDEN_ATTR}] select`;
+    document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(selector).forEach((el) => {
+        el.setAttribute('autocomplete', 'off');
+        el.setAttribute('aria-hidden', 'true');
+        el.tabIndex = -1;
+        el.disabled = true;
+    });
+};
+
 const showStrapiFrame = () => {
     document.querySelectorAll<HTMLElement>(`[${DASHBOARD_HIDDEN_ATTR}]`).forEach(showEl);
     // Restore sidebar column to normal flow
@@ -229,6 +241,13 @@ const showStrapiFrame = () => {
     }
 };
 
+const getLoanEditDocumentId = (): string | null => {
+    const match = window.location.pathname.match(/api::loan-application\.loan-application\/([^/?]+)/);
+    const id = match?.[1] || null;
+    if (!id || id === 'create') return null;
+    return id;
+};
+
 /** Tear down overlays that do not belong on the current route.
  *  Always runs at the start of initOverrides so SPA hops like Activity Log → Advisors
  *  cannot leave a sticky overlay. Skips unmount when the current path still needs that overlay
@@ -243,8 +262,14 @@ const clearCustomPageOverlays = () => {
 
     const isLoanPage = path.includes('api::loan-application.loan-application');
     const leadId = sessionStorage.getItem('currentLeadId');
-    const wantDashboard = isLoanPage && !!leadId;
+    const loanEditDocumentId = getLoanEditDocumentId();
+    const wantLoanEdit = !!loanEditDocumentId;
+    const wantDashboard = isLoanPage && !!leadId && !wantLoanEdit;
 
+    if (!wantLoanEdit) {
+        document.body.classList.remove('loan-edit-mode');
+        unmountAndRemove('custom-loan-edit-root');
+    }
     if (!wantTimeline) {
         document.body.classList.remove('activity-timeline-mode');
         unmountAndRemove('custom-activity-timeline-root');
@@ -253,13 +278,65 @@ const clearCustomPageOverlays = () => {
         document.body.classList.remove('dashboard-mode');
         unmountAndRemove('custom-dashboard-root');
     }
-    if (!wantTimeline && !wantDashboard) {
+    if (!wantTimeline && !wantDashboard && !wantLoanEdit) {
         showStrapiFrame();
+    }
+};
+
+const applyLoanApplicationEditOverride = () => {
+    const documentId = getLoanEditDocumentId();
+    if (!documentId) {
+        document.body.classList.remove('loan-edit-mode');
+        unmountAndRemove('custom-loan-edit-root');
+        return;
+    }
+
+    document.body.classList.add('loan-edit-mode');
+    hideStrapiFrame();
+    disableNativeCmAutofill();
+
+    let rootEl = document.getElementById('custom-loan-edit-root');
+    const currentId = rootEl?.getAttribute('data-document-id');
+    if (!rootEl || currentId !== documentId) {
+        if (rootEl) unmountAndRemove('custom-loan-edit-root');
+        rootEl = document.createElement('div');
+        rootEl.id = 'custom-loan-edit-root';
+        rootEl.setAttribute('data-document-id', documentId);
+        Object.assign(rootEl.style, {
+            position: 'fixed',
+            top: '0',
+            right: '0',
+            bottom: '0',
+            left: '300px',
+            background: '#f6f6f9',
+            zIndex: '999',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            display: 'block',
+            visibility: 'visible',
+            paddingBottom: '40px',
+        });
+        document.body.prepend(rootEl);
+        const root = createRoot(rootEl);
+        reactRoots.set('custom-loan-edit-root', root);
+        root.render(
+            <DesignSystemProvider>
+                <LoanApplicationEditForm documentId={documentId} />
+            </DesignSystemProvider>
+        );
     }
 };
 
 const applyLeadDashboardOverride = (_token: string) => {
     const isLoanPage = window.location.pathname.includes('api::loan-application.loan-application');
+    const loanEditDocumentId = getLoanEditDocumentId();
+
+    if (loanEditDocumentId) {
+        document.body.classList.remove('dashboard-mode');
+        unmountAndRemove('custom-dashboard-root');
+        applyLoanApplicationEditOverride();
+        return;
+    }
 
     if (isLoanPage && window.location.search) {
         const qsId = new URLSearchParams(window.location.search).get('id');
@@ -448,6 +525,7 @@ const initOverrides = () => {
         safe(() => applyAdminUsersListOverride(commonHeaders));
         // Re-enters dashboard-mode + mounts #custom-dashboard-root only when loan+leadId
         safe(() => applyLeadDashboardOverride(token));
+        safe(() => applyLoanApplicationEditOverride());
 
         safe(() => enforceDefaultListSettings());
 

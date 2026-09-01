@@ -16,6 +16,10 @@ import {
     parsePositiveInt,
     slugifyRegProof,
 } from './businessLoanConfig';
+import {
+    renameFileForDocumentField,
+    renameRegProofDocumentFile,
+} from '@/lib/documentFilenames';
 
 const getSteps = (loanType: string, occupation: string) => {
     const isSelfEmployed = occupation === 'Self Employed';
@@ -367,20 +371,24 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                 'itrYear1', 'itrYear2', 'itrYear3', 'auditedBooksDoc',
             ];
 
+            const uploadOne = async (uploadFile: File, label: string): Promise<number> => {
+                const uploadData = new FormData();
+                uploadData.append('files', uploadFile);
+                const res = await fetch(strapiPublicApi('/strapi-api/upload'), { method: 'POST', body: uploadData });
+                if (!res.ok) {
+                    const errBody = await res.text().catch(() => 'No body');
+                    console.error(`Upload failed for ${label} (${res.status}):`, errBody.substring(0, 500));
+                    throw new Error(`Upload failed for ${label} (${res.status}): ${res.statusText}`);
+                }
+                const data = await res.json();
+                return data[0].id;
+            };
+
             for (const field of filesToUpload) {
                 const file = (formData as any)[field];
                 if (file) {
-                    const uploadData = new FormData();
-                    uploadData.append('files', file);
-                    const res = await fetch(strapiPublicApi('/strapi-api/upload'), { method: 'POST', body: uploadData });
-                    if (res.ok) {
-                        const data = await res.json();
-                        uploadedFileIds[field] = data[0].id;
-                    } else {
-                        const errBody = await res.text().catch(() => 'No body');
-                        console.error(`Upload failed for ${field} (${res.status}):`, errBody.substring(0, 500));
-                        throw new Error(`Upload failed for ${field} (${res.status}): ${res.statusText}`);
-                    }
+                    const renamed = renameFileForDocumentField(file, field);
+                    uploadedFileIds[field] = await uploadOne(renamed, field);
                 }
             }
 
@@ -394,18 +402,10 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                         formData.businessRegProofFiles?.[key] ||
                         (formData as any)[key];
                     if (!file) continue;
-                    const uploadData = new FormData();
-                    uploadData.append('files', file);
-                    const res = await fetch(strapiPublicApi('/strapi-api/upload'), { method: 'POST', body: uploadData });
-                    if (res.ok) {
-                        const data = await res.json();
-                        regProofIds.push(data[0].id);
-                        regProofMeta.push({ proofType: proof, key });
-                    } else {
-                        const errBody = await res.text().catch(() => 'No body');
-                        console.error(`Upload failed for ${key} (${res.status}):`, errBody.substring(0, 500));
-                        throw new Error(`Upload failed for ${proof} (${res.status}): ${res.statusText}`);
-                    }
+                    const renamed = renameRegProofDocumentFile(proof, file);
+                    const id = await uploadOne(renamed, key);
+                    regProofIds.push(id);
+                    regProofMeta.push({ proofType: proof, key });
                 }
                 if (regProofIds.length > 0) {
                     uploadedFileIds.businessRegProofDoc = regProofIds;
@@ -413,30 +413,20 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
             } else {
                 const legacyReg = (formData as any).businessRegProofDoc;
                 if (legacyReg) {
-                    const uploadData = new FormData();
-                    uploadData.append('files', legacyReg);
-                    const res = await fetch(strapiPublicApi('/strapi-api/upload'), { method: 'POST', body: uploadData });
-                    if (res.ok) {
-                        const data = await res.json();
-                        uploadedFileIds.businessRegProofDoc = data[0].id;
-                    }
+                    const renamed = renameFileForDocumentField(legacyReg, 'businessRegProofDoc');
+                    uploadedFileIds.businessRegProofDoc = await uploadOne(renamed, 'businessRegProofDoc');
                 }
             }
 
             for (const field of ['salarySlips', 'otherDocs']) {
                 const files = (formData as any)[field];
                 if (files.length > 0) {
-                    const uploadData = new FormData();
-                    files.forEach((f: File) => uploadData.append('files', f));
-                    const res = await fetch(strapiPublicApi('/strapi-api/upload'), { method: 'POST', body: uploadData });
-                    if (res.ok) {
-                        const data = await res.json();
-                        uploadedFileIds[field] = data.map((f: any) => f.id);
-                    } else {
-                        const errBody = await res.text().catch(() => 'No body');
-                        console.error(`Upload failed for ${field} (${res.status}):`, errBody.substring(0, 500));
-                        throw new Error(`Upload failed for ${field} (${res.status}): ${res.statusText}`);
+                    const ids: number[] = [];
+                    for (let i = 0; i < files.length; i++) {
+                        const renamed = renameFileForDocumentField(files[i], field, i + 1);
+                        ids.push(await uploadOne(renamed, `${field}[${i}]`));
                     }
+                    uploadedFileIds[field] = ids;
                 }
             }
 

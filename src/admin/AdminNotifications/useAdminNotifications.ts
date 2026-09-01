@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { dedupeNotifications } from './dedupeNotifications';
 
 export const useAdminNotifications = () => {
     const [notifications, setNotifications] = useState<any[]>([]);
@@ -23,7 +24,7 @@ export const useAdminNotifications = () => {
             );
             if (res.ok) {
                 const data = await res.json();
-                const logs = data.data || [];
+                const logs = dedupeNotifications(data.data || []);
                 const lastSeenId = parseInt(localStorage.getItem('last_seen_notification_id') || '0');
                 const newUnreadCount = logs.filter((log: any) => log.id > lastSeenId).length;
                 setNotifications(logs);

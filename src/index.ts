@@ -241,6 +241,46 @@ export default {
       ctx.body = { data: advisors };
     });
 
+    router.post('/admin/api-uploads/reconcile', async (ctx: any) => {
+      if (!requireAuth(ctx)) return;
+      try {
+        const { reconcileApiUploads } = await import(
+          './api/loan-application/services/api-uploads-mirror/reconcile'
+        );
+        const summary = await reconcileApiUploads(strapi);
+        ctx.body = { data: summary };
+      } catch (e: any) {
+        ctx.status = 500;
+        ctx.body = { error: { message: e?.message || 'Reconcile failed' } };
+      }
+    });
+
+    router.get('/admin/api-uploads/lead-files', async (ctx: any) => {
+      if (!requireAuth(ctx)) return;
+      const leadId = ctx.query.leadId;
+      const applicantName = String(ctx.query.applicantName ?? '').trim();
+      if (!leadId || !applicantName) {
+        ctx.status = 400;
+        ctx.body = { error: { message: 'leadId and applicantName are required' } };
+        return;
+      }
+      try {
+        const { buildLeadUploadFolderName } = await import(
+          './api/loan-application/utils/lead-upload-folder'
+        );
+        const { reconcileLeadFolder, listLeadFolderMediaFiles } = await import(
+          './api/loan-application/services/api-uploads-mirror/reconcile'
+        );
+        const folderName = buildLeadUploadFolderName(leadId, applicantName);
+        const reconcileSummary = await reconcileLeadFolder(strapi, folderName);
+        const files = await listLeadFolderMediaFiles(strapi, folderName);
+        ctx.body = { data: { folderName, files, reconcileSummary } };
+      } catch (e: any) {
+        ctx.status = 500;
+        ctx.body = { error: { message: e?.message || 'Failed to list lead files' } };
+      }
+    });
+
     // Lead Activity Timeline aggregations (admin JWT — not Users & Permissions /api)
     router.get('/admin/activity-logs/by-lead', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
@@ -1411,7 +1451,11 @@ export default {
     };
 
     await repairSingleTypes();
-    // console.log('[Bootstrap] Initialization completed.');
+
+    const { bootstrapApiUploadsMirror } = await import(
+      './api/loan-application/services/api-uploads-mirror'
+    );
+    await bootstrapApiUploadsMirror(strapi);
 
     // console.log('[Bootstrap] Initialization completed.');
     // Force sync v2

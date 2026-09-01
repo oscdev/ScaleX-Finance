@@ -162,6 +162,110 @@ export function appendModuleLogIfEnabled(
   }
 }
 
+/** Upsert ADMIN_UPDATE entries into a single cumulative JSON line per lead log file. */
+export async function mergeAdminUpdateLogLine(
+  moduleName: string,
+  payload: {
+    timestamp: string;
+    leadId: number | string;
+    leadName?: string | null;
+    loanApplicationId?: number | string | null;
+    source?: string;
+    updates: Array<{
+      timestamp: string;
+      form: string;
+      field: string;
+      value: unknown;
+    }>;
+  },
+  strapi?: any,
+  lead?: LeadLogContext | null
+): Promise<string> {
+  try {
+    if (!(await isCodeLevelLoggingEnabled(strapi))) return '';
+    if (!payload.updates.length) return '';
+    ensureModuleLogDir(moduleName);
+    const file = resolveModuleLogPath(moduleName, lead);
+
+    const otherLines: string[] = [];
+    let existingUpdates: Array<{
+      timestamp: string;
+      form: string;
+      field: string;
+      value: unknown;
+    }> = [];
+
+    if (fs.existsSync(file)) {
+      const raw = fs.readFileSync(file, 'utf8');
+      for (const line of raw.split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        try {
+          const obj = JSON.parse(trimmed) as {
+            event?: string;
+            form?: string;
+            field?: string;
+            value?: unknown;
+            timestamp?: string;
+            updates?: Array<{
+              timestamp: string;
+              form: string;
+              field: string;
+              value: unknown;
+            }>;
+          };
+          if (obj.event === 'ADMIN_UPDATE') {
+            if (Array.isArray(obj.updates)) {
+              existingUpdates.push(...obj.updates);
+            } else if (obj.form && obj.field) {
+              existingUpdates.push({
+                timestamp: obj.timestamp ?? payload.timestamp,
+                form: obj.form,
+                field: obj.field,
+                value: obj.value,
+              });
+            }
+            continue;
+          }
+          otherLines.push(trimmed);
+        } catch {
+          // drop legacy plain-text admin lines
+        }
+      }
+    }
+
+    const byKey = new Map<string, (typeof payload.updates)[number]>();
+    for (const entry of existingUpdates) {
+      if (entry.form && entry.field) {
+        byKey.set(`${entry.form}|${entry.field}`, entry);
+      }
+    }
+    for (const entry of payload.updates) {
+      byKey.set(`${entry.form}|${entry.field}`, entry);
+    }
+
+    const mergedUpdates = [...byKey.values()].sort((a, b) =>
+      a.timestamp.localeCompare(b.timestamp)
+    );
+
+    const adminLine = JSON.stringify({
+      event: 'ADMIN_UPDATE',
+      timestamp: payload.timestamp,
+      leadId: payload.leadId,
+      leadName: payload.leadName ?? null,
+      loanApplicationId: payload.loanApplicationId ?? null,
+      source: payload.source ?? 'admin',
+      updates: mergedUpdates,
+    });
+
+    const merged = [...otherLines, adminLine];
+    fs.writeFileSync(file, `${merged.join('\n')}\n`, 'utf8');
+    return file;
+  } catch {
+    return '';
+  }
+}
+
 /**
  * Delete code-level log files under `logs/` whose mtime is older than retentionDays.
  * Walks all module subdirs; never removes directories.
@@ -237,6 +341,39 @@ export function resolveLoanTypeHint(
   return null;
 }
 
+/** Read a string field from a Strapi db.query row (camelCase or snake_case). */
+export function readDbString(
+  row: Record<string, unknown> | null | undefined,
+  camel: string,
+  snake?: string
+): string | null {
+  if (!row) return null;
+  const snakeKey = snake ?? camel.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`);
+  for (const key of [camel, snakeKey]) {
+    const v = row[key];
+    if (v != null && String(v).trim() !== '') return String(v).trim();
+  }
+  return null;
+}
+
+/** Loan type from a loan-application db row. */
+export function loanTypeFromLoanApp(
+  app?: Record<string, unknown> | null
+): string | null {
+  return resolveLoanTypeHint(readDbString(app, 'loanType', 'loan_type') ?? undefined);
+}
+
+/** Product / loan type from a lead db row. */
+export function loanTypeFromLead(
+  lead?: Record<string, unknown> | null
+): string | null {
+  return resolveLoanTypeHint(
+    readDbString(lead, 'selectedProduct', 'selected_product') ?? undefined,
+    readDbString(lead, 'loanType', 'loan_type') ?? undefined,
+    readDbString(lead, 'leadType', 'lead_type') ?? undefined
+  );
+}
+
 export function eligibilityLogModule(loanType?: string | null): string {
   return loanLogProduct(loanType) === 'business-loan'
     ? 'business-loan/bl-eligibility'
@@ -262,33 +399,71 @@ export function bureauLogModule(loanType?: string | null): string {
 }
 
 /**
- * Resolve loan type / product for a lead from DB (loan app preferred, then lead.selectedProduct).
- * Used when Content API lead.find is not public (AI Match / lenders page).
+ * Resolve loan type / product for a lead from DB.
+ * Precedence: explicit opt → lead.selectedProduct → loan-app loanType → default Personal Loan.
  */
 export async function resolveLeadLoanTypeFromDb(
   strapi: any,
-  leadId: number | string
-): Promise<string | null> {
+  leadId: number | string,
+  opts?: { loanApplicationId?: number; loanType?: string | null }
+): Promise<string> {
+  const explicit = resolveLoanTypeHint(opts?.loanType ?? undefined);
+  if (explicit) return explicit;
+
   const id = Number(leadId);
-  if (!Number.isFinite(id)) return null;
-  if (!strapi?.db?.query) return null;
+  if (!Number.isFinite(id)) return 'Personal Loan';
+  if (!strapi?.db?.query) return 'Personal Loan';
 
   try {
-    const apps = await strapi.db
-      .query('api::loan-application.loan-application')
-      .findMany({
-        where: { leadId: id },
-        orderBy: { id: 'desc' },
-        limit: 1,
-      });
-    const fromApp = resolveLoanTypeHint(apps?.[0]?.loanType);
-    if (fromApp) return fromApp;
-
     const lead = await strapi.db.query('api::lead.lead').findOne({
       where: { id },
     });
-    return resolveLoanTypeHint(lead?.selectedProduct, lead?.loanType);
+    const fromLead = loanTypeFromLead(lead);
+
+    let app: Record<string, unknown> | null = null;
+    if (opts?.loanApplicationId != null) {
+      app = await strapi.db
+        .query('api::loan-application.loan-application')
+        .findOne({ where: { id: opts.loanApplicationId } });
+    } else {
+      const apps = await strapi.db
+        .query('api::loan-application.loan-application')
+        .findMany({
+          where: { leadId: id },
+          orderBy: { id: 'desc' },
+          limit: 1,
+        });
+      app = apps?.[0] ?? null;
+    }
+
+    if (app && !loanAppBelongsToLead(app, id)) {
+      app = null;
+    }
+
+    const fromApp = loanTypeFromLoanApp(app);
+
+    if (fromLead && fromApp && fromLead !== fromApp) {
+      strapi.log?.warn?.(
+        `[LoanType] mismatch leadId=${id} lead.selectedProduct=${fromLead} loanApp.loanType=${fromApp}; using lead product for logs`
+      );
+    }
+
+    if (fromLead) return fromLead;
+    if (fromApp) return fromApp;
+    return 'Personal Loan';
   } catch {
-    return null;
+    return 'Personal Loan';
   }
+}
+
+/** Alias for log writers — resolves product folder from lead + loan app. */
+export const resolveLoanTypeForLead = resolveLeadLoanTypeFromDb;
+
+function loanAppBelongsToLead(
+  app: Record<string, unknown>,
+  leadId: number
+): boolean {
+  const appLeadId = readDbString(app, 'leadId', 'lead_id');
+  if (!appLeadId) return false;
+  return Number(appLeadId) === leadId;
 }

@@ -206,7 +206,7 @@ These are single-type or collection-type entries managed via Strapi admin for fr
   - Syncs approved advisors to Strapi admin users (enables dashboard login)
   - When an advisor is approved, an admin account is auto-created with their email/password
 - **Email Templates** (`src/email-templates/`): Used by Strapi for notifications
-- **Admin Extensions** (`src/admin/`): Custom admin panel UI overrides
+- **Admin Extensions** (`src/admin/`): Custom admin panel UI overrides; **Lead View Dashboard** (`LeadViewDashboard/`) for loan-app list + `currentLeadId`; **Loan Application CM edit** (`LoanForm/LoanApplicationEditForm.tsx`) replaces native flat CM form on record edit with funnel-scoped fields matching the public loan form (select/radio/checkbox/state→district). Admin always shows every field in the Product → Funnel → Step schema for that record (`getFieldsForFunnel(..., { ignoreShowWhen: true })`); visibility does not depend on `form_data` completion. **Step field values** use `getAdminLoanFormDisplayData()` — stale automation prefill (`declarationAccepted === true` + data but no `LOAN_APP_SUBMITTED`) is hidden; staff can still edit/save from admin (clears declaration until frontend submit). **Tick saves** merge via `getAdminLoanFormSaveBase()` (same gating as display) so only edited sections persist, not hidden stale blobs. After frontend submit, full `form_data` displays. Loan-app lookup in Lead View is **leadId-only** (no email/phone fallback). Shared field schema in `src/shared/loan-form/`
 - **Direct DB access**: Uses `strapi.db.query()` API (Strapi v5 pattern), not raw SQL
 
 ### Next.js Frontend
@@ -254,8 +254,10 @@ The platform has three distinct admin roles:
 
 ### Bureau Data Extraction Flow (partial — implemented)
 
-1. Documents uploaded during `/loan-application` → Strapi Media Library `API Uploads/{leadId}-{applicantNameNoSpaces}/` and moved on disk to `public/uploads/api_uploads/{leadId}-{applicantNameNoSpaces}/` (`cibilReport` saved as `cibil_report.pdf`)
-2. **`syncLeadDocumentsToDisk`** creates the folder and, when `cibil_report.pdf` is present, **`queueBureauExtraction`** runs Python extraction in the background (no manual `npm run extract:bureau`)
+**Bidirectional API Uploads mirror** (`src/api/loan-application/services/api-uploads-mirror/`): Media Library `API Uploads/{leadFolder}/` ↔ disk `public/uploads/api_uploads/{leadFolder}/`. Add, rename/move, replace, and delete stay in sync on both sides; disk-only drops auto-register in Media Library. Reentrancy guards prevent mirror loops. On Strapi boot: one-shot **`reconcileApiUploads()`** heals drift; **`chokidar`** watches `public/uploads/api_uploads/` (disable with `API_UPLOADS_MIRROR_WATCH=false`; use one watcher per multi-instance deploy). Manual repair: `POST /admin/api-uploads/reconcile` (admin Bearer JWT). Upload lifecycles on `plugin::upload.file` / `plugin::upload.folder` mirror ML → disk; watcher mirrors disk → ML.
+
+1. Documents uploaded during `/loan-application`, **Lead View → Add Document** (`POST /api/loan-applications/sync-documents` after admin upload), **admin Content Manager** (loan-application media fields — **Save** after attach), or **dropped on disk** under `api_uploads/{leadFolder}/` → mirrored to the paired tree (`cibilReport` / `cibil_report.pdf`; re-upload/replace on either side re-queues extraction)
+2. **`syncLeadDocumentsToDisk`** (delegates to mirror `mirror-to-disk`) via public form create, `POST /api/loan-applications/sync-documents`, upload lifecycles, or [`cibil-lifecycle-sync.ts`](src/api/loan-application/services/cibil-lifecycle-sync.ts) (loan-application `afterCreate`/`afterUpdate` when media changes; Strapi v5 `documentId`/`connect` payloads; deferred `setImmediate` sync). When `cibil_report.pdf` is present on either side, **`queueBureauExtraction`** runs Python extraction in the background (no manual `npm run extract:bureau`). **CIBIL uploads** are renamed to `cibil_report.pdf` on **both** disk (`mirror-to-disk` / `promoteCanonicalCibilReportOnDisk`) and Media Library (`syncCanonicalCibilMediaFile` in `cibil-hook.ts` — renames the `loanApp.cibilReport` linked file via morph table `files_related_mph`; deletes only unlinked duplicate CIBIL PDFs; **`preserveFileIds`** protects in-flight uploads). **CIBIL re-upload** promotes the newest `*cibil*.pdf` to canonical `cibil_report.pdf` (overwrites old on disk); ML cleanup runs only on explicit `fieldKey: cibilReport` sync (not upload lifecycle early-return path) to avoid deleting the new file before `sync-documents`; re-triggers extraction when mtime changes; bureau per-lead log file resets on re-run via `resetModuleLeadLog`. **CIBIL disk/ML desync guard** (`cibil-disk-bytes.ts`): mirror-delete **defers** canonical disk unlink when a newer `cibilReport` morph exists on the loan app; CIBIL mirror uses **atomic** copy (`*.tmp` → rename) instead of unlink-before-copy; `syncCanonicalCibilMediaFile` calls `ensureCibilReportBytesOnDisk` **before** setting ML `url`; bureau queue and `promoteCanonicalCibilReportOnDisk` run only when `cibil_report.pdf` exists on disk; failed mirror (`inner?.ok`) no longer triggers CIBIL side effects; `sync-documents` retries `mirrorFileToDisk` when canonical disk file is still missing after CIBIL upload. **Drift heal:** boot / `POST /admin/api-uploads/reconcile` copies ML-only `cibil_report.pdf` from hash storage when bytes exist. **Auto-queue skips** when `cibilData._extractionMeta.sourcePdfMtimeMs` matches on-disk PDF. **Duplicate queue coalescing** + **`logEventDeduped`** on `BUREAU_EXTRACT_*`. Watcher mirrors per lead folder (serialized) with connection-pool retry. Manual `POST /api/cibil-report-summaries/extract` always re-runs.
 3. **`python-bridge.ts`** spawns Python (`pdf_extractor/tests/test_field_extraction.py`); auto-resolves `<project-root>/.venv/bin/python3`
 4. Python extracts bureau fields → `pdf_extractor/data/outputs/extracted_fields.json`, including:
    - PERSONAL DETAILS: `consumer_name`, `date_of_birth`, `gender`
@@ -293,6 +295,7 @@ Copy `.env.example` to `.env` and update:
 - `JWT_SECRET`, `ENCRYPTION_KEY` (API auth)
 - Database connection details (if not using default localhost)
 - **Python extraction:** bootstrap `ensurePythonEnvironment()` auto-creates `.venv` and installs deps on first `npm run dev`; optional `PYTHON_PATH` in `.env`
+- **API Uploads mirror:** `API_UPLOADS_MIRROR_WATCH=false` disables the disk → Media Library `chokidar` watcher (default on); run watcher on one Strapi instance only in multi-node deploys
 
 ### Global Setting — logging toggles
 
@@ -321,10 +324,10 @@ System / no-lead fallback: `logs/<product>/<module>/<basename>_YYYY-MM-DD.log` (
 | BL lead submission | `logs/business-loan/bl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log` (same writer as PL; routed by `loanType` / `selectedProduct`) |
 | BL bureau extraction (Python) | `logs/business-loan/bl-bureau-extraction/<leadId>-<Name>_YYYY-MM-DD.log` |
 
-Shared helper: [`src/utils/code-file-logger.ts`](src/utils/code-file-logger.ts).  
+Shared helper: [`src/utils/code-file-logger.ts`](src/utils/code-file-logger.ts) — product routing via `resolveLoanTypeForLead()` (`lead.selectedProduct` first; loan-app `loanType` kept in sync on save via loan-application lifecycles).  
 Submission audit helper: [`src/utils/pl-lead-submission-logger.ts`](src/utils/pl-lead-submission-logger.ts).
 
-**Events** (one JSON line each): `LEAD_SUBMIT_SUCCESS`, `LEAD_SUBMIT_ERROR`, `LOAN_APP_SUBMIT_SUCCESS`, `LOAN_APP_SUBMIT_ERROR`, `VALIDATION_ERROR`, `CLIENT_ERROR`.
+**Events** (one JSON line each): `LEAD_SUBMIT_SUCCESS`, `LEAD_SUBMIT_ERROR`, `LOAN_APP_SUBMIT_SUCCESS`, `LOAN_APP_SUBMIT_ERROR`, `VALIDATION_ERROR`, `CLIENT_ERROR`. **`ADMIN_UPDATE`** (admin CM / Lead View saves): **one cumulative JSON line** per lead log file with `updates: [{ timestamp, form, field, value }, …]` — only non-empty field values; re-editing the same `form`+`field` replaces that entry. **Document Details** uploads (media fields / Lead View Add Document) log as `form: "Document Details"`, `field: "<doc label>"` (e.g. `CIBIL Report`), `value: "<filename>"`. `LEAD_SUBMIT_SUCCESS` / `LOAN_APP_SUBMIT_SUCCESS` unchanged (full payload JSON; file reset on new submit).
 
 **Writers**
 
@@ -332,8 +335,10 @@ Submission audit helper: [`src/utils/pl-lead-submission-logger.ts`](src/utils/pl
 |---------|--------|
 | `POST /api/leads` success/error | [`src/api/lead/controllers/lead.ts`](src/api/lead/controllers/lead.ts) |
 | `POST /api/loan-applications` success/error | [`src/api/loan-application/controllers/loan-application.ts`](src/api/loan-application/controllers/loan-application.ts) |
+| Admin lead / loan-app save (CM, Lead View) | [`src/api/lead/content-types/lead/lifecycles.ts`](src/api/lead/content-types/lead/lifecycles.ts), [`src/api/loan-application/content-types/loan-application/lifecycles.ts`](src/api/loan-application/content-types/loan-application/lifecycles.ts) → single `ADMIN_UPDATE` JSON (cumulative `updates` array; upsert by `form`+`field`) in the **record’s** product folder + `{leadId}-{Name}_YYYY-MM-DD.log`; resolves `documentId`/`id` via [`findLoanAppFromLifecycleEvent`](src/api/loan-application/services/admin-change-log.ts); media-only loan-app updates → Document Details rows via [`appendAdminDocumentUploadLog`](src/utils/pl-lead-submission-logger.ts) |
+| Lead View Add Document (`sync-documents`) | [`src/api/loan-application/controllers/loan-application.ts`](src/api/loan-application/controllers/loan-application.ts) `syncDocuments` → `appendAdminDocumentUploadLog` when `docType` + mirror ok |
 | Client validation / upload errors | `POST /api/pl-submission-audit/log` ← [`frontend/src/lib/plSubmissionLogger.ts`](frontend/src/lib/plSubmissionLogger.ts) |
-| Automation script | [`PL_LeadSubmittionScript/scripts/submitApplication.js`](PL_LeadSubmittionScript/scripts/submitApplication.js) |
+| Automation script | [`PL_LeadSubmittionScript/scripts/submitApplication.js`](PL_LeadSubmittionScript/scripts/submitApplication.js) — lead create + doc upload only; loan-app row created on frontend `/loan-application` submit |
 
 PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are omitted (keys only). Pre-lead-create client validation uses module daily fallback when `leadId` is absent.
 
@@ -357,7 +362,10 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - **[docs/business-loan/business-loan-eligibility/Seed-Data.md](docs/business-loan/business-loan-eligibility/Seed-Data.md)** — Seed JSON for 44 BL lender criteria rows (`eligible_entity_types` full phrases)
 - **[frontend/src/app/loan-application/LoanApplicationForm.tsx](frontend/src/app/loan-application/LoanApplicationForm.tsx)** — `getSteps()` + submit; builds `form_data` only for steps in the selected funnel
 - **[frontend/src/app/loan-application/businessLoanConfig.ts](frontend/src/app/loan-application/businessLoanConfig.ts)** — BL reg-proof options, slugs, notes, `buildBusinessLoanDocFields`, turnover/age parsers
-- **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create logs `LOAN_APP_SUBMIT_*` to per-lead submission file, links uploads to Media Library `API Uploads/{leadId}-{name}/` and moves them to `public/uploads/api_uploads/{leadId}-{name}/`; Business Loan payloads validated via `utils/validate-business-loan.ts`
+- **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create logs `LOAN_APP_SUBMIT_*` to per-lead submission file; **bidirectional** `api-uploads-mirror` keeps Media Library `API Uploads/` and `public/uploads/api_uploads/` in sync; `syncLeadDocumentsToDisk` delegates to mirror; Business Loan payloads validated via `utils/validate-business-loan.ts`; CM record edit (`/admin/content-manager/.../loan-application/{documentId}`) mounts custom **`LoanApplicationEditForm`** (native CM fields hidden) — funnel sections + frontend widget parity via **`src/shared/loan-form/field-schema.ts`** + **`FormFieldControl`**
+- **[src/admin/LoanForm/](src/admin/LoanForm/)** — Admin loan form UI (`LoanFormSections`, `loanAppAdminApi.ts` CM saves). **Do not send loan-app `status` at top level on CM POST/PUT** — Strapi v5 reserves `status` for draft/published; schema default `Pending` applies on create.
+- **[src/admin/LeadViewDashboard/](src/admin/LeadViewDashboard/)** — Lead View overlay on loan-application CM list when `sessionStorage.currentLeadId` is set; inline edits use same **`LoanFormSections`** / **`FormFieldControl`** as CM edit
+- **[src/shared/loan-form/](src/shared/loan-form/)** — Shared loan form field schema (`getFieldsForFunnel`, `getAppSteps`, `getAdminLoanFormDisplayData`, `getAdminLoanFormSaveBase`, `isStaleLoanFormPrefill`), India state/district data, widget metadata (importable from Strapi admin). Admin UI passes `{ ignoreShowWhen: true }` so conditional fields stay visible when empty/null; step **values** mask stale prefill only — tick **saves** use the same save base so hidden stale data is not re-persisted.
 - **[src/api/bureau-data-extraction/](src/api/bureau-data-extraction/)** — Bureau PDF extraction (`POST /api/cibil-report-summaries/extract`; reads `public/uploads/api_uploads/`)
 - **[src/api/lender-master/](src/api/lender-master/)** — Lender master registry + zip coverage (`lenders-catalog`, `zip-code`)
 - **[src/api/personal-loan-eligibility/](src/api/personal-loan-eligibility/)** — PL eligibility thresholds + 19-step matching engine (`matched-lenders` / `evaluate`; file audit in `logs/personal-loan/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`)
@@ -381,7 +389,7 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - The `lenders-page` / `lenders-catalog-page` single type (CMS copy for the `/lenders` page header) has been removed entirely, table `lenders_catalog_page` dropped. The `/lenders` page header text is now hardcoded ("Matched Lenders" / "Based on your application...") in `frontend/src/app/lenders/page.tsx`
 - The `lenders-catalog` and `zip-code` collections live under the **`lender-master`** API folder (UIDs `api::lender-master.lenders-catalog`, `api::lender-master.zip-code`), not top-level `src/api/lenders-catalog/` / `src/api/zip-code/` paths
 - The `cibil-report-summary` collection lives under the **`bureau-data-extraction`** API folder (UID `api::bureau-data-extraction.cibil-report-summary`), not a top-level `src/api/cibil-report-summary/` path
-- Bureau extraction auto-triggers when `cibil_report.pdf` lands in `public/uploads/api_uploads/` via `syncLeadDocumentsToDisk`; PL scoring runs after A.1 eligibility in `matched-lenders` pipeline
+- Bureau extraction auto-triggers when `cibil_report.pdf` lands in `public/uploads/api_uploads/` or Media Library `API Uploads/` (mirror + `syncLeadDocumentsToDisk`); PL scoring runs after A.1 eligibility in `matched-lenders` pipeline
 
 ## graphify
 
