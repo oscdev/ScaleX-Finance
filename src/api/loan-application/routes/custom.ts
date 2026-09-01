@@ -7,6 +7,17 @@ export default {
       config: {
         policies: [],
         middlewares: [],
+        auth: false,
+      },
+    },
+    {
+      method: 'POST',
+      path: '/loan-applications/prepare-document-upload',
+      handler: 'api::loan-application.loan-application.prepareDocumentUpload',
+      config: {
+        policies: [],
+        middlewares: [],
+        auth: false,
       },
     },
   ],

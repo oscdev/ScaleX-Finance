@@ -1,4 +1,21 @@
 import { useState, useEffect, MouseEvent as ReactMouseEvent } from 'react';
+import { saveLoanFormData } from '../LoanForm/useLoanFormSave';
+import { normalizeLoanAppRow } from '../LoanForm/loanAppRowUtils';
+import {
+    ensureLoanAppForLead,
+    putLoanAppFields,
+    fetchLoanAppByLeadId,
+} from '../LoanForm/loanAppAdminApi';
+import { buildLeadUploadFolderName } from '../../api/loan-application/utils/lead-upload-folder';
+
+export { getAppSteps } from '../../shared/loan-form/field-schema';
+export {
+  isLoanApplicationSubmitted,
+  getAdminLoanFormDisplayData,
+  getAdminLoanFormSaveBase,
+  isStaleLoanFormPrefill,
+  type AdminLoanFormContextOpts,
+} from '../../shared/loan-form/loan-app-submit';
 
 export const LEAD_STATUS_OPTIONS = [
     { label: '1 - NEW', value: 'NEW', color: 'primary' },
@@ -74,6 +91,16 @@ export const PRODUCT_CONFIG: Record<string, { leadFields: any[] }> = {
             { label: 'Employment Type', key: 'employmentType' },
         ],
     },
+};
+
+export const PRODUCT_OPTIONS = Object.keys(PRODUCT_CONFIG);
+
+export const resolveNumericLeadId = (lead: { id?: unknown; leadId?: unknown } | null, routeLeadId: string): string | number => {
+    if (lead?.leadId != null && /^\d+$/.test(String(lead.leadId))) return Number(lead.leadId);
+    if (lead?.id != null && /^\d+$/.test(String(lead.id))) return Number(lead.id);
+    if (/^\d+$/.test(routeLeadId)) return Number(routeLeadId);
+    const fallback = lead?.id ?? routeLeadId;
+    return fallback != null ? String(fallback) : 'N/A';
 };
 
 export const DOC_LABELS: Record<string, string> = {
@@ -202,6 +229,53 @@ export const buildDocuments = (loanApp: any): DocumentEntry[] => {
     return docs;
 };
 
+export type LeadFolderFile = {
+    id: number;
+    name: string;
+    url: string;
+    ext: string | null;
+    mime: string | null;
+    size: number;
+    createdAt: string | null;
+};
+
+/** Merge loan-app morph docs with all files in the lead API Uploads folder. */
+export const mergeFolderDocuments = (
+    loanApp: any,
+    folderFiles: LeadFolderFile[]
+): DocumentEntry[] => {
+    const docs = buildDocuments(loanApp);
+    const seenIds = new Set(docs.map((d) => String(d.id)));
+    const seenUrls = new Set(docs.filter((d) => d.url).map((d) => d.url as string));
+
+    for (const file of folderFiles) {
+        if (seenIds.has(String(file.id))) continue;
+        if (file.url && seenUrls.has(file.url)) continue;
+
+        const fileName = file.name || 'document';
+        const fileExt = file.ext
+            ? file.ext.replace('.', '').toUpperCase()
+            : fileName.split('.').pop()?.toUpperCase() || 'UNKNOWN';
+        const fileDate = file.createdAt
+            ? new Date(file.createdAt).toISOString().replace('T', ' ').substring(0, 19)
+            : new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+        docs.push({
+            id: file.id,
+            label: 'folderFile',
+            type: fileName,
+            ext: fileExt.length > 4 ? fileExt.substring(0, 3) : fileExt,
+            url: file.url || null,
+            pw: '',
+            date: fileDate,
+        });
+        seenIds.add(String(file.id));
+        if (file.url) seenUrls.add(file.url);
+    }
+
+    return docs;
+};
+
 export const openDocWithPasswordCheck = (url: string | null, pw: string) => {
     if (!url) return;
     const fullUrl = url.startsWith('http')
@@ -285,31 +359,6 @@ export const openDocWithPasswordCheck = (url: string | null, pw: string) => {
 export const handleDocView = (e: ReactMouseEvent, url: string | null, pw: string) => {
     e.preventDefault();
     openDocWithPasswordCheck(url, pw);
-};
-
-export const getAppSteps = (loanType: string, occupation: string) => {
-    const isSelfEmployed = occupation === 'Self Employed';
-    const isLAP = loanType === 'LAP' || loanType === 'LAP (Loan Against Property)';
-
-    if (isSelfEmployed && loanType === 'Home Loan') {
-        return ['Business', 'Personal', 'Residence', 'Property', 'Other', 'Docs'];
-    }
-    if (isSelfEmployed && isLAP) {
-        return ['Business', 'Personal', 'Residence', 'Other', 'Docs'];
-    }
-
-    switch (loanType) {
-        case 'Business Loan':
-            return ['Business', 'Personal', 'Residence', 'Other', 'Docs'];
-        case 'LAP':
-        case 'LAP (Loan Against Property)':
-            return ['Personal', 'Residence', 'Income', 'Other', 'Docs'];
-        case 'Home Loan':
-            return ['Personal', 'Residence', 'Property', 'Income', 'Other', 'Docs'];
-        case 'Personal Loan':
-        default:
-            return ['Personal', 'Residence', 'Income', 'Other', 'Docs'];
-    }
 };
 
 export const getToken = () => {
@@ -398,8 +447,27 @@ export const useLeadViewDashboard = (leadId: string) => {
     const [bankerList, setBankerList] = useState<any[]>([]);
     const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
     const [selectedBankerId, setSelectedBankerId] = useState<number | null>(null);
+    const [hasLoanSubmitActivity, setHasLoanSubmitActivity] = useState(false);
+    const [folderFiles, setFolderFiles] = useState<LeadFolderFile[]>([]);
 
-    // 1. Fetch Lead
+    const fetchLeadFolderFiles = async (numericLeadId: number, applicantName: string) => {
+        if (!numericLeadId || !applicantName.trim()) {
+            setFolderFiles([]);
+            return;
+        }
+        try {
+            const headers = authHeaders();
+            const res = await fetch(
+                `/admin/api-uploads/lead-files?leadId=${numericLeadId}&applicantName=${encodeURIComponent(applicantName)}`,
+                { headers }
+            );
+            if (!res.ok) return;
+            const json = await res.json();
+            setFolderFiles(Array.isArray(json?.data?.files) ? json.data.files : []);
+        } catch {
+            // non-fatal — morph-linked docs still show
+        }
+    };
     useEffect(() => {
         const fetchData = async () => {
             const logs: string[] = [];
@@ -543,8 +611,23 @@ export const useLeadViewDashboard = (leadId: string) => {
                     (rawId !== null && /^\d+$/.test(String(rawId)) ? parseInt(String(rawId)) : null) ||
                     (!isNaN(parseInt(leadId)) && /^\d+$/.test(leadId) ? parseInt(leadId) : null);
 
-                // 1. Public API filter by numeric leadId field
+                // Loan application — prefer CM (includes documentId for saves).
                 if (numericLId) {
+                    const cmSearchQuery = `/content-manager/collection-types/api::loan-application.loan-application?filters[leadId][$eq]=${numericLId}&populate=*`;
+                    const cmSearchRes = await fetch(cmSearchQuery, { headers });
+                    if (cmSearchRes.ok) {
+                        const cmSearchData = await cmSearchRes.json();
+                        const found = cmSearchData.results?.[0] || cmSearchData.data?.[0];
+                        if (found) {
+                            const row = normalizeLoanAppRow(found);
+                            const appLeadId = row.leadId;
+                            if (Number(appLeadId) === numericLId) {
+                                setLoanApp(row);
+                                return;
+                            }
+                        }
+                    }
+
                     const pubRes = await fetch(
                         `/api/loan-applications?filters[leadId][$eq]=${numericLId}&populate=*`
                     );
@@ -553,30 +636,18 @@ export const useLeadViewDashboard = (leadId: string) => {
                         const items = pubData.data || [];
                         if (items.length > 0) {
                             const found = items[0].attributes || items[0];
-                            setLoanApp({ ...found, id: items[0].id });
-                            return;
-                        }
-                    }
-                }
-
-                // 2. CM search by leadId (numeric) and optionally by email/phone.
-                // NOTE: we intentionally skip the direct /loan-application/${leadId} fetch because
-                // leadId here is the LEAD's documentId — it is not a loan-application documentId.
-                // Only include email/phone filters when those fields are actually populated.
-                const orFilters: string[] = [];
-                if (numericLId) orFilters.push(`filters[$or][0][leadId][$eq]=${numericLId}`);
-                if (lead.email) orFilters.push(`filters[$or][1][email][$eq]=${encodeURIComponent(lead.email)}`);
-                if (lead.mobileNumber) orFilters.push(`filters[$or][2][phone][$eq]=${encodeURIComponent(lead.mobileNumber)}`);
-
-                if (orFilters.length > 0) {
-                    const cmSearchQuery = `/content-manager/collection-types/api::loan-application.loan-application?${orFilters.join('&')}&populate=*`;
-                    const cmSearchRes = await fetch(cmSearchQuery, { headers });
-                    if (cmSearchRes.ok) {
-                        const cmSearchData = await cmSearchRes.json();
-                        const found = cmSearchData.results?.[0] || cmSearchData.data?.[0];
-                        if (found) {
-                            setLoanApp(found);
-                            return;
+                            const appLeadId = found.leadId ?? found.lead_id;
+                            if (Number(appLeadId) === numericLId) {
+                                const row = normalizeLoanAppRow({
+                                    ...found,
+                                    id: items[0].id,
+                                    documentId: items[0].documentId ?? found.documentId,
+                                    leadId: appLeadId,
+                                });
+                                const resolved = await fetchLoanAppByLeadId(numericLId);
+                                setLoanApp(resolved ?? row);
+                                return;
+                            }
                         }
                     }
                 }
@@ -586,6 +657,23 @@ export const useLeadViewDashboard = (leadId: string) => {
         };
         if (lead) fetchLoan();
     }, [leadId, lead]);
+
+    useEffect(() => {
+        if (!lead || !loanApp) {
+            setFolderFiles([]);
+            return;
+        }
+        const rawId = lead?.id ?? null;
+        const numericLId =
+            (rawId !== null && /^\d+$/.test(String(rawId)) ? parseInt(String(rawId)) : null) ||
+            (lead.leadId != null && /^\d+$/.test(String(lead.leadId))
+                ? parseInt(String(lead.leadId))
+                : null);
+        if (!numericLId) return;
+        const applicantName = String(loanApp.applicantName || lead.fullName || '').trim();
+        if (!applicantName) return;
+        void fetchLeadFolderFiles(numericLId, applicantName);
+    }, [lead, loanApp]);
 
     // 3a. Sync parentAdvisorId input from fetched lead
     useEffect(() => {
@@ -761,6 +849,32 @@ export const useLeadViewDashboard = (leadId: string) => {
         if (lead) loadStatusHistory();
     }, [lead?.id, leadId]);
 
+    // 5a-b. Frontend loan-form submit logged in activity (LOAN_APP_SUBMITTED)
+    useEffect(() => {
+        const loadLoanSubmitActivity = async () => {
+            const numericId = resolveNumericId();
+            if (!numericId) {
+                setHasLoanSubmitActivity(false);
+                return;
+            }
+            try {
+                const res = await fetch(`/api/activity-logs/by-lead/${numericId}`);
+                if (!res.ok) {
+                    setHasLoanSubmitActivity(false);
+                    return;
+                }
+                const data = await res.json();
+                const entries = data.data || [];
+                setHasLoanSubmitActivity(
+                    entries.some((e: { action?: string }) => e.action === 'LOAN_APP_SUBMITTED')
+                );
+            } catch {
+                setHasLoanSubmitActivity(false);
+            }
+        };
+        if (lead) loadLoanSubmitActivity();
+    }, [lead?.id, leadId]);
+
     // Helper: is the current user a banker?
     const isBankerUser = (): boolean => {
         const roles: any[] = currentUser?.roles || [];
@@ -933,123 +1047,175 @@ export const useLeadViewDashboard = (leadId: string) => {
         }
     };
 
-    const handleSaveLeadField = async (key: string, value: string) => {
+    const handleSaveLeadField = async (key: string, value: string | boolean) => {
         try {
+            const payload: Record<string, unknown> = { [key]: value === '' ? null : value };
             const res = await fetch(`/api/leads/${lead?.documentId || leadId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: { [key]: value } }),
+                body: JSON.stringify({ data: payload }),
             });
-            if (res.ok) setLead((prev: any) => ({ ...prev, [key]: value }));
+            if (res.ok) {
+                setLead((prev: any) => ({ ...prev, [key]: value === '' ? null : value }));
+                if (key === 'selectedProduct' && loanApp && value) {
+                    const loanDocId = loanApp.documentId || String(loanApp.id);
+                    await fetch(`/api/loan-applications/${loanDocId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: { loanType: value } }),
+                    });
+                    setLoanApp((prev: any) => (prev ? { ...prev, loanType: value } : prev));
+                }
+            }
         } catch (e) {}
     };
 
-    const handleSaveLoanFormData = async (section: string, fieldKey: string, value: string | boolean) => {
-        if (!loanApp) return;
-        try {
-            const sectionData: Record<string, unknown> = {
-                ...(loanApp.form_data?.[section] || {}),
-                [fieldKey]: value,
-            };
-            if (section === 'incomeDetails' && fieldKey === 'hasOtherIncome' && value === false) {
-                sectionData.otherIncomeSource = '';
-                sectionData.otherIncomeAmount = '';
-            }
-            const updatedFormData = {
-                ...loanApp.form_data,
-                [section]: sectionData,
-            };
-            const loanDocId = loanApp.documentId || String(loanApp.id);
-            const res = await fetch(`/api/loan-applications/${loanDocId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: { form_data: updatedFormData } }),
-            });
-            if (res.ok) setLoanApp((prev: any) => ({ ...prev, form_data: updatedFormData }));
-        } catch (e) {}
+    const handleSaveLoanFormData = async (section: string, fieldKey: string, value: unknown) => {
+        const numericId = resolveNumericId();
+        if (!lead || !numericId) {
+            throw new Error('Lead context is missing — reload the page and try again.');
+        }
+        const app = await ensureLoanAppForLead(lead, numericId, loanApp);
+        const clearDeclaration = !hasLoanSubmitActivity;
+        const updatedFormData = await saveLoanFormData(app, section, fieldKey, value, {
+            clearDeclarationUntilSubmit: clearDeclaration,
+            leadId: numericId,
+            hasSubmitActivity: hasLoanSubmitActivity,
+        });
+        setLoanApp((prev: any) => ({
+            ...(prev || app),
+            ...app,
+            form_data: updatedFormData,
+            ...(clearDeclaration ? { declarationAccepted: false } : {}),
+        }));
+    };
+
+    const loanFormSaveOpts = (): AdminLoanFormContextOpts => ({
+        leadId: resolveNumericId() ?? undefined,
+        hasSubmitActivity: hasLoanSubmitActivity,
+    });
+
+    const getLoanFormSaveBase = () =>
+        getAdminLoanFormSaveBase(loanApp, loanFormSaveOpts());
+
+    const ensureLoanAppReady = async () => {
+        const numericId = resolveNumericId();
+        if (!lead || !numericId) return null;
+        if (loanApp?.id || loanApp?.documentId) return loanApp;
+        const app = await ensureLoanAppForLead(lead, numericId, loanApp);
+        setLoanApp(app);
+        return app;
+    };
+
+    const putLoanFormData = async (updatedFormData: Record<string, unknown>) => {
+        const numericId = resolveNumericId();
+        if (!lead || !numericId) {
+            throw new Error('Lead context is missing — reload the page and try again.');
+        }
+        const app = await ensureLoanAppForLead(lead, numericId, loanApp);
+        const payload: Record<string, unknown> = { form_data: updatedFormData };
+        if (!hasLoanSubmitActivity) payload.declarationAccepted = false;
+        const saved = await putLoanAppFields(app, payload);
+        setLoanApp((prev: any) => ({
+            ...(prev || saved),
+            ...saved,
+            form_data: updatedFormData,
+            ...(hasLoanSubmitActivity ? {} : { declarationAccepted: false }),
+        }));
     };
 
     const handleSaveRunningLoan = async (index: number, field: string, value: string) => {
-        if (!loanApp) return;
-        try {
-            const runningLoans = [...(loanApp.form_data?.otherDetails?.runningLoans || [])];
-            runningLoans[index] = { ...runningLoans[index], [field]: value };
-            const updatedFormData = {
-                ...loanApp.form_data,
-                otherDetails: { ...(loanApp.form_data?.otherDetails || {}), runningLoans },
-            };
-            const loanDocId = loanApp.documentId || String(loanApp.id);
-            const res = await fetch(`/api/loan-applications/${loanDocId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: { form_data: updatedFormData } }),
-            });
-            if (res.ok) setLoanApp((prev: any) => ({ ...prev, form_data: updatedFormData }));
-        } catch (e) {}
+        const base = getLoanFormSaveBase();
+        const runningLoans = [...((base.otherDetails?.runningLoans as Record<string, unknown>[]) || [])];
+        runningLoans[index] = { ...(runningLoans[index] || {}), [field]: value };
+        const updatedFormData = {
+            ...base,
+            otherDetails: { ...(base.otherDetails || {}), runningLoans },
+        };
+        await putLoanFormData(updatedFormData);
     };
 
     const handleSaveDocPassword = async (docKey: string, password: string) => {
-        if (!loanApp) return;
-        try {
-            const updatedFormData = {
-                ...loanApp.form_data,
-                pdfPasswords: { ...(loanApp.form_data?.pdfPasswords || {}), [docKey]: password },
-            };
-            const loanDocId = loanApp.documentId || String(loanApp.id);
-            const res = await fetch(`/api/loan-applications/${loanDocId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: { form_data: updatedFormData } }),
-            });
-            if (res.ok) setLoanApp((prev: any) => ({ ...prev, form_data: updatedFormData }));
-        } catch (e) {}
+        const base = getLoanFormSaveBase();
+        const updatedFormData = {
+            ...base,
+            pdfPasswords: { ...(base.pdfPasswords || {}), [docKey]: password },
+        };
+        await putLoanFormData(updatedFormData);
     };
 
     const handleSaveDocDate = async (fileId: string | number, date: string) => {
-        if (!loanApp) return;
-        try {
-            const updatedFormData = {
-                ...loanApp.form_data,
-                docDates: { ...(loanApp.form_data?.docDates || {}), [String(fileId)]: date },
-            };
-            const loanDocId = loanApp.documentId || String(loanApp.id);
-            const res = await fetch(`/api/loan-applications/${loanDocId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: { form_data: updatedFormData } }),
-            });
-            if (res.ok) setLoanApp((prev: any) => ({ ...prev, form_data: updatedFormData }));
-        } catch (e) {}
+        const base = getLoanFormSaveBase();
+        const updatedFormData = {
+            ...base,
+            docDates: { ...(base.docDates || {}), [String(fileId)]: date },
+        };
+        await putLoanFormData(updatedFormData);
     };
 
     const handleSaveDocFormat = async (fileId: string | number, format: string) => {
-        if (!loanApp) return;
-        try {
-            const updatedFormData = {
-                ...loanApp.form_data,
-                docFormats: { ...(loanApp.form_data?.docFormats || {}), [String(fileId)]: format.toUpperCase() },
-            };
-            const loanDocId = loanApp.documentId || String(loanApp.id);
-            const res = await fetch(`/api/loan-applications/${loanDocId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: { form_data: updatedFormData } }),
-            });
-            if (res.ok) setLoanApp((prev: any) => ({ ...prev, form_data: updatedFormData }));
-        } catch (e) {}
+        const base = getLoanFormSaveBase();
+        const updatedFormData = {
+            ...base,
+            docFormats: { ...(base.docFormats || {}), [String(fileId)]: format.toUpperCase() },
+        };
+        await putLoanFormData(updatedFormData);
     };
 
     const refetchLoanApp = async () => {
         if (!lead) return;
         try {
-            const numericLId = lead.leadId || lead.id;
-            const res = await fetch(`/api/loan-applications?filters[leadId][$eq]=${numericLId}&populate=*`);
-            if (res.ok) {
-                const data = await res.json();
-                const items = data.data || [];
+            const rawId = lead?.id ?? null;
+            const numericLId =
+                (rawId !== null && /^\d+$/.test(String(rawId)) ? parseInt(String(rawId)) : null) ||
+                (lead.leadId != null && /^\d+$/.test(String(lead.leadId))
+                    ? parseInt(String(lead.leadId))
+                    : null);
+            if (!numericLId) return;
+
+            const headers = authHeaders();
+            const cmSearchRes = await fetch(
+                `/content-manager/collection-types/api::loan-application.loan-application?filters[leadId][$eq]=${numericLId}&populate=*`,
+                { headers }
+            );
+            if (cmSearchRes.ok) {
+                const cmSearchData = await cmSearchRes.json();
+                const found = cmSearchData.results?.[0] || cmSearchData.data?.[0];
+                if (found) {
+                    const row = normalizeLoanAppRow(found);
+                    if (Number(row.leadId) === numericLId) {
+                        setLoanApp(row);
+                        const applicantName = String(row.applicantName || lead.fullName || '').trim();
+                        if (applicantName) await fetchLeadFolderFiles(numericLId, applicantName);
+                        return;
+                    }
+                }
+            }
+
+            const pubRes = await fetch(
+                `/api/loan-applications?filters[leadId][$eq]=${numericLId}&populate=*`
+            );
+            if (pubRes.ok) {
+                const pubData = await pubRes.json();
+                const items = pubData.data || [];
                 if (items.length > 0) {
                     const found = items[0].attributes || items[0];
-                    setLoanApp({ ...found, id: items[0].id });
+                    const appLeadId = found.leadId ?? found.lead_id;
+                    if (Number(appLeadId) === numericLId) {
+                        const row = normalizeLoanAppRow({
+                            ...found,
+                            id: items[0].id,
+                            documentId: items[0].documentId ?? found.documentId,
+                            leadId: appLeadId,
+                        });
+                        const resolved = await fetchLoanAppByLeadId(numericLId);
+                        const nextApp = resolved ?? row;
+                        setLoanApp(nextApp);
+                        const applicantName = String(
+                            nextApp.applicantName || lead.fullName || ''
+                        ).trim();
+                        if (applicantName) await fetchLeadFolderFiles(numericLId, applicantName);
+                    }
                 }
             }
         } catch (e) {}
@@ -1093,5 +1259,8 @@ export const useLeadViewDashboard = (leadId: string) => {
         handleSaveDocDate,
         handleSaveDocFormat,
         refetchLoanApp,
+        hasLoanSubmitActivity,
+        ensureLoanAppReady,
+        folderFiles,
     };
 };

@@ -15,8 +15,8 @@ async function logBureauExtract(
 ) {
   try {
     const logger: any = strapi.service('api::activity-log.activity-log');
-    if (!logger?.logEvent) return;
-    await logger.logEvent({
+    if (!logger?.logEventDeduped) return;
+    await logger.logEventDeduped({
       action: params.action,
       description: params.description,
       severity: params.severity || 'info',

@@ -60,6 +60,15 @@ function resolveLeadFields(params: LogEventParams): {
   return { leadId, leadName, correlationId };
 }
 
+const NOTIFICATION_DEDUPE_WINDOW_MS = 120_000;
+
+/** Actions that should not spam the notification bell when fired repeatedly for the same lead/run. */
+const DEDUPE_NOTIFICATION_ACTIONS = new Set([
+  'BUREAU_EXTRACT_STARTED',
+  'BUREAU_EXTRACT_COMPLETED',
+  'BUREAU_EXTRACT_FAILED',
+]);
+
 export default factories.createCoreService(
   'api::activity-log.activity-log' as any,
   ({ strapi }) => ({
@@ -118,6 +127,46 @@ export default factories.createCoreService(
         });
       } catch {
         // never break callers on log failure
+      }
+    },
+
+    /**
+     * Write an activity row unless an equivalent notification was logged recently
+     * (same action + leadId + correlationId, or same action + leadId within window).
+     */
+    async logEventDeduped(
+      params: LogEventParams,
+      windowMs = NOTIFICATION_DEDUPE_WINDOW_MS
+    ) {
+      if (!DEDUPE_NOTIFICATION_ACTIONS.has(params.action)) {
+        return this.logEvent(params);
+      }
+
+      try {
+        const { leadId, correlationId } = resolveLeadFields(params);
+        if (!leadId) {
+          return this.logEvent(params);
+        }
+
+        const where: Record<string, unknown> = {
+          action: params.action,
+          leadId,
+        };
+
+        if (correlationId) {
+          where.correlationId = correlationId;
+        } else {
+          where.createdAt = { $gt: new Date(Date.now() - windowMs) };
+        }
+
+        const existing = await strapi.db
+          .query('api::activity-log.activity-log')
+          .findOne({ where, orderBy: { createdAt: 'desc' } });
+        if (existing) return;
+
+        return this.logEvent(params);
+      } catch {
+        return this.logEvent(params);
       }
     },
 

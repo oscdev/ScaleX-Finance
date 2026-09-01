@@ -2,6 +2,11 @@ import { factories } from '@strapi/strapi';
 import fs from 'fs/promises';
 import path from 'path';
 import { runPython } from './python-bridge';
+import {
+  buildCibilReportRelPath,
+  getCibilPdfMtimeMs,
+  withExtractionMeta,
+} from '../../loan-application/services/queue-bureau-extraction';
 
 const UID = 'api::bureau-data-extraction.cibil-report-summary';
 
@@ -20,10 +25,13 @@ type DataSource =
 
 type SaveParams = {
   leadId: number;
+  leadName?: string;
   loanApplicationId?: number;
   dataSource: DataSource;
   cibilData: Record<string, unknown>;
   salarySlipData: Record<string, unknown> | null;
+  sourcePdfMtimeMs?: number;
+  sourcePdfRelPath?: string;
 };
 
 type ExtractionParams = {
@@ -53,16 +61,31 @@ export default factories.createCoreService(UID, ({ strapi }) => ({
 
   async saveFromExtraction({
     leadId,
+    leadName,
     loanApplicationId,
     dataSource,
     cibilData,
     salarySlipData,
+    sourcePdfMtimeMs,
+    sourcePdfRelPath,
   }: SaveParams) {
     const existing = await strapi.db.query(UID).findOne({ where: { leadId } });
 
+    let cibilPayload = cibilData;
+    if (
+      dataSource === 'PDF_EXTRACTION' &&
+      sourcePdfMtimeMs != null &&
+      sourcePdfRelPath
+    ) {
+      cibilPayload = withExtractionMeta(cibilData, {
+        sourcePdfMtimeMs,
+        sourcePdfRelPath,
+      });
+    }
+
     const data: Record<string, unknown> = {
       leadId,
-      cibilData,
+      cibilData: cibilPayload,
       salarySlipData,
       dataSource,
     };
@@ -93,12 +116,16 @@ export default factories.createCoreService(UID, ({ strapi }) => ({
       loanType,
     });
     const { cibilData, salarySlipData } = await this.readExtractionOutputs();
+    const pdfStats = await getCibilPdfMtimeMs(leadId, leadName);
     const database = await this.saveFromExtraction({
       leadId,
+      leadName,
       loanApplicationId,
       dataSource,
       cibilData,
       salarySlipData,
+      sourcePdfMtimeMs: pdfStats?.mtimeMs,
+      sourcePdfRelPath: pdfStats?.relPath ?? buildCibilReportRelPath(leadId, leadName),
     });
 
     return { extraction, database };

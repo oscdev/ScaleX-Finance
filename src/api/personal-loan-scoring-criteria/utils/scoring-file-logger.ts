@@ -2,10 +2,10 @@ import {
   appendModuleLogIfEnabled,
   isCodeLevelLoggingEnabled,
   resetModuleLeadLog,
+  resolveLoanTypeForLead,
+  scoringLogModule,
 } from '../../../utils/code-file-logger';
 import type { CriterionScoreResult, LenderScoreResult, RankResult } from './types';
-
-const MODULE = 'personal-loan/pl-scoring';
 
 export interface ScoringRunLogger {
   runId: string;
@@ -34,20 +34,24 @@ export async function createScoringRunLogger(
   leadId: number,
   leadName: string | null | undefined,
   strapi?: any,
-  opts?: { overwriteLeadLog?: boolean }
+  opts?: { overwriteLeadLog?: boolean; loanType?: string | null }
 ): Promise<ScoringRunLogger> {
   const enabled = await isCodeLevelLoggingEnabled(strapi);
   const overwriteLeadLog = opts?.overwriteLeadLog ?? false;
+  const loanType = await resolveLoanTypeForLead(strapi, leadId, {
+    loanType: opts?.loanType,
+  });
+  const moduleName = scoringLogModule(loanType);
   const leadCtx = () => ({ leadId, leadName });
   let didReset = false;
   const maybeReset = () => {
     if (overwriteLeadLog && !didReset) {
-      resetModuleLeadLog(MODULE, leadCtx());
+      resetModuleLeadLog(moduleName, leadCtx());
       didReset = true;
     }
   };
   const appendText = (text: string) =>
-    appendModuleLogIfEnabled(MODULE, text, enabled, leadCtx());
+    appendModuleLogIfEnabled(moduleName, text, enabled, leadCtx());
 
   return {
     runId,
@@ -68,7 +72,7 @@ export async function createScoringRunLogger(
     writeLenderBlock(result: LenderScoreResult) {
       const body = {
         lenderCode: result.lenderCode,
-        loanType: 'Personal Loan',
+        loanType,
         totalScore: result.totalScore,
         criteria: result.criteria.map(shapeCriterionForLog),
         summary: result.summary,

@@ -6,7 +6,7 @@ import {
   isCodeLevelLoggingEnabled,
   moduleLogBasename,
   moduleLogDir,
-  resolveLoanTypeHint,
+  resolveLeadLoanTypeFromDb,
 } from '../../../utils/code-file-logger';
 
 const PDF_EXTRACTOR_DIR = path.join(
@@ -193,49 +193,6 @@ export function getScriptPaths() {
   return { scriptDir, scriptPath };
 }
 
-async function resolveLoanTypeForBureau(
-  strapi: any,
-  opts: {
-    leadId: number;
-    loanApplicationId?: number;
-    loanType?: string | null;
-  }
-): Promise<string | null> {
-  const explicit = resolveLoanTypeHint(opts.loanType);
-  if (explicit) return explicit;
-  if (!strapi?.db?.query) return null;
-
-  try {
-    if (opts.loanApplicationId != null) {
-      const app = await strapi.db
-        .query('api::loan-application.loan-application')
-        .findOne({ where: { id: opts.loanApplicationId } });
-      const fromApp = resolveLoanTypeHint(app?.loanType);
-      if (fromApp) return fromApp;
-    }
-
-    const lead = await strapi.db
-      .query('api::lead.lead')
-      .findOne({ where: { id: opts.leadId } });
-    const fromLead = resolveLoanTypeHint(
-      lead?.selectedProduct,
-      lead?.loanType
-    );
-    if (fromLead) return fromLead;
-
-    const apps = await strapi.db
-      .query('api::loan-application.loan-application')
-      .findMany({
-        where: { leadId: opts.leadId },
-        orderBy: { id: 'desc' },
-        limit: 1,
-      });
-    return resolveLoanTypeHint(apps?.[0]?.loanType);
-  } catch {
-    return null;
-  }
-}
-
 export async function runPython(
   leadId: number,
   leadName: string,
@@ -247,12 +204,14 @@ export async function runPython(
   const { scriptDir, scriptPath } = getScriptPaths();
 
   const codeLogsOn = await isCodeLevelLoggingEnabled(strapi);
-  const loanType = await resolveLoanTypeForBureau(strapi, {
-    leadId,
+  const loanType = await resolveLeadLoanTypeFromDb(strapi, leadId, {
     loanApplicationId: opts?.loanApplicationId,
     loanType: opts?.loanType,
   });
   const bureauModule = bureauLogModule(loanType);
+  log.info(
+    `[Python Bridge] Bureau logs → ${bureauModule} (loanType=${loanType ?? 'Personal Loan default'})`
+  );
   const bureauLogDir = moduleLogDir(bureauModule);
   const bureauLogBasename = moduleLogBasename(bureauModule);
 
