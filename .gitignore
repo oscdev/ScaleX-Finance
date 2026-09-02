@@ -106,6 +106,7 @@ results
 node_modules
 .venv
 venv
+.next
 .node_history
 
 ############################

@@ -32,8 +32,3 @@ export function roundHalfUp(n: number, decimalPlaces = 0): number {
   const factor = 10 ** decimalPlaces;
   return Math.round(n * factor) / factor;
 }
-
-/** @deprecated Use roundHalfUp */
-export function roundScore(n: number): number {
-  return roundHalfUp(n, 0);
-}
