@@ -882,11 +882,13 @@ export interface ApiBusinessLoanEligibilityLendersCriteriaBl
     maxDpdDaysAllowed: Schema.Attribute.Integer;
     maxEnquiries1Month: Schema.Attribute.Integer;
     maxEnquiries3Months: Schema.Attribute.Integer;
+    maxInterestRate: Schema.Attribute.Decimal;
     maxLoanAmount: Schema.Attribute.Decimal;
     minAgeYears: Schema.Attribute.Integer;
     minAnnualTurnover: Schema.Attribute.Decimal;
     minCibil: Schema.Attribute.Integer;
     minCreditHistoryMonths: Schema.Attribute.Integer;
+    minInterestRate: Schema.Attribute.Decimal;
     minLoanAmount: Schema.Attribute.Decimal;
     minVintageYears: Schema.Attribute.Integer;
     publishedAt: Schema.Attribute.DateTime;
@@ -1307,6 +1309,61 @@ export interface ApiLeadLead extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiLenderMasterLenderScoringCriteria
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'lender_scoring_criteria';
+  info: {
+    description: 'Platform catalog for PL scoring criterion weights and JSON band rules';
+    displayName: 'Lender Scoring Criteria';
+    pluralName: 'lender-scoring-criterias';
+    singularName: 'lender-scoring-criteria';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    category: Schema.Attribute.Enumeration<['Credit', 'Business', 'Loan']> &
+      Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    criterionCode: Schema.Attribute.String & Schema.Attribute.Required;
+    criterionName: Schema.Attribute.String & Schema.Attribute.Required;
+    isActive: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<true>;
+    loanType: Schema.Attribute.Enumeration<
+      ['Personal Loan', 'Business Loan', 'Home Loan', 'LAP Loan']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'Personal Loan'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::lender-master.lender-scoring-criteria'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    rules: Schema.Attribute.JSON;
+    ruleType: Schema.Attribute.Enumeration<
+      ['JSON', 'FORMULA', 'STATIC', 'JSON+FORMULA']
+    > &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    weight: Schema.Attribute.Decimal & Schema.Attribute.Required;
   };
 }
 
@@ -1848,61 +1905,6 @@ export interface ApiPersonalLoanEligibilityLendersCriteriaPl
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-  };
-}
-
-export interface ApiPersonalLoanScoringCriteriaLenderScoringCriteria
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'lender_scoring_criteria';
-  info: {
-    description: 'Platform catalog for PL scoring criterion weights and JSON band rules';
-    displayName: 'Lender Scoring Criteria';
-    pluralName: 'lender-scoring-criterias';
-    singularName: 'lender-scoring-criteria';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  pluginOptions: {
-    'content-manager': {
-      visible: false;
-    };
-    'content-type-builder': {
-      visible: false;
-    };
-  };
-  attributes: {
-    category: Schema.Attribute.Enumeration<['Credit', 'Business', 'Loan']> &
-      Schema.Attribute.Required;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    criterionCode: Schema.Attribute.String & Schema.Attribute.Required;
-    criterionName: Schema.Attribute.String & Schema.Attribute.Required;
-    isActive: Schema.Attribute.Boolean &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<true>;
-    loanType: Schema.Attribute.Enumeration<
-      ['Personal Loan', 'Business Loan', 'Home Loan', 'LAP Loan']
-    > &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'Personal Loan'>;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::personal-loan-scoring-criteria.lender-scoring-criteria'
-    > &
-      Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
-    rules: Schema.Attribute.JSON;
-    ruleType: Schema.Attribute.Enumeration<
-      ['JSON', 'FORMULA', 'STATIC', 'JSON+FORMULA']
-    > &
-      Schema.Attribute.Required;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    weight: Schema.Attribute.Decimal & Schema.Attribute.Required;
   };
 }
 
@@ -2540,13 +2542,13 @@ declare module '@strapi/strapi' {
       'api::lead-form-page.lead-form-page': ApiLeadFormPageLeadFormPage;
       'api::lead-remark.lead-remark': ApiLeadRemarkLeadRemark;
       'api::lead.lead': ApiLeadLead;
+      'api::lender-master.lender-scoring-criteria': ApiLenderMasterLenderScoringCriteria;
       'api::lender-master.lenders-catalog': ApiLenderMasterLendersCatalog;
       'api::lender-master.zip-code': ApiLenderMasterZipCode;
       'api::loan-app-section-permission.loan-app-section-permission': ApiLoanAppSectionPermissionLoanAppSectionPermission;
       'api::loan-application-page.loan-application-page': ApiLoanApplicationPageLoanApplicationPage;
       'api::loan-application.loan-application': ApiLoanApplicationLoanApplication;
       'api::personal-loan-eligibility.lenders-criteria-pl': ApiPersonalLoanEligibilityLendersCriteriaPl;
-      'api::personal-loan-scoring-criteria.lender-scoring-criteria': ApiPersonalLoanScoringCriteriaLenderScoringCriteria;
       'api::product-page.product-page': ApiProductPageProductPage;
       'api::product.product': ApiProductProduct;
       'api::user-product-mapping.user-product-mapping': ApiUserProductMappingUserProductMapping;

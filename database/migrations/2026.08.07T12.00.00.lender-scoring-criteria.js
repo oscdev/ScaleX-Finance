@@ -2,7 +2,7 @@
 
 /**
  * PL scoring: activity_log PL_SCORE_* enum values.
- * Criterion seed data: database/seed-data/lender-scoring-criteria.sql
+ * Criterion seed data: database/lender-scoring-criteria.sql
  */
 
 async function addActivityLogEnums(knex) {

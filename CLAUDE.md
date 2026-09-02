@@ -132,9 +132,10 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 
 | Collection / module | Purpose | Key fields / notes |
 |---|---|---|
-| `lender-master` | Strapi API module for master lender registry + serviceable pincodes | Module path `src/api/lender-master/`; see [docs/Lender-Master.md](docs/Lender-Master.md) |
+| `lender-master` | Strapi API module for master lender registry + serviceable pincodes + scoring catalog | Module path `src/api/lender-master/`; see [docs/Lender-Master.md](docs/Lender-Master.md) |
 | `lenders-catalog` | Content type inside `lender-master`; master registry of financial institutions (replaces deprecated `lender`/`lenders` table) | UID: `api::lender-master.lenders-catalog`; table `lenders_catalog`; REST `/api/lenders-catalogs`; fields `lenderName`, `lenderType`, `lenderCode`, `isActive` |
 | `zip-code` | Content type inside `lender-master`; serviceable pincodes per lender | UID: `api::lender-master.zip-code`; table `zip_codes_to_lenders`; REST `/api/zip-codes`; soft-links via `lenderCode`; hidden from Content Manager |
+| `lender-scoring-criteria` | Content type inside `lender-master`; platform criterion catalog (weights + JSON bands) | UID: `api::lender-master.lender-scoring-criteria`; table `lender_scoring_criteria`; REST `/api/lender-scoring-criterias`; hidden from Content Manager; PL scoring engine loads via `catalog-loader` |
 
 ### Personal Loan Eligibility
 
@@ -154,18 +155,25 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 | Collection / module | Purpose | Key fields / notes |
 |---|---|---|
 | `business-loan-eligibility` | Strapi API module for ON/OFF BL lender matching (20-step engine) | Module path `src/api/business-loan-eligibility/`; APIs `GET/POST /api/business-loan-eligibility/matched-lenders`, `POST /api/business-loan-eligibility/evaluate`, CRUD `/api/lenders-criteria-bls`; see [docs/business-loan/business-loan-eligibility/](docs/business-loan/business-loan-eligibility/) |
-| `lenders-criteria-bl` | Per-lender BL eligibility thresholds | UID: `api::business-loan-eligibility.lenders-criteria-bl`; table `lenders_criteria_bl`; REST `/api/lenders-criteria-bls`; soft-links via `lenderCode`; hidden from Content Manager |
-| Match engine | 20 ON/OFF rules (no scoring handoff) | Order: ACTIVE → PINCODE → CIBIL\|FTB → CURRENT-OVERDUE → AGE → ENTITY → TURNOVER → VINTAGE → AMOUNT → FOIR → CC-UTIL → DPD-3M/12M/DAYS → UNSECURED → ENQ-EXCLUDE → ENQ-1M/3M → AUDITED → SETTLED-WO; blocks without loan app / bureau (`BL_ERR_*` 422); file audit `logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`; reserved scoring dir `logs/business-loan/bl-scoring/` (not implemented); activity `BL_ELIGIBILITY_*` |
+| `lenders-criteria-bl` | Per-lender BL eligibility thresholds | UID: `api::business-loan-eligibility.lenders-criteria-bl`; table `lenders_criteria_bl`; REST `/api/lenders-criteria-bls`; soft-links via `lenderCode`; hidden from Content Manager; includes `minInterestRate` / `maxInterestRate` (percent, seeded) |
+| Match engine | 20 ON/OFF rules (scoring handoff **planned**) | Order: ACTIVE → PINCODE → CIBIL\|FTB → CURRENT-OVERDUE → AGE → ENTITY → TURNOVER → VINTAGE → AMOUNT → FOIR → CC-UTIL → DPD-3M/12M/DAYS → UNSECURED → ENQ-EXCLUDE → ENQ-1M/3M → AUDITED → SETTLED-WO; blocks without loan app / bureau (`BL_ERR_*` 422); file audit `logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`; scoring docs [docs/business-loan/business-loan-scoring/](docs/business-loan/business-loan-scoring/) (engine not implemented); activity `BL_ELIGIBILITY_*` |
 | Seed | 44 lender criteria rows | [`database/lenders-criteria-bl.sql`](database/lenders-criteria-bl.sql) — run via `psql` after Strapi creates the table |
 | Frontend AI Match | `/lenders?leadId=` | Business Loan → BL matched-lenders; Personal Loan → PL matched-lenders (+ scoring) |
+
+### Business Loan Scoring
+
+| Collection / module | Purpose | Key fields / notes |
+|---|---|---|
+| `business-loan-scoring-criteria` | A.3 weighted scoring + rank (≥40 display) | **Docs only** — [docs/business-loan/business-loan-scoring/](docs/business-loan/business-loan-scoring/) ([scoring_rules.md](docs/business-loan/business-loan-scoring/scoring_rules.md) locked formulas); planned module `src/api/business-loan-scoring-criteria/`; catalog `lender_scoring_criteria` (`loan_type = Business Loan`) in `lender-master` |
+| Catalog | 13 BL criteria (weights sum 100) | `ITR_DOCUMENTATION` / `BUSINESS_REGISTRATION_PROOF` STATIC full weight (3 pts each); `ROI_COMPETITIVENESS` 6; `MAX_LOAN_ADEQUACY` 4; rest same formulas as PL |
+| File audit (planned) | Per-lead scoring log | `logs/business-loan/bl-scoring/<leadId>-<Name>_YYYY-MM-DD.log` + activity `BL_SCORE_*` |
 
 ### Personal Loan Scoring
 
 | Collection / module | Purpose | Key fields / notes |
 |---|---|---|
-| `personal-loan-scoring-criteria` | A.3 weighted scoring + rank (≥40 display) | Module path `src/api/personal-loan-scoring-criteria/`; see [docs/personal-loan-scoring-criteria/](docs/personal-loan-scoring-criteria/) |
-| `lender-scoring-criteria` | Platform criterion catalog (weights + JSON bands) | UID: `api::personal-loan-scoring-criteria.lender-scoring-criteria`; table `lender_scoring_criteria`; REST `/api/lender-scoring-criterias`; hidden from Content Manager |
-| Seed data | Import 11 PL criteria rows | `database/seed-data/lender-scoring-criteria.sql` — run via `psql` after Strapi creates the table |
+| `personal-loan-scoring-criteria` | A.3 weighted scoring + rank (≥40 display) | Module path `src/api/personal-loan-scoring-criteria/`; engine only (rules, pipeline, `score`/`rank`); catalog table lives in `lender-master`; see [docs/personal-loan-scoring-criteria/](docs/personal-loan-scoring-criteria/) |
+| Seed data | Import 11 PL criteria rows + 13 BL rows | [`database/lender-scoring-criteria.sql`](database/lender-scoring-criteria.sql) — run via `psql` after Strapi creates the table; BL weights sum 100; `ITR_DOCUMENTATION` / `BUSINESS_REGISTRATION_PROOF` use `STATIC` |
 | Scoring APIs | Score / rank helpers | `POST /api/personal-loan-scoring-criteria/score`; `POST /api/personal-loan-scoring-criteria/rank`; orchestrated from `matched-lenders` after A.1 PASS |
 | Pipeline | Locked order | `ELIGIBILITY → SCORING → RANK`; 11 criteria (weights sum 100); `minDisplayScore = 40` for AI Match UI |
 | File audit | Per-lead scoring log | `logs/personal-loan/pl-scoring/<leadId>-<Name>_YYYY-MM-DD.log`; lender `summary.criterionScores` + `PL_SCORE_*` activity events |
@@ -320,7 +328,7 @@ System / no-lead fallback: `logs/<product>/<module>/<basename>_YYYY-MM-DD.log` (
 | PL lead submission | `logs/personal-loan/pl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log` (Strapi lead create, loan-app create, client audit) |
 | PL bureau extraction (Python) | `logs/personal-loan/pl-bureau-extraction/<leadId>-<Name>_YYYY-MM-DD.log` |
 | BL eligibility | `logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log` |
-| BL scoring | `logs/business-loan/bl-scoring/` (reserved convention — no BL scoring engine yet) |
+| BL scoring | `logs/business-loan/bl-scoring/<leadId>-<Name>_YYYY-MM-DD.log` (documented; engine not implemented — `BL_SCORE_*`) |
 | BL lead submission | `logs/business-loan/bl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log` (same writer as PL; routed by `loanType` / `selectedProduct`) |
 | BL bureau extraction (Python) | `logs/business-loan/bl-bureau-extraction/<leadId>-<Name>_YYYY-MM-DD.log` |
 
@@ -360,6 +368,7 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - **[docs/business-loan/business-loan-eligibility/API-References.md](docs/business-loan/business-loan-eligibility/API-References.md)** — BL eligibility APIs (criteria CRUD, matched-lenders, evaluate) — **Implemented**
 - **[docs/business-loan/business-loan-eligibility/Validation-Rules.md](docs/business-loan/business-loan-eligibility/Validation-Rules.md)** — BL match validation, `BL_ERR_*` / `BL_FAIL_*`, `logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`
 - **[docs/business-loan/business-loan-eligibility/Seed-Data.md](docs/business-loan/business-loan-eligibility/Seed-Data.md)** — Seed JSON for 44 BL lender criteria rows (`eligible_entity_types` full phrases)
+- **[docs/business-loan/business-loan-scoring/](docs/business-loan/business-loan-scoring/)** — BL scoring docs ([scoring_rules.md](docs/business-loan/business-loan-scoring/scoring_rules.md) locked 13-criterion formulas; schema, seed, business rules, APIs, validation/logging) — **documented only**; engine not implemented
 - **[frontend/src/app/loan-application/LoanApplicationForm.tsx](frontend/src/app/loan-application/LoanApplicationForm.tsx)** — `getSteps()` + submit; builds `form_data` only for steps in the selected funnel
 - **[frontend/src/app/loan-application/businessLoanConfig.ts](frontend/src/app/loan-application/businessLoanConfig.ts)** — BL reg-proof options, slugs, notes, `buildBusinessLoanDocFields`, turnover/age parsers
 - **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create logs `LOAN_APP_SUBMIT_*` to per-lead submission file; **bidirectional** `api-uploads-mirror` keeps Media Library `API Uploads/` and `public/uploads/api_uploads/` in sync; `syncLeadDocumentsToDisk` delegates to mirror; Business Loan payloads validated via `utils/validate-business-loan.ts`; CM record edit (`/admin/content-manager/.../loan-application/{documentId}`) mounts custom **`LoanApplicationEditForm`** (native CM fields hidden) — funnel sections + frontend widget parity via **`src/shared/loan-form/field-schema.ts`** + **`FormFieldControl`**
@@ -367,9 +376,9 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - **[src/admin/LeadViewDashboard/](src/admin/LeadViewDashboard/)** — Lead View overlay on loan-application CM list when `sessionStorage.currentLeadId` is set; inline edits use same **`LoanFormSections`** / **`FormFieldControl`** as CM edit
 - **[src/shared/loan-form/](src/shared/loan-form/)** — Shared loan form field schema (`getFieldsForFunnel`, `getAppSteps`, `getAdminLoanFormDisplayData`, `getAdminLoanFormSaveBase`, `isStaleLoanFormPrefill`), India state/district data, widget metadata (importable from Strapi admin). Admin UI passes `{ ignoreShowWhen: true }` so conditional fields stay visible when empty/null; step **values** mask stale prefill only — tick **saves** use the same save base so hidden stale data is not re-persisted.
 - **[src/api/bureau-data-extraction/](src/api/bureau-data-extraction/)** — Bureau PDF extraction (`POST /api/cibil-report-summaries/extract`; reads `public/uploads/api_uploads/`)
-- **[src/api/lender-master/](src/api/lender-master/)** — Lender master registry + zip coverage (`lenders-catalog`, `zip-code`)
+- **[src/api/lender-master/](src/api/lender-master/)** — Lender master registry + zip coverage + scoring catalog (`lenders-catalog`, `zip-code`, `lender-scoring-criteria`)
 - **[src/api/personal-loan-eligibility/](src/api/personal-loan-eligibility/)** — PL eligibility thresholds + 19-step matching engine (`matched-lenders` / `evaluate`; file audit in `logs/personal-loan/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`)
-- **[src/api/personal-loan-scoring-criteria/](src/api/personal-loan-scoring-criteria/)** — PL scoring catalog + weighted scoring/ranking (`score` / `rank`; file audit in `logs/personal-loan/pl-scoring/<leadId>-<Name>_YYYY-MM-DD.log`)
+- **[src/api/personal-loan-scoring-criteria/](src/api/personal-loan-scoring-criteria/)** — PL scoring/ranking engine (`score` / `rank`; loads `api::lender-master.lender-scoring-criteria`; file audit in `logs/personal-loan/pl-scoring/<leadId>-<Name>_YYYY-MM-DD.log`)
 - **[docs/personal-loan-scoring-criteria/](docs/personal-loan-scoring-criteria/)** — PL scoring criteria, formulas, seed data, API contracts
 - **[docs/Personal-Loan-Eligibility.md](docs/Personal-Loan-Eligibility.md)** — PL eligibility rules, logging, AI Match → `/lenders`
 - **[docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md)** — `.venv` setup and extraction runbook
@@ -387,7 +396,7 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - The deprecated `lender` collection (`lenders` table) has been removed; the public `/lenders` page and all lender data now read from `lenders-catalog` inside **`lender-master`** (UID `api::lender-master.lenders-catalog`). The `lenders` table is dropped via a migration — the old `name`/`interestRateOffer`/`matchPercentage`/`applyUrl`/`logo` display fields no longer exist, the page now shows `lenderName`/`lenderType`/`lenderCode`
 - **[database/migrations/](database/migrations/)** — Schema migration history
 - The `lenders-page` / `lenders-catalog-page` single type (CMS copy for the `/lenders` page header) has been removed entirely, table `lenders_catalog_page` dropped. The `/lenders` page header text is now hardcoded ("Matched Lenders" / "Based on your application...") in `frontend/src/app/lenders/page.tsx`
-- The `lenders-catalog` and `zip-code` collections live under the **`lender-master`** API folder (UIDs `api::lender-master.lenders-catalog`, `api::lender-master.zip-code`), not top-level `src/api/lenders-catalog/` / `src/api/zip-code/` paths
+- The `lenders-catalog`, `zip-code`, and `lender-scoring-criteria` collections live under the **`lender-master`** API folder (UIDs `api::lender-master.lenders-catalog`, `api::lender-master.zip-code`, `api::lender-master.lender-scoring-criteria`), not top-level `src/api/lenders-catalog/` / `src/api/zip-code/` / `src/api/personal-loan-scoring-criteria/content-types/` paths
 - The `cibil-report-summary` collection lives under the **`bureau-data-extraction`** API folder (UID `api::bureau-data-extraction.cibil-report-summary`), not a top-level `src/api/cibil-report-summary/` path
 - Bureau extraction auto-triggers when `cibil_report.pdf` lands in `public/uploads/api_uploads/` or Media Library `API Uploads/` (mirror + `syncLeadDocumentsToDisk`); PL scoring runs after A.1 eligibility in `matched-lenders` pipeline
 

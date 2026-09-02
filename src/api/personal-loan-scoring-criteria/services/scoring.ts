@@ -129,7 +129,7 @@ export async function scoreEligibleLenders(
 
   try {
     const inactiveRows = await strapi.db
-      .query('api::personal-loan-scoring-criteria.lender-scoring-criteria')
+      .query('api::lender-master.lender-scoring-criteria')
       .findMany({
         where: { isActive: false, loanType },
         select: ['criterionCode'],

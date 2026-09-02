@@ -44,6 +44,8 @@ export interface BlLenderCriteria {
   bankStatementMonthsRequired?: number | null;
   minLoanAmount?: number | null;
   maxLoanAmount?: number | null;
+  minInterestRate?: number | null;
+  maxInterestRate?: number | null;
   foirMax?: number | null;
   maxCcUtilizationRatio?: number | null;
   maxActiveUnsecured6Months?: number | null;
