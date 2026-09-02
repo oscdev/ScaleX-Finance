@@ -2,7 +2,7 @@ import { PlScoreErr, PlScoreError } from './error-codes';
 import { isValidDigitKeyRulesMap } from './rules-map';
 import type { ScoringCatalogRow, ScoreCriterionId } from './types';
 
-const CATALOG_UID = 'api::personal-loan-scoring-criteria.lender-scoring-criteria';
+const CATALOG_UID = 'api::lender-master.lender-scoring-criteria';
 
 const CRITERION_ORDER: ScoreCriterionId[] = [
   'CIBIL_SCORE',
