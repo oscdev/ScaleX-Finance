@@ -4,6 +4,55 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+# STARTUP INSTRUCTIONS — ALWAYS FOLLOW
+
+Before starting **every prompt/task**:
+
+* **Graphify** — Review/update the project graph and dependencies before making changes. See **graphify** at the end of this file for `query` / `path` / `explain` / `update`.
+* **Obsidian** — Review relevant project documentation/knowledge before implementation; keep documentation in sync after changes.
+* **Caveman** — Prefer simple, clear, maintainable solutions. Avoid unnecessary complexity, duplication, abstractions, or over-engineering.
+
+## Development Standards
+
+* Follow **Strapi standards and conventions** for APIs, controllers, services, routes, content-types, lifecycle logic, validation, configuration, and database access.
+* Follow **Single Responsibility Principle (SRP)** — each controller/service/helper/module should have one clear responsibility.
+* Reuse existing utilities/services instead of duplicating logic.
+* Keep business logic out of controllers; controllers should remain thin.
+* Prefer clean, modular, testable, and maintainable code.
+* Do not change existing business logic, API contracts, scoring rules, or data behavior unless explicitly required.
+* Before modifying code, understand existing flow, dependencies, and side effects.
+
+## Security & Reliability
+
+For every change, check and address where applicable:
+
+* **CSP/security headers** and browser console security errors/warnings.
+* Authentication, authorization, permissions, and role-based access.
+* Input validation, sanitization, and safe error handling.
+* SQL/ORM injection and unsafe database queries.
+* XSS, CSRF, SSRF, open redirects, and unsafe file uploads.
+* Sensitive data exposure, secrets, credentials, tokens, and PII in logs/responses.
+* CORS configuration and API exposure.
+* Rate limiting and abuse protection where applicable.
+* Secure HTTP/HTTPS, cookies, sessions, and environment configuration.
+* Dependency vulnerabilities and unsafe packages.
+* Path traversal and filesystem access.
+* Logging/auditing without exposing sensitive information.
+* Production error handling — never expose stack traces or internal implementation details.
+* Strapi security configuration and secure API permissions.
+
+## Quality Gate
+
+Before completing every task:
+
+* Check for regressions and unintended side effects.
+* Check relevant logs and console errors.
+* Run appropriate linting, formatting, type checks, tests, and build checks.
+* Verify security implications of the change.
+* Remove dead code, temporary files, debug logs, and unnecessary changes.
+* Update relevant documentation and Graphify/Obsidian knowledge.
+* Keep the implementation **simple, secure, Strapi-standard, SRP-compliant, and production-ready**.
+
 ## Project Overview
 
 **ScaleX Finance MVP** is a fintech lead management platform with a **Strapi v5 backend** (CMS & REST API) and **Next.js 16 frontend** (React 19). The system enables advisors to manage financial leads and loan applications from potential customers. Staff and Bankers are secondary roles assigned to process loan applications.
