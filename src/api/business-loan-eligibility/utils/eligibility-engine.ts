@@ -616,5 +616,21 @@ export async function runBlEligibilityMatch(
     },
   });
 
+  if (response.eligible.length > 0) {
+    try {
+      const { runFullBlScoringPipeline } = await import(
+        '../../business-loan-scoring-criteria/utils/pipeline'
+      );
+      result.scoring = await runFullBlScoringPipeline(strapi, {
+        leadId,
+        eligResult: result,
+      });
+    } catch (err: any) {
+      strapi.log.warn(
+        `[BL Scoring] pipeline failed for lead ${leadId}: ${err?.message || err}`
+      );
+    }
+  }
+
   return result;
 }

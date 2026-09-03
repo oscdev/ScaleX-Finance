@@ -5,6 +5,7 @@ import {
   resolveLoanTypeForLead,
   scoringLogModule,
 } from '../../../utils/code-file-logger';
+import { buildScoringLenderSummary, formatLenderCriterionSummaryLines } from '../../../utils/lender-run-log-summary';
 import type { CriterionScoreResult, LenderScoreResult, RankResult } from './types';
 
 export interface ScoringRunLogger {
@@ -15,18 +16,6 @@ export interface ScoringRunLogger {
   writeRankSummary(rank: RankResult): void;
   writeRunDone(scored: number, displayed: number): void;
   writeBlocked(code: string, message: string): void;
-}
-
-function formatCriterionScoresInline(
-  scores: Partial<Record<string, number>> | undefined
-): string {
-  if (!scores || !Object.keys(scores).length) return '';
-  const parts = Object.entries(scores).map(([id, pts]) => `${id}:${pts}`);
-  return ` [${parts.join(', ')}]`;
-}
-
-function formatLenderWithScores(l: LenderScoreResult): string {
-  return `${l.lenderCode}(${l.totalScore})${formatCriterionScoresInline(l.summary.criterionScores)}`;
 }
 
 export async function createScoringRunLogger(
@@ -78,21 +67,32 @@ export async function createScoringRunLogger(
         summary: result.summary,
       };
       appendText(`lender = ${result.lenderCode} ${JSON.stringify(body, null, 2)}`);
+      appendText(
+        formatLenderCriterionSummaryLines({
+          lenderCode: result.lenderCode,
+          lenderName: result.lenderName,
+          summary: result.summary,
+        }).join('\n')
+      );
       appendText('---');
     },
 
     writeRankSummary(rank: RankResult) {
       const scored = rank.displayed.concat(rank.belowThreshold);
-      const scoredCodes = scored.map((l) => l.lenderCode).join(', ');
-      const displayed = rank.displayed.map((l) => formatLenderWithScores(l)).join('; ');
-
-      const lines = [
-        'CRITERION_SUMMARY (this run):',
-        `  lenders scored: ${scoredCodes || '(none)'}`,
-        `  DISPLAYED (>=${rank.minDisplayScore}): ${displayed || '(none)'}`,
-        '',
-      ];
-      appendText(lines.join('\n'));
+      appendText(
+        buildScoringLenderSummary(
+          scored.map((l) => ({
+            lenderCode: l.lenderCode,
+            lenderName: l.lenderName,
+            totalScore: l.totalScore,
+            rank: l.rank,
+            displayed: l.displayed,
+            summary: l.summary,
+          })),
+          rank.minDisplayScore
+        )
+      );
+      appendText('');
     },
 
     writeRunDone(scored: number, displayed: number) {

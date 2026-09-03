@@ -151,4 +151,37 @@ export interface MatchRunResult {
   error?: { code: string; message: string } | null;
   validations: { ok: boolean; errors: Array<{ code: string; message: string }> };
   logFile?: string | null;
+  scoring?: {
+    leadId: number;
+    runId: string;
+    loanType: string;
+    scored: Array<{
+      lenderCode: string;
+      totalScore: number;
+      lenderName?: string;
+      lenderType?: string;
+      rank?: number | null;
+      minInterestRate?: number | null;
+      summary?: unknown;
+      criteria?: unknown[];
+    }>;
+    rank: {
+      minDisplayScore: number;
+      displayed: Array<{
+        lenderCode: string;
+        lenderName?: string;
+        lenderType?: string;
+        totalScore: number;
+        rank: number | null;
+        minInterestRate?: number | null;
+      }>;
+      belowThreshold: Array<{
+        lenderCode: string;
+        lenderName?: string;
+        totalScore: number;
+        rank?: number | null;
+        errorCode?: string;
+      }>;
+    };
+  } | null;
 }

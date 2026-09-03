@@ -573,6 +573,14 @@ export interface ApiActivityLogActivityLog extends Struct.CollectionTypeSchema {
         'PL_SCORE_RANK_COMPLETE',
         'PL_SCORE_RUN_DONE',
         'PL_SCORE_BLOCKED',
+        'BL_SCORE_RUN_START',
+        'BL_SCORE_CRITERION',
+        'BL_SCORE_CRITERION_SKIP',
+        'BL_SCORE_CRITERION_INACTIVE',
+        'BL_SCORE_LENDER',
+        'BL_SCORE_RANK_COMPLETE',
+        'BL_SCORE_RUN_DONE',
+        'BL_SCORE_BLOCKED',
       ]
     > &
       Schema.Attribute.Required;
