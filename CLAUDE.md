@@ -4,6 +4,55 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+# STARTUP INSTRUCTIONS — ALWAYS FOLLOW
+
+Before starting **every prompt/task**:
+
+* **Graphify** — Review/update the project graph and dependencies before making changes. See **graphify** at the end of this file for `query` / `path` / `explain` / `update`.
+* **Obsidian** — Review relevant project documentation/knowledge before implementation; keep documentation in sync after changes.
+* **Caveman** — Prefer simple, clear, maintainable solutions. Avoid unnecessary complexity, duplication, abstractions, or over-engineering.
+
+## Development Standards
+
+* Follow **Strapi standards and conventions** for APIs, controllers, services, routes, content-types, lifecycle logic, validation, configuration, and database access.
+* Follow **Single Responsibility Principle (SRP)** — each controller/service/helper/module should have one clear responsibility.
+* Reuse existing utilities/services instead of duplicating logic.
+* Keep business logic out of controllers; controllers should remain thin.
+* Prefer clean, modular, testable, and maintainable code.
+* Do not change existing business logic, API contracts, scoring rules, or data behavior unless explicitly required.
+* Before modifying code, understand existing flow, dependencies, and side effects.
+
+## Security & Reliability
+
+For every change, check and address where applicable:
+
+* **CSP/security headers** and browser console security errors/warnings.
+* Authentication, authorization, permissions, and role-based access.
+* Input validation, sanitization, and safe error handling.
+* SQL/ORM injection and unsafe database queries.
+* XSS, CSRF, SSRF, open redirects, and unsafe file uploads.
+* Sensitive data exposure, secrets, credentials, tokens, and PII in logs/responses.
+* CORS configuration and API exposure.
+* Rate limiting and abuse protection where applicable.
+* Secure HTTP/HTTPS, cookies, sessions, and environment configuration.
+* Dependency vulnerabilities and unsafe packages.
+* Path traversal and filesystem access.
+* Logging/auditing without exposing sensitive information.
+* Production error handling — never expose stack traces or internal implementation details.
+* Strapi security configuration and secure API permissions.
+
+## Quality Gate
+
+Before completing every task:
+
+* Check for regressions and unintended side effects.
+* Check relevant logs and console errors.
+* Run appropriate linting, formatting, type checks, tests, and build checks.
+* Verify security implications of the change.
+* Remove dead code, temporary files, debug logs, and unnecessary changes.
+* Update relevant documentation and Graphify/Obsidian knowledge.
+* Keep the implementation **simple, secure, Strapi-standard, SRP-compliant, and production-ready**.
+
 ## Project Overview
 
 **ScaleX Finance MVP** is a fintech lead management platform with a **Strapi v5 backend** (CMS & REST API) and **Next.js 16 frontend** (React 19). The system enables advisors to manage financial leads and loan applications from potential customers. Staff and Bankers are secondary roles assigned to process loan applications.
@@ -156,17 +205,19 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 |---|---|---|
 | `business-loan-eligibility` | Strapi API module for ON/OFF BL lender matching (20-step engine) | Module path `src/api/business-loan-eligibility/`; APIs `GET/POST /api/business-loan-eligibility/matched-lenders`, `POST /api/business-loan-eligibility/evaluate`, CRUD `/api/lenders-criteria-bls`; see [docs/business-loan/business-loan-eligibility/](docs/business-loan/business-loan-eligibility/) |
 | `lenders-criteria-bl` | Per-lender BL eligibility thresholds | UID: `api::business-loan-eligibility.lenders-criteria-bl`; table `lenders_criteria_bl`; REST `/api/lenders-criteria-bls`; soft-links via `lenderCode`; hidden from Content Manager; includes `minInterestRate` / `maxInterestRate` (percent, seeded) |
-| Match engine | 20 ON/OFF rules (scoring handoff **planned**) | Order: ACTIVE → PINCODE → CIBIL\|FTB → CURRENT-OVERDUE → AGE → ENTITY → TURNOVER → VINTAGE → AMOUNT → FOIR → CC-UTIL → DPD-3M/12M/DAYS → UNSECURED → ENQ-EXCLUDE → ENQ-1M/3M → AUDITED → SETTLED-WO; blocks without loan app / bureau (`BL_ERR_*` 422); file audit `logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`; scoring docs [docs/business-loan/business-loan-scoring/](docs/business-loan/business-loan-scoring/) (engine not implemented); activity `BL_ELIGIBILITY_*` |
+| Match engine | 20 ON/OFF rules then scoring handoff | Order: ACTIVE → PINCODE → CIBIL\|FTB → CURRENT-OVERDUE → AGE → ENTITY → TURNOVER → VINTAGE → AMOUNT → FOIR → CC-UTIL → DPD-3M/12M/DAYS → UNSECURED → ENQ-EXCLUDE → ENQ-1M/3M → AUDITED → SETTLED-WO; blocks without loan app / bureau (`BL_ERR_*` 422); file audit `logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`; scoring [`src/api/business-loan-scoring-criteria/`](src/api/business-loan-scoring-criteria/); activity `BL_ELIGIBILITY_*` |
 | Seed | 44 lender criteria rows | [`database/lenders-criteria-bl.sql`](database/lenders-criteria-bl.sql) — run via `psql` after Strapi creates the table |
-| Frontend AI Match | `/lenders?leadId=` | Business Loan → BL matched-lenders; Personal Loan → PL matched-lenders (+ scoring) |
+| Frontend AI Match | `/lenders?leadId=` | Business Loan → BL matched-lenders (+ scoring); Personal Loan → PL matched-lenders (+ scoring) |
 
 ### Business Loan Scoring
 
 | Collection / module | Purpose | Key fields / notes |
 |---|---|---|
-| `business-loan-scoring-criteria` | A.3 weighted scoring + rank (≥40 display) | **Docs only** — [docs/business-loan/business-loan-scoring/](docs/business-loan/business-loan-scoring/) ([scoring_rules.md](docs/business-loan/business-loan-scoring/scoring_rules.md) locked formulas); planned module `src/api/business-loan-scoring-criteria/`; catalog `lender_scoring_criteria` (`loan_type = Business Loan`) in `lender-master` |
+| `business-loan-scoring-criteria` | A.3 weighted scoring + rank (≥40 display) | Module path `src/api/business-loan-scoring-criteria/`; engine only (rules, pipeline, `score`/`rank`); catalog `lender_scoring_criteria` (`loan_type = Business Loan`) in `lender-master`; see [docs/business-loan/business-loan-scoring/](docs/business-loan/business-loan-scoring/) ([scoring_rules.md](docs/business-loan/business-loan-scoring/scoring_rules.md) locked formulas) |
 | Catalog | 13 BL criteria (weights sum 100) | `ITR_DOCUMENTATION` / `BUSINESS_REGISTRATION_PROOF` STATIC full weight (3 pts each); `ROI_COMPETITIVENESS` 6; `MAX_LOAN_ADEQUACY` 4; rest same formulas as PL |
-| File audit (planned) | Per-lead scoring log | `logs/business-loan/bl-scoring/<leadId>-<Name>_YYYY-MM-DD.log` + activity `BL_SCORE_*` |
+| Scoring APIs | Score / rank helpers | `POST /api/business-loan-scoring-criteria/score`; `POST /api/business-loan-scoring-criteria/rank`; orchestrated from BL `matched-lenders` after A.1 PASS |
+| Pipeline | Locked order | `ELIGIBILITY → SCORING → RANK`; 13 criteria (weights sum 100); `minDisplayScore = 40` for AI Match UI |
+| File audit | Per-lead scoring log | `logs/business-loan/bl-scoring/<leadId>-<Name>_YYYY-MM-DD.log` + activity `BL_SCORE_*` |
 
 ### Personal Loan Scoring
 
@@ -319,7 +370,7 @@ File log convention (lead runs): `logs/<product>/<module>/<leadId>-<NameNoSpaces
 Example: `logs/personal-loan/pl-eligibility/125-TestDeveloper_2026-08-07.log`  
 System / no-lead fallback: `logs/<product>/<module>/<basename>_YYYY-MM-DD.log` (basename only — nested module keys like `personal-loan/pl-eligibility` do not embed `/` in the filename).
 
-**Overwrite on rerun:** When a per-lead log file already exists for the same UTC day, each module **truncates it at the start of a new run** (via `resetModuleLeadLog` in [`code-file-logger.ts`](src/utils/code-file-logger.ts)) instead of appending. Applies to PL/BL eligibility, PL scoring, bureau extraction (re-extract), and lead submission on new lead submit (`LEAD_SUBMIT_*`); loan-app / validation lines append within the same submission journey.
+**Overwrite on rerun:** When a per-lead log file already exists for the same UTC day, each module **truncates it at the start of a new run** (via `resetModuleLeadLog` in [`code-file-logger.ts`](src/utils/code-file-logger.ts)) instead of appending. Applies to PL/BL eligibility, PL/BL scoring, bureau extraction (re-extract), and lead submission on new lead submit (`LEAD_SUBMIT_*`); loan-app / validation lines append within the same submission journey.
 
 | Module | Path |
 |--------|------|
@@ -328,7 +379,7 @@ System / no-lead fallback: `logs/<product>/<module>/<basename>_YYYY-MM-DD.log` (
 | PL lead submission | `logs/personal-loan/pl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log` (Strapi lead create, loan-app create, client audit) |
 | PL bureau extraction (Python) | `logs/personal-loan/pl-bureau-extraction/<leadId>-<Name>_YYYY-MM-DD.log` |
 | BL eligibility | `logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log` |
-| BL scoring | `logs/business-loan/bl-scoring/<leadId>-<Name>_YYYY-MM-DD.log` (documented; engine not implemented — `BL_SCORE_*`) |
+| BL scoring | `logs/business-loan/bl-scoring/<leadId>-<Name>_YYYY-MM-DD.log` + activity `BL_SCORE_*` |
 | BL lead submission | `logs/business-loan/bl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log` (same writer as PL; routed by `loanType` / `selectedProduct`) |
 | BL bureau extraction (Python) | `logs/business-loan/bl-bureau-extraction/<leadId>-<Name>_YYYY-MM-DD.log` |
 
@@ -368,7 +419,8 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - **[docs/business-loan/business-loan-eligibility/API-References.md](docs/business-loan/business-loan-eligibility/API-References.md)** — BL eligibility APIs (criteria CRUD, matched-lenders, evaluate) — **Implemented**
 - **[docs/business-loan/business-loan-eligibility/Validation-Rules.md](docs/business-loan/business-loan-eligibility/Validation-Rules.md)** — BL match validation, `BL_ERR_*` / `BL_FAIL_*`, `logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`
 - **[docs/business-loan/business-loan-eligibility/Seed-Data.md](docs/business-loan/business-loan-eligibility/Seed-Data.md)** — Seed JSON for 44 BL lender criteria rows (`eligible_entity_types` full phrases)
-- **[docs/business-loan/business-loan-scoring/](docs/business-loan/business-loan-scoring/)** — BL scoring docs ([scoring_rules.md](docs/business-loan/business-loan-scoring/scoring_rules.md) locked 13-criterion formulas; schema, seed, business rules, APIs, validation/logging) — **documented only**; engine not implemented
+- **[src/api/business-loan-scoring-criteria/](src/api/business-loan-scoring-criteria/)** — BL scoring/ranking engine (`score` / `rank`; loads `api::lender-master.lender-scoring-criteria` with `loan_type = Business Loan`; file audit in `logs/business-loan/bl-scoring/<leadId>-<Name>_YYYY-MM-DD.log`)
+- **[docs/business-loan/business-loan-scoring/](docs/business-loan/business-loan-scoring/)** — BL scoring docs ([scoring_rules.md](docs/business-loan/business-loan-scoring/scoring_rules.md) locked 13-criterion formulas; schema, seed, business rules, APIs, validation/logging)
 - **[frontend/src/app/loan-application/LoanApplicationForm.tsx](frontend/src/app/loan-application/LoanApplicationForm.tsx)** — `getSteps()` + submit; builds `form_data` only for steps in the selected funnel
 - **[frontend/src/app/loan-application/businessLoanConfig.ts](frontend/src/app/loan-application/businessLoanConfig.ts)** — BL reg-proof options, slugs, notes, `buildBusinessLoanDocFields`, turnover/age parsers
 - **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create logs `LOAN_APP_SUBMIT_*` to per-lead submission file; **bidirectional** `api-uploads-mirror` keeps Media Library `API Uploads/` and `public/uploads/api_uploads/` in sync; `syncLeadDocumentsToDisk` delegates to mirror; Business Loan payloads validated via `utils/validate-business-loan.ts`; CM record edit (`/admin/content-manager/.../loan-application/{documentId}`) mounts custom **`LoanApplicationEditForm`** (native CM fields hidden) — funnel sections + frontend widget parity via **`src/shared/loan-form/field-schema.ts`** + **`FormFieldControl`**
@@ -398,7 +450,7 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - The `lenders-page` / `lenders-catalog-page` single type (CMS copy for the `/lenders` page header) has been removed entirely, table `lenders_catalog_page` dropped. The `/lenders` page header text is now hardcoded ("Matched Lenders" / "Based on your application...") in `frontend/src/app/lenders/page.tsx`
 - The `lenders-catalog`, `zip-code`, and `lender-scoring-criteria` collections live under the **`lender-master`** API folder (UIDs `api::lender-master.lenders-catalog`, `api::lender-master.zip-code`, `api::lender-master.lender-scoring-criteria`), not top-level `src/api/lenders-catalog/` / `src/api/zip-code/` / `src/api/personal-loan-scoring-criteria/content-types/` paths
 - The `cibil-report-summary` collection lives under the **`bureau-data-extraction`** API folder (UID `api::bureau-data-extraction.cibil-report-summary`), not a top-level `src/api/cibil-report-summary/` path
-- Bureau extraction auto-triggers when `cibil_report.pdf` lands in `public/uploads/api_uploads/` or Media Library `API Uploads/` (mirror + `syncLeadDocumentsToDisk`); PL scoring runs after A.1 eligibility in `matched-lenders` pipeline
+- Bureau extraction auto-triggers when `cibil_report.pdf` lands in `public/uploads/api_uploads/` or Media Library `API Uploads/` (mirror + `syncLeadDocumentsToDisk`); PL scoring and BL scoring run after A.1 eligibility in `matched-lenders` pipeline
 
 ## graphify
 

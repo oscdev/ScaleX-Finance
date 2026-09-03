@@ -33,10 +33,10 @@ function mapRow(raw: any): ScoringCatalogRow {
 }
 
 function validateCatalogRow(row: ScoringCatalogRow): void {
-  if (row.ruleType === 'FORMULA' && row.rules != null) {
+  if ((row.ruleType === 'FORMULA' || row.ruleType === 'STATIC') && row.rules != null) {
     throw new PlScoreError(
       PlScoreErr.INVALID_RULES_SHAPE,
-      `FORMULA criterion ${row.criterionCode} must have null rules`,
+      `${row.ruleType} criterion ${row.criterionCode} must have null rules`,
       500,
       { criterionCode: row.criterionCode }
     );
@@ -56,8 +56,10 @@ function validateCatalogRow(row: ScoringCatalogRow): void {
 
 export async function loadActiveCatalog(
   strapi: any,
-  loanType = 'Personal Loan'
+  loanType = 'Personal Loan',
+  opts?: { order?: readonly string[] }
 ): Promise<ScoringCatalogRow[]> {
+  const order = opts?.order ?? CRITERION_ORDER;
   let rows: any[];
   try {
     rows = await strapi.db.query(CATALOG_UID).findMany({
@@ -97,14 +99,18 @@ export async function loadActiveCatalog(
     );
   }
 
-  const byCode = new Map(mapped.map((r) => [r.criterionCode, r]));
+  const byCode = new Map(mapped.map((r) => [String(r.criterionCode), r]));
   const ordered: ScoringCatalogRow[] = [];
-  for (const code of CRITERION_ORDER) {
+  const seen = new Set<string>();
+  for (const code of order) {
     const row = byCode.get(code);
-    if (row) ordered.push(row);
+    if (row) {
+      ordered.push(row);
+      seen.add(code);
+    }
   }
   for (const row of mapped) {
-    if (!CRITERION_ORDER.includes(row.criterionCode)) {
+    if (!seen.has(String(row.criterionCode))) {
       ordered.push(row);
     }
   }

@@ -9,6 +9,7 @@ import {
   sanitizeLeadName,
   utcDateStamp,
 } from '../../../utils/code-file-logger';
+import { buildStepFailureSummary } from '../../../utils/lender-run-log-summary';
 
 const MODULE = 'business-loan/bl-eligibility';
 
@@ -114,49 +115,8 @@ function flushLenderBlock(
   appendText('');
 }
 
-function buildStepFailureSummary(lenders: LenderEvalResult[]): string {
-  const byRule = new Map<
-    string,
-    { step: number; ruleId: string; ruleName: string; lenders: string[] }
-  >();
-
-  for (const l of lenders) {
-    if (l.eligible) continue;
-    const fail = l.conditions.find((c) => c.result === 'FAIL');
-    if (!fail) continue;
-    const catalog = getRuleCatalog(fail.ruleId);
-    const ruleName = fail.ruleName ?? catalog?.ruleName ?? fail.ruleId;
-    const entry = byRule.get(fail.ruleId) ?? {
-      step: fail.step,
-      ruleId: fail.ruleId,
-      ruleName,
-      lenders: [],
-    };
-    entry.lenders.push(l.lenderCode);
-    byRule.set(fail.ruleId, entry);
-  }
-
-  const lines = ['STEP_SUMMARY (failed lenders by step):'];
-  const sorted = [...byRule.values()].sort(
-    (a, b) => a.step - b.step || a.ruleId.localeCompare(b.ruleId)
-  );
-  if (!sorted.length) {
-    lines.push('  (no failures — all lenders passed)');
-    return lines.join('\n');
-  }
-
-  for (const { step, ruleId, ruleName, lenders: failed } of sorted) {
-    lines.push(
-      `  step ${step} | ${ruleId} (${ruleName}) | ${failed.length} lender(s): ${failed.join(', ')}`
-    );
-  }
-
-  const eligible = lenders.filter((l) => l.eligible).map((l) => l.lenderCode);
-  if (eligible.length) {
-    lines.push(`  PASSED all steps: ${eligible.join(', ')}`);
-  }
-
-  return lines.join('\n');
+function buildStepFailureSummaryForRun(lenders: LenderEvalResult[]): string {
+  return buildStepFailureSummary(lenders, (ruleId) => getRuleCatalog(ruleId)?.ruleName);
 }
 
 export interface EligibilityRunLogger {
@@ -311,7 +271,7 @@ export async function createEligibilityRunLogger(
 
       appendText('---');
       if (lenders.length) {
-        appendText(buildStepFailureSummary(lenders));
+        appendText(buildStepFailureSummaryForRun(lenders));
         appendText('');
       }
       appendText(

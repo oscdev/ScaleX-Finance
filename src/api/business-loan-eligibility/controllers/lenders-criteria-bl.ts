@@ -36,6 +36,63 @@ function sendError(ctx: any, err: unknown) {
   };
 }
 
+function formatBlMatchedBody(result: any, source: string) {
+  const scoring = result.scoring;
+  const displayed = scoring?.rank?.displayed ?? [];
+  const belowThreshold = scoring?.rank?.belowThreshold ?? [];
+
+  const scoreByCode = new Map(
+    [...displayed, ...belowThreshold].map((l: any) => [l.lenderCode, l])
+  );
+
+  const lendersList =
+    displayed.length > 0
+      ? displayed.map((l: any) => ({
+          lenderCode: l.lenderCode,
+          lenderName: l.lenderName,
+          lenderType: l.lenderType,
+          eligible: true,
+          score: l.totalScore,
+          rank: l.rank,
+          ruleFailures: [],
+        }))
+      : result.response.eligible.map((e: any) => {
+          const scored = scoreByCode.get(e.lenderCode);
+          return {
+            ...e,
+            eligible: true,
+            score: scored?.totalScore ?? null,
+            rank: scored?.rank ?? null,
+            ruleFailures: [],
+          };
+        });
+
+  return {
+    leadId: result.leadId,
+    leadName: result.profile?.fullName ?? null,
+    loanType: result.loanType || 'Business Loan',
+    source,
+    runId: result.runId,
+    pipeline: scoring ? ['ELIGIBILITY', 'SCORING', 'RANK'] : ['ELIGIBILITY'],
+    eligibleCount: result.response.eligible.length,
+    excludedCount: result.response.excluded.length,
+    lenders: lendersList,
+    excluded: result.response.excluded,
+    belowThreshold: belowThreshold.map((l: any) => ({
+      lenderCode: l.lenderCode,
+      lenderName: l.lenderName,
+      eligible: true,
+      score: l.totalScore,
+      rank: l.rank,
+      displayed: false,
+      errorCode: l.errorCode,
+    })),
+    validations: result.validations,
+    connectionFailures: result.connectionFailures,
+    logFile: result.logFile ?? null,
+  };
+}
+
 function formatPlMatchedBody(result: any) {
   const scoring = result.scoring;
   const displayed = scoring?.rank?.displayed ?? [];
@@ -115,21 +172,7 @@ export default factories.createCoreController(
           'api::business-loan-eligibility.matching-engine'
         ) as any;
         const result = await service.runMatch(leadId, { source });
-
-        ctx.body = {
-          leadId: result.leadId,
-          leadName: result.profile?.fullName ?? null,
-          loanType: result.loanType || 'Business Loan',
-          source: body.source || ctx.query.source || 'ai-match',
-          runId: result.runId,
-          eligibleCount: result.response.eligible.length,
-          excludedCount: result.response.excluded.length,
-          lenders: result.response.eligible,
-          excluded: result.response.excluded,
-          validations: result.validations,
-          connectionFailures: result.connectionFailures,
-          logFile: result.logFile ?? null,
-        };
+        ctx.body = formatBlMatchedBody(result, String(source));
       } catch (err) {
         strapi.log.error('[BL Eligibility matchedLenders]', err);
         sendError(ctx, err);
