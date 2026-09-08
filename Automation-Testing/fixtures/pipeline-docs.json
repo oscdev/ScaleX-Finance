@@ -1,0 +1,3507 @@
+{
+  "generatedAt": "2026-09-05T07:34:24.684Z",
+  "products": {
+    "personal-loan": {
+      "lead-submission": [
+        {
+          "type": "lead_field",
+          "title": "fullName",
+          "description": "Full Name · usedIn: POST /api/leads · loan-app applicantName · upload folder name · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "fullName"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "email",
+          "description": "Email · usedIn: POST /api/leads · loan-app email · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "email"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "mobileNumber",
+          "description": "Mobile Number · usedIn: POST /api/leads · loan-app phone · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "mobileNumber"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "requiredAmount",
+          "description": "Required / Loan Amount · usedIn: POST /api/leads · loan-app loanAmount · eligibility PL/BL-AMOUNT · scoring MAX_LOAN_ADEQUACY · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "requiredAmount"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "pinCode",
+          "description": "Pin Code · usedIn: POST /api/leads · eligibility PL/BL-PINCODE · zip_codes_to_lenders · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "pinCode"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "selectedProduct",
+          "description": "Selected Product / Loan Type · usedIn: POST /api/leads · loan-app loanType · routes PL vs BL engines · log folders · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "selectedProduct"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "panCard",
+          "description": "PAN · usedIn: POST /api/leads · loan-app panNumber · bureau cross-check · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "panCard"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "aadharCard",
+          "description": "Aadhaar · usedIn: POST /api/leads · loan-app aadharNumber · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "aadharCard"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "employmentType",
+          "description": "Employment Type · usedIn: POST /api/leads · funnel occupation (Salaried / Self Employed) · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "employmentType"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "personalDetails.dob",
+          "description": "Date of Birth · step: Personal · widget: date · usedIn: loan-app form_data.personalDetails.dob · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.personalDetails.dob"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Personal",
+            "section": "personalDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "personalDetails.maritalStatus",
+          "description": "Marital Status · step: Personal · widget: select · usedIn: loan-app form_data.personalDetails.maritalStatus · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.personalDetails.maritalStatus"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Personal",
+            "section": "personalDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "personalDetails.spouseName",
+          "description": "Spouse Name · step: Personal · widget: text · usedIn: loan-app form_data.personalDetails.spouseName · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.personalDetails.spouseName"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Personal",
+            "section": "personalDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "personalDetails.motherName",
+          "description": "Mother Name · step: Personal · widget: text · usedIn: loan-app form_data.personalDetails.motherName · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.personalDetails.motherName"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Personal",
+            "section": "personalDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "personalDetails.alternateNumber",
+          "description": "Alternate Number · step: Personal · widget: text · usedIn: loan-app form_data.personalDetails.alternateNumber · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.personalDetails.alternateNumber"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Personal",
+            "section": "personalDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "personalDetails.dependents",
+          "description": "Dependent · step: Personal · widget: text · usedIn: loan-app form_data.personalDetails.dependents · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.personalDetails.dependents"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Personal",
+            "section": "personalDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "addressDetails.line1",
+          "description": "Address Line 1 · step: Residence · widget: text · usedIn: loan-app form_data.addressDetails.line1 · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.addressDetails.line1"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Residence",
+            "section": "addressDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "addressDetails.line2",
+          "description": "Address Line 2 · step: Residence · widget: text · usedIn: loan-app form_data.addressDetails.line2 · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.addressDetails.line2"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Residence",
+            "section": "addressDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "addressDetails.landmark",
+          "description": "Landmark · step: Residence · widget: text · usedIn: loan-app form_data.addressDetails.landmark · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.addressDetails.landmark"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Residence",
+            "section": "addressDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "addressDetails.state",
+          "description": "State · step: Residence · widget: stateSelect · usedIn: loan-app form_data.addressDetails.state · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.addressDetails.state"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Residence",
+            "section": "addressDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "addressDetails.district",
+          "description": "District · step: Residence · widget: districtSelect · usedIn: loan-app form_data.addressDetails.district · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.addressDetails.district"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Residence",
+            "section": "addressDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "addressDetails.city",
+          "description": "City · step: Residence · widget: text · usedIn: loan-app form_data.addressDetails.city · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.addressDetails.city"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Residence",
+            "section": "addressDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "addressDetails.residenceType",
+          "description": "Residence Type · step: Residence · widget: select · usedIn: loan-app form_data.addressDetails.residenceType · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.addressDetails.residenceType"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Residence",
+            "section": "addressDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "incomeDetails.companyName",
+          "description": "Company Name · step: Income · widget: text · usedIn: loan-app form_data.incomeDetails.companyName · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.companyName"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Income",
+            "section": "incomeDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "incomeDetails.designation",
+          "description": "Designation · step: Income · widget: text · usedIn: loan-app form_data.incomeDetails.designation · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.designation"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Income",
+            "section": "incomeDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "incomeDetails.companyAddress",
+          "description": "Company Address · step: Income · widget: text · usedIn: loan-app form_data.incomeDetails.companyAddress · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.companyAddress"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Income",
+            "section": "incomeDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "incomeDetails.netSalary",
+          "description": "Net Salary (Per Month) · step: Income · widget: text · usedIn: loan-app form_data.incomeDetails.netSalary · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.netSalary"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Income",
+            "section": "incomeDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "incomeDetails.salaryMode",
+          "description": "Salary Mode · step: Income · widget: select · usedIn: loan-app form_data.incomeDetails.salaryMode · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.salaryMode"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Income",
+            "section": "incomeDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "incomeDetails.jobStability",
+          "description": "Current Job Stability (Months) · step: Income · widget: number · usedIn: loan-app form_data.incomeDetails.jobStability · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.jobStability"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Income",
+            "section": "incomeDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "incomeDetails.pfDeducted",
+          "description": "PF Deducted · step: Income · widget: radio · usedIn: loan-app form_data.incomeDetails.pfDeducted · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.pfDeducted"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Income",
+            "section": "incomeDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "incomeDetails.hasOtherIncome",
+          "description": "Other Income · step: Income · widget: radio · usedIn: loan-app form_data.incomeDetails.hasOtherIncome · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.hasOtherIncome"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Income",
+            "section": "incomeDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "incomeDetails.otherIncomeSource",
+          "description": "Income Source · step: Income · widget: text · usedIn: loan-app form_data.incomeDetails.otherIncomeSource · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.otherIncomeSource"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Income",
+            "section": "incomeDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "incomeDetails.otherIncomeAmount",
+          "description": "Income Amount · step: Income · widget: number · usedIn: loan-app form_data.incomeDetails.otherIncomeAmount · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.otherIncomeAmount"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Income",
+            "section": "incomeDetails",
+            "funnelSteps": [
+              "Personal",
+              "Residence",
+              "Income",
+              "Other",
+              "Docs"
+            ]
+          }
+        }
+      ],
+      "bureau": [
+        {
+          "type": "bureau_field",
+          "title": "consumer_name",
+          "description": "aliases: Name, Consumer Name, Full Name · stored as cibil_data.consumer_name · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.consumer_name"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Name",
+              "Consumer Name",
+              "Full Name"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "date_of_birth",
+          "description": "aliases: Date Of Birth, Date of Birth, DOB · stored as cibil_data.date_of_birth · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.date_of_birth"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Date Of Birth",
+              "Date of Birth",
+              "DOB"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "gender",
+          "description": "aliases: Gender · stored as cibil_data.gender · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.gender"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Gender"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "telephone_numbers",
+          "description": "bureau PDF extract field · stored as cibil_data.telephone_numbers · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.telephone_numbers"
+            }
+          ],
+          "meta": {
+            "aliases": []
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "email_id",
+          "description": "aliases: Email ID, Email, E-mail · stored as cibil_data.email_id · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.email_id"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Email ID",
+              "Email",
+              "E-mail"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "employment_account_type",
+          "description": "aliases: Account Type · stored as cibil_data.employment_account_type · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.employment_account_type"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Account Type"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "employment_date_reported",
+          "description": "aliases: Date Reported · stored as cibil_data.employment_date_reported · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.employment_date_reported"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Date Reported"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "occupation",
+          "description": "aliases: Occupation · stored as cibil_data.occupation · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.occupation"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Occupation"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "open_accounts",
+          "description": "bureau PDF extract field · stored as cibil_data.open_accounts · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts"
+            }
+          ],
+          "meta": {
+            "aliases": []
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "enquiries",
+          "description": "bureau PDF extract field · stored as cibil_data.enquiries · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.enquiries"
+            }
+          ],
+          "meta": {
+            "aliases": []
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "cibil_score",
+          "description": "aliases: CIBIL Score, Creditvision Score, Bureau Score · stored as cibil_data.cibil_score · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.cibil_score"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "CIBIL Score",
+              "Creditvision Score",
+              "Bureau Score"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "pan_number",
+          "description": "aliases: PAN, PAN Number, Permanent Account Number · stored as cibil_data.pan_number · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.pan_number"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "PAN",
+              "PAN Number",
+              "Permanent Account Number"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "permanent_address",
+          "description": "aliases: Permanent, Residence, Address, Permanent Address, Residence Address · stored as cibil_data.permanent_address · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.permanent_address"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Permanent",
+              "Residence",
+              "Address",
+              "Permanent Address",
+              "Residence Address"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "active_unsecured_loan_count",
+          "description": "bureau PDF extract field · stored as cibil_data.active_unsecured_loan_count · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.active_unsecured_loan_count"
+            }
+          ],
+          "meta": {
+            "aliases": []
+          }
+        }
+      ],
+      "eligibility": [
+        {
+          "type": "eligibility_rule",
+          "title": "PL-PRE-ACTIVE",
+          "description": "Catalog lender and PL criteria row must both be active · formula: lenders_catalog.is_active && lenders_criteria_pl.is_active && criteriaExists · threshold: lenders_catalog.is_active (Catalog lender active flag); lenders_criteria_pl.is_active (PL criteria active flag); lenders_criteria_pl.lender_code (Criteria row must exist for lender) · step: 1 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "lenders_catalog.is_active && lenders_criteria_pl.is_active && criteriaExists",
+          "sources": [
+            {
+              "table": "lenders_catalog",
+              "column": "is_active",
+              "description": "Catalog lender active flag"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "is_active",
+              "description": "PL criteria active flag"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "lender_code",
+              "description": "Criteria row must exist for lender"
+            }
+          ],
+          "meta": {
+            "step": 1,
+            "ruleName": "Active lenders",
+            "condition": "Catalog lender and PL criteria row must both be active"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-PINCODE",
+          "description": "Applicant pin must be serviceable when pincode check is required · formula: covers_all_pincodes OR zip_codes_to_lenders.zip_code = leads.pin_code · applicant: leads.pin_code (Applicant pin code) · threshold: lenders_criteria_pl.pincode_check_required; zip_codes_to_lenders.zip_code; zip_codes_to_lenders.covers_all_pincodes; zip_codes_to_lenders.is_active · step: 2 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "covers_all_pincodes OR zip_codes_to_lenders.zip_code = leads.pin_code",
+          "sources": [
+            {
+              "table": "leads",
+              "column": "pin_code",
+              "description": "Applicant pin code"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "pincode_check_required"
+            },
+            {
+              "table": "zip_codes_to_lenders",
+              "column": "zip_code"
+            },
+            {
+              "table": "zip_codes_to_lenders",
+              "column": "covers_all_pincodes"
+            },
+            {
+              "table": "zip_codes_to_lenders",
+              "column": "is_active"
+            }
+          ],
+          "meta": {
+            "step": 2,
+            "ruleName": "Zipcode availability",
+            "condition": "Applicant pin must be serviceable when pincode check is required"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-CIBIL",
+          "description": "CIBIL score must meet lender minimum (non-FTB branch) · formula: cibil_score >= min_cibil · applicant: cibil_report_summary.cibil_data.cibil_score (Bureau CIBIL score) · threshold: lenders_criteria_pl.min_cibil · step: 3 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "cibil_score >= min_cibil",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.cibil_score",
+              "description": "Bureau CIBIL score"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "min_cibil"
+            }
+          ],
+          "meta": {
+            "step": 3,
+            "ruleName": "Min CIBIL",
+            "condition": "CIBIL score must meet lender minimum (non-FTB branch)"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-FTB",
+          "description": "First-time / thin-file applicant allowed by lender · formula: first_time_borrower_allowed = true · applicant: cibil_report_summary.cibil_data.open_accounts (Derived: no open accounts → first-time borrower); cibil_report_summary.cibil_data.active_unsecured_loan_count (Derived FTB signal) · threshold: lenders_criteria_pl.first_time_borrower_allowed · step: 3 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "first_time_borrower_allowed = true",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts",
+              "description": "Derived: no open accounts → first-time borrower"
+            },
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.active_unsecured_loan_count",
+              "description": "Derived FTB signal"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "first_time_borrower_allowed"
+            }
+          ],
+          "meta": {
+            "step": 3,
+            "ruleName": "First-time borrower",
+            "condition": "First-time / thin-file applicant allowed by lender"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-DPD-LATEST",
+          "description": "Most recent open-account payment-history month DPD days must not exceed max_dpd_days_allowed (runs before Age) · formula: latestDpdDays <= max_dpd_days_allowed · applicant: cibil_report_summary.cibil_data.open_accounts[].payment_history (Newest month after max DPD per calendar month across open accounts) · threshold: lenders_criteria_pl.max_dpd_days_allowed · step: 4 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "latestDpdDays <= max_dpd_days_allowed",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].payment_history",
+              "description": "Newest month after max DPD per calendar month across open accounts"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_dpd_days_allowed"
+            }
+          ],
+          "meta": {
+            "step": 4,
+            "ruleName": "Latest open-account DPD",
+            "condition": "Most recent open-account payment-history month DPD days must not exceed max_dpd_days_allowed (runs before Age)"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-AGE",
+          "description": "Applicant age must be within lender band · formula: min_age <= age <= max_age · applicant: loan_applications.form_data.personalDetails.dob (Loan form DOB) · threshold: lenders_criteria_pl.min_age; lenders_criteria_pl.max_age · step: 5 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "min_age <= age <= max_age",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.personalDetails.dob",
+              "description": "Loan form DOB"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "min_age"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_age"
+            }
+          ],
+          "meta": {
+            "step": 5,
+            "ruleName": "Age",
+            "condition": "Applicant age must be within lender band"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-INCOME",
+          "description": "When hasOtherIncome is true, netSalary + otherIncomeAmount must meet lender minimum; otherwise netSalary alone · formula: hasOtherIncome=true → totalMonthlyIncome = netSalary + otherIncomeAmount >= min_monthly_income; hasOtherIncome=false → netSalary >= min_monthly_income; min_monthly_income null → SKIP · applicant: loan_applications.form_data.incomeDetails.hasOtherIncome; loan_applications.form_data.incomeDetails.netSalary (Loan form net salary); loan_applications.form_data.incomeDetails.otherIncomeAmount · threshold: lenders_criteria_pl.min_monthly_income · step: 6 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "hasOtherIncome=true → totalMonthlyIncome = netSalary + otherIncomeAmount >= min_monthly_income; hasOtherIncome=false → netSalary >= min_monthly_income; min_monthly_income null → SKIP",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.hasOtherIncome"
+            },
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.netSalary",
+              "description": "Loan form net salary"
+            },
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.otherIncomeAmount"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "min_monthly_income"
+            }
+          ],
+          "meta": {
+            "step": 6,
+            "ruleName": "Minimum Monthly Income",
+            "condition": "When hasOtherIncome is true, netSalary + otherIncomeAmount must meet lender minimum; otherwise netSalary alone"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-AMOUNT",
+          "description": "Requested loan amount must be within lender band · formula: min_loan_amount <= requested_amount <= max_loan_amount · applicant: leads.required_amount (Lead form loan requirement) · threshold: lenders_criteria_pl.min_loan_amount; lenders_criteria_pl.max_loan_amount · step: 7 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "min_loan_amount <= requested_amount <= max_loan_amount",
+          "sources": [
+            {
+              "table": "leads",
+              "column": "required_amount",
+              "description": "Lead form loan requirement"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "min_loan_amount"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_loan_amount"
+            }
+          ],
+          "meta": {
+            "step": 7,
+            "ruleName": "Loan amount",
+            "condition": "Requested loan amount must be within lender band"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-FOIR",
+          "description": "Existing obligation to income ratio must be within lender cap · formula: existingTotalEmi / netMonthlyIncome <= foir · applicant: cibil_report_summary.cibil_data.open_accounts[].emi_amount (Sum of EMI from non–credit-card open accounts (account_type ≠ Credit Card)); loan_applications.form_data.incomeDetails.netSalary (Net salary (form)) · threshold: lenders_criteria_pl.foir · step: 8 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "existingTotalEmi / netMonthlyIncome <= foir",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].emi_amount",
+              "description": "Sum of EMI from non–credit-card open accounts (account_type ≠ Credit Card)"
+            },
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.netSalary",
+              "description": "Net salary (form)"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "foir"
+            }
+          ],
+          "meta": {
+            "step": 8,
+            "ruleName": "FOIR",
+            "condition": "Existing obligation to income ratio must be within lender cap"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-DPD-3M",
+          "description": "Account–month delay events in last 3 months where dpdDays > max_dpd_days_allowed must not exceed max_dpd_count_3months (same month on two accounts = 2) · formula: dpdViolationCount3Months = count(account–month events in last 3m where dpdDays > max_dpd_days_allowed); dpdViolationCount3Months <= max_dpd_count_3months · applicant: cibil_report_summary.cibil_data.open_accounts[].payment_history (Per open-account month cells (not collapsed across accounts)) · threshold: lenders_criteria_pl.max_dpd_days_allowed; lenders_criteria_pl.max_dpd_count_3months · step: 9 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "dpdViolationCount3Months = count(account–month events in last 3m where dpdDays > max_dpd_days_allowed); dpdViolationCount3Months <= max_dpd_count_3months",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].payment_history",
+              "description": "Per open-account month cells (not collapsed across accounts)"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_dpd_days_allowed"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_dpd_count_3months"
+            }
+          ],
+          "meta": {
+            "step": 9,
+            "ruleName": "DPD Last 3 Months",
+            "condition": "Account–month delay events in last 3 months where dpdDays > max_dpd_days_allowed must not exceed max_dpd_count_3months (same month on two accounts = 2)"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-DPD-12M",
+          "description": "Account–month delay events in last 12 months where dpdDays > max_dpd_days_allowed must not exceed max_dpd_count_12months (same month on two accounts = 2) · formula: dpdViolationCount12Months = count(account–month events in last 12m where dpdDays > max_dpd_days_allowed); dpdViolationCount12Months <= max_dpd_count_12months · applicant: cibil_report_summary.cibil_data.open_accounts[].payment_history (Per open-account month cells (not collapsed across accounts)) · threshold: lenders_criteria_pl.max_dpd_days_allowed; lenders_criteria_pl.max_dpd_count_12months · step: 10 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "dpdViolationCount12Months = count(account–month events in last 12m where dpdDays > max_dpd_days_allowed); dpdViolationCount12Months <= max_dpd_count_12months",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].payment_history",
+              "description": "Per open-account month cells (not collapsed across accounts)"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_dpd_days_allowed"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_dpd_count_12months"
+            }
+          ],
+          "meta": {
+            "step": 10,
+            "ruleName": "DPD Last 12 Months",
+            "condition": "Account–month delay events in last 12 months where dpdDays > max_dpd_days_allowed must not exceed max_dpd_count_12months (same month on two accounts = 2)"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-DPD-DAYS",
+          "description": "Maximum DPD days on record must not exceed cap · formula: max_dpd_days <= max_dpd_days_allowed · applicant: cibil_report_summary.cibil_data.open_accounts[].payment_history (Derived max DPD days) · threshold: lenders_criteria_pl.max_dpd_days_allowed · step: 11 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "max_dpd_days <= max_dpd_days_allowed",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].payment_history",
+              "description": "Derived max DPD days"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_dpd_days_allowed"
+            }
+          ],
+          "meta": {
+            "step": 11,
+            "ruleName": "Max DPD days",
+            "condition": "Maximum DPD days on record must not exceed cap"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-CC-UTIL",
+          "description": "Credit card utilization ratio must be within lender cap · formula: ccOutstanding / ccLimit <= maxCCUtilizationRatio · applicant: cibil_report_summary.cibil_data.open_accounts[].account_type (Only accounts where account_type is Credit Card); cibil_report_summary.cibil_data.open_accounts[].credit_limit (Per CC: total_credit_card_utilize = credit_limit - current_balance); cibil_report_summary.cibil_data.open_accounts[].current_balance (ccOutstanding = SUM(total_credit_card_utilize); ccLimit = SUM(credit_limit)) · threshold: lenders_criteria_pl.max_cc_utilization_ratio · step: 12 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "ccOutstanding / ccLimit <= maxCCUtilizationRatio",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].account_type",
+              "description": "Only accounts where account_type is Credit Card"
+            },
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].credit_limit",
+              "description": "Per CC: total_credit_card_utilize = credit_limit - current_balance"
+            },
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].current_balance",
+              "description": "ccOutstanding = SUM(total_credit_card_utilize); ccLimit = SUM(credit_limit)"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_cc_utilization_ratio"
+            }
+          ],
+          "meta": {
+            "step": 12,
+            "ruleName": "Credit card utilization",
+            "condition": "Credit card utilization ratio must be within lender cap"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-UNSECURED",
+          "description": "Active unsecured loan count must not exceed lender cap · formula: active_unsecured <= max_active_unsecured_account · applicant: cibil_report_summary.cibil_data.active_unsecured_loan_count · threshold: lenders_criteria_pl.max_active_unsecured_account · step: 13 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "active_unsecured <= max_active_unsecured_account",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.active_unsecured_loan_count"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_active_unsecured_account"
+            }
+          ],
+          "meta": {
+            "step": 13,
+            "ruleName": "Active unsecured accounts",
+            "condition": "Active unsecured loan count must not exceed lender cap"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-SALARY-TYPE",
+          "description": "Salary mode must be in lender accepted list · formula: salary_mode IN accepted_salary_types · applicant: loan_applications.form_data.incomeDetails.salaryMode · threshold: lenders_criteria_pl.accepted_salary_types · step: 14 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "salary_mode IN accepted_salary_types",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.salaryMode"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "accepted_salary_types"
+            }
+          ],
+          "meta": {
+            "step": 14,
+            "ruleName": "Accepted salary types",
+            "condition": "Salary mode must be in lender accepted list"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-PF",
+          "description": "When lender requires PF deduction, applicant pfDeducted on loan application must be true · formula: pf_required = true && pfDeducted = true → PASS; pf_required = true && pfDeducted = false → FAIL; pf_required = false → SKIP · applicant: loan_applications.form_data.incomeDetails.pfDeducted · threshold: lenders_criteria_pl.pf_required · step: 15 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "pf_required = true && pfDeducted = true → PASS; pf_required = true && pfDeducted = false → FAIL; pf_required = false → SKIP",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.pfDeducted"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "pf_required"
+            }
+          ],
+          "meta": {
+            "step": 15,
+            "ruleName": "PF Deducted",
+            "condition": "When lender requires PF deduction, applicant pfDeducted on loan application must be true"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-EMPLOYMENT",
+          "description": "Employment tenure must meet lender minimum · formula: employment_months >= min_employment_months · applicant: loan_applications.form_data.incomeDetails.jobStability (Mapped to months) · threshold: lenders_criteria_pl.min_employment_months · step: 16 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "employment_months >= min_employment_months",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.jobStability",
+              "description": "Mapped to months"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "min_employment_months"
+            }
+          ],
+          "meta": {
+            "step": 16,
+            "ruleName": "Min employment months",
+            "condition": "Employment tenure must meet lender minimum"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-ENQ-EXCLUDE",
+          "description": "No bureau enquiry with this lender in the last 3 months · formula: NOT EXISTS enquiry (last 3m) WHERE member_name matches lender_name OR lender_code · applicant: cibil_report_summary.cibil_data.enquiries[].member_name (Enquiry members in last 3 months only); cibil_report_summary.cibil_data.enquiries[].date_of_enquiry (Enquiry date must be within last 3 months) · threshold: lenders_catalog.lender_name; lenders_catalog.lender_code · step: 17 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "NOT EXISTS enquiry (last 3m) WHERE member_name matches lender_name OR lender_code",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.enquiries[].member_name",
+              "description": "Enquiry members in last 3 months only"
+            },
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.enquiries[].date_of_enquiry",
+              "description": "Enquiry date must be within last 3 months"
+            },
+            {
+              "table": "lenders_catalog",
+              "column": "lender_name"
+            },
+            {
+              "table": "lenders_catalog",
+              "column": "lender_code"
+            }
+          ],
+          "meta": {
+            "step": 17,
+            "ruleName": "Enquiry already with lender",
+            "condition": "No bureau enquiry with this lender in the last 3 months"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-ENQ-1M",
+          "description": "Enquiry count in last 1 month must not exceed cap · formula: enquiries_1m <= max_enquiries_1month · applicant: cibil_report_summary.cibil_data.enquiries[].date_of_enquiry (Derived 1m enquiry count) · threshold: lenders_criteria_pl.max_enquiries_1month · step: 18 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "enquiries_1m <= max_enquiries_1month",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.enquiries[].date_of_enquiry",
+              "description": "Derived 1m enquiry count"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_enquiries_1month"
+            }
+          ],
+          "meta": {
+            "step": 18,
+            "ruleName": "Enquiries 1 month",
+            "condition": "Enquiry count in last 1 month must not exceed cap"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "PL-ENQ-3M",
+          "description": "Enquiry count in last 3 months must not exceed cap · formula: enquiries_3m <= max_enquiries_3months · applicant: cibil_report_summary.cibil_data.enquiries[].date_of_enquiry (Derived 3m enquiry count) · threshold: lenders_criteria_pl.max_enquiries_3months · step: 19 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "enquiries_3m <= max_enquiries_3months",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.enquiries[].date_of_enquiry",
+              "description": "Derived 3m enquiry count"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_enquiries_3months"
+            }
+          ],
+          "meta": {
+            "step": 19,
+            "ruleName": "Enquiries 3 months",
+            "condition": "Enquiry count in last 3 months must not exceed cap"
+          }
+        }
+      ],
+      "scoring": [
+        {
+          "type": "scoring_criterion",
+          "title": "CIBIL_SCORE",
+          "description": "CIBIL Score · weight: 20 · type: FORMULA · formula: newBorrower → full weight; else min(1, max(0, (cibil_score - min_cibil) / (900 - min_cibil))) * weight · applicant: cibil_report_summary.cibil_data.cibil_score · threshold: lenders_criteria_pl.min_cibil; lender_scoring_criteria.weight · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 1",
+          "formula": "newBorrower → full weight; else min(1, max(0, (cibil_score - min_cibil) / (900 - min_cibil))) * weight",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.cibil_score"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "min_cibil"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "weight"
+            }
+          ],
+          "meta": {
+            "step": 1,
+            "weight": 20,
+            "ruleType": "FORMULA",
+            "name": "CIBIL Score",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "FOIR_CHECK",
+          "description": "FOIR Check · weight: 15 · type: FORMULA · formula: weight * (1 - (FOIR * 100) / 80); FOIR = existingTotalEmi / netMonthlyIncome · applicant: cibil_report_summary.derived EMI / income; loan_applications.form_data.incomeDetails · threshold: lender_scoring_criteria.weight · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 2",
+          "formula": "weight * (1 - (FOIR * 100) / 80); FOIR = existingTotalEmi / netMonthlyIncome",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "derived EMI / income"
+            },
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "weight"
+            }
+          ],
+          "meta": {
+            "step": 2,
+            "weight": 15,
+            "ruleType": "FORMULA",
+            "name": "FOIR Check",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "DPD_LAST_3M",
+          "description": "DPD Last 3 Months · weight: 10 · type: JSON · formula: pointsFromRulesMap(dpdViolationCount3Months) using catalog rules · applicant: cibil_report_summary.cibil_data.open_accounts[].payment_history · threshold: lenders_criteria_pl.max_dpd_days_allowed; lender_scoring_criteria.rules · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 3",
+          "formula": "pointsFromRulesMap(dpdViolationCount3Months) using catalog rules",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].payment_history"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_dpd_days_allowed"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "rules"
+            }
+          ],
+          "meta": {
+            "step": 3,
+            "weight": 10,
+            "ruleType": "JSON",
+            "name": "DPD Last 3 Months",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "DPD_LAST_12M",
+          "description": "DPD Last 12 Months · weight: 8 · type: JSON · formula: pointsFromRulesMap(dpdViolationCount12Months) using catalog rules · applicant: cibil_report_summary.cibil_data.open_accounts[].payment_history · threshold: lenders_criteria_pl.max_dpd_days_allowed; lender_scoring_criteria.rules · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 4",
+          "formula": "pointsFromRulesMap(dpdViolationCount12Months) using catalog rules",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].payment_history"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_dpd_days_allowed"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "rules"
+            }
+          ],
+          "meta": {
+            "step": 4,
+            "weight": 8,
+            "ruleType": "JSON",
+            "name": "DPD Last 12 Months",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "CC_UTILIZATION",
+          "description": "CC Utilization · weight: 5 · type: JSON · formula: pointsFromRulesMap(ccUtilPct); no CC accounts → 0% band · applicant: cibil_report_summary.cibil_data.open_accounts (CC limits/balances) · threshold: lender_scoring_criteria.rules · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 5",
+          "formula": "pointsFromRulesMap(ccUtilPct); no CC accounts → 0% band",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts (CC limits/balances)"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "rules"
+            }
+          ],
+          "meta": {
+            "step": 5,
+            "weight": 5,
+            "ruleType": "JSON",
+            "name": "CC Utilization",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "ACTIVE_UNSECURED",
+          "description": "Active Unsecured Loans · weight: 5 · type: JSON · formula: pointsFromRulesMap(activeUnsecuredLoanCount) · applicant: cibil_report_summary.cibil_data.active_unsecured_loan_count · threshold: lender_scoring_criteria.rules · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 6",
+          "formula": "pointsFromRulesMap(activeUnsecuredLoanCount)",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.active_unsecured_loan_count"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "rules"
+            }
+          ],
+          "meta": {
+            "step": 6,
+            "weight": 5,
+            "ruleType": "JSON",
+            "name": "Active Unsecured Loans",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "ENQUIRIES_3M",
+          "description": "Enquiries (3 Months) · weight: 4 · type: JSON · formula: pointsFromRulesMap(enquiryCount3Months) after enquiry-exclude members · applicant: cibil_report_summary.cibil_data.enquiries · threshold: lender_scoring_criteria.rules · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 7",
+          "formula": "pointsFromRulesMap(enquiryCount3Months) after enquiry-exclude members",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.enquiries"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "rules"
+            }
+          ],
+          "meta": {
+            "step": 7,
+            "weight": 4,
+            "ruleType": "JSON",
+            "name": "Enquiries (3 Months)",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "MONTHLY_INCOME",
+          "description": "Monthly Income vs Threshold · weight: 10 · type: FORMULA · formula: min(weight, ((monthlyIncome - min_monthly_income) / (2 * min_monthly_income)) * weight); income = netSalary + otherIncome when hasOtherIncome · applicant: loan_applications.form_data.incomeDetails.netSalary; loan_applications.form_data.incomeDetails.otherIncomeAmount · threshold: lenders_criteria_pl.min_monthly_income · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 8",
+          "formula": "min(weight, ((monthlyIncome - min_monthly_income) / (2 * min_monthly_income)) * weight); income = netSalary + otherIncome when hasOtherIncome",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.netSalary"
+            },
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.otherIncomeAmount"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "min_monthly_income"
+            }
+          ],
+          "meta": {
+            "step": 8,
+            "weight": 10,
+            "ruleType": "FORMULA",
+            "name": "Monthly Income vs Threshold",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "JOB_EXPERIENCE",
+          "description": "Job Experience · weight: 7 · type: FORMULA · formula: points from jobStability (months) vs catalog / hardcoded bands · applicant: loan_applications.form_data.incomeDetails.jobStability · threshold: lender_scoring_criteria.weight · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 9",
+          "formula": "points from jobStability (months) vs catalog / hardcoded bands",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.jobStability"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "weight"
+            }
+          ],
+          "meta": {
+            "step": 9,
+            "weight": 7,
+            "ruleType": "FORMULA",
+            "name": "Job Experience",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "ROI_COMPETITIVENESS",
+          "description": "ROI Competitiveness · weight: 9 · type: JSON · formula: pointsFromRulesMap(typicalInterestRatePct) · threshold: lenders_criteria_pl.interest / ROI fields; lender_scoring_criteria.rules · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 10",
+          "formula": "pointsFromRulesMap(typicalInterestRatePct)",
+          "sources": [
+            {
+              "table": "lenders_criteria_pl",
+              "column": "interest / ROI fields"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "rules"
+            }
+          ],
+          "meta": {
+            "step": 10,
+            "weight": 9,
+            "ruleType": "JSON",
+            "name": "ROI Competitiveness",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "MAX_LOAN_ADEQUACY",
+          "description": "Max Loan Adequacy · weight: 7 · type: JSON+FORMULA · formula: ratioPct = (loanAmount / maxLoanAmount) * 100; pointsFromRulesMap(ratioPct) · applicant: leads.required_amount / loanAmount · threshold: lenders_criteria_pl.max_loan_amount; lender_scoring_criteria.rules · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 11",
+          "formula": "ratioPct = (loanAmount / maxLoanAmount) * 100; pointsFromRulesMap(ratioPct)",
+          "sources": [
+            {
+              "table": "leads",
+              "column": "required_amount / loanAmount"
+            },
+            {
+              "table": "lenders_criteria_pl",
+              "column": "max_loan_amount"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "rules"
+            }
+          ],
+          "meta": {
+            "step": 11,
+            "weight": 7,
+            "ruleType": "JSON+FORMULA",
+            "name": "Max Loan Adequacy",
+            "catalogRules": null
+          }
+        }
+      ]
+    },
+    "business-loan": {
+      "lead-submission": [
+        {
+          "type": "lead_field",
+          "title": "fullName",
+          "description": "Full Name · usedIn: POST /api/leads · loan-app applicantName · upload folder name · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "fullName"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "email",
+          "description": "Email · usedIn: POST /api/leads · loan-app email · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "email"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "mobileNumber",
+          "description": "Mobile Number · usedIn: POST /api/leads · loan-app phone · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "mobileNumber"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "requiredAmount",
+          "description": "Required / Loan Amount · usedIn: POST /api/leads · loan-app loanAmount · eligibility PL/BL-AMOUNT · scoring MAX_LOAN_ADEQUACY · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "requiredAmount"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "pinCode",
+          "description": "Pin Code · usedIn: POST /api/leads · eligibility PL/BL-PINCODE · zip_codes_to_lenders · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "pinCode"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "selectedProduct",
+          "description": "Selected Product / Loan Type · usedIn: POST /api/leads · loan-app loanType · routes PL vs BL engines · log folders · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "selectedProduct"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "panCard",
+          "description": "PAN · usedIn: POST /api/leads · loan-app panNumber · bureau cross-check · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "panCard"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "aadharCard",
+          "description": "Aadhaar · usedIn: POST /api/leads · loan-app aadharNumber · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "aadharCard"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "employmentType",
+          "description": "Employment Type · usedIn: POST /api/leads · funnel occupation (Salaried / Self Employed) · form: lead (+ mirrored on loan-app where applicable)",
+          "formula": null,
+          "sources": [
+            {
+              "table": "leads",
+              "column": "employmentType"
+            }
+          ],
+          "meta": {
+            "form": "lead",
+            "step": "Lead"
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "businessDetails.name",
+          "description": "Business Name · step: Business · widget: text · usedIn: loan-app form_data.businessDetails.name · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.name"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Business",
+            "section": "businessDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "businessDetails.premises",
+          "description": "Business Premises · step: Business · widget: select · usedIn: loan-app form_data.businessDetails.premises · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.premises"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Business",
+            "section": "businessDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "businessDetails.type",
+          "description": "Business Type · step: Business · widget: select · usedIn: loan-app form_data.businessDetails.type · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.type"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Business",
+            "section": "businessDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "businessDetails.turnover",
+          "description": "Annual Turnover (Lakh) · step: Business · widget: number · usedIn: loan-app form_data.businessDetails.turnover · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.turnover"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Business",
+            "section": "businessDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "businessDetails.age",
+          "description": "Business Age (Years) · step: Business · widget: number · usedIn: loan-app form_data.businessDetails.age · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.age"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Business",
+            "section": "businessDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "businessDetails.regProofs",
+          "description": "Business Registration Proof · step: Business · widget: checkboxGroup · usedIn: loan-app form_data.businessDetails.regProofs · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.regProofs"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Business",
+            "section": "businessDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "businessDetails.auditedBooks",
+          "description": "Audited Books · step: Business · widget: radio · usedIn: loan-app form_data.businessDetails.auditedBooks · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.auditedBooks"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Business",
+            "section": "businessDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "businessDetails.address",
+          "description": "Business Address · step: Business · widget: textarea · usedIn: loan-app form_data.businessDetails.address · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.address"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Business",
+            "section": "businessDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "personalDetails.dob",
+          "description": "Date of Birth · step: Personal · widget: date · usedIn: loan-app form_data.personalDetails.dob · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.personalDetails.dob"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Personal",
+            "section": "personalDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "personalDetails.maritalStatus",
+          "description": "Marital Status · step: Personal · widget: select · usedIn: loan-app form_data.personalDetails.maritalStatus · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.personalDetails.maritalStatus"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Personal",
+            "section": "personalDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "personalDetails.spouseName",
+          "description": "Spouse Name · step: Personal · widget: text · usedIn: loan-app form_data.personalDetails.spouseName · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.personalDetails.spouseName"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Personal",
+            "section": "personalDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "personalDetails.motherName",
+          "description": "Mother Name · step: Personal · widget: text · usedIn: loan-app form_data.personalDetails.motherName · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.personalDetails.motherName"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Personal",
+            "section": "personalDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "personalDetails.alternateNumber",
+          "description": "Alternate Number · step: Personal · widget: text · usedIn: loan-app form_data.personalDetails.alternateNumber · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.personalDetails.alternateNumber"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Personal",
+            "section": "personalDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "addressDetails.line1",
+          "description": "Address Line 1 · step: Residence · widget: text · usedIn: loan-app form_data.addressDetails.line1 · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.addressDetails.line1"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Residence",
+            "section": "addressDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "addressDetails.line2",
+          "description": "Address Line 2 · step: Residence · widget: text · usedIn: loan-app form_data.addressDetails.line2 · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.addressDetails.line2"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Residence",
+            "section": "addressDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "addressDetails.landmark",
+          "description": "Landmark · step: Residence · widget: text · usedIn: loan-app form_data.addressDetails.landmark · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.addressDetails.landmark"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Residence",
+            "section": "addressDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "addressDetails.state",
+          "description": "State · step: Residence · widget: stateSelect · usedIn: loan-app form_data.addressDetails.state · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.addressDetails.state"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Residence",
+            "section": "addressDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "addressDetails.district",
+          "description": "District · step: Residence · widget: districtSelect · usedIn: loan-app form_data.addressDetails.district · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.addressDetails.district"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Residence",
+            "section": "addressDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "addressDetails.city",
+          "description": "City · step: Residence · widget: text · usedIn: loan-app form_data.addressDetails.city · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.addressDetails.city"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Residence",
+            "section": "addressDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        },
+        {
+          "type": "lead_field",
+          "title": "addressDetails.residenceType",
+          "description": "Residence Type · step: Residence · widget: select · usedIn: loan-app form_data.addressDetails.residenceType · eligibility/scoring when mapped",
+          "formula": null,
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.addressDetails.residenceType"
+            }
+          ],
+          "meta": {
+            "form": "loan-application",
+            "step": "Residence",
+            "section": "addressDetails",
+            "funnelSteps": [
+              "Business",
+              "Personal",
+              "Residence",
+              "Other",
+              "Docs"
+            ]
+          }
+        }
+      ],
+      "bureau": [
+        {
+          "type": "bureau_field",
+          "title": "consumer_name",
+          "description": "aliases: Name, Consumer Name, Full Name · stored as cibil_data.consumer_name · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.consumer_name"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Name",
+              "Consumer Name",
+              "Full Name"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "date_of_birth",
+          "description": "aliases: Date Of Birth, Date of Birth, DOB · stored as cibil_data.date_of_birth · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.date_of_birth"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Date Of Birth",
+              "Date of Birth",
+              "DOB"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "gender",
+          "description": "aliases: Gender · stored as cibil_data.gender · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.gender"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Gender"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "telephone_numbers",
+          "description": "bureau PDF extract field · stored as cibil_data.telephone_numbers · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.telephone_numbers"
+            }
+          ],
+          "meta": {
+            "aliases": []
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "email_id",
+          "description": "aliases: Email ID, Email, E-mail · stored as cibil_data.email_id · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.email_id"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Email ID",
+              "Email",
+              "E-mail"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "employment_account_type",
+          "description": "aliases: Account Type · stored as cibil_data.employment_account_type · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.employment_account_type"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Account Type"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "employment_date_reported",
+          "description": "aliases: Date Reported · stored as cibil_data.employment_date_reported · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.employment_date_reported"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Date Reported"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "occupation",
+          "description": "aliases: Occupation · stored as cibil_data.occupation · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.occupation"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Occupation"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "open_accounts",
+          "description": "bureau PDF extract field · stored as cibil_data.open_accounts · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts"
+            }
+          ],
+          "meta": {
+            "aliases": []
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "enquiries",
+          "description": "bureau PDF extract field · stored as cibil_data.enquiries · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.enquiries"
+            }
+          ],
+          "meta": {
+            "aliases": []
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "cibil_score",
+          "description": "aliases: CIBIL Score, Creditvision Score, Bureau Score · stored as cibil_data.cibil_score · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.cibil_score"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "CIBIL Score",
+              "Creditvision Score",
+              "Bureau Score"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "pan_number",
+          "description": "aliases: PAN, PAN Number, Permanent Account Number · stored as cibil_data.pan_number · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.pan_number"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "PAN",
+              "PAN Number",
+              "Permanent Account Number"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "permanent_address",
+          "description": "aliases: Permanent, Residence, Address, Permanent Address, Residence Address · stored as cibil_data.permanent_address · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.permanent_address"
+            }
+          ],
+          "meta": {
+            "aliases": [
+              "Permanent",
+              "Residence",
+              "Address",
+              "Permanent Address",
+              "Residence Address"
+            ]
+          }
+        },
+        {
+          "type": "bureau_field",
+          "title": "active_unsecured_loan_count",
+          "description": "bureau PDF extract field · stored as cibil_data.active_unsecured_loan_count · usedIn: eligibility (CIBIL/DPD/FOIR/enq) · scoring · AI Match",
+          "formula": null,
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.active_unsecured_loan_count"
+            }
+          ],
+          "meta": {
+            "aliases": []
+          }
+        }
+      ],
+      "eligibility": [
+        {
+          "type": "eligibility_rule",
+          "title": "BL-PRE-ACTIVE",
+          "description": "Catalog lender and BL criteria row must both be active · formula: lenders_catalog.is_active && lenders_criteria_bl.is_active && criteriaExists · threshold: lenders_catalog.is_active; lenders_criteria_bl.is_active; lenders_criteria_bl.lender_code · step: 1 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "lenders_catalog.is_active && lenders_criteria_bl.is_active && criteriaExists",
+          "sources": [
+            {
+              "table": "lenders_catalog",
+              "column": "is_active"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "is_active"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "lender_code"
+            }
+          ],
+          "meta": {
+            "step": 1,
+            "ruleName": "Lender + criteria active",
+            "condition": "Catalog lender and BL criteria row must both be active"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-PINCODE",
+          "description": "Applicant pin must be serviceable for the lender · formula: covers_all_pincodes OR zip_codes_to_lenders.zip_code = leads.pin_code · applicant: leads.pin_code · threshold: zip_codes_to_lenders.zip_code; zip_codes_to_lenders.covers_all_pincodes; zip_codes_to_lenders.is_active; zip_codes_to_lenders.lender_code · step: 2 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "covers_all_pincodes OR zip_codes_to_lenders.zip_code = leads.pin_code",
+          "sources": [
+            {
+              "table": "leads",
+              "column": "pin_code"
+            },
+            {
+              "table": "zip_codes_to_lenders",
+              "column": "zip_code"
+            },
+            {
+              "table": "zip_codes_to_lenders",
+              "column": "covers_all_pincodes"
+            },
+            {
+              "table": "zip_codes_to_lenders",
+              "column": "is_active"
+            },
+            {
+              "table": "zip_codes_to_lenders",
+              "column": "lender_code"
+            }
+          ],
+          "meta": {
+            "step": 2,
+            "ruleName": "Zip / pincode coverage",
+            "condition": "Applicant pin must be serviceable for the lender"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-CIBIL",
+          "description": "CIBIL score must meet lender minimum (non-FTB branch) · formula: cibil_data.cibil_score >= lenders_criteria_bl.min_cibil · applicant: cibil_report_summary.cibil_data.cibil_score; cibil_report_summary.cibil_data.open_accounts · threshold: lenders_criteria_bl.min_cibil · step: 3 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "cibil_data.cibil_score >= lenders_criteria_bl.min_cibil",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.cibil_score"
+            },
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "min_cibil"
+            }
+          ],
+          "meta": {
+            "step": 3,
+            "ruleName": "Min CIBIL",
+            "condition": "CIBIL score must meet lender minimum (non-FTB branch)"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-FTB",
+          "description": "Thin-file / FTB scores use FTB branch; first_time_borrower_allowed must be true · formula: first_time_borrower_allowed === true · applicant: cibil_report_summary.cibil_data.cibil_score; cibil_report_summary.cibil_data.open_accounts · threshold: lenders_criteria_bl.first_time_borrower_allowed · step: 3 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "first_time_borrower_allowed === true",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.cibil_score"
+            },
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "first_time_borrower_allowed"
+            }
+          ],
+          "meta": {
+            "step": 3,
+            "ruleName": "First-time borrower",
+            "condition": "Thin-file / FTB scores use FTB branch; first_time_borrower_allowed must be true"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-CURRENT-OVERDUE",
+          "description": "If current_overdue=true, overdue is accepted (PASS). If false, latest active-month DPD must be <= 5 · formula: current_overdue=true → PASS; current_overdue=false → latestDpdDays <= 5 PASS, > 5 FAIL · applicant: cibil_report_summary.cibil_data.open_accounts[].payment_history (Newest / most recent active month DPD — used only when current_overdue=false) · threshold: lenders_criteria_bl.current_overdue · step: 4 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "current_overdue=true → PASS; current_overdue=false → latestDpdDays <= 5 PASS, > 5 FAIL",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].payment_history",
+              "description": "Newest / most recent active month DPD — used only when current_overdue=false"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "current_overdue"
+            }
+          ],
+          "meta": {
+            "step": 4,
+            "ruleName": "Current overdue",
+            "condition": "If current_overdue=true, overdue is accepted (PASS). If false, latest active-month DPD must be <= 5"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-AGE",
+          "description": "Applicant age on application date must be within lender band · formula: (min_age_years null OR age >= min_age_years) AND (max_age_years null OR age <= max_age_years) · applicant: loan_applications.form_data.personalDetails.dob; loan_applications.created_at (Application date (as-of)) · threshold: lenders_criteria_bl.min_age_years; lenders_criteria_bl.max_age_years · step: 5 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "(min_age_years null OR age >= min_age_years) AND (max_age_years null OR age <= max_age_years)",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.personalDetails.dob"
+            },
+            {
+              "table": "loan_applications",
+              "column": "created_at",
+              "description": "Application date (as-of)"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "min_age_years"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "max_age_years"
+            }
+          ],
+          "meta": {
+            "step": 5,
+            "ruleName": "Age band",
+            "condition": "Applicant age on application date must be within lender band"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-ENTITY",
+          "description": "Business type must be in lender allow-list (exact phrase) · formula: form_data.businessDetails.type IN eligible_entity_types · applicant: loan_applications.form_data.businessDetails.type · threshold: lenders_criteria_bl.eligible_entity_types · step: 6 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "form_data.businessDetails.type IN eligible_entity_types",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.type"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "eligible_entity_types"
+            }
+          ],
+          "meta": {
+            "step": 6,
+            "ruleName": "Eligible entity type",
+            "condition": "Business type must be in lender allow-list (exact phrase)"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-TURNOVER",
+          "description": "Form turnover (Lakh) converted to ₹ must meet lender minimum (₹) · formula: form_data.businessDetails.turnover * 100000 >= min_annual_turnover · applicant: loan_applications.form_data.businessDetails.turnover · threshold: lenders_criteria_bl.min_annual_turnover · step: 7 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "form_data.businessDetails.turnover * 100000 >= min_annual_turnover",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.turnover"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "min_annual_turnover"
+            }
+          ],
+          "meta": {
+            "step": 7,
+            "ruleName": "Min annual turnover",
+            "condition": "Form turnover (Lakh) converted to ₹ must meet lender minimum (₹)"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-VINTAGE",
+          "description": "Business age in years must meet lender minimum · formula: form_data.businessDetails.age >= min_vintage_years · applicant: loan_applications.form_data.businessDetails.age · threshold: lenders_criteria_bl.min_vintage_years · step: 8 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "form_data.businessDetails.age >= min_vintage_years",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.age"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "min_vintage_years"
+            }
+          ],
+          "meta": {
+            "step": 8,
+            "ruleName": "Min vintage",
+            "condition": "Business age in years must meet lender minimum"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-AMOUNT",
+          "description": "Requested loan amount must fall within lender min/max (rupees) · formula: (min_loan_amount is null OR loan_applications.loan_amount >= min_loan_amount) AND (max_loan_amount is null OR loan_applications.loan_amount <= max_loan_amount) · applicant: loan_applications.loan_amount · threshold: lenders_criteria_bl.min_loan_amount; lenders_criteria_bl.max_loan_amount · step: 9 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "(min_loan_amount is null OR loan_applications.loan_amount >= min_loan_amount) AND (max_loan_amount is null OR loan_applications.loan_amount <= max_loan_amount)",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "loan_amount"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "min_loan_amount"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "max_loan_amount"
+            }
+          ],
+          "meta": {
+            "step": 9,
+            "ruleName": "Loan amount band",
+            "condition": "Requested loan amount must fall within lender min/max (rupees)"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-FOIR",
+          "description": "Annualised non-CC EMI vs annual turnover must not exceed foir_max · formula: applicantFoir = (SUM(emi_amount WHERE account_type != Credit Card) * 12) / (turnover * 100000); PASS ⇔ applicantFoir <= foir_max · applicant: cibil_report_summary.cibil_data.open_accounts[].emi_amount; cibil_report_summary.cibil_data.open_accounts[].account_type; loan_applications.form_data.businessDetails.turnover · threshold: lenders_criteria_bl.foir_max · step: 10 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "applicantFoir = (SUM(emi_amount WHERE account_type != Credit Card) * 12) / (turnover * 100000); PASS ⇔ applicantFoir <= foir_max",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].emi_amount"
+            },
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].account_type"
+            },
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.turnover"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "foir_max"
+            }
+          ],
+          "meta": {
+            "step": 10,
+            "ruleName": "FOIR max (non–credit-card)",
+            "condition": "Annualised non-CC EMI vs annual turnover must not exceed foir_max"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-CC-UTIL",
+          "description": "Aggregated CC utilization must not exceed lender ratio · formula: per CC: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio · applicant: cibil_report_summary.cibil_data.open_accounts[].credit_limit; cibil_report_summary.cibil_data.open_accounts[].current_balance; cibil_report_summary.cibil_data.open_accounts[].account_type · threshold: lenders_criteria_bl.max_cc_utilization_ratio · step: 11 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "per CC: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].credit_limit"
+            },
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].current_balance"
+            },
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].account_type"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "max_cc_utilization_ratio"
+            }
+          ],
+          "meta": {
+            "step": 11,
+            "ruleName": "CCU max (credit card)",
+            "condition": "Aggregated CC utilization must not exceed lender ratio"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-DPD-3M",
+          "description": "Count per-open-account delay events in last 3m; each (account, month) where dpdDays > max_dpd_days_allowed counts as 1 · formula: violationCount3m <= max_dpd_count_3_months · applicant: cibil_report_summary.cibil_data.open_accounts[].payment_history · threshold: lenders_criteria_bl.max_dpd_days_allowed; lenders_criteria_bl.max_dpd_count_3_months · step: 12 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "violationCount3m <= max_dpd_count_3_months",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].payment_history"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "max_dpd_days_allowed"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "max_dpd_count_3_months"
+            }
+          ],
+          "meta": {
+            "step": 12,
+            "ruleName": "DPD last 3 months",
+            "condition": "Count per-open-account delay events in last 3m; each (account, month) where dpdDays > max_dpd_days_allowed counts as 1"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-DPD-12M",
+          "description": "Same per-account delay-event count as BL-DPD-3M over a 12-month window · formula: violationCount12m <= max_dpd_count_12_months · applicant: cibil_report_summary.cibil_data.open_accounts[].payment_history · threshold: lenders_criteria_bl.max_dpd_days_allowed; lenders_criteria_bl.max_dpd_count_12_months · step: 13 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "violationCount12m <= max_dpd_count_12_months",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].payment_history"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "max_dpd_days_allowed"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "max_dpd_count_12_months"
+            }
+          ],
+          "meta": {
+            "step": 13,
+            "ruleName": "DPD last 12 months",
+            "condition": "Same per-account delay-event count as BL-DPD-3M over a 12-month window"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-DPD-DAYS",
+          "description": "Worst DPD days across open-account payment history must not exceed lender cap · formula: maxDpdDays <= max_dpd_days_allowed · applicant: cibil_report_summary.cibil_data.open_accounts[].payment_history · threshold: lenders_criteria_bl.max_dpd_days_allowed · step: 14 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "maxDpdDays <= max_dpd_days_allowed",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].payment_history"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "max_dpd_days_allowed"
+            }
+          ],
+          "meta": {
+            "step": 14,
+            "ruleName": "Max DPD days allowed",
+            "condition": "Worst DPD days across open-account payment history must not exceed lender cap"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-UNSECURED",
+          "description": "Bureau unsecured count must not exceed lender cap · formula: cibil_data.active_unsecured_loan_count <= max_active_unsecured_6_months · applicant: cibil_report_summary.cibil_data.active_unsecured_loan_count · threshold: lenders_criteria_bl.max_active_unsecured_6_months · step: 15 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "cibil_data.active_unsecured_loan_count <= max_active_unsecured_6_months",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.active_unsecured_loan_count"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "max_active_unsecured_6_months"
+            }
+          ],
+          "meta": {
+            "step": 15,
+            "ruleName": "Active unsecured count (6 months)",
+            "condition": "Bureau unsecured count must not exceed lender cap"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-ENQ-EXCLUDE",
+          "description": "No bureau enquiry member matching this lender in last 3 months · formula: no enquiries[] where member matches lenderName/lenderCode AND date_of_enquiry within 3 months · applicant: cibil_report_summary.cibil_data.enquiries[].member; cibil_report_summary.cibil_data.enquiries[].date_of_enquiry · threshold: lenders_catalog.lender_code; lenders_catalog.lender_name · step: 16 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "no enquiries[] where member matches lenderName/lenderCode AND date_of_enquiry within 3 months",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.enquiries[].member"
+            },
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.enquiries[].date_of_enquiry"
+            },
+            {
+              "table": "lenders_catalog",
+              "column": "lender_code"
+            },
+            {
+              "table": "lenders_catalog",
+              "column": "lender_name"
+            }
+          ],
+          "meta": {
+            "step": 16,
+            "ruleName": "Enquiry already with that lender (3 months)",
+            "condition": "No bureau enquiry member matching this lender in last 3 months"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-ENQ-1M",
+          "description": "Count of enquiries in last 1 month must be within cap · formula: count(enquiries where date_of_enquiry in last 1 month) <= max_enquiries_1_month · applicant: cibil_report_summary.cibil_data.enquiries[].date_of_enquiry · threshold: lenders_criteria_bl.max_enquiries_1_month · step: 17 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "count(enquiries where date_of_enquiry in last 1 month) <= max_enquiries_1_month",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.enquiries[].date_of_enquiry"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "max_enquiries_1_month"
+            }
+          ],
+          "meta": {
+            "step": 17,
+            "ruleName": "Enquiry count 1 month",
+            "condition": "Count of enquiries in last 1 month must be within cap"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-ENQ-3M",
+          "description": "Count of enquiries in last 3 months must be within cap · formula: count(enquiries where date_of_enquiry in last 3 months) <= max_enquiries_3_months · applicant: cibil_report_summary.cibil_data.enquiries[].date_of_enquiry · threshold: lenders_criteria_bl.max_enquiries_3_months · step: 18 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "count(enquiries where date_of_enquiry in last 3 months) <= max_enquiries_3_months",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.enquiries[].date_of_enquiry"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "max_enquiries_3_months"
+            }
+          ],
+          "meta": {
+            "step": 18,
+            "ruleName": "Enquiry count 3 months",
+            "condition": "Count of enquiries in last 3 months must be within cap"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-AUDITED",
+          "description": "When lender requires audited books, form flag must be true · formula: audited_books_required === false → SKIP; true → form_data.businessDetails.auditedBooks === true · applicant: loan_applications.form_data.businessDetails.auditedBooks · threshold: lenders_criteria_bl.audited_books_required · step: 19 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "audited_books_required === false → SKIP; true → form_data.businessDetails.auditedBooks === true",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.auditedBooks"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "audited_books_required"
+            }
+          ],
+          "meta": {
+            "step": 19,
+            "ruleName": "Audited books",
+            "condition": "When lender requires audited books, form flag must be true"
+          }
+        },
+        {
+          "type": "eligibility_rule",
+          "title": "BL-SETTLED-WO",
+          "description": "If any open account has a write-off amount, check whether payment_start_date is within 36 months of application date · formula: hasWriteOff → within 36m + settled_write_off_36_months===true → FAIL; flag false → PASS; no WO → PASS · applicant: cibil_report_summary.cibil_data.open_accounts[].written_off_amount_total; cibil_report_summary.cibil_data.open_accounts[].written_off_amount_principal; cibil_report_summary.cibil_data.open_accounts[].payment_start_date (Pay Start Date); loan_applications.created_at (Application date (as-of)) · threshold: lenders_criteria_bl.settled_write_off_36_months · step: 20 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "hasWriteOff → within 36m + settled_write_off_36_months===true → FAIL; flag false → PASS; no WO → PASS",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].written_off_amount_total"
+            },
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].written_off_amount_principal"
+            },
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].payment_start_date",
+              "description": "Pay Start Date"
+            },
+            {
+              "table": "loan_applications",
+              "column": "created_at",
+              "description": "Application date (as-of)"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "settled_write_off_36_months"
+            }
+          ],
+          "meta": {
+            "step": 20,
+            "ruleName": "Settled / write-off (36 months)",
+            "condition": "If any open account has a write-off amount, check whether payment_start_date is within 36 months of application date"
+          }
+        }
+      ],
+      "scoring": [
+        {
+          "type": "scoring_criterion",
+          "title": "CIBIL_SCORE",
+          "description": "CIBIL Score · weight: 20 · type: FORMULA · formula: newBorrower AND firstTimeBorrowerAllowed → weight; else min(1, max(0, (cibil_score - min_cibil) / (900 - min_cibil))) * weight · applicant: cibil_report_summary.cibil_data.cibil_score · threshold: lenders_criteria_bl.min_cibil; lenders_criteria_bl.first_time_borrower_allowed; lender_scoring_criteria.weight · scoredWhen: FTB branch: full weight. Else ratio * weight (floor 0) · skipWhen: min_cibil is null; min_cibil >= 900 · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 1",
+          "formula": "newBorrower AND firstTimeBorrowerAllowed → weight; else min(1, max(0, (cibil_score - min_cibil) / (900 - min_cibil))) * weight",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.cibil_score"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "min_cibil"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "first_time_borrower_allowed"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "weight"
+            }
+          ],
+          "meta": {
+            "step": 1,
+            "weight": 20,
+            "ruleType": "FORMULA",
+            "name": "CIBIL Score",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "FOIR_CHECK",
+          "description": "FOIR Check · weight: 15 · type: FORMULA · formula: weight * (1 - (FOIR * 100) / 80); FOIR = existingTotalEmi / netMonthlyIncome · applicant: cibil_report_summary.cibil_data (EMI / income profile) · threshold: lenders_criteria_bl.foir_max; lender_scoring_criteria.weight · scoredWhen: Formula applied for A.1 survivors · skipWhen: foir threshold null; netMonthlyIncome null or <= 0 · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 2",
+          "formula": "weight * (1 - (FOIR * 100) / 80); FOIR = existingTotalEmi / netMonthlyIncome",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data (EMI / income profile)"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "foir_max"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "weight"
+            }
+          ],
+          "meta": {
+            "step": 2,
+            "weight": 15,
+            "ruleType": "FORMULA",
+            "name": "FOIR Check",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "DPD_LAST_3M",
+          "description": "DPD Last 3 Months · weight: 10 · type: JSON · formula: n = account–month delay events in last 3 months where dpdDays > max_dpd_days_allowed; pointsFromRulesMap(n, rules) · applicant: cibil_report_summary.cibil_data.open_accounts[].paymentHistory · threshold: lenders_criteria_bl.max_dpd_days_allowed; lender_scoring_criteria.rules · scoredWhen: n mapped to bands; n > 8 → 0 · skipWhen: max_dpd_days_allowed is null · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 3",
+          "formula": "n = account–month delay events in last 3 months where dpdDays > max_dpd_days_allowed; pointsFromRulesMap(n, rules)",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].paymentHistory"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "max_dpd_days_allowed"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "rules"
+            }
+          ],
+          "meta": {
+            "step": 3,
+            "weight": 10,
+            "ruleType": "JSON",
+            "name": "DPD Last 3 Months",
+            "catalogRules": {
+              "0": 10,
+              "2": 8,
+              "4": 6,
+              "6": 4,
+              "8": 2
+            }
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "DPD_LAST_12M",
+          "description": "DPD Last 12 Months · weight: 8 · type: JSON · formula: n = account–month delay events in last 12 months where dpdDays > max_dpd_days_allowed; pointsFromRulesMap(n, rules) · applicant: cibil_report_summary.cibil_data.open_accounts[].paymentHistory · threshold: lenders_criteria_bl.max_dpd_days_allowed; lender_scoring_criteria.rules · scoredWhen: n mapped to bands; n > 12 → 0 · skipWhen: max_dpd_days_allowed is null · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 4",
+          "formula": "n = account–month delay events in last 12 months where dpdDays > max_dpd_days_allowed; pointsFromRulesMap(n, rules)",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.open_accounts[].paymentHistory"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "max_dpd_days_allowed"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "rules"
+            }
+          ],
+          "meta": {
+            "step": 4,
+            "weight": 8,
+            "ruleType": "JSON",
+            "name": "DPD Last 12 Months",
+            "catalogRules": {
+              "2": 8,
+              "5": 6,
+              "8": 4,
+              "12": 2
+            }
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "CC_UTILIZATION",
+          "description": "CC Utilization · weight: 5 · type: JSON · formula: ccUtilPct = (ccOutstanding / ccLimit) * 100; pointsFromRulesMap(ccUtilPct, rules). No CC accounts → 5 pts · applicant: cibil_report_summary.cibil_data (cc outstanding / limit) · threshold: lender_scoring_criteria.rules · scoredWhen: Band lookup, or concession 5 when no CC accounts · skipWhen: ccLimit <= 0 AND ccOutstanding > 0 · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 5",
+          "formula": "ccUtilPct = (ccOutstanding / ccLimit) * 100; pointsFromRulesMap(ccUtilPct, rules). No CC accounts → 5 pts",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data (cc outstanding / limit)"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "rules"
+            }
+          ],
+          "meta": {
+            "step": 5,
+            "weight": 5,
+            "ruleType": "JSON",
+            "name": "CC Utilization",
+            "catalogRules": {
+              "50": 5,
+              "70": 3,
+              "80": 1
+            }
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "ACTIVE_UNSECURED",
+          "description": "Active Unsecured Loans · weight: 5 · type: JSON · formula: pointsFromRulesMap(activeUnsecured, rules) · applicant: cibil_report_summary.cibil_data.active_unsecured_loan_count · threshold: lender_scoring_criteria.rules · scoredWhen: Count mapped to bands; count > 8 → 0 · skipWhen: activeUnsecured is null · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 6",
+          "formula": "pointsFromRulesMap(activeUnsecured, rules)",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.active_unsecured_loan_count"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "rules"
+            }
+          ],
+          "meta": {
+            "step": 6,
+            "weight": 5,
+            "ruleType": "JSON",
+            "name": "Active Unsecured Loans",
+            "catalogRules": {
+              "0": 5,
+              "2": 3,
+              "4": 2,
+              "8": 1
+            }
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "ENQUIRIES_3M",
+          "description": "Enquiries (3 Months) · weight: 4 · type: JSON · formula: pointsFromRulesMap(enquiries3m, rules) · applicant: cibil_report_summary.cibil_data.enquiries (last 3 months) · threshold: lender_scoring_criteria.rules · scoredWhen: Count mapped to bands; count > 6 → 0 · skipWhen: enquiries3m is null · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 7",
+          "formula": "pointsFromRulesMap(enquiries3m, rules)",
+          "sources": [
+            {
+              "table": "cibil_report_summary",
+              "column": "cibil_data.enquiries (last 3 months)"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "rules"
+            }
+          ],
+          "meta": {
+            "step": 7,
+            "weight": 4,
+            "ruleType": "JSON",
+            "name": "Enquiries (3 Months)",
+            "catalogRules": {
+              "0": 4,
+              "3": 2,
+              "6": 1
+            }
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "ANNUAL_TURNOVER",
+          "description": "Annual Turnover vs Threshold · weight: 10 · type: FORMULA · formula: MIN(10, ((annualTurnoverInr - min_annual_turnover) / (2 * min_annual_turnover)) * 10) · applicant: loan_applications.form_data.businessDetails.turnover · threshold: lenders_criteria_bl.min_annual_turnover; lender_scoring_criteria.weight · scoredWhen: Formula applied; cap 10 · skipWhen: min_annual_turnover is null; turnover missing · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 8",
+          "formula": "MIN(10, ((annualTurnoverInr - min_annual_turnover) / (2 * min_annual_turnover)) * 10)",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.turnover",
+              "unit": "Lakh → ₹ * 100000"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "min_annual_turnover",
+              "unit": "₹"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "weight"
+            }
+          ],
+          "meta": {
+            "step": 8,
+            "weight": 10,
+            "ruleType": "FORMULA",
+            "name": "Annual Turnover vs Threshold",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "BUSINESS_VINTAGE",
+          "description": "Business Vintage · weight: 7 · type: FORMULA · formula: MIN(7, ((businessAgeYears - min_vintage_years) / (2 * min_vintage_years)) * 7) · applicant: loan_applications.form_data.businessDetails.age · threshold: lenders_criteria_bl.min_vintage_years; lender_scoring_criteria.weight · scoredWhen: Formula applied; cap 7 · skipWhen: min_vintage_years is null; age missing · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 9",
+          "formula": "MIN(7, ((businessAgeYears - min_vintage_years) / (2 * min_vintage_years)) * 7)",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "form_data.businessDetails.age",
+              "unit": "years"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "min_vintage_years"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "weight"
+            }
+          ],
+          "meta": {
+            "step": 9,
+            "weight": 7,
+            "ruleType": "FORMULA",
+            "name": "Business Vintage",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "ITR_DOCUMENTATION",
+          "description": "ITR & Documentation · weight: 3 · type: STATIC · formula: points = weight · threshold: lender_scoring_criteria.weight · scoredWhen: v1: always full weight (3). No ITR / surrogate check · skipWhen:  · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 10",
+          "formula": "points = weight",
+          "sources": [
+            {
+              "table": "lender_scoring_criteria",
+              "column": "weight"
+            }
+          ],
+          "meta": {
+            "step": 10,
+            "weight": 3,
+            "ruleType": "STATIC",
+            "name": "ITR & Documentation",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "BUSINESS_REGISTRATION_PROOF",
+          "description": "Business Registration Proof · weight: 3 · type: STATIC · formula: points = weight · threshold: lender_scoring_criteria.weight · scoredWhen: v1: always full weight (3). No GST / registration-proof check · skipWhen:  · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 11",
+          "formula": "points = weight",
+          "sources": [
+            {
+              "table": "lender_scoring_criteria",
+              "column": "weight"
+            }
+          ],
+          "meta": {
+            "step": 11,
+            "weight": 3,
+            "ruleType": "STATIC",
+            "name": "Business Registration Proof",
+            "catalogRules": null
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "ROI_COMPETITIVENESS",
+          "description": "ROI Competitiveness · weight: 6 · type: JSON · formula: pointsFromRulesMap(lenders_criteria_bl.min_interest_rate, rules) · threshold: lenders_criteria_bl.min_interest_rate; lender_scoring_criteria.rules · scoredWhen: Rate mapped to bands; rate > 25 → 0 · skipWhen: min_interest_rate is null · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 12",
+          "formula": "pointsFromRulesMap(lenders_criteria_bl.min_interest_rate, rules)",
+          "sources": [
+            {
+              "table": "lenders_criteria_bl",
+              "column": "min_interest_rate"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "rules"
+            }
+          ],
+          "meta": {
+            "step": 12,
+            "weight": 6,
+            "ruleType": "JSON",
+            "name": "ROI Competitiveness",
+            "catalogRules": {
+              "11": 6,
+              "13": 5,
+              "15": 4,
+              "20": 2,
+              "25": 1
+            }
+          }
+        },
+        {
+          "type": "scoring_criterion",
+          "title": "MAX_LOAN_ADEQUACY",
+          "description": "Max Loan Adequacy · weight: 4 · type: JSON+FORMULA · formula: ratioPct = (loanAmount / max_loan_amount) * 100; pointsFromRulesMap(ratioPct, rules) · applicant: loan_applications.loan_amount; leads.required_amount · threshold: lenders_criteria_bl.max_loan_amount; lender_scoring_criteria.rules · scoredWhen: ratioPct <= 50 → 4; <= 75 → 2; else 0 · skipWhen: loanAmount missing; max_loan_amount null or <= 0 · result: SCORED points (SKIP = 0) → sum totalScore → RANK (display ≥ 40) · step: 13",
+          "formula": "ratioPct = (loanAmount / max_loan_amount) * 100; pointsFromRulesMap(ratioPct, rules)",
+          "sources": [
+            {
+              "table": "loan_applications",
+              "column": "loan_amount"
+            },
+            {
+              "table": "leads",
+              "column": "required_amount",
+              "note": "fallback"
+            },
+            {
+              "table": "lenders_criteria_bl",
+              "column": "max_loan_amount"
+            },
+            {
+              "table": "lender_scoring_criteria",
+              "column": "rules"
+            }
+          ],
+          "meta": {
+            "step": 13,
+            "weight": 4,
+            "ruleType": "JSON+FORMULA",
+            "name": "Max Loan Adequacy",
+            "catalogRules": {
+              "50": 4,
+              "75": 2
+            }
+          }
+        }
+      ]
+    }
+  }
+}

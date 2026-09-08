@@ -1064,20 +1064,20 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                     <table style={styles.docTable}>
                         <thead>
                             <tr style={styles.docHeadRow}>
-                                <th style={styles.docCell}><Typography variant="pi" fontWeight="bold">Document ID</Typography></th>
-                                <th style={styles.docCell}><Typography variant="pi" fontWeight="bold">File Format</Typography></th>
-                                <th style={styles.docCell}><Typography variant="pi" fontWeight="bold">Document Type</Typography></th>
-                                {canViewField('documentDetails', 'password') && <th style={styles.docCell}><Typography variant="pi" fontWeight="bold">Password</Typography></th>}
-                                <th style={styles.docCell}><Typography variant="pi" fontWeight="bold">Date</Typography></th>
-                                {canViewField('documentDetails', 'status') && <th style={styles.docCell}><Typography variant="pi" fontWeight="bold">status</Typography></th>}
-                                {canViewField('documentDetails', 'viewDocument') && <th style={styles.docCellCenter}><Typography variant="pi" fontWeight="bold">view</Typography></th>}
+                                <th style={styles.docCell}><Typography variant="pi" fontWeight="bold" textColor="neutral800">Document ID</Typography></th>
+                                <th style={styles.docCell}><Typography variant="pi" fontWeight="bold" textColor="neutral800">File Format</Typography></th>
+                                <th style={styles.docCell}><Typography variant="pi" fontWeight="bold" textColor="neutral800">Document Type</Typography></th>
+                                {canViewField('documentDetails', 'password') && <th style={styles.docCell}><Typography variant="pi" fontWeight="bold" textColor="neutral800">Password</Typography></th>}
+                                <th style={styles.docCell}><Typography variant="pi" fontWeight="bold" textColor="neutral800">Date</Typography></th>
+                                {canViewField('documentDetails', 'status') && <th style={styles.docCell}><Typography variant="pi" fontWeight="bold" textColor="neutral800">status</Typography></th>}
+                                {canViewField('documentDetails', 'viewDocument') && <th style={styles.docCellCenter}><Typography variant="pi" fontWeight="bold" textColor="neutral800">view</Typography></th>}
                             </tr>
                         </thead>
                         <tbody>
                             {docs.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} style={{ padding: '20px', textAlign: 'center' }}>
-                                        <Typography variant="pi">No documents uploaded.</Typography>
+                                    <td colSpan={7} style={{ padding: '20px', textAlign: 'center', background: '#ffffff' }}>
+                                        <Typography variant="pi" textColor="neutral600">No documents uploaded.</Typography>
                                     </td>
                                 </tr>
                             ) : (
@@ -1092,7 +1092,7 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                                             </div>
                                         </td>
                                         <td style={styles.docCell}>
-                                            <Typography variant="pi" fontWeight="bold">{doc.type}</Typography>
+                                            <Typography variant="pi" fontWeight="bold" textColor="neutral800" style={styles.docTypeText}>{doc.type}</Typography>
                                         </td>
                                         {canViewField('documentDetails', 'password') && <td style={styles.docCell}>
                                             <EditableField

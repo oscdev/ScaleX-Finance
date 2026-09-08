@@ -4,6 +4,11 @@ import { LeadOverviewDashboard } from '../../LeadOverview';
 import { reactRoots, unmountAndRemove } from './reactRoots';
 import { leadLabelMap } from './constants';
 import { lendersPageUrl, getFrontendBaseUrl } from '../frontendUrl';
+import {
+    buildNtfBadgeHtml,
+    buildStatusBadgeHtml,
+    looksLikeLeadStatus,
+} from './statusBadgeHtml';
 
 // ─── Role helpers ─────────────────────────────────────────────────────────────
 
@@ -28,19 +33,6 @@ const isInsideRadixPortal = (el: Element): boolean => {
     return true;
 };
 
-/** Map a lead status value to its CSS modifier class */
-const statusBadgeClass = (val: string): string => {
-    const map: Record<string, string> = {
-        NEW: 'custom-status-badge--new',
-        UNDER_PROCESS: 'custom-status-badge--under-process',
-        'UNDER PROCESS': 'custom-status-badge--under-process',
-        APPROVED: 'custom-status-badge--approved',
-        REJECTED: 'custom-status-badge--rejected',
-        DISBURSED: 'custom-status-badge--disbursed',
-    };
-    return map[val] || 'custom-status-badge--new';
-};
-
 // ─── Header tagging ───────────────────────────────────────────────────────────
 
 const tagLeadHeaders = (headers: Element[]) => {
@@ -53,7 +45,18 @@ const tagLeadHeaders = (headers: Element[]) => {
         if (raw.includes('requiredamount') || raw.includes('amount')) th.id = 'col-amount';
         if (raw.includes('createdat') || raw.includes('added')) th.id = 'col-added';
         if (raw.includes('updatedat') || raw.includes('updated')) th.id = 'col-updated';
-        if (raw.includes('leadstatus') || raw.includes('status')) th.id = 'col-status';
+        if (
+            raw === 'status' ||
+            raw === 'lead status' ||
+            raw.includes('leadstatus') ||
+            (raw.includes('status') &&
+                !raw.includes('property') &&
+                !raw.includes('email') &&
+                !raw.includes('verify') &&
+                !raw.includes('advisor'))
+        ) {
+            th.id = 'col-status';
+        }
         if (raw.includes('advisor')) th.id = 'col-advisor';
         if (raw.includes('remarks')) th.id = 'col-remarks';
         if (raw.includes('notification')) th.id = 'col-notifications';
@@ -160,6 +163,20 @@ const applyGlobalElementStyling = () => {
         if (el.closest('#admin-notifications-root')) return;
         if (el.closest('nav, aside, [class*="SubNav"], [class*="MainNav"]')) return;
         if (el.tagName === 'A' || el.closest('a')) return;
+        // Never force white text onto pastel status / verify chips
+        if (
+            el.classList.contains('custom-status-badge') ||
+            el.classList.contains('adv-status-badge') ||
+            el.classList.contains('adv-verified-badge') ||
+            el.classList.contains('custom-ntf-yes') ||
+            el.classList.contains('custom-ntf-no') ||
+            el.closest('.custom-status-badge, .adv-status-badge, .adv-verified-badge')
+        ) {
+            if (el.getAttribute('data-custom-highlight') === 'true') {
+                el.removeAttribute('data-custom-highlight');
+            }
+            return;
+        }
 
         const bg = el.style.backgroundColor || window.getComputedStyle(el).backgroundColor;
         const isHighlighted =
@@ -355,7 +372,7 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
         }
     }
 
-    // Status badge — CSS modifier class per status value
+    // Status badge — inline colors (Firefox/Chrome/Safari parity)
     if (sIdx !== -1 && cells[sIdx]) {
         const statusCell = cells[sIdx];
         // Resolve the row id robustly: prefer the col-id header if tagged,
@@ -367,17 +384,26 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
             rowId = numCell?.textContent?.trim() || '';
         }
         const statusMap = (window as any).leadStatusMap || {};
-        const val = rowId ? statusMap[rowId] : null;
-        const hasGhost = statusCell.textContent?.toLowerCase().includes('published');
-        const hasBadge = !!statusCell.querySelector('.custom-status-badge');
+        const mapVal = rowId ? statusMap[rowId] : null;
+        const cellText = statusCell.textContent?.trim() || '';
+        const hasGhost = cellText.toLowerCase().includes('published');
+        const existingBadge = statusCell.querySelector('.custom-status-badge') as HTMLElement | null;
+        const hasBadge = !!existingBadge;
+        const needsInline =
+            !!existingBadge && !String(existingBadge.getAttribute('style') || '').includes('background-color');
+        // Prefer map; fall back to cell text when it already looks like a status
+        // (Firefox timing can leave map empty on first paint).
+        const resolved =
+            mapVal ||
+            ((!hasBadge || needsInline) && !hasGhost && looksLikeLeadStatus(cellText) ? cellText : null);
 
         // Only mutate the cell if we have a value to render, or if we need to
         // strip ghost text. Don't clear an empty cell when val is undefined —
         // leave it untouched so a later pass (after the prefetch resolves) can
         // fill it in without us churning the DOM.
-        if (val && (hasGhost || !hasBadge)) {
-            statusCell.innerHTML = `<div class="custom-status-badge ${statusBadgeClass(val)}">${val.replace('_', ' ')}</div>`;
-        } else if (hasGhost && !val) {
+        if (resolved && (hasGhost || !hasBadge || needsInline)) {
+            statusCell.innerHTML = buildStatusBadgeHtml(String(resolved));
+        } else if (hasGhost && !resolved) {
             statusCell.innerHTML = '';
         }
     }
@@ -405,13 +431,13 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
     if (addIdx !== -1 && cells[addIdx]) cells[addIdx].style.display = 'none';
     if (pubIdx !== -1 && cells[pubIdx]) cells[pubIdx].style.display = 'none';
 
-    // Notification badge — CSS class
-    if (ntfIdx !== -1 && cells[ntfIdx]) {
+    // Notification badge — inline colors for cross-browser chips
+    if (ntfIdx !== -1 && cells[ntfIdx] && !cells[ntfIdx].querySelector('.custom-ntf-yes, .custom-ntf-no')) {
         const val = cells[ntfIdx].textContent?.trim().toLowerCase();
         if (val === 'true' || val === 'yes' || val === '1') {
-            cells[ntfIdx].innerHTML = '<span class="custom-ntf-yes">YES</span>';
+            cells[ntfIdx].innerHTML = buildNtfBadgeHtml(true);
         } else if (val === 'false' || val === 'no' || val === '0') {
-            cells[ntfIdx].innerHTML = '<span class="custom-ntf-no">NO</span>';
+            cells[ntfIdx].innerHTML = buildNtfBadgeHtml(false);
         }
     }
 

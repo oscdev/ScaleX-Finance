@@ -1,0 +1,1095 @@
+{
+  "meta": {
+    "runId": "ec19d6d6-9174-4296-963d-a343fc0077ea",
+    "product": "business-loan",
+    "leadId": "offline",
+    "leadName": "Test Business Owner",
+    "source": "offline-fail-lab",
+    "loanType": "Business Loan",
+    "failLab": true,
+    "profile": {
+      "pin": "440001",
+      "amount": 1500000,
+      "cibil": 750
+    }
+  },
+  "events": [
+    {
+      "stage": "form",
+      "status": "start",
+      "message": "Loading business-loan customer fixture",
+      "data": {
+        "fullName": "Test Business Owner",
+        "loanAmount": 1500000
+      },
+      "ts": "2026-09-04T14:39:18.635Z"
+    },
+    {
+      "stage": "form",
+      "status": "complete",
+      "message": "Customer form data ready (offline)",
+      "data": {
+        "fields": 18
+      },
+      "ts": "2026-09-04T14:39:18.835Z"
+    },
+    {
+      "stage": "bureau",
+      "status": "start",
+      "message": "Loading sample bureau extraction fixture",
+      "ts": "2026-09-04T14:39:18.835Z"
+    },
+    {
+      "stage": "bureau",
+      "status": "complete",
+      "message": "Bureau sample loaded — CIBIL 750",
+      "data": {
+        "cibil_score": 750,
+        "open_accounts": 1
+      },
+      "ts": "2026-09-04T14:39:19.085Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "start",
+      "message": "Running eligibility pipeline (offline simulation)",
+      "ts": "2026-09-04T14:39:19.085Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "SBI · BL-ACTIVE → PASS",
+      "data": {
+        "lender": "SBI",
+        "step": 1,
+        "ruleId": "BL-ACTIVE",
+        "ruleName": "Active lenders",
+        "formula": "catalog.isActive && criteria.isActive",
+        "result": "PASS",
+        "evaluation": "active lender → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.085Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "SBI · BL-PINCODE → PASS",
+      "data": {
+        "lender": "SBI",
+        "step": 2,
+        "ruleId": "BL-PINCODE",
+        "ruleName": "Zipcode availability",
+        "formula": "coversAllPincodes OR zipCode === applicantPin",
+        "result": "PASS",
+        "evaluation": "pincode serviceable → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.126Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "SBI · BL-CIBIL → PASS",
+      "data": {
+        "lender": "SBI",
+        "step": 3,
+        "ruleId": "BL-CIBIL",
+        "ruleName": "Min CIBIL / FTB",
+        "formula": "cibil >= min OR first_time_borrower_allowed",
+        "result": "PASS",
+        "evaluation": "750 >= 650 → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.165Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "SBI · BL-CURRENT-OVERDUE → PASS",
+      "data": {
+        "lender": "SBI",
+        "step": 4,
+        "ruleId": "BL-CURRENT-OVERDUE",
+        "ruleName": "Current overdue",
+        "formula": "no current overdue accounts",
+        "result": "PASS",
+        "evaluation": "no overdue → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.205Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "SBI · BL-AGE → PASS",
+      "data": {
+        "lender": "SBI",
+        "step": 5,
+        "ruleId": "BL-AGE",
+        "ruleName": "Age",
+        "formula": "minAge <= age <= maxAge",
+        "result": "PASS",
+        "evaluation": "age in range → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.245Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "SBI · BL-ENTITY → PASS",
+      "data": {
+        "lender": "SBI",
+        "step": 6,
+        "ruleId": "BL-ENTITY",
+        "ruleName": "Entity type",
+        "formula": "entity IN eligible_entity_types",
+        "result": "PASS",
+        "evaluation": "Proprietorship IN eligible types → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.286Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "SBI · BL-TURNOVER → PASS",
+      "data": {
+        "lender": "SBI",
+        "step": 7,
+        "ruleId": "BL-TURNOVER",
+        "ruleName": "Annual turnover",
+        "formula": "turnoverLakh >= min_annual_turnover",
+        "result": "PASS",
+        "evaluation": "50 Lakh >= 25 Lakh → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.325Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "SBI · BL-VINTAGE → PASS",
+      "data": {
+        "lender": "SBI",
+        "step": 8,
+        "ruleId": "BL-VINTAGE",
+        "ruleName": "Business vintage",
+        "formula": "businessAgeYears >= min_business_vintage",
+        "result": "PASS",
+        "evaluation": "5 years >= 3 → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.365Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "SBI · BL-AMOUNT → PASS",
+      "data": {
+        "lender": "SBI",
+        "step": 9,
+        "ruleId": "BL-AMOUNT",
+        "ruleName": "Loan amount",
+        "formula": "minLoanAmount <= requestedAmount <= maxLoanAmount",
+        "result": "PASS",
+        "evaluation": "loan amount in range → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.405Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "SBI · BL-FOIR → PASS",
+      "data": {
+        "lender": "SBI",
+        "step": 10,
+        "ruleId": "BL-FOIR",
+        "ruleName": "FOIR",
+        "formula": "existingTotalEmi / income <= foir",
+        "result": "PASS",
+        "evaluation": "FOIR within limit → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.446Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "lender",
+      "message": "SBI eligible",
+      "data": {
+        "code": "SBI",
+        "eligible": true,
+        "failedAt": null
+      },
+      "ts": "2026-09-04T14:39:19.486Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "HDFC · BL-ACTIVE → PASS",
+      "data": {
+        "lender": "HDFC",
+        "step": 1,
+        "ruleId": "BL-ACTIVE",
+        "ruleName": "Active lenders",
+        "formula": "catalog.isActive && criteria.isActive",
+        "result": "PASS",
+        "evaluation": "active lender → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.486Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "HDFC · BL-PINCODE → PASS",
+      "data": {
+        "lender": "HDFC",
+        "step": 2,
+        "ruleId": "BL-PINCODE",
+        "ruleName": "Zipcode availability",
+        "formula": "coversAllPincodes OR zipCode === applicantPin",
+        "result": "PASS",
+        "evaluation": "pincode serviceable → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.526Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "HDFC · BL-CIBIL → PASS",
+      "data": {
+        "lender": "HDFC",
+        "step": 3,
+        "ruleId": "BL-CIBIL",
+        "ruleName": "Min CIBIL / FTB",
+        "formula": "cibil >= min OR first_time_borrower_allowed",
+        "result": "PASS",
+        "evaluation": "750 >= 650 → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.566Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "HDFC · BL-CURRENT-OVERDUE → PASS",
+      "data": {
+        "lender": "HDFC",
+        "step": 4,
+        "ruleId": "BL-CURRENT-OVERDUE",
+        "ruleName": "Current overdue",
+        "formula": "no current overdue accounts",
+        "result": "PASS",
+        "evaluation": "no overdue → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.607Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "HDFC · BL-AGE → PASS",
+      "data": {
+        "lender": "HDFC",
+        "step": 5,
+        "ruleId": "BL-AGE",
+        "ruleName": "Age",
+        "formula": "minAge <= age <= maxAge",
+        "result": "PASS",
+        "evaluation": "age in range → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.647Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "HDFC · BL-ENTITY → PASS",
+      "data": {
+        "lender": "HDFC",
+        "step": 6,
+        "ruleId": "BL-ENTITY",
+        "ruleName": "Entity type",
+        "formula": "entity IN eligible_entity_types",
+        "result": "PASS",
+        "evaluation": "Proprietorship IN eligible types → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.687Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "HDFC · BL-TURNOVER → PASS",
+      "data": {
+        "lender": "HDFC",
+        "step": 7,
+        "ruleId": "BL-TURNOVER",
+        "ruleName": "Annual turnover",
+        "formula": "turnoverLakh >= min_annual_turnover",
+        "result": "PASS",
+        "evaluation": "50 Lakh >= 25 Lakh → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.727Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "HDFC · BL-VINTAGE → PASS",
+      "data": {
+        "lender": "HDFC",
+        "step": 8,
+        "ruleId": "BL-VINTAGE",
+        "ruleName": "Business vintage",
+        "formula": "businessAgeYears >= min_business_vintage",
+        "result": "PASS",
+        "evaluation": "5 years >= 3 → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.768Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "HDFC · BL-AMOUNT → PASS",
+      "data": {
+        "lender": "HDFC",
+        "step": 9,
+        "ruleId": "BL-AMOUNT",
+        "ruleName": "Loan amount",
+        "formula": "minLoanAmount <= requestedAmount <= maxLoanAmount",
+        "result": "PASS",
+        "evaluation": "loan amount in range → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.808Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "HDFC · BL-FOIR → PASS",
+      "data": {
+        "lender": "HDFC",
+        "step": 10,
+        "ruleId": "BL-FOIR",
+        "ruleName": "FOIR",
+        "formula": "existingTotalEmi / income <= foir",
+        "result": "PASS",
+        "evaluation": "FOIR within limit → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.848Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "lender",
+      "message": "HDFC eligible",
+      "data": {
+        "code": "HDFC",
+        "eligible": true,
+        "failedAt": null
+      },
+      "ts": "2026-09-04T14:39:19.888Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "ICICI · BL-ACTIVE → PASS",
+      "data": {
+        "lender": "ICICI",
+        "step": 1,
+        "ruleId": "BL-ACTIVE",
+        "ruleName": "Active lenders",
+        "formula": "catalog.isActive && criteria.isActive",
+        "result": "PASS",
+        "evaluation": "active lender → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.888Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "ICICI · BL-PINCODE → PASS",
+      "data": {
+        "lender": "ICICI",
+        "step": 2,
+        "ruleId": "BL-PINCODE",
+        "ruleName": "Zipcode availability",
+        "formula": "coversAllPincodes OR zipCode === applicantPin",
+        "result": "PASS",
+        "evaluation": "pincode serviceable → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.929Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "ICICI · BL-CIBIL → PASS",
+      "data": {
+        "lender": "ICICI",
+        "step": 3,
+        "ruleId": "BL-CIBIL",
+        "ruleName": "Min CIBIL / FTB",
+        "formula": "cibil >= min OR first_time_borrower_allowed",
+        "result": "PASS",
+        "evaluation": "750 >= 650 → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:19.969Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "ICICI · BL-CURRENT-OVERDUE → PASS",
+      "data": {
+        "lender": "ICICI",
+        "step": 4,
+        "ruleId": "BL-CURRENT-OVERDUE",
+        "ruleName": "Current overdue",
+        "formula": "no current overdue accounts",
+        "result": "PASS",
+        "evaluation": "no overdue → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:20.009Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "ICICI · BL-AGE → PASS",
+      "data": {
+        "lender": "ICICI",
+        "step": 5,
+        "ruleId": "BL-AGE",
+        "ruleName": "Age",
+        "formula": "minAge <= age <= maxAge",
+        "result": "PASS",
+        "evaluation": "age in range → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:20.049Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "ICICI · BL-ENTITY → PASS",
+      "data": {
+        "lender": "ICICI",
+        "step": 6,
+        "ruleId": "BL-ENTITY",
+        "ruleName": "Entity type",
+        "formula": "entity IN eligible_entity_types",
+        "result": "PASS",
+        "evaluation": "Proprietorship IN eligible types → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:20.090Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "ICICI · BL-TURNOVER → PASS",
+      "data": {
+        "lender": "ICICI",
+        "step": 7,
+        "ruleId": "BL-TURNOVER",
+        "ruleName": "Annual turnover",
+        "formula": "turnoverLakh >= min_annual_turnover",
+        "result": "PASS",
+        "evaluation": "50 Lakh >= 25 Lakh → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:20.130Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "ICICI · BL-VINTAGE → PASS",
+      "data": {
+        "lender": "ICICI",
+        "step": 8,
+        "ruleId": "BL-VINTAGE",
+        "ruleName": "Business vintage",
+        "formula": "businessAgeYears >= min_business_vintage",
+        "result": "PASS",
+        "evaluation": "5 years >= 3 → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:20.171Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "ICICI · BL-AMOUNT → PASS",
+      "data": {
+        "lender": "ICICI",
+        "step": 9,
+        "ruleId": "BL-AMOUNT",
+        "ruleName": "Loan amount",
+        "formula": "minLoanAmount <= requestedAmount <= maxLoanAmount",
+        "result": "PASS",
+        "evaluation": "loan amount in range → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:20.211Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "step",
+      "message": "ICICI · BL-FOIR → PASS",
+      "data": {
+        "lender": "ICICI",
+        "step": 10,
+        "ruleId": "BL-FOIR",
+        "ruleName": "FOIR",
+        "formula": "existingTotalEmi / income <= foir",
+        "result": "PASS",
+        "evaluation": "FOIR within limit → PASS",
+        "reason": null
+      },
+      "ts": "2026-09-04T14:39:20.252Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "lender",
+      "message": "ICICI eligible",
+      "data": {
+        "code": "ICICI",
+        "eligible": true,
+        "failedAt": null
+      },
+      "ts": "2026-09-04T14:39:20.293Z"
+    },
+    {
+      "stage": "eligibility",
+      "status": "complete",
+      "message": "Eligibility complete",
+      "ts": "2026-09-04T14:39:20.293Z"
+    },
+    {
+      "stage": "scoring",
+      "status": "start",
+      "message": "Scoring eligible lenders (offline)",
+      "ts": "2026-09-04T14:39:20.293Z"
+    },
+    {
+      "stage": "scoring",
+      "status": "lender",
+      "message": "SBI score 100",
+      "data": {
+        "code": "SBI",
+        "totalScore": 100
+      },
+      "ts": "2026-09-04T14:39:20.293Z"
+    },
+    {
+      "stage": "scoring",
+      "status": "lender",
+      "message": "HDFC score 60",
+      "data": {
+        "code": "HDFC",
+        "totalScore": 60
+      },
+      "ts": "2026-09-04T14:39:20.353Z"
+    },
+    {
+      "stage": "scoring",
+      "status": "lender",
+      "message": "ICICI score 70",
+      "data": {
+        "code": "ICICI",
+        "totalScore": 70
+      },
+      "ts": "2026-09-04T14:39:20.414Z"
+    },
+    {
+      "stage": "scoring",
+      "status": "complete",
+      "message": "Scoring complete",
+      "ts": "2026-09-04T14:39:20.475Z"
+    },
+    {
+      "stage": "rank",
+      "status": "start",
+      "message": "Ranking lenders",
+      "ts": "2026-09-04T14:39:20.475Z"
+    },
+    {
+      "stage": "rank",
+      "status": "item",
+      "message": "#1 SBI — 100 pts",
+      "data": {
+        "code": "SBI",
+        "lenderName": "State Bank of India",
+        "totalScore": 100,
+        "summary": {
+          "criterionScores": {
+            "CIBIL_SCORE": 10,
+            "ANNUAL_TURNOVER": 10,
+            "BUSINESS_VINTAGE": 10,
+            "FOIR_CHECK": 10,
+            "DPD_LAST_3M": 10,
+            "DPD_LAST_12M": 10,
+            "ITR_DOCUMENTATION": 10,
+            "BUSINESS_REGISTRATION_PROOF": 10,
+            "ROI_COMPETITIVENESS": 10,
+            "MAX_LOAN_ADEQUACY": 10
+          },
+          "totalScore": 100
+        },
+        "rank": 1,
+        "displayed": true
+      },
+      "ts": "2026-09-04T14:39:20.475Z"
+    },
+    {
+      "stage": "rank",
+      "status": "item",
+      "message": "#2 ICICI — 70 pts",
+      "data": {
+        "code": "ICICI",
+        "lenderName": "ICICI Bank",
+        "totalScore": 70,
+        "summary": {
+          "criterionScores": {
+            "CIBIL_SCORE": 7,
+            "ANNUAL_TURNOVER": 7,
+            "BUSINESS_VINTAGE": 7,
+            "FOIR_CHECK": 7,
+            "DPD_LAST_3M": 7,
+            "DPD_LAST_12M": 7,
+            "ITR_DOCUMENTATION": 7,
+            "BUSINESS_REGISTRATION_PROOF": 7,
+            "ROI_COMPETITIVENESS": 7,
+            "MAX_LOAN_ADEQUACY": 7
+          },
+          "totalScore": 70
+        },
+        "rank": 2,
+        "displayed": true
+      },
+      "ts": "2026-09-04T14:39:20.506Z"
+    },
+    {
+      "stage": "rank",
+      "status": "item",
+      "message": "#3 HDFC — 60 pts",
+      "data": {
+        "code": "HDFC",
+        "lenderName": "HDFC Bank",
+        "totalScore": 60,
+        "summary": {
+          "criterionScores": {
+            "CIBIL_SCORE": 6,
+            "ANNUAL_TURNOVER": 6,
+            "BUSINESS_VINTAGE": 6,
+            "FOIR_CHECK": 6,
+            "DPD_LAST_3M": 6,
+            "DPD_LAST_12M": 6,
+            "ITR_DOCUMENTATION": 6,
+            "BUSINESS_REGISTRATION_PROOF": 6,
+            "ROI_COMPETITIVENESS": 6,
+            "MAX_LOAN_ADEQUACY": 6
+          },
+          "totalScore": 60
+        },
+        "rank": 3,
+        "displayed": true
+      },
+      "ts": "2026-09-04T14:39:20.536Z"
+    },
+    {
+      "stage": "rank",
+      "status": "complete",
+      "message": "Ranking complete",
+      "ts": "2026-09-04T14:39:20.566Z"
+    }
+  ],
+  "lenders": [
+    {
+      "code": "SBI",
+      "lenderName": "State Bank of India",
+      "eligible": true,
+      "failedAt": null,
+      "failedStep": null,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "notRun": 0,
+      "steps": [
+        {
+          "step": 1,
+          "ruleId": "BL-ACTIVE",
+          "ruleName": "Active lenders",
+          "formula": "catalog.isActive && criteria.isActive",
+          "result": "PASS",
+          "evaluation": "active lender → PASS",
+          "reason": null
+        },
+        {
+          "step": 2,
+          "ruleId": "BL-PINCODE",
+          "ruleName": "Zipcode availability",
+          "formula": "coversAllPincodes OR zipCode === applicantPin",
+          "result": "PASS",
+          "evaluation": "pincode serviceable → PASS",
+          "reason": null
+        },
+        {
+          "step": 3,
+          "ruleId": "BL-CIBIL",
+          "ruleName": "Min CIBIL / FTB",
+          "formula": "cibil >= min OR first_time_borrower_allowed",
+          "result": "PASS",
+          "evaluation": "750 >= 650 → PASS",
+          "reason": null
+        },
+        {
+          "step": 4,
+          "ruleId": "BL-CURRENT-OVERDUE",
+          "ruleName": "Current overdue",
+          "formula": "no current overdue accounts",
+          "result": "PASS",
+          "evaluation": "no overdue → PASS",
+          "reason": null
+        },
+        {
+          "step": 5,
+          "ruleId": "BL-AGE",
+          "ruleName": "Age",
+          "formula": "minAge <= age <= maxAge",
+          "result": "PASS",
+          "evaluation": "age in range → PASS",
+          "reason": null
+        },
+        {
+          "step": 6,
+          "ruleId": "BL-ENTITY",
+          "ruleName": "Entity type",
+          "formula": "entity IN eligible_entity_types",
+          "result": "PASS",
+          "evaluation": "Proprietorship IN eligible types → PASS",
+          "reason": null
+        },
+        {
+          "step": 7,
+          "ruleId": "BL-TURNOVER",
+          "ruleName": "Annual turnover",
+          "formula": "turnoverLakh >= min_annual_turnover",
+          "result": "PASS",
+          "evaluation": "50 Lakh >= 25 Lakh → PASS",
+          "reason": null
+        },
+        {
+          "step": 8,
+          "ruleId": "BL-VINTAGE",
+          "ruleName": "Business vintage",
+          "formula": "businessAgeYears >= min_business_vintage",
+          "result": "PASS",
+          "evaluation": "5 years >= 3 → PASS",
+          "reason": null
+        },
+        {
+          "step": 9,
+          "ruleId": "BL-AMOUNT",
+          "ruleName": "Loan amount",
+          "formula": "minLoanAmount <= requestedAmount <= maxLoanAmount",
+          "result": "PASS",
+          "evaluation": "loan amount in range → PASS",
+          "reason": null
+        },
+        {
+          "step": 10,
+          "ruleId": "BL-FOIR",
+          "ruleName": "FOIR",
+          "formula": "existingTotalEmi / income <= foir",
+          "result": "PASS",
+          "evaluation": "FOIR within limit → PASS",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "code": "HDFC",
+      "lenderName": "HDFC Bank",
+      "eligible": true,
+      "failedAt": null,
+      "failedStep": null,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "notRun": 0,
+      "steps": [
+        {
+          "step": 1,
+          "ruleId": "BL-ACTIVE",
+          "ruleName": "Active lenders",
+          "formula": "catalog.isActive && criteria.isActive",
+          "result": "PASS",
+          "evaluation": "active lender → PASS",
+          "reason": null
+        },
+        {
+          "step": 2,
+          "ruleId": "BL-PINCODE",
+          "ruleName": "Zipcode availability",
+          "formula": "coversAllPincodes OR zipCode === applicantPin",
+          "result": "PASS",
+          "evaluation": "pincode serviceable → PASS",
+          "reason": null
+        },
+        {
+          "step": 3,
+          "ruleId": "BL-CIBIL",
+          "ruleName": "Min CIBIL / FTB",
+          "formula": "cibil >= min OR first_time_borrower_allowed",
+          "result": "PASS",
+          "evaluation": "750 >= 650 → PASS",
+          "reason": null
+        },
+        {
+          "step": 4,
+          "ruleId": "BL-CURRENT-OVERDUE",
+          "ruleName": "Current overdue",
+          "formula": "no current overdue accounts",
+          "result": "PASS",
+          "evaluation": "no overdue → PASS",
+          "reason": null
+        },
+        {
+          "step": 5,
+          "ruleId": "BL-AGE",
+          "ruleName": "Age",
+          "formula": "minAge <= age <= maxAge",
+          "result": "PASS",
+          "evaluation": "age in range → PASS",
+          "reason": null
+        },
+        {
+          "step": 6,
+          "ruleId": "BL-ENTITY",
+          "ruleName": "Entity type",
+          "formula": "entity IN eligible_entity_types",
+          "result": "PASS",
+          "evaluation": "Proprietorship IN eligible types → PASS",
+          "reason": null
+        },
+        {
+          "step": 7,
+          "ruleId": "BL-TURNOVER",
+          "ruleName": "Annual turnover",
+          "formula": "turnoverLakh >= min_annual_turnover",
+          "result": "PASS",
+          "evaluation": "50 Lakh >= 25 Lakh → PASS",
+          "reason": null
+        },
+        {
+          "step": 8,
+          "ruleId": "BL-VINTAGE",
+          "ruleName": "Business vintage",
+          "formula": "businessAgeYears >= min_business_vintage",
+          "result": "PASS",
+          "evaluation": "5 years >= 3 → PASS",
+          "reason": null
+        },
+        {
+          "step": 9,
+          "ruleId": "BL-AMOUNT",
+          "ruleName": "Loan amount",
+          "formula": "minLoanAmount <= requestedAmount <= maxLoanAmount",
+          "result": "PASS",
+          "evaluation": "loan amount in range → PASS",
+          "reason": null
+        },
+        {
+          "step": 10,
+          "ruleId": "BL-FOIR",
+          "ruleName": "FOIR",
+          "formula": "existingTotalEmi / income <= foir",
+          "result": "PASS",
+          "evaluation": "FOIR within limit → PASS",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "code": "ICICI",
+      "lenderName": "ICICI Bank",
+      "eligible": true,
+      "failedAt": null,
+      "failedStep": null,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "notRun": 0,
+      "steps": [
+        {
+          "step": 1,
+          "ruleId": "BL-ACTIVE",
+          "ruleName": "Active lenders",
+          "formula": "catalog.isActive && criteria.isActive",
+          "result": "PASS",
+          "evaluation": "active lender → PASS",
+          "reason": null
+        },
+        {
+          "step": 2,
+          "ruleId": "BL-PINCODE",
+          "ruleName": "Zipcode availability",
+          "formula": "coversAllPincodes OR zipCode === applicantPin",
+          "result": "PASS",
+          "evaluation": "pincode serviceable → PASS",
+          "reason": null
+        },
+        {
+          "step": 3,
+          "ruleId": "BL-CIBIL",
+          "ruleName": "Min CIBIL / FTB",
+          "formula": "cibil >= min OR first_time_borrower_allowed",
+          "result": "PASS",
+          "evaluation": "750 >= 650 → PASS",
+          "reason": null
+        },
+        {
+          "step": 4,
+          "ruleId": "BL-CURRENT-OVERDUE",
+          "ruleName": "Current overdue",
+          "formula": "no current overdue accounts",
+          "result": "PASS",
+          "evaluation": "no overdue → PASS",
+          "reason": null
+        },
+        {
+          "step": 5,
+          "ruleId": "BL-AGE",
+          "ruleName": "Age",
+          "formula": "minAge <= age <= maxAge",
+          "result": "PASS",
+          "evaluation": "age in range → PASS",
+          "reason": null
+        },
+        {
+          "step": 6,
+          "ruleId": "BL-ENTITY",
+          "ruleName": "Entity type",
+          "formula": "entity IN eligible_entity_types",
+          "result": "PASS",
+          "evaluation": "Proprietorship IN eligible types → PASS",
+          "reason": null
+        },
+        {
+          "step": 7,
+          "ruleId": "BL-TURNOVER",
+          "ruleName": "Annual turnover",
+          "formula": "turnoverLakh >= min_annual_turnover",
+          "result": "PASS",
+          "evaluation": "50 Lakh >= 25 Lakh → PASS",
+          "reason": null
+        },
+        {
+          "step": 8,
+          "ruleId": "BL-VINTAGE",
+          "ruleName": "Business vintage",
+          "formula": "businessAgeYears >= min_business_vintage",
+          "result": "PASS",
+          "evaluation": "5 years >= 3 → PASS",
+          "reason": null
+        },
+        {
+          "step": 9,
+          "ruleId": "BL-AMOUNT",
+          "ruleName": "Loan amount",
+          "formula": "minLoanAmount <= requestedAmount <= maxLoanAmount",
+          "result": "PASS",
+          "evaluation": "loan amount in range → PASS",
+          "reason": null
+        },
+        {
+          "step": 10,
+          "ruleId": "BL-FOIR",
+          "ruleName": "FOIR",
+          "formula": "existingTotalEmi / income <= foir",
+          "result": "PASS",
+          "evaluation": "FOIR within limit → PASS",
+          "reason": null
+        }
+      ]
+    }
+  ],
+  "scoring": [
+    {
+      "code": "SBI",
+      "lenderName": "State Bank of India",
+      "totalScore": 100,
+      "summary": {
+        "criterionScores": {
+          "CIBIL_SCORE": 10,
+          "ANNUAL_TURNOVER": 10,
+          "BUSINESS_VINTAGE": 10,
+          "FOIR_CHECK": 10,
+          "DPD_LAST_3M": 10,
+          "DPD_LAST_12M": 10,
+          "ITR_DOCUMENTATION": 10,
+          "BUSINESS_REGISTRATION_PROOF": 10,
+          "ROI_COMPETITIVENESS": 10,
+          "MAX_LOAN_ADEQUACY": 10
+        },
+        "totalScore": 100
+      },
+      "rank": 1,
+      "displayed": true
+    },
+    {
+      "code": "ICICI",
+      "lenderName": "ICICI Bank",
+      "totalScore": 70,
+      "summary": {
+        "criterionScores": {
+          "CIBIL_SCORE": 7,
+          "ANNUAL_TURNOVER": 7,
+          "BUSINESS_VINTAGE": 7,
+          "FOIR_CHECK": 7,
+          "DPD_LAST_3M": 7,
+          "DPD_LAST_12M": 7,
+          "ITR_DOCUMENTATION": 7,
+          "BUSINESS_REGISTRATION_PROOF": 7,
+          "ROI_COMPETITIVENESS": 7,
+          "MAX_LOAN_ADEQUACY": 7
+        },
+        "totalScore": 70
+      },
+      "rank": 2,
+      "displayed": true
+    },
+    {
+      "code": "HDFC",
+      "lenderName": "HDFC Bank",
+      "totalScore": 60,
+      "summary": {
+        "criterionScores": {
+          "CIBIL_SCORE": 6,
+          "ANNUAL_TURNOVER": 6,
+          "BUSINESS_VINTAGE": 6,
+          "FOIR_CHECK": 6,
+          "DPD_LAST_3M": 6,
+          "DPD_LAST_12M": 6,
+          "ITR_DOCUMENTATION": 6,
+          "BUSINESS_REGISTRATION_PROOF": 6,
+          "ROI_COMPETITIVENESS": 6,
+          "MAX_LOAN_ADEQUACY": 6
+        },
+        "totalScore": 60
+      },
+      "rank": 3,
+      "displayed": true
+    }
+  ]
+}

@@ -7,7 +7,7 @@ export const MULTI_FILE_DOCUMENT_FIELDS = new Set([
 
 /**
  * Canonical disk / Media Library basename (no extension) per loan-app media field.
- * Aligned with PL_LeadSubmittionScript DOCUMENT_MAP where applicable.
+ * Aligned with Automation-Testing DOCUMENT_MAP where applicable.
  */
 export const FIELD_DOCUMENT_BASENAMES: Record<string, string> = {
   panCard: 'pan',

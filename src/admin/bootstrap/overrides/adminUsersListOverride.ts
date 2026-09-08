@@ -12,7 +12,13 @@ interface AdminUserEntry {
 const isAdminUsersListPath = () =>
     window.location.pathname.replace(/\/+$/, '') === '/admin/settings/users';
 
-// ─── URL cleanup + soft default ID sort ───────────────────────────────────────
+const normalizeAdminSort = (s: string): string =>
+    decodeURIComponent(String(s || ''))
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, '');
+
+// ─── URL cleanup + force default ID sort ───────────────────────────────────────
 
 const cleanUrl = () => {
     if ((window as any)._doingAdminUsersDefaultSort) return;
@@ -22,8 +28,8 @@ const cleanUrl = () => {
     let appliedDefaultSort = false;
     const sort = decodeURIComponent(params.get('sort') || '');
 
-    // Soft default: missing or Strapi's firstname → id:DESC; preserve any other sort
-    if (!sort || sort === 'firstname') {
+    // Hard default: always newest admin user ID first
+    if (normalizeAdminSort(sort) !== 'ID:DESC') {
         params.set('sort', 'id:DESC');
         changed = true;
         appliedDefaultSort = true;

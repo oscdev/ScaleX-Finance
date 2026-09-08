@@ -106,6 +106,7 @@ const SECTION_TREE = [
             { key: 'panCard', label: 'PAN Card' },
             { key: 'aadharCardFront', label: 'Aadhar Card Front' },
             { key: 'aadharCardBack', label: 'Aadhar Card Back' },
+            { key: 'cibilReport', label: 'CIBIL Report' },
             { key: 'proprietorshipDoc', label: 'Business Type' },
             { key: 'businessRegProofDoc', label: 'Business Reg Proof' },
             { key: 'bankStatement', label: 'Bank Statement' },

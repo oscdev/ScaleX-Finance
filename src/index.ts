@@ -809,6 +809,51 @@ export default {
             }
           }
 
+          // Media Library: Lead View Add Document uses GET/POST /upload/folders + POST /upload
+          // (Document Details View/Edit alone only gates UI — these actions are required to avoid Policy Failed)
+          const uploadActions = [
+            'plugin::upload.read',
+            'plugin::upload.assets.create',
+          ];
+          for (const action of uploadActions) {
+            try {
+              let uploadPerm = await strapi.db.query('admin::permission').findOne({
+                where: { action, subject: { $null: true } },
+              });
+              if (!uploadPerm) {
+                const candidates = await strapi.db.query('admin::permission').findMany({
+                  where: { action },
+                });
+                uploadPerm = (candidates || []).find(
+                  (p) => p.subject == null || p.subject === ''
+                ) || null;
+              }
+              if (!uploadPerm) {
+                uploadPerm = await strapi.db.query('admin::permission').create({
+                  data: {
+                    action,
+                    subject: null,
+                    properties: {},
+                    conditions: [],
+                  },
+                });
+              }
+              if (uploadPerm) {
+                const alreadyLinked = await strapi.db.connection('admin_permissions_role_lnk')
+                  .where({ permission_id: uploadPerm.id, role_id: dbAdvisorRole.id })
+                  .first();
+                if (!alreadyLinked) {
+                  await strapi.db.connection('admin_permissions_role_lnk').insert({
+                    permission_id: uploadPerm.id,
+                    role_id: dbAdvisorRole.id,
+                  });
+                }
+              }
+            } catch (e) {
+              strapi.log.warn(`[Permission Sync] Failed to grant ${action} to strapi-advisor: ${(e as Error)?.message || e}`);
+            }
+          }
+
           for (const permission of permissions) {
             if (permission.properties && permission.properties.fields) {
               const currentFields = [...permission.properties.fields];

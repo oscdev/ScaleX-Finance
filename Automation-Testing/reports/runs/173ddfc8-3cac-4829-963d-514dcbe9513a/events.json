@@ -1,0 +1,113 @@
+[
+  {
+    "stage": "run_start",
+    "message": "Live Run started for Business Loan",
+    "ts": "2026-09-05T12:22:10.596Z",
+    "runId": "173ddfc8-3cac-4829-963d-514dcbe9513a",
+    "product": "business-loan"
+  },
+  {
+    "stage": "form_submit_start",
+    "message": "Creating lead [SUITE-TEST] Test Business Owner 10930596",
+    "ts": "2026-09-05T12:22:10.596Z"
+  },
+  {
+    "stage": "form_submit_finish",
+    "message": "Lead created id=193",
+    "ts": "2026-09-05T12:22:10.674Z",
+    "leadId": 193
+  },
+  {
+    "stage": "doc_upload_start",
+    "message": "Uploading required documents from product folder",
+    "ts": "2026-09-05T12:22:10.674Z"
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded aadhaar_front.pdf → aadharCardFront (id=1017)",
+    "ts": "2026-09-05T12:22:10.727Z",
+    "field": "aadharCardFront",
+    "mediaId": 1017
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded aadhaar_back.pdf → aadharCardBack (id=1018)",
+    "ts": "2026-09-05T12:22:10.750Z",
+    "field": "aadharCardBack",
+    "mediaId": 1018
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded pan.pdf → panCard (id=1019)",
+    "ts": "2026-09-05T12:22:10.786Z",
+    "field": "panCard",
+    "mediaId": 1019
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded cibil_report.pdf → cibilReport (id=1020)",
+    "ts": "2026-09-05T12:22:10.821Z",
+    "field": "cibilReport",
+    "mediaId": 1020
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded bank_statement.pdf → bankStatement (id=1021)",
+    "ts": "2026-09-05T12:22:10.842Z",
+    "field": "bankStatement",
+    "mediaId": 1021
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded pan.pdf → proprietorshipDoc (id=1022)",
+    "ts": "2026-09-05T12:22:10.883Z",
+    "field": "proprietorshipDoc",
+    "mediaId": 1022
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded bank_statement.pdf → itrYear1 (id=1023)",
+    "ts": "2026-09-05T12:22:10.902Z",
+    "field": "itrYear1",
+    "mediaId": 1023
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded bank_statement.pdf → auditedBooksDoc (id=1024)",
+    "ts": "2026-09-05T12:22:10.939Z",
+    "field": "auditedBooksDoc",
+    "mediaId": 1024
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded aadhaar_front.pdf → businessRegProofDoc (id=1025)",
+    "ts": "2026-09-05T12:22:10.978Z",
+    "field": "businessRegProofDoc",
+    "mediaId": 1025
+  },
+  {
+    "stage": "doc_upload_finish",
+    "message": "Uploaded 9 document(s)",
+    "ts": "2026-09-05T12:22:10.978Z"
+  },
+  {
+    "stage": "loan_app_start",
+    "message": "Creating loan application with form_data + media",
+    "ts": "2026-09-05T12:22:10.978Z"
+  },
+  {
+    "stage": "error",
+    "message": "socket hang up",
+    "ts": "2026-09-05T12:22:11.493Z",
+    "error": true
+  },
+  {
+    "stage": "report_ready",
+    "message": "Report ready",
+    "ts": "2026-09-05T12:22:11.495Z",
+    "runId": "173ddfc8-3cac-4829-963d-514dcbe9513a",
+    "leadId": 193,
+    "ok": false,
+    "reportUrl": "/suite/reports/runs/173ddfc8-3cac-4829-963d-514dcbe9513a/report-173ddfc8-3cac-4829-963d-514dcbe9513a.html"
+  }
+]

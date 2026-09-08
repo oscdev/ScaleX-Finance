@@ -1,0 +1,229 @@
+[
+  {
+    "stage": "run_start",
+    "message": "Live Run started for Business Loan",
+    "ts": "2026-09-04T14:03:39.268Z",
+    "runId": "46a26548-8926-465d-a8aa-91cc1e0c9f72",
+    "product": "business-loan"
+  },
+  {
+    "stage": "form_submit_start",
+    "message": "Creating lead [SUITE-TEST] Test Business Owner 30619268",
+    "ts": "2026-09-04T14:03:39.268Z"
+  },
+  {
+    "stage": "form_submit_finish",
+    "message": "Lead created id=181",
+    "ts": "2026-09-04T14:03:39.312Z",
+    "leadId": 181
+  },
+  {
+    "stage": "doc_upload_start",
+    "message": "Uploading required documents from product folder",
+    "ts": "2026-09-04T14:03:39.312Z"
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded aadhaar_front.pdf → aadharCardFront (id=914)",
+    "ts": "2026-09-04T14:03:39.348Z",
+    "field": "aadharCardFront",
+    "mediaId": 914
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded aadhaar_back.pdf → aadharCardBack (id=915)",
+    "ts": "2026-09-04T14:03:39.364Z",
+    "field": "aadharCardBack",
+    "mediaId": 915
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded pan.pdf → panCard (id=916)",
+    "ts": "2026-09-04T14:03:39.404Z",
+    "field": "panCard",
+    "mediaId": 916
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded cibil_report.pdf → cibilReport (id=917)",
+    "ts": "2026-09-04T14:03:39.434Z",
+    "field": "cibilReport",
+    "mediaId": 917
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded bank_statement.pdf → bankStatement (id=918)",
+    "ts": "2026-09-04T14:03:39.457Z",
+    "field": "bankStatement",
+    "mediaId": 918
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded pan.pdf → proprietorshipDoc (id=919)",
+    "ts": "2026-09-04T14:03:39.476Z",
+    "field": "proprietorshipDoc",
+    "mediaId": 919
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded bank_statement.pdf → itrYear1 (id=920)",
+    "ts": "2026-09-04T14:03:39.494Z",
+    "field": "itrYear1",
+    "mediaId": 920
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded bank_statement.pdf → auditedBooksDoc (id=921)",
+    "ts": "2026-09-04T14:03:39.510Z",
+    "field": "auditedBooksDoc",
+    "mediaId": 921
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded aadhaar_front.pdf → businessRegProofDoc (id=922)",
+    "ts": "2026-09-04T14:03:39.526Z",
+    "field": "businessRegProofDoc",
+    "mediaId": 922
+  },
+  {
+    "stage": "doc_upload_finish",
+    "message": "Uploaded 9 document(s)",
+    "ts": "2026-09-04T14:03:39.526Z"
+  },
+  {
+    "stage": "loan_app_start",
+    "message": "Creating loan application with form_data + media",
+    "ts": "2026-09-04T14:03:39.526Z"
+  },
+  {
+    "stage": "loan_app_finish",
+    "message": "Loan application created id=179",
+    "ts": "2026-09-04T14:03:40.016Z",
+    "loanAppId": 179
+  },
+  {
+    "stage": "doc_sync_start",
+    "message": "Syncing documents to disk + submission log",
+    "ts": "2026-09-04T14:03:40.016Z"
+  },
+  {
+    "stage": "doc_sync",
+    "message": "Logged Document Details for aadharCardFront (1 file(s))",
+    "ts": "2026-09-04T14:03:40.068Z",
+    "field": "aadharCardFront"
+  },
+  {
+    "stage": "doc_sync",
+    "message": "Logged Document Details for aadharCardBack (1 file(s))",
+    "ts": "2026-09-04T14:03:40.124Z",
+    "field": "aadharCardBack"
+  },
+  {
+    "stage": "doc_sync",
+    "message": "Logged Document Details for panCard (1 file(s))",
+    "ts": "2026-09-04T14:03:40.171Z",
+    "field": "panCard"
+  },
+  {
+    "stage": "doc_sync",
+    "message": "Logged Document Details for cibilReport (1 file(s))",
+    "ts": "2026-09-04T14:03:40.247Z",
+    "field": "cibilReport"
+  },
+  {
+    "stage": "doc_sync",
+    "message": "Logged Document Details for bankStatement (1 file(s))",
+    "ts": "2026-09-04T14:03:40.301Z",
+    "field": "bankStatement"
+  },
+  {
+    "stage": "doc_sync",
+    "message": "Logged Document Details for proprietorshipDoc (1 file(s))",
+    "ts": "2026-09-04T14:03:40.324Z",
+    "field": "proprietorshipDoc"
+  },
+  {
+    "stage": "doc_sync",
+    "message": "Logged Document Details for itrYear1 (1 file(s))",
+    "ts": "2026-09-04T14:03:40.348Z",
+    "field": "itrYear1"
+  },
+  {
+    "stage": "doc_sync",
+    "message": "Logged Document Details for auditedBooksDoc (1 file(s))",
+    "ts": "2026-09-04T14:03:40.476Z",
+    "field": "auditedBooksDoc"
+  },
+  {
+    "stage": "doc_sync",
+    "message": "Logged Document Details for businessRegProofDoc (1 file(s))",
+    "ts": "2026-09-04T14:03:40.517Z",
+    "field": "businessRegProofDoc"
+  },
+  {
+    "stage": "doc_sync_finish",
+    "message": "Document sync done for 9 field(s)",
+    "ts": "2026-09-04T14:03:40.517Z"
+  },
+  {
+    "stage": "bureau_extract_start",
+    "message": "Starting bureau / CIBIL extraction",
+    "ts": "2026-09-04T14:03:40.517Z"
+  },
+  {
+    "stage": "bureau_extract",
+    "message": "Extract API accepted — polling for summary",
+    "ts": "2026-09-04T14:04:09.842Z"
+  },
+  {
+    "stage": "bureau_extract_error",
+    "message": "Bureau response present but no usable cibilData",
+    "ts": "2026-09-04T14:04:09.852Z"
+  },
+  {
+    "stage": "eligibility_start",
+    "message": "Starting AI Match eligibility",
+    "ts": "2026-09-04T14:04:09.852Z"
+  },
+  {
+    "stage": "eligibility_finish",
+    "message": "Eligibility done — 1 displayed, 58 excluded",
+    "ts": "2026-09-04T14:04:10.225Z"
+  },
+  {
+    "stage": "scoring_start",
+    "message": "Collecting scoring / rank details",
+    "ts": "2026-09-04T14:04:10.225Z"
+  },
+  {
+    "stage": "eligibility_restore",
+    "message": "Re-ran matched-lenders so disk logs use source=ai-match",
+    "ts": "2026-09-04T14:04:10.617Z"
+  },
+  {
+    "stage": "eligibility_log",
+    "message": "Parsed eligibility log logs/business-loan/bl-eligibility/181-SUITE-TESTTestBusinessOwner30619268_2026-09-04.log",
+    "ts": "2026-09-04T14:04:10.622Z"
+  },
+  {
+    "stage": "scoring_log",
+    "message": "Parsed scoring log logs/business-loan/bl-scoring/181-SUITE-TESTTestBusinessOwner30619268_2026-09-04.log",
+    "ts": "2026-09-04T14:04:10.622Z"
+  },
+  {
+    "stage": "scoring_finish",
+    "message": "Scoring/rank ready — 1 on AI Match (≥40)",
+    "ts": "2026-09-04T14:04:10.622Z"
+  },
+  {
+    "stage": "rank_finish",
+    "message": "Ranking complete",
+    "ts": "2026-09-04T14:04:10.622Z"
+  },
+  {
+    "stage": "report_ready",
+    "message": "Report ready",
+    "ts": "2026-09-04T14:04:10.661Z",
+    "reportUrl": "/suite/reports/runs/46a26548-8926-465d-a8aa-91cc1e0c9f72/report-46a26548-8926-465d-a8aa-91cc1e0c9f72.html"
+  }
+]

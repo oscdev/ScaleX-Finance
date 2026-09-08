@@ -9,6 +9,7 @@ import { startDomOverrides } from './bootstrap/domOverrides';
 export default {
     config: appConfig,
     bootstrap(_app: StrapiApp) {
+        (window as any)._strapiAdminApp = _app;
         installFetchInterceptor();
         // Expose so the fetch interceptor can re-sync on token change (new login)
         (window as any)._syncSessionRole = syncSessionRole;

@@ -1,0 +1,5441 @@
+{
+  "generatedAt": "2026-09-04T14:37:39.894Z",
+  "totalEntries": 182,
+  "totalCases": 281,
+  "passed": 281,
+  "failed": 0,
+  "results": [
+    {
+      "entryId": "eligibility:pl:PL-PRE-ACTIVE",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 1,
+        "ruleId": "PL-PRE-ACTIVE",
+        "ruleName": "Active lenders",
+        "formula": "catalog.isActive && criteria.isActive && criteriaExists",
+        "threshold": {
+          "catalogIsActive": true,
+          "criteriaIsActive": true
+        },
+        "result": "PASS",
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-PRE-ACTIVE",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 1,
+        "ruleId": "PL-PRE-ACTIVE",
+        "ruleName": "Active lenders",
+        "formula": "catalog.isActive && criteria.isActive && criteriaExists",
+        "threshold": {
+          "catalogIsActive": false
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_PRE_ACTIVE",
+        "reason": "Catalog inactive or missing"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-PINCODE",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 2,
+        "ruleId": "PL-PINCODE",
+        "ruleName": "Zipcode availability",
+        "formula": "coversAllPincodes OR zipCode === applicantPin",
+        "threshold": {
+          "pincodeCheckRequired": true
+        },
+        "applicantValue": "110001",
+        "result": "PASS",
+        "matchMode": "PIN_MATCH",
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-PINCODE",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 2,
+        "ruleId": "PL-PINCODE",
+        "ruleName": "Zipcode availability",
+        "formula": "coversAllPincodes OR zipCode === applicantPin",
+        "threshold": {
+          "pincodeCheckRequired": true
+        },
+        "applicantValue": "999999",
+        "result": "FAIL",
+        "matchMode": "NO_MATCH",
+        "errorCode": "PL_FAIL_PINCODE",
+        "reason": "Applicant pin not in lender serviceable zip set"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-PINCODE",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 2,
+        "ruleId": "PL-PINCODE",
+        "ruleName": "Zipcode availability",
+        "formula": "coversAllPincodes OR zipCode === applicantPin",
+        "threshold": {
+          "pincodeCheckRequired": false
+        },
+        "applicantValue": "110001",
+        "result": "SKIP",
+        "matchMode": "SKIP",
+        "errorCode": null,
+        "reason": "pincodeCheckRequired=false"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-CIBIL",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 3,
+        "ruleId": "PL-CIBIL",
+        "ruleName": "Min CIBIL",
+        "formula": "applicantCibil >= minCibil",
+        "branchUsed": "CIBIL",
+        "applicantValue": 750,
+        "threshold": {
+          "minCibil": 700
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-CIBIL",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 3,
+        "ruleId": "PL-CIBIL",
+        "ruleName": "Min CIBIL",
+        "formula": "applicantCibil >= minCibil",
+        "branchUsed": "CIBIL",
+        "applicantValue": 650,
+        "threshold": {
+          "minCibil": 700
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_CIBIL",
+        "reason": "CIBIL below lender minimum"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-CIBIL",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 3,
+        "ruleId": "PL-CIBIL",
+        "ruleName": "Min CIBIL",
+        "formula": "applicantCibil >= minCibil",
+        "threshold": {
+          "minCibil": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-FTB",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 3,
+        "ruleId": "PL-FTB",
+        "ruleName": "First-time borrower",
+        "formula": "firstTimeBorrowerAllowed === true",
+        "branchUsed": "FTB",
+        "applicantValue": true,
+        "threshold": {
+          "firstTimeBorrowerAllowed": true
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-FTB",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 3,
+        "ruleId": "PL-FTB",
+        "ruleName": "First-time borrower",
+        "formula": "firstTimeBorrowerAllowed === true",
+        "branchUsed": "FTB",
+        "applicantValue": true,
+        "threshold": {
+          "firstTimeBorrowerAllowed": false
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_FTB",
+        "reason": "First-time borrower not allowed for this lender"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-DPD-LATEST",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 4,
+        "ruleId": "PL-DPD-LATEST",
+        "ruleName": "Latest open-account DPD",
+        "formula": "latestDpdDays <= max_dpd_days_allowed",
+        "applicantValue": {
+          "monthKey": "2026-09",
+          "latestDpdDays": 0,
+          "compare": "0 <= 30"
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-DPD-LATEST",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 4,
+        "ruleId": "PL-DPD-LATEST",
+        "ruleName": "Latest open-account DPD",
+        "formula": "latestDpdDays <= max_dpd_days_allowed",
+        "applicantValue": {
+          "monthKey": "2026-09",
+          "latestDpdDays": 45,
+          "compare": "45 <= 30"
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_DPD_LATEST",
+        "reason": "Latest open-account DPD 45 days (2026-09) exceeds max_dpd_days_allowed 30"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-DPD-LATEST",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 4,
+        "ruleId": "PL-DPD-LATEST",
+        "ruleName": "Latest open-account DPD",
+        "formula": "latestDpdDays <= max_dpd_days_allowed",
+        "threshold": {
+          "maxDpdDaysAllowed": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-AGE",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 5,
+        "ruleId": "PL-AGE",
+        "ruleName": "Age",
+        "formula": "minAge <= age <= maxAge",
+        "applicantValue": 35,
+        "threshold": {
+          "minAge": 21,
+          "maxAge": 60
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-AGE",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 5,
+        "ruleId": "PL-AGE",
+        "ruleName": "Age",
+        "formula": "minAge <= age <= maxAge",
+        "applicantValue": 70,
+        "threshold": {
+          "minAge": 21,
+          "maxAge": 60
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_AGE",
+        "reason": "Age outside lender band"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-AGE",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 5,
+        "ruleId": "PL-AGE",
+        "ruleName": "Age",
+        "formula": "minAge <= age <= maxAge",
+        "threshold": {
+          "minAge": null,
+          "maxAge": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-INCOME",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 6,
+        "ruleId": "PL-INCOME",
+        "ruleName": "Minimum Monthly Income",
+        "formula": "netSalary >= min_monthly_income → PASS",
+        "applicantValue": {
+          "netSalary": 80000,
+          "hasOtherIncome": false,
+          "otherIncomeAmount": 0,
+          "totalMonthlyIncome": 80000
+        },
+        "threshold": {
+          "minMonthlyIncome": 25000
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-INCOME",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 6,
+        "ruleId": "PL-INCOME",
+        "ruleName": "Minimum Monthly Income",
+        "formula": "netSalary < min_monthly_income → FAIL",
+        "applicantValue": {
+          "netSalary": 10000,
+          "hasOtherIncome": false,
+          "otherIncomeAmount": 0,
+          "totalMonthlyIncome": 10000
+        },
+        "threshold": {
+          "minMonthlyIncome": 25000
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_INCOME",
+        "reason": "Income below lender minimum"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-INCOME",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 6,
+        "ruleId": "PL-INCOME",
+        "ruleName": "Minimum Monthly Income",
+        "formula": "SKIP -> min_monthly_income is null",
+        "applicantValue": {
+          "netSalary": 80000,
+          "hasOtherIncome": false,
+          "otherIncomeAmount": 0,
+          "totalMonthlyIncome": null
+        },
+        "threshold": {
+          "minMonthlyIncome": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "min_monthly_income is null"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-AMOUNT",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 7,
+        "ruleId": "PL-AMOUNT",
+        "ruleName": "Loan amount",
+        "formula": "minLoanAmount <= requestedAmount <= maxLoanAmount",
+        "applicantValue": 500000,
+        "threshold": {
+          "minLoanAmount": 50000,
+          "maxLoanAmount": 2000000
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-AMOUNT",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 7,
+        "ruleId": "PL-AMOUNT",
+        "ruleName": "Loan amount",
+        "formula": "minLoanAmount <= requestedAmount <= maxLoanAmount",
+        "applicantValue": 10000,
+        "threshold": {
+          "minLoanAmount": 50000,
+          "maxLoanAmount": 2000000
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_AMOUNT",
+        "reason": "Requested amount outside lender band"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-AMOUNT",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 7,
+        "ruleId": "PL-AMOUNT",
+        "ruleName": "Loan amount",
+        "formula": "minLoanAmount <= requestedAmount <= maxLoanAmount",
+        "threshold": {
+          "minLoanAmount": null,
+          "maxLoanAmount": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-FOIR",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 8,
+        "ruleId": "PL-FOIR",
+        "ruleName": "FOIR",
+        "formula": "existingTotalEmi / netMonthlyIncome <= foir",
+        "applicantValue": {
+          "foirApplicant": 0.125,
+          "existingTotalEmi": 10000,
+          "netMonthlyIncome": 80000
+        },
+        "threshold": {
+          "foir": 60
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-FOIR",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 8,
+        "ruleId": "PL-FOIR",
+        "ruleName": "FOIR",
+        "formula": "existingTotalEmi / netMonthlyIncome <= foir",
+        "applicantValue": {
+          "foirApplicant": 0.125,
+          "existingTotalEmi": 10000,
+          "netMonthlyIncome": 80000
+        },
+        "threshold": {
+          "foir": 0.1
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_FOIR",
+        "reason": "FOIR exceeds lender maximum"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-FOIR",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 8,
+        "ruleId": "PL-FOIR",
+        "ruleName": "FOIR",
+        "formula": "existingTotalEmi / netMonthlyIncome <= foir",
+        "threshold": {
+          "foir": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-DPD-3M",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 9,
+        "ruleId": "PL-DPD-3M",
+        "ruleName": "DPD Last 3 Months",
+        "formula": "Allowed DPD = 30; last 3 months delay events = 0; 0 <= 2 → PASS",
+        "applicantValue": {
+          "allowedDpd": 30,
+          "paymentHistoryConsidered": [
+            0,
+            0,
+            0
+          ],
+          "dpdViolationCount": 0,
+          "formula": "0 <= 2"
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30,
+          "maxDpdCount3months": 2
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-DPD-3M",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 9,
+        "ruleId": "PL-DPD-3M",
+        "ruleName": "DPD Last 3 Months",
+        "formula": "Allowed DPD = 30; last 3 months delay events = 6; 6 <= 2 → FAIL",
+        "applicantValue": {
+          "allowedDpd": 30,
+          "paymentHistoryConsidered": [
+            45,
+            45,
+            45,
+            45,
+            45,
+            45,
+            0,
+            0,
+            0
+          ],
+          "dpdViolationCount": 6,
+          "formula": "6 <= 2"
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30,
+          "maxDpdCount3months": 2
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_DPD_3M",
+        "reason": "DPD exceeded the lender threshold in 6 account–month delay events during the last 3 months. Allowed = 2 Actual = 6"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-DPD-3M",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 9,
+        "ruleId": "PL-DPD-3M",
+        "ruleName": "DPD Last 3 Months",
+        "formula": "SKIP -> PL-DPD-3M max count is null",
+        "applicantValue": {
+          "allowedDpd": 30,
+          "paymentHistoryConsidered": [
+            0,
+            0,
+            0
+          ],
+          "dpdViolationCount": null
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30,
+          "maxCount": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-DPD-12M",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 10,
+        "ruleId": "PL-DPD-12M",
+        "ruleName": "DPD Last 12 Months",
+        "formula": "Allowed DPD = 30; last 12 months delay events = 0; 0 <= 4 → PASS",
+        "applicantValue": {
+          "allowedDpd": 30,
+          "paymentHistoryConsidered": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "dpdViolationCount": 0,
+          "formula": "0 <= 4"
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30,
+          "maxDpdCount12months": 4
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-DPD-12M",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 10,
+        "ruleId": "PL-DPD-12M",
+        "ruleName": "DPD Last 12 Months",
+        "formula": "Allowed DPD = 30; last 12 months delay events = 12; 12 <= 4 → FAIL",
+        "applicantValue": {
+          "allowedDpd": 30,
+          "paymentHistoryConsidered": [
+            35,
+            35,
+            35,
+            35,
+            35,
+            35,
+            35,
+            35,
+            35,
+            35,
+            35,
+            35
+          ],
+          "dpdViolationCount": 12,
+          "formula": "12 <= 4"
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30,
+          "maxDpdCount12months": 4
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_DPD_12M",
+        "reason": "DPD exceeded the lender threshold in 12 account–month delay events during the last 12 months. Allowed = 4 Actual = 12"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-DPD-12M",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 10,
+        "ruleId": "PL-DPD-12M",
+        "ruleName": "DPD Last 12 Months",
+        "formula": "SKIP -> PL-DPD-12M max count is null",
+        "applicantValue": {
+          "allowedDpd": 30,
+          "paymentHistoryConsidered": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "dpdViolationCount": null
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30,
+          "maxCount": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-DPD-DAYS",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 11,
+        "ruleId": "PL-DPD-DAYS",
+        "ruleName": "Max DPD days",
+        "formula": "maxDpdDays <= maxDpdDaysAllowed",
+        "applicantValue": 0,
+        "threshold": {
+          "max": 30
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-DPD-DAYS",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 11,
+        "ruleId": "PL-DPD-DAYS",
+        "ruleName": "Max DPD days",
+        "formula": "maxDpdDays <= maxDpdDaysAllowed",
+        "applicantValue": 60,
+        "threshold": {
+          "max": 30
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_DPD_DAYS",
+        "reason": "PL-DPD-DAYS exceeded"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-DPD-DAYS",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 11,
+        "ruleId": "PL-DPD-DAYS",
+        "ruleName": "Max DPD days",
+        "formula": "maxDpdDays <= maxDpdDaysAllowed",
+        "threshold": {
+          "max": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-CC-UTIL",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 12,
+        "ruleId": "PL-CC-UTIL",
+        "ruleName": "CCU",
+        "formula": "ccOutstanding / ccLimit <= maxCCUtilizationRatio (per CC: credit_limit - current_balance)",
+        "applicantValue": {
+          "ccOutstanding": 20000,
+          "ccLimit": 100000,
+          "ccUtil": 0.2
+        },
+        "threshold": {
+          "maxCCUtilizationRatio": 0.8
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-CC-UTIL",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 12,
+        "ruleId": "PL-CC-UTIL",
+        "ruleName": "CCU",
+        "formula": "ccOutstanding / ccLimit <= maxCCUtilizationRatio (per CC: credit_limit - current_balance)",
+        "applicantValue": {
+          "ccOutstanding": 90000,
+          "ccLimit": 100000,
+          "ccUtil": 0.9
+        },
+        "threshold": {
+          "maxCCUtilizationRatio": 0.8
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_CC_UTIL",
+        "reason": "CC utilization above lender maximum"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-CC-UTIL",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 12,
+        "ruleId": "PL-CC-UTIL",
+        "ruleName": "CCU",
+        "formula": "ccOutstanding / ccLimit <= maxCCUtilizationRatio (per CC: credit_limit - current_balance)",
+        "threshold": {
+          "maxCCUtilizationRatio": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-UNSECURED",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 13,
+        "ruleId": "PL-UNSECURED",
+        "ruleName": "Active unsecured",
+        "formula": "activeUnsecured <= maxActiveUnsecuredAccount",
+        "applicantValue": 1,
+        "threshold": {
+          "maxActiveUnsecuredAccount": 5
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-UNSECURED",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 13,
+        "ruleId": "PL-UNSECURED",
+        "ruleName": "Active unsecured",
+        "formula": "activeUnsecured <= maxActiveUnsecuredAccount",
+        "applicantValue": 10,
+        "threshold": {
+          "maxActiveUnsecuredAccount": 5
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_UNSECURED",
+        "reason": "Active unsecured accounts exceed maximum"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-UNSECURED",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 13,
+        "ruleId": "PL-UNSECURED",
+        "ruleName": "Active unsecured",
+        "formula": "activeUnsecured <= maxActiveUnsecuredAccount",
+        "threshold": {
+          "maxActiveUnsecuredAccount": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-SALARY-TYPE",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 14,
+        "ruleId": "PL-SALARY-TYPE",
+        "ruleName": "Accepted salary types",
+        "formula": "salaryMode ∈ acceptedSalaryTypes",
+        "applicantValue": "Bank Transfer",
+        "threshold": {
+          "acceptedSalaryTypes": [
+            "Bank Transfer",
+            "Cash"
+          ]
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-SALARY-TYPE",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 14,
+        "ruleId": "PL-SALARY-TYPE",
+        "ruleName": "Accepted salary types",
+        "formula": "salaryMode ∈ acceptedSalaryTypes",
+        "applicantValue": "Cheque",
+        "threshold": {
+          "acceptedSalaryTypes": [
+            "Bank Transfer",
+            "Cash"
+          ]
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_SALARY_TYPE",
+        "reason": "Salary mode not in accepted list"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-SALARY-TYPE",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 14,
+        "ruleId": "PL-SALARY-TYPE",
+        "ruleName": "Accepted salary types",
+        "formula": "salaryMode ∈ acceptedSalaryTypes",
+        "threshold": {
+          "acceptedSalaryTypes": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-PF",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 15,
+        "ruleId": "PL-PF",
+        "ruleName": "PF Deducted",
+        "formula": "pf_required = true && pfDeducted = true → PASS",
+        "applicantValue": true,
+        "threshold": {
+          "pfRequired": true
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-PF",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 15,
+        "ruleId": "PL-PF",
+        "ruleName": "PF Deducted",
+        "formula": "pf_required = true && pfDeducted = false → FAIL",
+        "applicantValue": false,
+        "threshold": {
+          "pfRequired": true
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_PF",
+        "reason": "PF deduction required but applicant pfDeducted is false"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-PF",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 15,
+        "ruleId": "PL-PF",
+        "ruleName": "PF Deducted",
+        "formula": "pf_required = false → SKIP",
+        "applicantValue": true,
+        "threshold": {
+          "pfRequired": false
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "pf_required=false"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-EMPLOYMENT",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 16,
+        "ruleId": "PL-EMPLOYMENT",
+        "ruleName": "Min employment months",
+        "formula": "employmentMonths >= minEmploymentMonths",
+        "applicantValue": 48,
+        "threshold": {
+          "minEmploymentMonths": 12
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-EMPLOYMENT",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 16,
+        "ruleId": "PL-EMPLOYMENT",
+        "ruleName": "Min employment months",
+        "formula": "employmentMonths >= minEmploymentMonths",
+        "applicantValue": 3,
+        "threshold": {
+          "minEmploymentMonths": 12
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_EMPLOYMENT",
+        "reason": "Employment tenure below minimum"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-EMPLOYMENT",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 16,
+        "ruleId": "PL-EMPLOYMENT",
+        "ruleName": "Min employment months",
+        "formula": "employmentMonths >= minEmploymentMonths",
+        "threshold": {
+          "minEmploymentMonths": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-ENQ-EXCLUDE",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 17,
+        "ruleId": "PL-ENQ-EXCLUDE",
+        "ruleName": "Enquiry already with lender",
+        "formula": "no enquiry member matches this lender in last 3 months",
+        "applicantValue": [
+          "Some Other NBFC"
+        ],
+        "threshold": {
+          "lenderName": "Fixture Bank",
+          "lenderCode": "FIXT"
+        },
+        "result": "PASS",
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-ENQ-EXCLUDE",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 17,
+        "ruleId": "PL-ENQ-EXCLUDE",
+        "ruleName": "Enquiry already with lender",
+        "formula": "no enquiry member matches this lender in last 3 months",
+        "applicantValue": "Fixture Bank",
+        "threshold": {
+          "lenderName": "Fixture Bank",
+          "lenderCode": "FIXT"
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_ENQ_EXCLUDE",
+        "reason": "Enquiry with lender in last 3 months (matched: Fixture Bank)"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-ENQ-1M",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 18,
+        "ruleId": "PL-ENQ-1M",
+        "ruleName": "Enquiries 1m",
+        "formula": "enquiries1m <= maxEnquiries1month",
+        "applicantValue": 1,
+        "threshold": {
+          "maxEnquiries1month": 3
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-ENQ-1M",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 18,
+        "ruleId": "PL-ENQ-1M",
+        "ruleName": "Enquiries 1m",
+        "formula": "enquiries1m <= maxEnquiries1month",
+        "applicantValue": 10,
+        "threshold": {
+          "maxEnquiries1month": 3
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_ENQ_1M",
+        "reason": "Too many enquiries in 1 month"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-ENQ-1M",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 18,
+        "ruleId": "PL-ENQ-1M",
+        "ruleName": "Enquiries 1m",
+        "formula": "enquiries1m <= maxEnquiries1month",
+        "threshold": {
+          "maxEnquiries1month": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-ENQ-3M",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 19,
+        "ruleId": "PL-ENQ-3M",
+        "ruleName": "Enquiries 3m",
+        "formula": "enquiries3m <= maxEnquiries3months",
+        "applicantValue": 2,
+        "threshold": {
+          "maxEnquiries3months": 6
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-ENQ-3M",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 19,
+        "ruleId": "PL-ENQ-3M",
+        "ruleName": "Enquiries 3m",
+        "formula": "enquiries3m <= maxEnquiries3months",
+        "applicantValue": 20,
+        "threshold": {
+          "maxEnquiries3months": 6
+        },
+        "result": "FAIL",
+        "errorCode": "PL_FAIL_ENQ_3M",
+        "reason": "Too many enquiries in 3 months"
+      }
+    },
+    {
+      "entryId": "eligibility:pl:PL-ENQ-3M",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 19,
+        "ruleId": "PL-ENQ-3M",
+        "ruleName": "Enquiries 3m",
+        "formula": "enquiries3m <= maxEnquiries3months",
+        "threshold": {
+          "maxEnquiries3months": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-PRE-ACTIVE",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 1,
+        "ruleId": "BL-PRE-ACTIVE",
+        "ruleName": "Lender + criteria active",
+        "formula": "catalog.isActive && criteria.isActive && criteriaExists",
+        "threshold": {
+          "catalogIsActive": true,
+          "criteriaIsActive": true
+        },
+        "result": "PASS",
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-PRE-ACTIVE",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 1,
+        "ruleId": "BL-PRE-ACTIVE",
+        "ruleName": "Lender + criteria active",
+        "formula": "catalog.isActive && criteria.isActive && criteriaExists",
+        "threshold": {
+          "criteriaIsActive": false
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_PRE_ACTIVE",
+        "reason": "Criteria inactive or missing"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-PINCODE",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 2,
+        "ruleId": "BL-PINCODE",
+        "ruleName": "Zip / pincode coverage",
+        "formula": "coversAllPincodes OR zipCode === applicantPin",
+        "threshold": {
+          "geographyAlwaysEvaluated": true
+        },
+        "applicantValue": "110001",
+        "result": "PASS",
+        "matchMode": "PIN_MATCH",
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-PINCODE",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 2,
+        "ruleId": "BL-PINCODE",
+        "ruleName": "Zip / pincode coverage",
+        "formula": "coversAllPincodes OR zipCode === applicantPin",
+        "threshold": {
+          "geographyAlwaysEvaluated": true
+        },
+        "applicantValue": "999999",
+        "result": "FAIL",
+        "matchMode": "NO_MATCH",
+        "errorCode": "BL_FAIL_PINCODE",
+        "reason": "Applicant pin not in lender serviceable zip set"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-CIBIL",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 3,
+        "ruleId": "BL-CIBIL",
+        "ruleName": "Min CIBIL",
+        "formula": "applicantCibil >= minCibil",
+        "branchUsed": "CIBIL",
+        "applicantValue": 760,
+        "threshold": {
+          "minCibil": 700
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-CIBIL",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 3,
+        "ruleId": "BL-CIBIL",
+        "ruleName": "Min CIBIL",
+        "formula": "applicantCibil >= minCibil",
+        "branchUsed": "CIBIL",
+        "applicantValue": 640,
+        "threshold": {
+          "minCibil": 700
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_CIBIL",
+        "reason": "CIBIL below lender minimum"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-CIBIL",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 3,
+        "ruleId": "BL-CIBIL",
+        "ruleName": "Min CIBIL",
+        "formula": "applicantCibil >= minCibil",
+        "threshold": {
+          "minCibil": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-FTB",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 3,
+        "ruleId": "BL-FTB",
+        "ruleName": "First-time borrower",
+        "formula": "firstTimeBorrowerAllowed === true",
+        "branchUsed": "FTB",
+        "applicantValue": true,
+        "threshold": {
+          "firstTimeBorrowerAllowed": true
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-FTB",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 3,
+        "ruleId": "BL-FTB",
+        "ruleName": "First-time borrower",
+        "formula": "firstTimeBorrowerAllowed === true",
+        "branchUsed": "FTB",
+        "applicantValue": true,
+        "threshold": {
+          "firstTimeBorrowerAllowed": false
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_FTB",
+        "reason": "First-time borrower not allowed for this lender"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-CURRENT-OVERDUE",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 4,
+        "ruleId": "BL-CURRENT-OVERDUE",
+        "ruleName": "Current overdue",
+        "formula": "currentOverdue=true → PASS; currentOverdue=false → latestDpdDays <= 5",
+        "applicantValue": {
+          "monthKey": "2026-09",
+          "dpdDays": 0
+        },
+        "threshold": {
+          "currentOverdue": true
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": "current_overdue=true — overdue accepted"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-CURRENT-OVERDUE",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 4,
+        "ruleId": "BL-CURRENT-OVERDUE",
+        "ruleName": "Current overdue",
+        "formula": "currentOverdue=true → PASS; currentOverdue=false → latestDpdDays <= 5",
+        "applicantValue": {
+          "monthKey": "2026-09",
+          "latestDpdDays": 10,
+          "compare": "10 <= 5"
+        },
+        "threshold": {
+          "currentOverdue": false
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_CURRENT_OVERDUE",
+        "reason": "Latest open-account DPD 10 days (2026-09) exceeds hard cap of 5"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-AGE",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 5,
+        "ruleId": "BL-AGE",
+        "ruleName": "Age band",
+        "formula": "minAgeYears <= age <= maxAgeYears",
+        "applicantValue": 40,
+        "threshold": {
+          "minAgeYears": 21,
+          "maxAgeYears": 65
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-AGE",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 5,
+        "ruleId": "BL-AGE",
+        "ruleName": "Age band",
+        "formula": "minAgeYears <= age <= maxAgeYears",
+        "applicantValue": 70,
+        "threshold": {
+          "minAgeYears": 21,
+          "maxAgeYears": 65
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_AGE",
+        "reason": "Age outside lender band"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-AGE",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 5,
+        "ruleId": "BL-AGE",
+        "ruleName": "Age band",
+        "formula": "minAgeYears <= age <= maxAgeYears",
+        "threshold": {
+          "minAgeYears": null,
+          "maxAgeYears": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-ENTITY",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 6,
+        "ruleId": "BL-ENTITY",
+        "ruleName": "Eligible entity type",
+        "formula": "entityType IN eligibleEntityTypes",
+        "applicantValue": "Proprietorship",
+        "threshold": {
+          "eligibleEntityTypes": [
+            "Proprietorship",
+            "Partnership"
+          ]
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-ENTITY",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 6,
+        "ruleId": "BL-ENTITY",
+        "ruleName": "Eligible entity type",
+        "formula": "entityType IN eligibleEntityTypes",
+        "applicantValue": "LLP",
+        "threshold": {
+          "eligibleEntityTypes": [
+            "Proprietorship",
+            "Partnership"
+          ]
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_ENTITY",
+        "reason": "Entity type not in lender allow-list"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-ENTITY",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 6,
+        "ruleId": "BL-ENTITY",
+        "ruleName": "Eligible entity type",
+        "formula": "entityType IN eligibleEntityTypes",
+        "threshold": {
+          "eligibleEntityTypes": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-TURNOVER",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 7,
+        "ruleId": "BL-TURNOVER",
+        "ruleName": "Min annual turnover",
+        "formula": "annualTurnoverInr >= minAnnualTurnover",
+        "applicantValue": {
+          "turnoverLakh": 50,
+          "annualTurnoverInr": 5000000
+        },
+        "threshold": {
+          "minAnnualTurnover": 1000000
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-TURNOVER",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 7,
+        "ruleId": "BL-TURNOVER",
+        "ruleName": "Min annual turnover",
+        "formula": "annualTurnoverInr >= minAnnualTurnover",
+        "applicantValue": {
+          "turnoverLakh": 5,
+          "annualTurnoverInr": 500000
+        },
+        "threshold": {
+          "minAnnualTurnover": 1000000
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_TURNOVER",
+        "reason": "Annual turnover below lender minimum"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-TURNOVER",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 7,
+        "ruleId": "BL-TURNOVER",
+        "ruleName": "Min annual turnover",
+        "formula": "annualTurnoverInr >= minAnnualTurnover",
+        "threshold": {
+          "minAnnualTurnover": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-VINTAGE",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 8,
+        "ruleId": "BL-VINTAGE",
+        "ruleName": "Min vintage",
+        "formula": "businessVintageYears >= minVintageYears",
+        "applicantValue": 5,
+        "threshold": {
+          "minVintageYears": 2
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-VINTAGE",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 8,
+        "ruleId": "BL-VINTAGE",
+        "ruleName": "Min vintage",
+        "formula": "businessVintageYears >= minVintageYears",
+        "applicantValue": 1,
+        "threshold": {
+          "minVintageYears": 2
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_VINTAGE",
+        "reason": "Business vintage below lender minimum"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-VINTAGE",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 8,
+        "ruleId": "BL-VINTAGE",
+        "ruleName": "Min vintage",
+        "formula": "businessVintageYears >= minVintageYears",
+        "threshold": {
+          "minVintageYears": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-AMOUNT",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 9,
+        "ruleId": "BL-AMOUNT",
+        "ruleName": "Loan amount band",
+        "formula": "minLoanAmount <= loanAmount <= maxLoanAmount",
+        "applicantValue": 1500000,
+        "threshold": {
+          "minLoanAmount": 100000,
+          "maxLoanAmount": 5000000
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-AMOUNT",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 9,
+        "ruleId": "BL-AMOUNT",
+        "ruleName": "Loan amount band",
+        "formula": "minLoanAmount <= loanAmount <= maxLoanAmount",
+        "applicantValue": 50000,
+        "threshold": {
+          "minLoanAmount": 100000,
+          "maxLoanAmount": 5000000
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_AMOUNT",
+        "reason": "Loan amount outside lender band"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-AMOUNT",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 9,
+        "ruleId": "BL-AMOUNT",
+        "ruleName": "Loan amount band",
+        "formula": "minLoanAmount <= loanAmount <= maxLoanAmount",
+        "threshold": {
+          "minLoanAmount": null,
+          "maxLoanAmount": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-FOIR",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 10,
+        "ruleId": "BL-FOIR",
+        "ruleName": "FOIR max",
+        "formula": "(existingTotalEmi * 12) / annualTurnoverInr <= foirMax",
+        "applicantValue": {
+          "applicantFoir": 0.036,
+          "existingTotalEmi": 15000,
+          "annualTurnoverInr": 5000000
+        },
+        "threshold": {
+          "foirMax": 65
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-FOIR",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 10,
+        "ruleId": "BL-FOIR",
+        "ruleName": "FOIR max",
+        "formula": "(existingTotalEmi * 12) / annualTurnoverInr <= foirMax",
+        "applicantValue": {
+          "applicantFoir": 0.12,
+          "existingTotalEmi": 50000,
+          "annualTurnoverInr": 5000000
+        },
+        "threshold": {
+          "foirMax": 0.1
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_FOIR",
+        "reason": "FOIR exceeds lender maximum"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-FOIR",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 10,
+        "ruleId": "BL-FOIR",
+        "ruleName": "FOIR max",
+        "formula": "(existingTotalEmi * 12) / annualTurnoverInr <= foirMax",
+        "threshold": {
+          "foirMax": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-CC-UTIL",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 11,
+        "ruleId": "BL-CC-UTIL",
+        "ruleName": "CCU max",
+        "formula": "ccOutstanding / ccLimit <= maxCcUtilizationRatio (per CC: credit_limit - current_balance)",
+        "applicantValue": {
+          "ccOutstanding": 30000,
+          "ccLimit": 150000,
+          "ccUtil": 0.2
+        },
+        "threshold": {
+          "maxCcUtilizationRatio": 0.85
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-CC-UTIL",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 11,
+        "ruleId": "BL-CC-UTIL",
+        "ruleName": "CCU max",
+        "formula": "ccOutstanding / ccLimit <= maxCcUtilizationRatio (per CC: credit_limit - current_balance)",
+        "applicantValue": {
+          "ccOutstanding": 140000,
+          "ccLimit": 150000,
+          "ccUtil": 0.93
+        },
+        "threshold": {
+          "maxCcUtilizationRatio": 0.85
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_CC_UTIL",
+        "reason": "CC utilization above lender maximum"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-CC-UTIL",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 11,
+        "ruleId": "BL-CC-UTIL",
+        "ruleName": "CCU max",
+        "formula": "ccOutstanding / ccLimit <= maxCcUtilizationRatio (per CC: credit_limit - current_balance)",
+        "threshold": {
+          "maxCcUtilizationRatio": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-DPD-3M",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 12,
+        "ruleId": "BL-DPD-3M",
+        "ruleName": "DPD last 3 months",
+        "formula": "Allowed DPD = 30; last 3 months delay events = 0; 0 <= 2 → PASS",
+        "applicantValue": {
+          "allowedDpd": 30,
+          "paymentHistoryConsidered": [
+            0,
+            0,
+            0
+          ],
+          "dpdViolationCount": 0,
+          "formula": "0 <= 2"
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30,
+          "maxDpdCount3Months": 2
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-DPD-3M",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 12,
+        "ruleId": "BL-DPD-3M",
+        "ruleName": "DPD last 3 months",
+        "formula": "Allowed DPD = 30; last 3 months delay events = 6; 6 <= 2 → FAIL",
+        "applicantValue": {
+          "allowedDpd": 30,
+          "paymentHistoryConsidered": [
+            45,
+            45,
+            45,
+            45,
+            45,
+            45,
+            0,
+            0,
+            0
+          ],
+          "dpdViolationCount": 6,
+          "formula": "6 <= 2"
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30,
+          "maxDpdCount3Months": 2
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_DPD_3M",
+        "reason": "DPD exceeded the lender threshold in 6 account–month delay events during the last 3 months. Allowed = 2 Actual = 6"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-DPD-3M",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 12,
+        "ruleId": "BL-DPD-3M",
+        "ruleName": "DPD last 3 months",
+        "formula": "SKIP -> BL-DPD-3M max count is null",
+        "applicantValue": {
+          "allowedDpd": 30,
+          "paymentHistoryConsidered": [
+            0,
+            0,
+            0
+          ],
+          "dpdViolationCount": null
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30,
+          "maxCount": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-DPD-12M",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 13,
+        "ruleId": "BL-DPD-12M",
+        "ruleName": "DPD last 12 months",
+        "formula": "Allowed DPD = 30; last 12 months delay events = 0; 0 <= 4 → PASS",
+        "applicantValue": {
+          "allowedDpd": 30,
+          "paymentHistoryConsidered": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "dpdViolationCount": 0,
+          "formula": "0 <= 4"
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30,
+          "maxDpdCount12Months": 4
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-DPD-12M",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 13,
+        "ruleId": "BL-DPD-12M",
+        "ruleName": "DPD last 12 months",
+        "formula": "Allowed DPD = 30; last 12 months delay events = 12; 12 <= 4 → FAIL",
+        "applicantValue": {
+          "allowedDpd": 30,
+          "paymentHistoryConsidered": [
+            35,
+            35,
+            35,
+            35,
+            35,
+            35,
+            35,
+            35,
+            35,
+            35,
+            35,
+            35
+          ],
+          "dpdViolationCount": 12,
+          "formula": "12 <= 4"
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30,
+          "maxDpdCount12Months": 4
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_DPD_12M",
+        "reason": "DPD exceeded the lender threshold in 12 account–month delay events during the last 12 months. Allowed = 4 Actual = 12"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-DPD-12M",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 13,
+        "ruleId": "BL-DPD-12M",
+        "ruleName": "DPD last 12 months",
+        "formula": "SKIP -> BL-DPD-12M max count is null",
+        "applicantValue": {
+          "allowedDpd": 30,
+          "paymentHistoryConsidered": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "dpdViolationCount": null
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30,
+          "maxCount": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-DPD-DAYS",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 14,
+        "ruleId": "BL-DPD-DAYS",
+        "ruleName": "Max DPD days allowed",
+        "formula": "maxDpdDays <= maxDpdDaysAllowed",
+        "applicantValue": 0,
+        "threshold": {
+          "maxDpdDaysAllowed": 30
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-DPD-DAYS",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 14,
+        "ruleId": "BL-DPD-DAYS",
+        "ruleName": "Max DPD days allowed",
+        "formula": "maxDpdDays <= maxDpdDaysAllowed",
+        "applicantValue": 60,
+        "threshold": {
+          "maxDpdDaysAllowed": 30
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_DPD_DAYS",
+        "reason": "BL-DPD-DAYS exceeded"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-DPD-DAYS",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 14,
+        "ruleId": "BL-DPD-DAYS",
+        "ruleName": "Max DPD days allowed",
+        "formula": "maxDpdDays <= maxDpdDaysAllowed",
+        "threshold": {
+          "max": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-UNSECURED",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 15,
+        "ruleId": "BL-UNSECURED",
+        "ruleName": "Active unsecured count",
+        "formula": "activeUnsecured <= maxActiveUnsecured6Months",
+        "applicantValue": 1,
+        "threshold": {
+          "maxActiveUnsecured6Months": 4
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-UNSECURED",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 15,
+        "ruleId": "BL-UNSECURED",
+        "ruleName": "Active unsecured count",
+        "formula": "activeUnsecured <= maxActiveUnsecured6Months",
+        "applicantValue": 12,
+        "threshold": {
+          "maxActiveUnsecured6Months": 4
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_UNSECURED",
+        "reason": "Active unsecured accounts exceed maximum"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-UNSECURED",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 15,
+        "ruleId": "BL-UNSECURED",
+        "ruleName": "Active unsecured count",
+        "formula": "activeUnsecured <= maxActiveUnsecured6Months",
+        "threshold": {
+          "maxActiveUnsecured6Months": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-ENQ-EXCLUDE",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 16,
+        "ruleId": "BL-ENQ-EXCLUDE",
+        "ruleName": "Enquiry already with that lender",
+        "formula": "no enquiry member matches this lender in last 3 months",
+        "applicantValue": [
+          "Other Finance Co"
+        ],
+        "threshold": {
+          "lenderName": "Fixture Bank",
+          "lenderCode": "FIXT"
+        },
+        "result": "PASS",
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-ENQ-EXCLUDE",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 16,
+        "ruleId": "BL-ENQ-EXCLUDE",
+        "ruleName": "Enquiry already with that lender",
+        "formula": "no enquiry member matches this lender in last 3 months",
+        "applicantValue": "Fixture Bank",
+        "threshold": {
+          "lenderName": "Fixture Bank",
+          "lenderCode": "FIXT"
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_ENQ_EXCLUDE",
+        "reason": "Enquiry with lender in last 3 months (matched: Fixture Bank)"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-ENQ-1M",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 17,
+        "ruleId": "BL-ENQ-1M",
+        "ruleName": "Enquiry count 1 month",
+        "formula": "enquiries1m <= maxEnquiries1Month",
+        "applicantValue": 1,
+        "threshold": {
+          "maxEnquiries1Month": 3
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-ENQ-1M",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 17,
+        "ruleId": "BL-ENQ-1M",
+        "ruleName": "Enquiry count 1 month",
+        "formula": "enquiries1m <= maxEnquiries1Month",
+        "applicantValue": 10,
+        "threshold": {
+          "maxEnquiries1Month": 3
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_ENQ_1M",
+        "reason": "Too many enquiries in 1 month"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-ENQ-1M",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 17,
+        "ruleId": "BL-ENQ-1M",
+        "ruleName": "Enquiry count 1 month",
+        "formula": "enquiries1m <= maxEnquiries1Month",
+        "threshold": {
+          "maxEnquiries1Month": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-ENQ-3M",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 18,
+        "ruleId": "BL-ENQ-3M",
+        "ruleName": "Enquiry count 3 months",
+        "formula": "enquiries3m <= maxEnquiries3Months",
+        "applicantValue": 2,
+        "threshold": {
+          "maxEnquiries3Months": 8
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-ENQ-3M",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 18,
+        "ruleId": "BL-ENQ-3M",
+        "ruleName": "Enquiry count 3 months",
+        "formula": "enquiries3m <= maxEnquiries3Months",
+        "applicantValue": 20,
+        "threshold": {
+          "maxEnquiries3Months": 8
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_ENQ_3M",
+        "reason": "Too many enquiries in 3 months"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-ENQ-3M",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 18,
+        "ruleId": "BL-ENQ-3M",
+        "ruleName": "Enquiry count 3 months",
+        "formula": "enquiries3m <= maxEnquiries3Months",
+        "threshold": {
+          "maxEnquiries3Months": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-AUDITED",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 19,
+        "ruleId": "BL-AUDITED",
+        "ruleName": "Audited books",
+        "formula": "audited_books_required = true && auditedBooks = true → PASS",
+        "applicantValue": true,
+        "threshold": {
+          "auditedBooksRequired": true
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": null
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-AUDITED",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 19,
+        "ruleId": "BL-AUDITED",
+        "ruleName": "Audited books",
+        "formula": "audited_books_required = true && auditedBooks !== true → FAIL",
+        "applicantValue": false,
+        "threshold": {
+          "auditedBooksRequired": true
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_AUDITED",
+        "reason": "Audited books required but applicant auditedBooks is false"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-AUDITED",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 19,
+        "ruleId": "BL-AUDITED",
+        "ruleName": "Audited books",
+        "formula": "audited_books_required = false → SKIP",
+        "applicantValue": true,
+        "threshold": {
+          "auditedBooksRequired": false
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "audited_books_required=false"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-SETTLED-WO",
+      "type": "eligibility_rule",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": "PASS",
+      "expected": "PASS",
+      "detail": {
+        "step": 20,
+        "ruleId": "BL-SETTLED-WO",
+        "ruleName": "Settled / write-off (36 months)",
+        "formula": "WO within 36m + settledWriteOff36Months===true → FAIL; flag false → PASS; no WO → PASS",
+        "applicantValue": {
+          "writeOffCount": 0
+        },
+        "threshold": {
+          "settledWriteOff36Months": true
+        },
+        "result": "PASS",
+        "errorCode": null,
+        "reason": "No write-off amounts on open accounts"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-SETTLED-WO",
+      "type": "eligibility_rule",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": "FAIL",
+      "expected": "FAIL",
+      "detail": {
+        "step": 20,
+        "ruleId": "BL-SETTLED-WO",
+        "ruleName": "Settled / write-off (36 months)",
+        "formula": "WO within 36m + settledWriteOff36Months===true → FAIL; flag false → PASS; no WO → PASS",
+        "applicantValue": {
+          "writeOffCount": 1,
+          "within36m": 1,
+          "accounts": [
+            {
+              "paymentStartDate": "2025-01-01",
+              "writtenOffAmount": 50000,
+              "monthsSinceStart": 12
+            }
+          ]
+        },
+        "threshold": {
+          "settledWriteOff36Months": true
+        },
+        "result": "FAIL",
+        "errorCode": "BL_FAIL_SETTLED_WO",
+        "reason": "Write-off within 36 months and settled_write_off_36_months rejects WO"
+      }
+    },
+    {
+      "entryId": "eligibility:bl:BL-SETTLED-WO",
+      "type": "eligibility_rule",
+      "outcome": "SKIP",
+      "ok": true,
+      "actual": "SKIP",
+      "expected": "SKIP",
+      "detail": {
+        "step": 20,
+        "ruleId": "BL-SETTLED-WO",
+        "ruleName": "Settled / write-off (36 months)",
+        "formula": "WO within 36m + settledWriteOff36Months===true → FAIL; flag false → PASS; no WO → PASS",
+        "threshold": {
+          "settledWriteOff36Months": null
+        },
+        "result": "SKIP",
+        "errorCode": null,
+        "reason": "Null threshold — rule not applied"
+      }
+    },
+    {
+      "entryId": "scoring:pl:CIBIL_SCORE",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 5
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "CIBIL_SCORE",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "FORMULA",
+        "weight": 20,
+        "points": 5,
+        "formula": "(750-700)/(900-700)*20 = 5",
+        "rules": null,
+        "applicant": 750,
+        "threshold": {
+          "minCibil": 700
+        },
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:pl:CIBIL_SCORE",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_MIN_CIBIL"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "CIBIL_SCORE",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "FORMULA",
+        "weight": 20,
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_MIN_CIBIL",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:pl:FOIR_CHECK",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 12.65625
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "FOIR_CHECK",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "FORMULA",
+        "weight": 15,
+        "points": 12.65625,
+        "formula": "15 * (1 - (12.50/80)) = 12.65625",
+        "rules": null,
+        "applicant": {
+          "foirApplicant": 0.125,
+          "existingTotalEmi": 10000,
+          "netMonthlyIncome": 80000
+        },
+        "threshold": {
+          "foir": 60
+        },
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:pl:FOIR_CHECK",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_FOIR"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "FOIR_CHECK",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "FORMULA",
+        "weight": 15,
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_FOIR",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:pl:DPD_LAST_3M",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 10
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "DPD_LAST_3M",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "JSON",
+        "weight": 10,
+        "points": 10,
+        "formula": "pointsFromRulesMap(dpdViolationCount3Months)",
+        "rules": {
+          "0": 10,
+          "2": 8,
+          "4": 6,
+          "6": 4,
+          "8": 2
+        },
+        "matchedKey": "0",
+        "applicant": {
+          "dpdViolationCount3Months": 0,
+          "maxDpdDays": 0
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30
+        },
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:pl:DPD_LAST_3M",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "DPD_LAST_3M",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "JSON",
+        "weight": 10,
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:pl:DPD_LAST_12M",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 8
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "DPD_LAST_12M",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "JSON",
+        "weight": 8,
+        "points": 8,
+        "formula": "pointsFromRulesMap(dpdViolationCount12Months)",
+        "rules": {
+          "2": 8,
+          "5": 6,
+          "8": 4,
+          "12": 2
+        },
+        "matchedKey": "2",
+        "applicant": {
+          "dpdViolationCount12Months": 0,
+          "maxDpdDays": 0
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30
+        },
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:pl:DPD_LAST_12M",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "DPD_LAST_12M",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "JSON",
+        "weight": 8,
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:pl:CC_UTILIZATION",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 5
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "CC_UTILIZATION",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "JSON",
+        "weight": 5,
+        "points": 5,
+        "formula": "pointsFromRulesMap(ccUtilPct)",
+        "rules": {
+          "50": 5,
+          "70": 3,
+          "80": 1
+        },
+        "matchedKey": "50",
+        "applicant": {
+          "ccOutstanding": 20000,
+          "ccLimit": 100000,
+          "ccUtil": 0.2,
+          "ccUtilPct": 20
+        },
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:pl:CC_UTILIZATION",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_CC_LIMIT"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "CC_UTILIZATION",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "JSON",
+        "weight": 5,
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_CC_LIMIT",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:pl:ACTIVE_UNSECURED",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 3
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "ACTIVE_UNSECURED",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "JSON",
+        "weight": 5,
+        "points": 3,
+        "formula": "pointsFromRulesMap(activeUnsecured)",
+        "rules": {
+          "0": 5,
+          "2": 3,
+          "4": 2,
+          "8": 1
+        },
+        "matchedKey": "2",
+        "applicant": {
+          "activeUnsecured": 1
+        },
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:pl:ACTIVE_UNSECURED",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_ACTIVE_UNSECURED"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "ACTIVE_UNSECURED",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "JSON",
+        "weight": 5,
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_ACTIVE_UNSECURED",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:pl:ENQUIRIES_3M",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 2
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "ENQUIRIES_3M",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "JSON",
+        "weight": 4,
+        "points": 2,
+        "formula": "pointsFromRulesMap(enquiries3m)",
+        "rules": {
+          "0": 4,
+          "3": 2,
+          "6": 1
+        },
+        "matchedKey": "3",
+        "applicant": {
+          "enquiries3m": 2
+        },
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:pl:ENQUIRIES_3M",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_ENQUIRIES_3M"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "ENQUIRIES_3M",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "JSON",
+        "weight": 4,
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_ENQUIRIES_3M",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:pl:MONTHLY_INCOME",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 10
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "MONTHLY_INCOME",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "FORMULA",
+        "weight": 10,
+        "points": 10,
+        "formula": "min(10, ((80000 - 25000) / (2 * 25000)) * 10) = 10",
+        "rules": null,
+        "applicant": {
+          "netSalary": 80000,
+          "hasOtherIncome": false,
+          "otherIncomeAmount": 0,
+          "monthlyIncome": 80000,
+          "totalMonthlyIncome": 80000
+        },
+        "threshold": {
+          "monthlyThreshold": 25000,
+          "minMonthlyIncome": 25000
+        },
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:pl:MONTHLY_INCOME",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_MIN_MONTHLY_INCOME"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "MONTHLY_INCOME",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "FORMULA",
+        "weight": 10,
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_MIN_MONTHLY_INCOME",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:pl:JOB_EXPERIENCE",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 7
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "JOB_EXPERIENCE",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "FORMULA",
+        "weight": 7,
+        "points": 7,
+        "formula": "min(7, ((48 - 12) / (2 * 12)) * 7) = 7",
+        "rules": null,
+        "applicant": {
+          "expMonths": 48,
+          "employmentMonths": 48
+        },
+        "threshold": {
+          "requiredExperienceMonths": 12,
+          "minEmploymentMonths": 12
+        },
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:pl:JOB_EXPERIENCE",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_MIN_EMPLOYMENT_MONTHS"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "JOB_EXPERIENCE",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "FORMULA",
+        "weight": 7,
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_MIN_EMPLOYMENT_MONTHS",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:pl:ROI_COMPETITIVENESS",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 9
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "ROI_COMPETITIVENESS",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "JSON",
+        "weight": 9,
+        "points": 9,
+        "formula": "pointsFromRulesMap(minInterestRate)",
+        "rules": {
+          "11": 9,
+          "13": 7,
+          "15": 5,
+          "20": 3,
+          "25": 1
+        },
+        "matchedKey": "11",
+        "applicant": {
+          "minInterestRate": 11
+        },
+        "threshold": {
+          "bands": {
+            "11": 9,
+            "13": 7,
+            "15": 5,
+            "20": 3,
+            "25": 1
+          }
+        },
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:pl:ROI_COMPETITIVENESS",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_MIN_INTEREST_RATE"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "ROI_COMPETITIVENESS",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "JSON",
+        "weight": 9,
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_MIN_INTEREST_RATE",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:pl:MAX_LOAN_ADEQUACY",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 7
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "MAX_LOAN_ADEQUACY",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "JSON+FORMULA",
+        "weight": 7,
+        "points": 7,
+        "formula": "ratioPct=(500000/2000000)*100=25.00; then rules",
+        "rules": {
+          "50": 7,
+          "75": 4
+        },
+        "matchedKey": "50",
+        "applicant": {
+          "loanAmount": 500000,
+          "maxLoanAmount": 2000000,
+          "ratioPct": 25
+        },
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:pl:MAX_LOAN_ADEQUACY",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "MAX_LOAN_ADEQUACY",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "JSON+FORMULA",
+        "weight": 7,
+        "points": 0,
+        "errorCode": "PL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:CIBIL_SCORE",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 6,
+        "errorCode": null
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "CIBIL_SCORE",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "FORMULA",
+        "weight": 20,
+        "points": 6,
+        "formula": "(760-700)/(900-700)*20 = 6",
+        "rules": null,
+        "applicant": 760,
+        "threshold": {
+          "minCibil": 700
+        },
+        "concessionApplied": false,
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:CIBIL_SCORE",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_MIN_CIBIL"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "CIBIL_SCORE",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "FORMULA",
+        "weight": 20,
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_MIN_CIBIL",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:FOIR_CHECK",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 14.325,
+        "errorCode": null
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "FOIR_CHECK",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "FORMULA",
+        "weight": 15,
+        "points": 14.325,
+        "formula": "15 * (1 - (3.60/80)) = 14.325",
+        "rules": null,
+        "applicant": {
+          "foirApplicant": 0.036,
+          "existingTotalEmi": 15000,
+          "netMonthlyIncome": 416666.6666666667
+        },
+        "threshold": {
+          "foir": 65
+        },
+        "concessionApplied": false,
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:FOIR_CHECK",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_FOIR"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "FOIR_CHECK",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "FORMULA",
+        "weight": 15,
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_FOIR",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:DPD_LAST_3M",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 10,
+        "errorCode": null
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "DPD_LAST_3M",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "JSON",
+        "weight": 10,
+        "points": 10,
+        "formula": "pointsFromRulesMap(dpdViolationCount3Months)",
+        "rules": {
+          "0": 10,
+          "2": 8,
+          "4": 6,
+          "6": 4,
+          "8": 2
+        },
+        "matchedKey": "0",
+        "applicant": {
+          "dpdViolationCount3Months": 0,
+          "maxDpdDays": 0
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30
+        },
+        "concessionApplied": false,
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:DPD_LAST_3M",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "DPD_LAST_3M",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "JSON",
+        "weight": 10,
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:DPD_LAST_12M",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 8,
+        "errorCode": null
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "DPD_LAST_12M",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "JSON",
+        "weight": 8,
+        "points": 8,
+        "formula": "pointsFromRulesMap(dpdViolationCount12Months)",
+        "rules": {
+          "2": 8,
+          "5": 6,
+          "8": 4,
+          "12": 2
+        },
+        "matchedKey": "2",
+        "applicant": {
+          "dpdViolationCount12Months": 0,
+          "maxDpdDays": 0
+        },
+        "threshold": {
+          "maxDpdDaysAllowed": 30
+        },
+        "concessionApplied": false,
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:DPD_LAST_12M",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "DPD_LAST_12M",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "JSON",
+        "weight": 8,
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:CC_UTILIZATION",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 5,
+        "errorCode": null
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "CC_UTILIZATION",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "JSON",
+        "weight": 5,
+        "points": 5,
+        "formula": "pointsFromRulesMap(ccUtilPct)",
+        "rules": {
+          "50": 5,
+          "70": 3,
+          "80": 1
+        },
+        "matchedKey": "50",
+        "applicant": {
+          "ccOutstanding": 30000,
+          "ccLimit": 150000,
+          "ccUtil": 0.2,
+          "ccUtilPct": 20
+        },
+        "concessionApplied": false,
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:CC_UTILIZATION",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_CC_LIMIT"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "CC_UTILIZATION",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "JSON",
+        "weight": 5,
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_CC_LIMIT",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:ACTIVE_UNSECURED",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 3,
+        "errorCode": null
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "ACTIVE_UNSECURED",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "JSON",
+        "weight": 5,
+        "points": 3,
+        "formula": "pointsFromRulesMap(activeUnsecured)",
+        "rules": {
+          "0": 5,
+          "2": 3,
+          "4": 2,
+          "8": 1
+        },
+        "matchedKey": "2",
+        "applicant": {
+          "activeUnsecured": 1
+        },
+        "concessionApplied": false,
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:ACTIVE_UNSECURED",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_ACTIVE_UNSECURED"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "ACTIVE_UNSECURED",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "JSON",
+        "weight": 5,
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_ACTIVE_UNSECURED",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:ENQUIRIES_3M",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 2,
+        "errorCode": null
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "ENQUIRIES_3M",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "JSON",
+        "weight": 4,
+        "points": 2,
+        "formula": "pointsFromRulesMap(enquiries3m)",
+        "rules": {
+          "0": 4,
+          "3": 2,
+          "6": 1
+        },
+        "matchedKey": "3",
+        "applicant": {
+          "enquiries3m": 2
+        },
+        "concessionApplied": false,
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:ENQUIRIES_3M",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_ENQUIRIES_3M"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "ENQUIRIES_3M",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "JSON",
+        "weight": 4,
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_ENQUIRIES_3M",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:ANNUAL_TURNOVER",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 10
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "ANNUAL_TURNOVER",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "FORMULA",
+        "weight": 10,
+        "points": 10,
+        "formula": "min(10, ((5000000 - 1000000) / (2 * 1000000)) * 10) = 10",
+        "rules": null,
+        "applicant": {
+          "annualTurnoverInr": 5000000,
+          "turnoverLakh": 50
+        },
+        "threshold": {
+          "minAnnualTurnover": 1000000
+        },
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:bl:ANNUAL_TURNOVER",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_MIN_ANNUAL_TURNOVER"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "ANNUAL_TURNOVER",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "FORMULA",
+        "weight": 10,
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_MIN_ANNUAL_TURNOVER",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:BUSINESS_VINTAGE",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 5.25
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "BUSINESS_VINTAGE",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "FORMULA",
+        "weight": 7,
+        "points": 5.25,
+        "formula": "min(7, ((5 - 2) / (2 * 2)) * 7) = 5.25",
+        "rules": null,
+        "applicant": {
+          "businessAgeYears": 5,
+          "businessVintageYears": 5
+        },
+        "threshold": {
+          "minVintageYears": 2
+        },
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:bl:BUSINESS_VINTAGE",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_MIN_VINTAGE_YEARS"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "BUSINESS_VINTAGE",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "FORMULA",
+        "weight": 7,
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_MIN_VINTAGE_YEARS",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:ITR_DOCUMENTATION",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 3
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "ITR_DOCUMENTATION",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "STATIC",
+        "weight": 3,
+        "points": 3,
+        "formula": "points = weight",
+        "rules": null,
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:bl:ITR_DOCUMENTATION",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 0
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "ITR_DOCUMENTATION",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "STATIC",
+        "weight": 0,
+        "points": 0,
+        "formula": "points = weight",
+        "rules": null,
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:bl:BUSINESS_REGISTRATION_PROOF",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 3
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "BUSINESS_REGISTRATION_PROOF",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "STATIC",
+        "weight": 3,
+        "points": 3,
+        "formula": "points = weight",
+        "rules": null,
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:bl:BUSINESS_REGISTRATION_PROOF",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 0
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "BUSINESS_REGISTRATION_PROOF",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "STATIC",
+        "weight": 0,
+        "points": 0,
+        "formula": "points = weight",
+        "rules": null,
+        "concessionApplied": false
+      }
+    },
+    {
+      "entryId": "scoring:bl:ROI_COMPETITIVENESS",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 5,
+        "errorCode": null
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "ROI_COMPETITIVENESS",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "JSON",
+        "weight": 6,
+        "points": 5,
+        "formula": "pointsFromRulesMap(minInterestRate)",
+        "rules": {
+          "11": 6,
+          "13": 5,
+          "15": 4,
+          "20": 2,
+          "25": 1
+        },
+        "matchedKey": "13",
+        "applicant": {
+          "minInterestRate": 12
+        },
+        "threshold": {
+          "bands": {
+            "11": 6,
+            "13": 5,
+            "15": 4,
+            "20": 2,
+            "25": 1
+          }
+        },
+        "concessionApplied": false,
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:ROI_COMPETITIVENESS",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_MIN_INTEREST_RATE"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "ROI_COMPETITIVENESS",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "JSON",
+        "weight": 6,
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_MIN_INTEREST_RATE",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:MAX_LOAN_ADEQUACY",
+      "type": "scoring_criterion",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "result": "SCORED",
+        "points": 4,
+        "errorCode": null
+      },
+      "expected": "PASS",
+      "detail": {
+        "criterionId": "MAX_LOAN_ADEQUACY",
+        "phase": "SCORING",
+        "result": "SCORED",
+        "ruleType": "JSON+FORMULA",
+        "weight": 4,
+        "points": 4,
+        "formula": "ratioPct=(1500000/5000000)*100=30.00; then rules",
+        "rules": {
+          "50": 4,
+          "75": 2
+        },
+        "matchedKey": "50",
+        "applicant": {
+          "loanAmount": 1500000,
+          "maxLoanAmount": 5000000,
+          "ratioPct": 30
+        },
+        "concessionApplied": false,
+        "errorCode": null
+      }
+    },
+    {
+      "entryId": "scoring:bl:MAX_LOAN_ADEQUACY",
+      "type": "scoring_criterion",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "result": "SKIP",
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT"
+      },
+      "expected": "FAIL",
+      "detail": {
+        "criterionId": "MAX_LOAN_ADEQUACY",
+        "phase": "SCORING",
+        "result": "SKIP",
+        "ruleType": "JSON+FORMULA",
+        "weight": 4,
+        "points": 0,
+        "errorCode": "BL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT",
+        "rules": null
+      }
+    },
+    {
+      "entryId": "error:pl:VALIDATION",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_VALIDATION",
+      "expected": "PL_ERR_VALIDATION",
+      "detail": {
+        "symbolKey": "VALIDATION",
+        "code": "PL_ERR_VALIDATION"
+      }
+    },
+    {
+      "entryId": "error:pl:LEAD_NOT_FOUND",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_LEAD_NOT_FOUND",
+      "expected": "PL_ERR_LEAD_NOT_FOUND",
+      "detail": {
+        "symbolKey": "LEAD_NOT_FOUND",
+        "code": "PL_ERR_LEAD_NOT_FOUND"
+      }
+    },
+    {
+      "entryId": "error:pl:LOAN_APP_MISSING",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_LOAN_APP_MISSING",
+      "expected": "PL_ERR_LOAN_APP_MISSING",
+      "detail": {
+        "symbolKey": "LOAN_APP_MISSING",
+        "code": "PL_ERR_LOAN_APP_MISSING"
+      }
+    },
+    {
+      "entryId": "error:pl:BUREAU_SUMMARY_MISSING",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_BUREAU_SUMMARY_MISSING",
+      "expected": "PL_ERR_BUREAU_SUMMARY_MISSING",
+      "detail": {
+        "symbolKey": "BUREAU_SUMMARY_MISSING",
+        "code": "PL_ERR_BUREAU_SUMMARY_MISSING"
+      }
+    },
+    {
+      "entryId": "error:pl:LENDER_NOT_FOUND",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_LENDER_NOT_FOUND",
+      "expected": "PL_ERR_LENDER_NOT_FOUND",
+      "detail": {
+        "symbolKey": "LENDER_NOT_FOUND",
+        "code": "PL_ERR_LENDER_NOT_FOUND"
+      }
+    },
+    {
+      "entryId": "error:pl:INACTIVE_CATALOG",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_INACTIVE_CATALOG",
+      "expected": "PL_ERR_INACTIVE_CATALOG",
+      "detail": {
+        "symbolKey": "INACTIVE_CATALOG",
+        "code": "PL_ERR_INACTIVE_CATALOG"
+      }
+    },
+    {
+      "entryId": "error:pl:MISSING_CRITERIA",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_MISSING_CRITERIA",
+      "expected": "PL_ERR_MISSING_CRITERIA",
+      "detail": {
+        "symbolKey": "MISSING_CRITERIA",
+        "code": "PL_ERR_MISSING_CRITERIA"
+      }
+    },
+    {
+      "entryId": "error:pl:CONN_LEAD",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_CONN_LEAD",
+      "expected": "PL_ERR_CONN_LEAD",
+      "detail": {
+        "symbolKey": "CONN_LEAD",
+        "code": "PL_ERR_CONN_LEAD"
+      }
+    },
+    {
+      "entryId": "error:pl:CONN_LOAN_APP",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_CONN_LOAN_APP",
+      "expected": "PL_ERR_CONN_LOAN_APP",
+      "detail": {
+        "symbolKey": "CONN_LOAN_APP",
+        "code": "PL_ERR_CONN_LOAN_APP"
+      }
+    },
+    {
+      "entryId": "error:pl:CONN_BUREAU",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_CONN_BUREAU",
+      "expected": "PL_ERR_CONN_BUREAU",
+      "detail": {
+        "symbolKey": "CONN_BUREAU",
+        "code": "PL_ERR_CONN_BUREAU"
+      }
+    },
+    {
+      "entryId": "error:pl:CONN_CATALOG",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_CONN_CATALOG",
+      "expected": "PL_ERR_CONN_CATALOG",
+      "detail": {
+        "symbolKey": "CONN_CATALOG",
+        "code": "PL_ERR_CONN_CATALOG"
+      }
+    },
+    {
+      "entryId": "error:pl:CONN_CRITERIA",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_CONN_CRITERIA",
+      "expected": "PL_ERR_CONN_CRITERIA",
+      "detail": {
+        "symbolKey": "CONN_CRITERIA",
+        "code": "PL_ERR_CONN_CRITERIA"
+      }
+    },
+    {
+      "entryId": "error:pl:CONN_ZIP",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_CONN_ZIP",
+      "expected": "PL_ERR_CONN_ZIP",
+      "detail": {
+        "symbolKey": "CONN_ZIP",
+        "code": "PL_ERR_CONN_ZIP"
+      }
+    },
+    {
+      "entryId": "error:pl:INTERNAL",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_INTERNAL",
+      "expected": "PL_ERR_INTERNAL",
+      "detail": {
+        "symbolKey": "INTERNAL",
+        "code": "PL_ERR_INTERNAL"
+      }
+    },
+    {
+      "entryId": "error:pl:PRE_ACTIVE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_PRE_ACTIVE",
+      "expected": "PL_FAIL_PRE_ACTIVE",
+      "detail": {
+        "symbolKey": "PRE_ACTIVE",
+        "code": "PL_FAIL_PRE_ACTIVE"
+      }
+    },
+    {
+      "entryId": "error:pl:PINCODE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_PINCODE",
+      "expected": "PL_FAIL_PINCODE",
+      "detail": {
+        "symbolKey": "PINCODE",
+        "code": "PL_FAIL_PINCODE"
+      }
+    },
+    {
+      "entryId": "error:pl:CIBIL",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_CIBIL",
+      "expected": "PL_FAIL_CIBIL",
+      "detail": {
+        "symbolKey": "CIBIL",
+        "code": "PL_FAIL_CIBIL"
+      }
+    },
+    {
+      "entryId": "error:pl:FTB",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_FTB",
+      "expected": "PL_FAIL_FTB",
+      "detail": {
+        "symbolKey": "FTB",
+        "code": "PL_FAIL_FTB"
+      }
+    },
+    {
+      "entryId": "error:pl:DPD_LATEST",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_DPD_LATEST",
+      "expected": "PL_FAIL_DPD_LATEST",
+      "detail": {
+        "symbolKey": "DPD_LATEST",
+        "code": "PL_FAIL_DPD_LATEST"
+      }
+    },
+    {
+      "entryId": "error:pl:AGE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_AGE",
+      "expected": "PL_FAIL_AGE",
+      "detail": {
+        "symbolKey": "AGE",
+        "code": "PL_FAIL_AGE"
+      }
+    },
+    {
+      "entryId": "error:pl:INCOME",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_INCOME",
+      "expected": "PL_FAIL_INCOME",
+      "detail": {
+        "symbolKey": "INCOME",
+        "code": "PL_FAIL_INCOME"
+      }
+    },
+    {
+      "entryId": "error:pl:AMOUNT",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_AMOUNT",
+      "expected": "PL_FAIL_AMOUNT",
+      "detail": {
+        "symbolKey": "AMOUNT",
+        "code": "PL_FAIL_AMOUNT"
+      }
+    },
+    {
+      "entryId": "error:pl:FOIR",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_FOIR",
+      "expected": "PL_FAIL_FOIR",
+      "detail": {
+        "symbolKey": "FOIR",
+        "code": "PL_FAIL_FOIR"
+      }
+    },
+    {
+      "entryId": "error:pl:DPD_3M",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_DPD_3M",
+      "expected": "PL_FAIL_DPD_3M",
+      "detail": {
+        "symbolKey": "DPD_3M",
+        "code": "PL_FAIL_DPD_3M"
+      }
+    },
+    {
+      "entryId": "error:pl:DPD_12M",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_DPD_12M",
+      "expected": "PL_FAIL_DPD_12M",
+      "detail": {
+        "symbolKey": "DPD_12M",
+        "code": "PL_FAIL_DPD_12M"
+      }
+    },
+    {
+      "entryId": "error:pl:DPD_DAYS",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_DPD_DAYS",
+      "expected": "PL_FAIL_DPD_DAYS",
+      "detail": {
+        "symbolKey": "DPD_DAYS",
+        "code": "PL_FAIL_DPD_DAYS"
+      }
+    },
+    {
+      "entryId": "error:pl:CC_UTIL",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_CC_UTIL",
+      "expected": "PL_FAIL_CC_UTIL",
+      "detail": {
+        "symbolKey": "CC_UTIL",
+        "code": "PL_FAIL_CC_UTIL"
+      }
+    },
+    {
+      "entryId": "error:pl:UNSECURED",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_UNSECURED",
+      "expected": "PL_FAIL_UNSECURED",
+      "detail": {
+        "symbolKey": "UNSECURED",
+        "code": "PL_FAIL_UNSECURED"
+      }
+    },
+    {
+      "entryId": "error:pl:SALARY_TYPE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_SALARY_TYPE",
+      "expected": "PL_FAIL_SALARY_TYPE",
+      "detail": {
+        "symbolKey": "SALARY_TYPE",
+        "code": "PL_FAIL_SALARY_TYPE"
+      }
+    },
+    {
+      "entryId": "error:pl:PF",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_PF",
+      "expected": "PL_FAIL_PF",
+      "detail": {
+        "symbolKey": "PF",
+        "code": "PL_FAIL_PF"
+      }
+    },
+    {
+      "entryId": "error:pl:EMPLOYMENT",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_EMPLOYMENT",
+      "expected": "PL_FAIL_EMPLOYMENT",
+      "detail": {
+        "symbolKey": "EMPLOYMENT",
+        "code": "PL_FAIL_EMPLOYMENT"
+      }
+    },
+    {
+      "entryId": "error:pl:ENQ_EXCLUDE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_ENQ_EXCLUDE",
+      "expected": "PL_FAIL_ENQ_EXCLUDE",
+      "detail": {
+        "symbolKey": "ENQ_EXCLUDE",
+        "code": "PL_FAIL_ENQ_EXCLUDE"
+      }
+    },
+    {
+      "entryId": "error:pl:ENQ_1M",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_ENQ_1M",
+      "expected": "PL_FAIL_ENQ_1M",
+      "detail": {
+        "symbolKey": "ENQ_1M",
+        "code": "PL_FAIL_ENQ_1M"
+      }
+    },
+    {
+      "entryId": "error:pl:ENQ_3M",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_ENQ_3M",
+      "expected": "PL_FAIL_ENQ_3M",
+      "detail": {
+        "symbolKey": "ENQ_3M",
+        "code": "PL_FAIL_ENQ_3M"
+      }
+    },
+    {
+      "entryId": "error:pl:MISSING_APPLICANT_VALUE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_FAIL_MISSING_APPLICANT_VALUE",
+      "expected": "PL_FAIL_MISSING_APPLICANT_VALUE",
+      "detail": {
+        "symbolKey": "MISSING_APPLICANT_VALUE",
+        "code": "PL_FAIL_MISSING_APPLICANT_VALUE"
+      }
+    },
+    {
+      "entryId": "error:pl:VALIDATION",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_VALIDATION",
+      "expected": "PL_ERR_VALIDATION",
+      "detail": {
+        "symbolKey": "VALIDATION",
+        "code": "PL_ERR_VALIDATION"
+      }
+    },
+    {
+      "entryId": "error:pl:BUREAU_SUMMARY_MISSING",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_BUREAU_SUMMARY_MISSING",
+      "expected": "PL_ERR_BUREAU_SUMMARY_MISSING",
+      "detail": {
+        "symbolKey": "BUREAU_SUMMARY_MISSING",
+        "code": "PL_ERR_BUREAU_SUMMARY_MISSING"
+      }
+    },
+    {
+      "entryId": "error:pl:MISSING_WEIGHT_ROW",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_ERR_MISSING_WEIGHT_ROW",
+      "expected": "PL_SCORE_ERR_MISSING_WEIGHT_ROW",
+      "detail": {
+        "symbolKey": "MISSING_WEIGHT_ROW",
+        "code": "PL_SCORE_ERR_MISSING_WEIGHT_ROW"
+      }
+    },
+    {
+      "entryId": "error:pl:INVALID_RULES_SHAPE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_ERR_INVALID_RULES_SHAPE",
+      "expected": "PL_SCORE_ERR_INVALID_RULES_SHAPE",
+      "detail": {
+        "symbolKey": "INVALID_RULES_SHAPE",
+        "code": "PL_SCORE_ERR_INVALID_RULES_SHAPE"
+      }
+    },
+    {
+      "entryId": "error:pl:LENDER_NOT_FOUND",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_LENDER_NOT_FOUND",
+      "expected": "PL_ERR_LENDER_NOT_FOUND",
+      "detail": {
+        "symbolKey": "LENDER_NOT_FOUND",
+        "code": "PL_ERR_LENDER_NOT_FOUND"
+      }
+    },
+    {
+      "entryId": "error:pl:INTERNAL",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_ERR_INTERNAL",
+      "expected": "PL_ERR_INTERNAL",
+      "detail": {
+        "symbolKey": "INTERNAL",
+        "code": "PL_ERR_INTERNAL"
+      }
+    },
+    {
+      "entryId": "error:pl:MISSING_MIN_CIBIL",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_ERR_MISSING_MIN_CIBIL",
+      "expected": "PL_SCORE_ERR_MISSING_MIN_CIBIL",
+      "detail": {
+        "symbolKey": "MISSING_MIN_CIBIL",
+        "code": "PL_SCORE_ERR_MISSING_MIN_CIBIL"
+      }
+    },
+    {
+      "entryId": "error:pl:DIV_BY_ZERO",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_ERR_DIV_BY_ZERO",
+      "expected": "PL_SCORE_ERR_DIV_BY_ZERO",
+      "detail": {
+        "symbolKey": "DIV_BY_ZERO",
+        "code": "PL_SCORE_ERR_DIV_BY_ZERO"
+      }
+    },
+    {
+      "entryId": "error:pl:MISSING_FOIR",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_ERR_MISSING_FOIR",
+      "expected": "PL_SCORE_ERR_MISSING_FOIR",
+      "detail": {
+        "symbolKey": "MISSING_FOIR",
+        "code": "PL_SCORE_ERR_MISSING_FOIR"
+      }
+    },
+    {
+      "entryId": "error:pl:MISSING_MAX_DPD_DAYS_ALLOWED",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED",
+      "expected": "PL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED",
+      "detail": {
+        "symbolKey": "MISSING_MAX_DPD_DAYS_ALLOWED",
+        "code": "PL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED"
+      }
+    },
+    {
+      "entryId": "error:pl:MISSING_CC_LIMIT",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_ERR_MISSING_CC_LIMIT",
+      "expected": "PL_SCORE_ERR_MISSING_CC_LIMIT",
+      "detail": {
+        "symbolKey": "MISSING_CC_LIMIT",
+        "code": "PL_SCORE_ERR_MISSING_CC_LIMIT"
+      }
+    },
+    {
+      "entryId": "error:pl:MISSING_ACTIVE_UNSECURED",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_ERR_MISSING_ACTIVE_UNSECURED",
+      "expected": "PL_SCORE_ERR_MISSING_ACTIVE_UNSECURED",
+      "detail": {
+        "symbolKey": "MISSING_ACTIVE_UNSECURED",
+        "code": "PL_SCORE_ERR_MISSING_ACTIVE_UNSECURED"
+      }
+    },
+    {
+      "entryId": "error:pl:MISSING_ENQUIRIES_3M",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_ERR_MISSING_ENQUIRIES_3M",
+      "expected": "PL_SCORE_ERR_MISSING_ENQUIRIES_3M",
+      "detail": {
+        "symbolKey": "MISSING_ENQUIRIES_3M",
+        "code": "PL_SCORE_ERR_MISSING_ENQUIRIES_3M"
+      }
+    },
+    {
+      "entryId": "error:pl:MISSING_MIN_MONTHLY_INCOME",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_ERR_MISSING_MIN_MONTHLY_INCOME",
+      "expected": "PL_SCORE_ERR_MISSING_MIN_MONTHLY_INCOME",
+      "detail": {
+        "symbolKey": "MISSING_MIN_MONTHLY_INCOME",
+        "code": "PL_SCORE_ERR_MISSING_MIN_MONTHLY_INCOME"
+      }
+    },
+    {
+      "entryId": "error:pl:MISSING_MIN_EMPLOYMENT_MONTHS",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_ERR_MISSING_MIN_EMPLOYMENT_MONTHS",
+      "expected": "PL_SCORE_ERR_MISSING_MIN_EMPLOYMENT_MONTHS",
+      "detail": {
+        "symbolKey": "MISSING_MIN_EMPLOYMENT_MONTHS",
+        "code": "PL_SCORE_ERR_MISSING_MIN_EMPLOYMENT_MONTHS"
+      }
+    },
+    {
+      "entryId": "error:pl:MISSING_MIN_INTEREST_RATE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_ERR_MISSING_MIN_INTEREST_RATE",
+      "expected": "PL_SCORE_ERR_MISSING_MIN_INTEREST_RATE",
+      "detail": {
+        "symbolKey": "MISSING_MIN_INTEREST_RATE",
+        "code": "PL_SCORE_ERR_MISSING_MIN_INTEREST_RATE"
+      }
+    },
+    {
+      "entryId": "error:pl:MISSING_LOAN_AMOUNT",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_ERR_MISSING_LOAN_AMOUNT",
+      "expected": "PL_SCORE_ERR_MISSING_LOAN_AMOUNT",
+      "detail": {
+        "symbolKey": "MISSING_LOAN_AMOUNT",
+        "code": "PL_SCORE_ERR_MISSING_LOAN_AMOUNT"
+      }
+    },
+    {
+      "entryId": "error:pl:MISSING_MAX_LOAN_AMOUNT",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT",
+      "expected": "PL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT",
+      "detail": {
+        "symbolKey": "MISSING_MAX_LOAN_AMOUNT",
+        "code": "PL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT"
+      }
+    },
+    {
+      "entryId": "error:pl:BELOW_DISPLAY_THRESHOLD",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_BELOW_DISPLAY_THRESHOLD",
+      "expected": "PL_SCORE_BELOW_DISPLAY_THRESHOLD",
+      "detail": {
+        "symbolKey": "BELOW_DISPLAY_THRESHOLD",
+        "code": "PL_SCORE_BELOW_DISPLAY_THRESHOLD"
+      }
+    },
+    {
+      "entryId": "error:pl:CRITERION_INACTIVE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_CRITERION_INACTIVE",
+      "expected": "PL_SCORE_CRITERION_INACTIVE",
+      "detail": {
+        "symbolKey": "CRITERION_INACTIVE",
+        "code": "PL_SCORE_CRITERION_INACTIVE"
+      }
+    },
+    {
+      "entryId": "error:pl:BLOCKED",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "PL_SCORE_BLOCKED",
+      "expected": "PL_SCORE_BLOCKED",
+      "detail": {
+        "symbolKey": "BLOCKED",
+        "code": "PL_SCORE_BLOCKED"
+      }
+    },
+    {
+      "entryId": "error:bl:VALIDATION",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_VALIDATION",
+      "expected": "BL_ERR_VALIDATION",
+      "detail": {
+        "symbolKey": "VALIDATION",
+        "code": "BL_ERR_VALIDATION"
+      }
+    },
+    {
+      "entryId": "error:bl:LEAD_NOT_FOUND",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_LEAD_NOT_FOUND",
+      "expected": "BL_ERR_LEAD_NOT_FOUND",
+      "detail": {
+        "symbolKey": "LEAD_NOT_FOUND",
+        "code": "BL_ERR_LEAD_NOT_FOUND"
+      }
+    },
+    {
+      "entryId": "error:bl:LOAN_APP_MISSING",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_LOAN_APP_MISSING",
+      "expected": "BL_ERR_LOAN_APP_MISSING",
+      "detail": {
+        "symbolKey": "LOAN_APP_MISSING",
+        "code": "BL_ERR_LOAN_APP_MISSING"
+      }
+    },
+    {
+      "entryId": "error:bl:BUREAU_SUMMARY_MISSING",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_BUREAU_SUMMARY_MISSING",
+      "expected": "BL_ERR_BUREAU_SUMMARY_MISSING",
+      "detail": {
+        "symbolKey": "BUREAU_SUMMARY_MISSING",
+        "code": "BL_ERR_BUREAU_SUMMARY_MISSING"
+      }
+    },
+    {
+      "entryId": "error:bl:LENDER_NOT_FOUND",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_LENDER_NOT_FOUND",
+      "expected": "BL_ERR_LENDER_NOT_FOUND",
+      "detail": {
+        "symbolKey": "LENDER_NOT_FOUND",
+        "code": "BL_ERR_LENDER_NOT_FOUND"
+      }
+    },
+    {
+      "entryId": "error:bl:INACTIVE_CATALOG",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_INACTIVE_CATALOG",
+      "expected": "BL_ERR_INACTIVE_CATALOG",
+      "detail": {
+        "symbolKey": "INACTIVE_CATALOG",
+        "code": "BL_ERR_INACTIVE_CATALOG"
+      }
+    },
+    {
+      "entryId": "error:bl:MISSING_CRITERIA",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_MISSING_CRITERIA",
+      "expected": "BL_ERR_MISSING_CRITERIA",
+      "detail": {
+        "symbolKey": "MISSING_CRITERIA",
+        "code": "BL_ERR_MISSING_CRITERIA"
+      }
+    },
+    {
+      "entryId": "error:bl:CONN_LEAD",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_CONN_LEAD",
+      "expected": "BL_ERR_CONN_LEAD",
+      "detail": {
+        "symbolKey": "CONN_LEAD",
+        "code": "BL_ERR_CONN_LEAD"
+      }
+    },
+    {
+      "entryId": "error:bl:CONN_LOAN_APP",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_CONN_LOAN_APP",
+      "expected": "BL_ERR_CONN_LOAN_APP",
+      "detail": {
+        "symbolKey": "CONN_LOAN_APP",
+        "code": "BL_ERR_CONN_LOAN_APP"
+      }
+    },
+    {
+      "entryId": "error:bl:CONN_BUREAU",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_CONN_BUREAU",
+      "expected": "BL_ERR_CONN_BUREAU",
+      "detail": {
+        "symbolKey": "CONN_BUREAU",
+        "code": "BL_ERR_CONN_BUREAU"
+      }
+    },
+    {
+      "entryId": "error:bl:CONN_CATALOG",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_CONN_CATALOG",
+      "expected": "BL_ERR_CONN_CATALOG",
+      "detail": {
+        "symbolKey": "CONN_CATALOG",
+        "code": "BL_ERR_CONN_CATALOG"
+      }
+    },
+    {
+      "entryId": "error:bl:CONN_CRITERIA",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_CONN_CRITERIA",
+      "expected": "BL_ERR_CONN_CRITERIA",
+      "detail": {
+        "symbolKey": "CONN_CRITERIA",
+        "code": "BL_ERR_CONN_CRITERIA"
+      }
+    },
+    {
+      "entryId": "error:bl:CONN_ZIP",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_CONN_ZIP",
+      "expected": "BL_ERR_CONN_ZIP",
+      "detail": {
+        "symbolKey": "CONN_ZIP",
+        "code": "BL_ERR_CONN_ZIP"
+      }
+    },
+    {
+      "entryId": "error:bl:INTERNAL",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_INTERNAL",
+      "expected": "BL_ERR_INTERNAL",
+      "detail": {
+        "symbolKey": "INTERNAL",
+        "code": "BL_ERR_INTERNAL"
+      }
+    },
+    {
+      "entryId": "error:bl:PRE_ACTIVE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_PRE_ACTIVE",
+      "expected": "BL_FAIL_PRE_ACTIVE",
+      "detail": {
+        "symbolKey": "PRE_ACTIVE",
+        "code": "BL_FAIL_PRE_ACTIVE"
+      }
+    },
+    {
+      "entryId": "error:bl:PINCODE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_PINCODE",
+      "expected": "BL_FAIL_PINCODE",
+      "detail": {
+        "symbolKey": "PINCODE",
+        "code": "BL_FAIL_PINCODE"
+      }
+    },
+    {
+      "entryId": "error:bl:CIBIL",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_CIBIL",
+      "expected": "BL_FAIL_CIBIL",
+      "detail": {
+        "symbolKey": "CIBIL",
+        "code": "BL_FAIL_CIBIL"
+      }
+    },
+    {
+      "entryId": "error:bl:FTB",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_FTB",
+      "expected": "BL_FAIL_FTB",
+      "detail": {
+        "symbolKey": "FTB",
+        "code": "BL_FAIL_FTB"
+      }
+    },
+    {
+      "entryId": "error:bl:CURRENT_OVERDUE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_CURRENT_OVERDUE",
+      "expected": "BL_FAIL_CURRENT_OVERDUE",
+      "detail": {
+        "symbolKey": "CURRENT_OVERDUE",
+        "code": "BL_FAIL_CURRENT_OVERDUE"
+      }
+    },
+    {
+      "entryId": "error:bl:AGE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_AGE",
+      "expected": "BL_FAIL_AGE",
+      "detail": {
+        "symbolKey": "AGE",
+        "code": "BL_FAIL_AGE"
+      }
+    },
+    {
+      "entryId": "error:bl:ENTITY",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_ENTITY",
+      "expected": "BL_FAIL_ENTITY",
+      "detail": {
+        "symbolKey": "ENTITY",
+        "code": "BL_FAIL_ENTITY"
+      }
+    },
+    {
+      "entryId": "error:bl:TURNOVER",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_TURNOVER",
+      "expected": "BL_FAIL_TURNOVER",
+      "detail": {
+        "symbolKey": "TURNOVER",
+        "code": "BL_FAIL_TURNOVER"
+      }
+    },
+    {
+      "entryId": "error:bl:VINTAGE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_VINTAGE",
+      "expected": "BL_FAIL_VINTAGE",
+      "detail": {
+        "symbolKey": "VINTAGE",
+        "code": "BL_FAIL_VINTAGE"
+      }
+    },
+    {
+      "entryId": "error:bl:AMOUNT",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_AMOUNT",
+      "expected": "BL_FAIL_AMOUNT",
+      "detail": {
+        "symbolKey": "AMOUNT",
+        "code": "BL_FAIL_AMOUNT"
+      }
+    },
+    {
+      "entryId": "error:bl:FOIR",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_FOIR",
+      "expected": "BL_FAIL_FOIR",
+      "detail": {
+        "symbolKey": "FOIR",
+        "code": "BL_FAIL_FOIR"
+      }
+    },
+    {
+      "entryId": "error:bl:CC_UTIL",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_CC_UTIL",
+      "expected": "BL_FAIL_CC_UTIL",
+      "detail": {
+        "symbolKey": "CC_UTIL",
+        "code": "BL_FAIL_CC_UTIL"
+      }
+    },
+    {
+      "entryId": "error:bl:DPD_3M",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_DPD_3M",
+      "expected": "BL_FAIL_DPD_3M",
+      "detail": {
+        "symbolKey": "DPD_3M",
+        "code": "BL_FAIL_DPD_3M"
+      }
+    },
+    {
+      "entryId": "error:bl:DPD_12M",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_DPD_12M",
+      "expected": "BL_FAIL_DPD_12M",
+      "detail": {
+        "symbolKey": "DPD_12M",
+        "code": "BL_FAIL_DPD_12M"
+      }
+    },
+    {
+      "entryId": "error:bl:DPD_DAYS",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_DPD_DAYS",
+      "expected": "BL_FAIL_DPD_DAYS",
+      "detail": {
+        "symbolKey": "DPD_DAYS",
+        "code": "BL_FAIL_DPD_DAYS"
+      }
+    },
+    {
+      "entryId": "error:bl:UNSECURED",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_UNSECURED",
+      "expected": "BL_FAIL_UNSECURED",
+      "detail": {
+        "symbolKey": "UNSECURED",
+        "code": "BL_FAIL_UNSECURED"
+      }
+    },
+    {
+      "entryId": "error:bl:ENQ_EXCLUDE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_ENQ_EXCLUDE",
+      "expected": "BL_FAIL_ENQ_EXCLUDE",
+      "detail": {
+        "symbolKey": "ENQ_EXCLUDE",
+        "code": "BL_FAIL_ENQ_EXCLUDE"
+      }
+    },
+    {
+      "entryId": "error:bl:ENQ_1M",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_ENQ_1M",
+      "expected": "BL_FAIL_ENQ_1M",
+      "detail": {
+        "symbolKey": "ENQ_1M",
+        "code": "BL_FAIL_ENQ_1M"
+      }
+    },
+    {
+      "entryId": "error:bl:ENQ_3M",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_ENQ_3M",
+      "expected": "BL_FAIL_ENQ_3M",
+      "detail": {
+        "symbolKey": "ENQ_3M",
+        "code": "BL_FAIL_ENQ_3M"
+      }
+    },
+    {
+      "entryId": "error:bl:AUDITED",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_AUDITED",
+      "expected": "BL_FAIL_AUDITED",
+      "detail": {
+        "symbolKey": "AUDITED",
+        "code": "BL_FAIL_AUDITED"
+      }
+    },
+    {
+      "entryId": "error:bl:SETTLED_WO",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_SETTLED_WO",
+      "expected": "BL_FAIL_SETTLED_WO",
+      "detail": {
+        "symbolKey": "SETTLED_WO",
+        "code": "BL_FAIL_SETTLED_WO"
+      }
+    },
+    {
+      "entryId": "error:bl:MISSING_APPLICANT_VALUE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_FAIL_MISSING_APPLICANT_VALUE",
+      "expected": "BL_FAIL_MISSING_APPLICANT_VALUE",
+      "detail": {
+        "symbolKey": "MISSING_APPLICANT_VALUE",
+        "code": "BL_FAIL_MISSING_APPLICANT_VALUE"
+      }
+    },
+    {
+      "entryId": "error:bl:VALIDATION",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_VALIDATION",
+      "expected": "BL_ERR_VALIDATION",
+      "detail": {
+        "symbolKey": "VALIDATION",
+        "code": "BL_ERR_VALIDATION"
+      }
+    },
+    {
+      "entryId": "error:bl:BUREAU_SUMMARY_MISSING",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_BUREAU_SUMMARY_MISSING",
+      "expected": "BL_ERR_BUREAU_SUMMARY_MISSING",
+      "detail": {
+        "symbolKey": "BUREAU_SUMMARY_MISSING",
+        "code": "BL_ERR_BUREAU_SUMMARY_MISSING"
+      }
+    },
+    {
+      "entryId": "error:bl:MISSING_WEIGHT_ROW",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_ERR_MISSING_WEIGHT_ROW",
+      "expected": "BL_SCORE_ERR_MISSING_WEIGHT_ROW",
+      "detail": {
+        "symbolKey": "MISSING_WEIGHT_ROW",
+        "code": "BL_SCORE_ERR_MISSING_WEIGHT_ROW"
+      }
+    },
+    {
+      "entryId": "error:bl:INVALID_RULES_SHAPE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_ERR_INVALID_RULES_SHAPE",
+      "expected": "BL_SCORE_ERR_INVALID_RULES_SHAPE",
+      "detail": {
+        "symbolKey": "INVALID_RULES_SHAPE",
+        "code": "BL_SCORE_ERR_INVALID_RULES_SHAPE"
+      }
+    },
+    {
+      "entryId": "error:bl:LENDER_NOT_FOUND",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_LENDER_NOT_FOUND",
+      "expected": "BL_ERR_LENDER_NOT_FOUND",
+      "detail": {
+        "symbolKey": "LENDER_NOT_FOUND",
+        "code": "BL_ERR_LENDER_NOT_FOUND"
+      }
+    },
+    {
+      "entryId": "error:bl:INTERNAL",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_ERR_INTERNAL",
+      "expected": "BL_ERR_INTERNAL",
+      "detail": {
+        "symbolKey": "INTERNAL",
+        "code": "BL_ERR_INTERNAL"
+      }
+    },
+    {
+      "entryId": "error:bl:MISSING_MIN_CIBIL",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_ERR_MISSING_MIN_CIBIL",
+      "expected": "BL_SCORE_ERR_MISSING_MIN_CIBIL",
+      "detail": {
+        "symbolKey": "MISSING_MIN_CIBIL",
+        "code": "BL_SCORE_ERR_MISSING_MIN_CIBIL"
+      }
+    },
+    {
+      "entryId": "error:bl:DIV_BY_ZERO",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_ERR_DIV_BY_ZERO",
+      "expected": "BL_SCORE_ERR_DIV_BY_ZERO",
+      "detail": {
+        "symbolKey": "DIV_BY_ZERO",
+        "code": "BL_SCORE_ERR_DIV_BY_ZERO"
+      }
+    },
+    {
+      "entryId": "error:bl:MISSING_FOIR",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_ERR_MISSING_FOIR",
+      "expected": "BL_SCORE_ERR_MISSING_FOIR",
+      "detail": {
+        "symbolKey": "MISSING_FOIR",
+        "code": "BL_SCORE_ERR_MISSING_FOIR"
+      }
+    },
+    {
+      "entryId": "error:bl:MISSING_MAX_DPD_DAYS_ALLOWED",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED",
+      "expected": "BL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED",
+      "detail": {
+        "symbolKey": "MISSING_MAX_DPD_DAYS_ALLOWED",
+        "code": "BL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED"
+      }
+    },
+    {
+      "entryId": "error:bl:MISSING_CC_LIMIT",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_ERR_MISSING_CC_LIMIT",
+      "expected": "BL_SCORE_ERR_MISSING_CC_LIMIT",
+      "detail": {
+        "symbolKey": "MISSING_CC_LIMIT",
+        "code": "BL_SCORE_ERR_MISSING_CC_LIMIT"
+      }
+    },
+    {
+      "entryId": "error:bl:MISSING_ACTIVE_UNSECURED",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_ERR_MISSING_ACTIVE_UNSECURED",
+      "expected": "BL_SCORE_ERR_MISSING_ACTIVE_UNSECURED",
+      "detail": {
+        "symbolKey": "MISSING_ACTIVE_UNSECURED",
+        "code": "BL_SCORE_ERR_MISSING_ACTIVE_UNSECURED"
+      }
+    },
+    {
+      "entryId": "error:bl:MISSING_ENQUIRIES_3M",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_ERR_MISSING_ENQUIRIES_3M",
+      "expected": "BL_SCORE_ERR_MISSING_ENQUIRIES_3M",
+      "detail": {
+        "symbolKey": "MISSING_ENQUIRIES_3M",
+        "code": "BL_SCORE_ERR_MISSING_ENQUIRIES_3M"
+      }
+    },
+    {
+      "entryId": "error:bl:MISSING_MIN_ANNUAL_TURNOVER",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_ERR_MISSING_MIN_ANNUAL_TURNOVER",
+      "expected": "BL_SCORE_ERR_MISSING_MIN_ANNUAL_TURNOVER",
+      "detail": {
+        "symbolKey": "MISSING_MIN_ANNUAL_TURNOVER",
+        "code": "BL_SCORE_ERR_MISSING_MIN_ANNUAL_TURNOVER"
+      }
+    },
+    {
+      "entryId": "error:bl:MISSING_MIN_VINTAGE_YEARS",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_ERR_MISSING_MIN_VINTAGE_YEARS",
+      "expected": "BL_SCORE_ERR_MISSING_MIN_VINTAGE_YEARS",
+      "detail": {
+        "symbolKey": "MISSING_MIN_VINTAGE_YEARS",
+        "code": "BL_SCORE_ERR_MISSING_MIN_VINTAGE_YEARS"
+      }
+    },
+    {
+      "entryId": "error:bl:MISSING_MIN_INTEREST_RATE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_ERR_MISSING_MIN_INTEREST_RATE",
+      "expected": "BL_SCORE_ERR_MISSING_MIN_INTEREST_RATE",
+      "detail": {
+        "symbolKey": "MISSING_MIN_INTEREST_RATE",
+        "code": "BL_SCORE_ERR_MISSING_MIN_INTEREST_RATE"
+      }
+    },
+    {
+      "entryId": "error:bl:MISSING_LOAN_AMOUNT",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_ERR_MISSING_LOAN_AMOUNT",
+      "expected": "BL_SCORE_ERR_MISSING_LOAN_AMOUNT",
+      "detail": {
+        "symbolKey": "MISSING_LOAN_AMOUNT",
+        "code": "BL_SCORE_ERR_MISSING_LOAN_AMOUNT"
+      }
+    },
+    {
+      "entryId": "error:bl:MISSING_MAX_LOAN_AMOUNT",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT",
+      "expected": "BL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT",
+      "detail": {
+        "symbolKey": "MISSING_MAX_LOAN_AMOUNT",
+        "code": "BL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT"
+      }
+    },
+    {
+      "entryId": "error:bl:BELOW_DISPLAY_THRESHOLD",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_BELOW_DISPLAY_THRESHOLD",
+      "expected": "BL_SCORE_BELOW_DISPLAY_THRESHOLD",
+      "detail": {
+        "symbolKey": "BELOW_DISPLAY_THRESHOLD",
+        "code": "BL_SCORE_BELOW_DISPLAY_THRESHOLD"
+      }
+    },
+    {
+      "entryId": "error:bl:CRITERION_INACTIVE",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_CRITERION_INACTIVE",
+      "expected": "BL_SCORE_CRITERION_INACTIVE",
+      "detail": {
+        "symbolKey": "CRITERION_INACTIVE",
+        "code": "BL_SCORE_CRITERION_INACTIVE"
+      }
+    },
+    {
+      "entryId": "error:bl:BLOCKED",
+      "type": "error_code",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BL_SCORE_BLOCKED",
+      "expected": "BL_SCORE_BLOCKED",
+      "detail": {
+        "symbolKey": "BLOCKED",
+        "code": "BL_SCORE_BLOCKED"
+      }
+    },
+    {
+      "entryId": "form:bl:validate-business-loan",
+      "type": "form_validation",
+      "outcome": "PASS",
+      "ok": true,
+      "actual": {
+        "outcome": "PASS",
+        "errorCount": 0,
+        "errors": []
+      },
+      "expected": "PASS",
+      "detail": []
+    },
+    {
+      "entryId": "form:bl:validate-business-loan",
+      "type": "form_validation",
+      "outcome": "FAIL",
+      "ok": true,
+      "actual": {
+        "outcome": "FAIL",
+        "errorCount": 24,
+        "errors": [
+          "Business Name is required.",
+          "Business Premises is required.",
+          "Business Type is required.",
+          "Annual Turnover (Lakh) must be a positive whole number.",
+          "Business Age (Years) must be a whole number >= 0."
+        ]
+      },
+      "expected": "FAIL",
+      "detail": [
+        "Business Name is required.",
+        "Business Premises is required.",
+        "Business Type is required.",
+        "Annual Turnover (Lakh) must be a positive whole number.",
+        "Business Age (Years) must be a whole number >= 0.",
+        "Select at least one Business Registration Proof.",
+        "Audited Books (Yes/No) is required.",
+        "Business Address is required.",
+        "Date of Birth is required.",
+        "Marital Status is required.",
+        "Mother Name is required.",
+        "Address Line 1 is required.",
+        "Landmark is required.",
+        "State is required.",
+        "District is required.",
+        "City is required.",
+        "Residence Type is required.",
+        "Aadhaar Card (Front) document is required.",
+        "Aadhaar Card (Back) document is required.",
+        "PAN Card document is required.",
+        "CIBIL Report document is required.",
+        "Bank Statement document is required.",
+        "ITR (1st Year) document is required.",
+        "Business Type document is required."
+      ]
+    },
+    {
+      "entryId": "bureau:shared:MISSING_PDF",
+      "type": "bureau_catalog",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BUREAU_MISSING_PDF",
+      "expected": "MISSING_PDF",
+      "detail": {
+        "documentedCode": "BUREAU_MISSING_PDF"
+      }
+    },
+    {
+      "entryId": "bureau:shared:EXTRACT_FAIL",
+      "type": "bureau_catalog",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BUREAU_EXTRACT_FAILED",
+      "expected": "EXTRACT_FAIL",
+      "detail": {
+        "documentedCode": "BUREAU_EXTRACT_FAILED"
+      }
+    },
+    {
+      "entryId": "bureau:shared:EXTRACT_OK",
+      "type": "bureau_catalog",
+      "outcome": "CATALOG",
+      "ok": true,
+      "actual": "BUREAU_EXTRACT_COMPLETED",
+      "expected": "EXTRACT_OK",
+      "detail": {
+        "documentedCode": "BUREAU_EXTRACT_COMPLETED"
+      }
+    }
+  ]
+}

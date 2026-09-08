@@ -206,11 +206,41 @@ nav a.is-nav-active > * {
     color: #ffffff !important;
 }
 
-/* Unselected CM nav links — white/transparent bg, bold dark text */
+/* Unselected CM nav links — bold text; color follows Strapi light/dark theme
+   (forced #0f172a alone made "Add New Lead" / layered nav invisible on dark sidebars). */
 aside a:not([aria-current="page"]):not(.active):not([data-active="true"]):not(.is-nav-active),
 nav a:not([aria-current="page"]):not(.active):not([data-active="true"]):not(.is-nav-active) {
     color: #0f172a;
     font-weight: 600;
+}
+
+aside a:not([aria-current="page"]):not(.active):not([data-active="true"]):not(.is-nav-active) *,
+nav a:not([aria-current="page"]):not(.active):not([data-active="true"]):not(.is-nav-active) * {
+    color: inherit;
+}
+
+/* Dark theme (body.scalex-theme-dark set from STRAPI_THEME / system preference) */
+body.scalex-theme-dark aside a:not([aria-current="page"]):not(.active):not([data-active="true"]):not(.is-nav-active),
+body.scalex-theme-dark nav a:not([aria-current="page"]):not(.active):not([data-active="true"]):not(.is-nav-active),
+body.scalex-theme-dark #custom-leads-add-link,
+body.scalex-theme-dark #custom-leads-overview-link:not(.is-nav-active) {
+    color: #e2e8f0 !important;
+    font-weight: 600 !important;
+}
+
+body.scalex-theme-dark aside a:not([aria-current="page"]):not(.active):not([data-active="true"]):not(.is-nav-active) *,
+body.scalex-theme-dark nav a:not([aria-current="page"]):not(.active):not([data-active="true"]):not(.is-nav-active) *,
+body.scalex-theme-dark #custom-leads-add-link *,
+body.scalex-theme-dark #custom-leads-overview-link:not(.is-nav-active) * {
+    color: #e2e8f0 !important;
+    stroke: #e2e8f0 !important;
+    fill: #e2e8f0 !important;
+}
+
+/* Layered nav children under Leads — keep weight; color from rules above */
+#custom-leads-add-link,
+#custom-leads-overview-link:not(.is-nav-active) {
+    font-weight: 600 !important;
 }
 
 aside li:not(:has(> a[aria-current="page"])):not(:has(> a.is-nav-active)):not(.is-nav-active-parent) {
@@ -259,6 +289,13 @@ body:not(.is-config-page) main,
 body:not(.is-config-page) [data-strapi-header],
 body:not(.is-config-page) form {
     color: #0f172a;
+}
+
+/* Dark admin: do not force near-black body copy onto dark surfaces */
+body.scalex-theme-dark:not(.is-config-page) main,
+body.scalex-theme-dark:not(.is-config-page) [data-strapi-header],
+body.scalex-theme-dark:not(.is-config-page) form {
+    color: #e2e8f0;
 }
 
 /* Content Manager boolean True/False pills & switch labels */
@@ -340,9 +377,10 @@ form *:has(> input[type="checkbox"]:not(:checked):nth-child(3)):not(:has(> :nth-
     background-color: transparent !important;
 }
 
-/* Boolean field value badges near toggles (True / False text) */
-span:is([class*="Badge"], [class*="badge"]),
-div:is([class*="Badge"], [class*="badge"]) {
+/* Boolean field value badges near toggles (True / False text).
+   Exclude lead/advisor status chips — those have their own locked colors. */
+span:is([class*="Badge"], [class*="badge"]):not(.custom-status-badge):not(.adv-status-badge):not(.adv-verified-badge),
+div:is([class*="Badge"], [class*="badge"]):not(.custom-status-badge):not(.adv-status-badge):not(.adv-verified-badge) {
     font-weight: 700 !important;
 }
 
@@ -556,75 +594,221 @@ button.adv-login-btn:disabled {
 
 /* ---------------------------------------------------------
    LEAD TABLE CELLS
+   Force light surfaces so hardcoded slate text stays readable
+   when Strapi/Firefox uses a dark table body (OS dark preference).
    --------------------------------------------------------- */
 
 /* Customer info */
-.custom-comm-container { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 4px 0; }
-.custom-comm-name { font-weight: 600; color: #1e293b; font-size: 13px; }
+.custom-comm-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 6px 8px;
+    background: #ffffff;
+    border-radius: 6px;
+}
+.custom-comm-name { font-weight: 600; color: #1e293b !important; font-size: 13px; }
 .custom-comm-icons { display: flex; gap: 12px; margin-top: 2px; }
 
 /* Advisor info in lead row */
-.custom-advisor-container { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 4px 0; }
-.custom-advisor-name { font-weight: 600; color: #1e293b; font-size: 13px; }
+.custom-advisor-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 6px 8px;
+    background: #ffffff;
+    border-radius: 6px;
+}
+.custom-advisor-name { font-weight: 600; color: #1e293b !important; font-size: 13px; }
 
 /* Remarks placeholder */
-.custom-remarks-text { font-size: 11px; color: #64748b; font-style: italic; }
-
-/* Lead status badge */
-.custom-status-badge {
-    padding: 4px 10px; border-radius: 6px; display: inline-block;
-    font-size: 10px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 0.5px; min-width: 90px; text-align: center;
+.custom-remarks-text {
+    font-size: 11px;
+    color: #64748b !important;
+    font-style: italic;
+    padding: 4px 8px;
+    background: #f8fafc;
+    border-radius: 6px;
+    display: inline-block;
 }
-.custom-status-badge--new           { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
-.custom-status-badge--under-process { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-.custom-status-badge--approved      { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-.custom-status-badge--rejected      { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-.custom-status-badge--disbursed     { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+
+/* Admin table chips — shared cross-browser typography.
+   Fill colors are applied inline in statusBadgeHtml.ts; CSS is layout + fallback. */
+.custom-status-badge,
+.adv-status-badge,
+.adv-verified-badge,
+.custom-ntf-yes,
+.custom-ntf-no {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Lead status badge — layout + CSS fallback (inline styles are source of truth) */
+.custom-status-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 100px;
+    text-align: center;
+    white-space: nowrap;
+    box-sizing: border-box;
+    color-scheme: light;
+}
+.custom-status-badge--new {
+    background-color: #dbeafe !important;
+    color: #1e40af !important;
+    border: 1px solid #bfdbfe !important;
+}
+.custom-status-badge--under-process {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+    border: 1px solid #fde68a !important;
+}
+.custom-status-badge--approved {
+    background-color: #dcfce7 !important;
+    color: #166534 !important;
+    border: 1px solid #bbf7d0 !important;
+}
+.custom-status-badge--rejected {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+    border: 1px solid #fecaca !important;
+}
+.custom-status-badge--disbursed {
+    background-color: #f3e8ff !important;
+    color: #6b21a8 !important;
+    border: 1px solid #e9d5ff !important;
+}
+
+/* Do not let the generic Badge selector / highlight white-text rule fight status chips */
+div.custom-status-badge,
+span.custom-status-badge,
+div.adv-status-badge,
+span.adv-status-badge {
+    font-weight: 800 !important;
+}
 
 /* Timeline */
-.custom-timeline-container { display: flex; flex-direction: column; gap: 4px; }
+.custom-timeline-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 8px;
+    background: #ffffff;
+    border-radius: 6px;
+}
 .custom-timeline-inner { display: flex; flex-direction: column; }
-.custom-timeline-updated { font-size: 11px; color: #1e293b; font-weight: 700; }
-.custom-timeline-added { font-size: 10px; color: #64748b; font-weight: 500; }
+.custom-timeline-updated { font-size: 11px; color: #1e293b !important; font-weight: 700; }
+.custom-timeline-added { font-size: 10px; color: #64748b !important; font-weight: 500; }
 
-/* Notification badges */
-.custom-ntf-yes { background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
-.custom-ntf-no  { background: #f1f5f9; color: #64748b; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+/* Notification badges — layout + fallback (inline styles preferred) */
+.custom-ntf-yes {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    display: inline-block;
+}
+.custom-ntf-no {
+    background-color: #f1f5f9 !important;
+    color: #64748b !important;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    display: inline-block;
+}
 
 /* ---------------------------------------------------------
    ADVISOR TABLE CELLS
+   Same light-surface treatment for dark-theme Firefox.
    --------------------------------------------------------- */
 
 /* Advisor code */
 .custom-adv-id { font-weight: 700; color: #1d4ed8; }
 
 /* Advisor contact cell */
-.adv-contact-container { display: flex; flex-direction: column; gap: 6px; padding: 4px 0; }
+.adv-contact-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 8px;
+    background: #ffffff;
+    border-radius: 6px;
+}
 .adv-contact-row { display: flex; align-items: center; gap: 8px; }
 .adv-contact-link { text-decoration: none; font-size: 16px; line-height: 1; }
 .adv-contact-link--phone    { color: #1d4ed8; }
 .adv-contact-link--whatsapp { color: #22c55e; }
 .adv-contact-link--email    { color: #1d4ed8; }
-.adv-contact-phone-text { font-size: 13px; color: #1e293b; font-weight: 500; }
-.adv-contact-email-text { font-size: 12px; color: #475569; }
+.adv-contact-phone-text { font-size: 13px; color: #1e293b !important; font-weight: 500; }
+.adv-contact-email-text { font-size: 12px; color: #475569 !important; }
 
-/* Email verify badge */
-.adv-verified-badge { padding: 3px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; }
-.adv-verified-badge--verified   { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-.adv-verified-badge--unverified { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+/* Email verify badge — layout + fallback */
+.adv-verified-badge {
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    display: inline-block;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+.adv-verified-badge--verified {
+    background-color: #dcfce7 !important;
+    color: #166534 !important;
+    border: 1px solid #bbf7d0 !important;
+}
+.adv-verified-badge--unverified {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+    border: 1px solid #fecaca !important;
+}
 
 /* Earnings */
-.adv-earnings { font-weight: 600; color: #1e293b; }
-
-/* Advisor status badge */
-.adv-status-badge {
-    padding: 4px 10px; border-radius: 6px; display: inline-block;
-    font-size: 10px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 0.5px; min-width: 90px; text-align: center;
+.adv-earnings {
+    font-weight: 600;
+    color: #1e293b !important;
+    padding: 4px 8px;
+    background: #ffffff;
+    border-radius: 6px;
+    display: inline-block;
 }
-.adv-status-badge--approved    { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-.adv-status-badge--disapproved { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+/* Advisor status badge — layout + fallback (inline styles preferred) */
+.adv-status-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 100px;
+    text-align: center;
+    white-space: nowrap;
+    box-sizing: border-box;
+    color-scheme: light;
+}
+.adv-status-badge--approved {
+    background-color: #dcfce7 !important;
+    color: #166534 !important;
+    border: 1px solid #bbf7d0 !important;
+}
+.adv-status-badge--disapproved {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+    border: 1px solid #fecaca !important;
+}
 
 /* Advisor actions header label */
 .adv-actions-header-label { font-weight: 800; font-size: 11px; color: #1d4ed8; }

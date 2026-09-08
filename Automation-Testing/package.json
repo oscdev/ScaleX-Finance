@@ -1,0 +1,23 @@
+{
+  "name": "scalex-automation-testing",
+  "version": "2.0.0",
+  "description": "ScaleX Automation Testing Suite — Rules & Scoring Reference, Journey Demo, Live Run, offline fixtures",
+  "type": "module",
+  "scripts": {
+    "dashboard": "node src/server.js",
+    "journey": "node src/journey/run-offline-journey.js",
+    "test:fixtures": "tsx src/fixtures/run-fixtures.mjs",
+    "build:registry": "tsx src/fixtures/build-registry.mjs",
+    "build:pipeline-docs": "tsx src/docs/build-pipeline-docs.mjs"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0",
+    "form-data": "^4.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0"
+  }
+}

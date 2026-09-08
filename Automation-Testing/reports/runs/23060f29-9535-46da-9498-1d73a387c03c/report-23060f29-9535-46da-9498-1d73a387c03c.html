@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Business Loan run — Parminder SIngh</title>
+<link rel="stylesheet" href="/suite/styles.css" />
+<style>
+  .report-wrap { max-width: 1200px; margin: 0 auto; padding: 24px 16px 64px; }
+  .report-meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 12px; }
+  .sticky-nav { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0; background: var(--bg); border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .sticky-nav a { font-size: 0.78rem; font-weight: 650; text-decoration: none; padding: 4px 10px; border-radius: 999px; background: var(--accent-light); color: var(--accent-dark); }
+  .lender-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+  .lender-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .lender-head h3 { margin: 0; font-size: 1.05rem; }
+  .lender-head .code { color: var(--muted); font-weight: 500; }
+  .json-detail { margin: 8px 0 0; padding: 12px 16px; background: #f4f6f9; font-size: 0.75rem; overflow: auto; max-height: 360px; border: 1px solid var(--border); border-radius: 8px; }
+  .json-detail.hidden { display: none; }
+  .json-detail h4 { margin: 8px 0 4px; font-size: 0.8rem; }
+  .json-detail pre { margin: 0 0 12px; white-space: pre-wrap; word-break: break-word; }
+  .timeline { list-style: none; padding: 0; margin: 0; }
+  .timeline li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+  .timeline time { display: block; font-size: 0.72rem; color: var(--muted); }
+  .chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+  .chip.pass { background: #e6f4ed; color: #1f7a4d; }
+  .chip.fail { background: #fdecea; color: #b42318; }
+  .chip.skip { background: #fff8e6; color: #9a6700; }
+  .chip.notrun { background: #f0f0ec; color: #6b7280; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: #eef2f7; font-weight: 650; }
+  td.num { text-align: right; width: 40px; }
+  td.formula { font-family: ui-monospace, monospace; font-size: 0.75rem; }
+  .table-wrap { overflow-x: auto; }
+  .muted { color: var(--muted); }
+  .back { margin-bottom: 12px; display: inline-block; }
+  .field-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .field-card { background: #f7fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .field-card .fk { display: block; font-size: 0.7rem; color: var(--muted); margin-bottom: 4px; }
+  .field-card .fv { font-weight: 600; font-size: 0.9rem; word-break: break-word; }
+  .doc-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .doc-chip { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; min-width: 180px; background: #fff; }
+  .doc-chip.ok { border-color: #b7e0c8; }
+  .doc-chip.fail { border-color: #f0c4c0; background: #fffbfb; }
+  .doc-chip .path { display: block; font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
+  .http-row { margin-bottom: 8px; }
+  .http-toggle { width: 100%; text-align: left; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; }
+  .error-callout { background: #fff5f5; border: 1px solid #f0c4c0; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  .subh { font-size: 0.95rem; margin: 18px 0 8px; color: var(--accent-dark); }
+  .btn.ghost { margin-top: 10px; }
+  h2 { scroll-margin-top: 56px; }
+</style>
+</head>
+<body>
+<div class="report-wrap">
+  <a class="back" href="/suite/">← Back to suite</a>
+  <h1>Business Loan run — Parminder SIngh</h1>
+  <p class="report-meta">
+    Mode: <strong>strapi-readonly</strong>
+    · runId 23060f29-9535-46da-9498-1d73a387c03c
+    · lead <strong>178</strong>
+    · loan-app —
+  </p>
+  <nav class="sticky-nav">
+    <a href="#sec-timeline">Timeline</a>
+    <a href="#sec-forms">Forms</a>
+    <a href="#sec-docs">Documents</a>
+    <a href="#sec-bureau">Bureau</a>
+    <a href="#sec-eligibility">Eligibility</a>
+    <a href="#sec-scoring">Scoring</a>
+    <a href="#sec-http">HTTP</a>
+    <a href="#sec-errors">Errors</a>
+  </nav>
+
+  <section class="card" id="sec-timeline" style="margin-bottom:20px">
+    <h2>Timeline — what happened</h2>
+    <ol class="timeline"><li class="tl-replay">
+        <time>2026-09-05T07:11:27.425Z</time>
+        <strong>replay</strong>
+        <span>Replayed from strapi-readonly</span>
+      </li></ol>
+  </section>
+
+  <div id="sec-forms">
+    
+    
+  </div>
+
+  <div id="sec-docs"></div>
+  <div id="sec-bureau"><section class="card"><h2>Bureau extraction</h2><p class="muted">Not run</p></section></div>
+
+  <h2 id="sec-eligibility" style="margin:24px 0 12px">4. AI Match — Eligibility (formulas + values)</h2>
+  <p class="muted">Each row shows the hardcoded formula, applicant value vs lender threshold, and Pass/Fail/Skip.</p>
+  <section class="lender-card" id="lender-ICICI">
+    <header class="lender-head">
+      <div>
+        <h3>ICICI Bank <span class="code">ICICI</span></h3>
+        <p class="muted"><span class="chip pass">PASS</span> Eligible
+          
+           · score 77
+           · rank #1
+        </p>
+      </div>
+      <button type="button" class="btn ghost toggle-detail" data-target="lender-detail-0">Show details</button>
+    </header>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Rule</th><th>Name</th><th>Result</th><th>Formula</th><th>How calculated</th><th>Reason</th>
+        </tr></thead>
+        <tbody><tr><td colspan="7" class="muted">No step data — open Show details or check eligibility log</td></tr></tbody>
+      </table>
+    </div>
+    <pre class="json-detail hidden" id="lender-detail-0">{
+  &quot;code&quot;: &quot;ICICI&quot;,
+  &quot;lenderName&quot;: &quot;ICICI Bank&quot;,
+  &quot;eligible&quot;: true,
+  &quot;score&quot;: 77,
+  &quot;rank&quot;: 1,
+  &quot;summary&quot;: null,
+  &quot;steps&quot;: [],
+  &quot;fullSteps&quot;: []
+}</pre>
+  </section>
+<section class="lender-card" id="lender-SCB">
+    <header class="lender-head">
+      <div>
+        <h3>Standard Chartered Bank <span class="code">SCB</span></h3>
+        <p class="muted"><span class="chip pass">PASS</span> Eligible
+          
+           · score 75
+           · rank #2
+        </p>
+      </div>
+      <button type="button" class="btn ghost toggle-detail" data-target="lender-detail-1">Show details</button>
+    </header>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Rule</th><th>Name</th><th>Result</th><th>Formula</th><th>How calculated</th><th>Reason</th>
+        </tr></thead>
+        <tbody><tr><td colspan="7" class="muted">No step data — open Show details or check eligibility log</td></tr></tbody>
+      </table>
+    </div>
+    <pre class="json-detail hidden" id="lender-detail-1">{
+  &quot;code&quot;: &quot;SCB&quot;,
+  &quot;lenderName&quot;: &quot;Standard Chartered Bank&quot;,
+  &quot;eligible&quot;: true,
+  &quot;score&quot;: 75,
+  &quot;rank&quot;: 2,
+  &quot;summary&quot;: null,
+  &quot;steps&quot;: [],
+  &quot;fullSteps&quot;: []
+}</pre>
+  </section>
+<section class="lender-card" id="lender-AXIS">
+    <header class="lender-head">
+      <div>
+        <h3>Axis Bank <span class="code">AXIS</span></h3>
+        <p class="muted"><span class="chip pass">PASS</span> Eligible
+          
+           · score 71
+           · rank #3
+        </p>
+      </div>
+      <button type="button" class="btn ghost toggle-detail" data-target="lender-detail-2">Show details</button>
+    </header>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Rule</th><th>Name</th><th>Result</th><th>Formula</th><th>How calculated</th><th>Reason</th>
+        </tr></thead>
+        <tbody><tr><td colspan="7" class="muted">No step data — open Show details or check eligibility log</td></tr></tbody>
+      </table>
+    </div>
+    <pre class="json-detail hidden" id="lender-detail-2">{
+  &quot;code&quot;: &quot;AXIS&quot;,
+  &quot;lenderName&quot;: &quot;Axis Bank&quot;,
+  &quot;eligible&quot;: true,
+  &quot;score&quot;: 71,
+  &quot;rank&quot;: 3,
+  &quot;summary&quot;: null,
+  &quot;steps&quot;: [],
+  &quot;fullSteps&quot;: []
+}</pre>
+  </section>
+<section class="lender-card" id="lender-HDFC">
+    <header class="lender-head">
+      <div>
+        <h3>HDFC Bank <span class="code">HDFC</span></h3>
+        <p class="muted"><span class="chip pass">PASS</span> Eligible
+          
+           · score 70
+           · rank #4
+        </p>
+      </div>
+      <button type="button" class="btn ghost toggle-detail" data-target="lender-detail-3">Show details</button>
+    </header>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Rule</th><th>Name</th><th>Result</th><th>Formula</th><th>How calculated</th><th>Reason</th>
+        </tr></thead>
+        <tbody><tr><td colspan="7" class="muted">No step data — open Show details or check eligibility log</td></tr></tbody>
+      </table>
+    </div>
+    <pre class="json-detail hidden" id="lender-detail-3">{
+  &quot;code&quot;: &quot;HDFC&quot;,
+  &quot;lenderName&quot;: &quot;HDFC Bank&quot;,
+  &quot;eligible&quot;: true,
+  &quot;score&quot;: 70,
+  &quot;rank&quot;: 4,
+  &quot;summary&quot;: null,
+  &quot;steps&quot;: [],
+  &quot;fullSteps&quot;: []
+}</pre>
+  </section>
+
+  <div id="sec-scoring"><section class="card"><h2>Scoring &amp; ranking</h2><p class="muted">No scoring data</p></section></div>
+  <div id="sec-http"></div>
+  <div id="sec-errors"></div>
+
+  <p class="muted" style="margin-top:24px;font-size:0.78rem">Generated 2026-09-05T07:11:27.427Z · ScaleX Automation Testing Suite</p>
+</div>
+<script type="application/json" id="run-data">{"meta":{"leadId":"178","leadName":"Parminder SIngh","loanType":"Business Loan","source":"strapi-readonly","runId":"23060f29-9535-46da-9498-1d73a387c03c","profile":{}},"lenders":[{"code":"ICICI","lenderName":"ICICI Bank","eligible":true,"score":77,"rank":1,"summary":null,"steps":[],"fullSteps":[]},{"code":"SCB","lenderName":"Standard Chartered Bank","eligible":true,"score":75,"rank":2,"summary":null,"steps":[],"fullSteps":[]},{"code":"AXIS","lenderName":"Axis Bank","eligible":true,"score":71,"rank":3,"summary":null,"steps":[],"fullSteps":[]},{"code":"HDFC","lenderName":"HDFC Bank","eligible":true,"score":70,"rank":4,"summary":null,"steps":[],"fullSteps":[]}],"scoring":[],"errors":[],"events":[{"stage":"replay","message":"Replayed from strapi-readonly","ts":"2026-09-05T07:11:27.425Z"}]}</script>
+<script>
+document.querySelectorAll('.toggle-detail').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var el = document.getElementById(btn.dataset.target);
+    if (!el) return;
+    var hidden = el.classList.toggle('hidden');
+    if (btn.textContent.indexOf('Show') === 0 || btn.textContent.indexOf('Hide') === 0) {
+      btn.textContent = hidden ? 'Show details' : 'Hide details';
+    }
+  });
+});
+</script>
+</body>
+</html>

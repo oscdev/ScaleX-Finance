@@ -1,7 +1,17 @@
+import { ensureDashboardListSortUrl } from '../LeadOverview/enforceListSettings';
+import {
+    applyConfiguredPageSize,
+    ensureDashboardListPageSizeUrl,
+    getLockedConfigPageSize,
+    getSharedPageSize,
+    rememberConfiguredPageSizeFromGet,
+} from './pageSizeSync';
+
 export const installFetchInterceptor = () => {
     const originalFetch = window.fetch;
+    (window as any)._strapiOriginalFetch = originalFetch.bind(window);
     window.fetch = async (...args) => {
-        const url = typeof args[0] === 'string' ? args[0] : (args[0] as any)?.url || '';
+        let url = typeof args[0] === 'string' ? args[0] : (args[0] as any)?.url || '';
         // Strapi's RTK Query may pass a Request object as args[0] with no args[1].
         // Always prefer the Request object's method over args[1].method so our
         // PUT/GET guards fire correctly regardless of which calling convention is used.
@@ -10,6 +20,24 @@ export const installFetchInterceptor = () => {
             (args[1] as any)?.method ||
             'GET'
         ).toUpperCase();
+
+        // Newest ID first on CM dashboard lists (all roles). After Configure the
+        // view save, also rewrite list pageSize while the config-save lock is on.
+        let fetchArgs = args as Parameters<typeof originalFetch>;
+        if (requestMethod === 'GET' && typeof url === 'string') {
+            const sortedUrl = ensureDashboardListSortUrl(url);
+            const pagedUrl = ensureDashboardListPageSizeUrl(sortedUrl);
+            if (pagedUrl !== url) {
+                url = pagedUrl;
+                const newArgs = [...fetchArgs] as Parameters<typeof originalFetch>;
+                if (typeof fetchArgs[0] === 'string') {
+                    newArgs[0] = pagedUrl;
+                } else if (fetchArgs[0] instanceof Request) {
+                    newArgs[0] = new Request(pagedUrl, fetchArgs[0] as Request);
+                }
+                fetchArgs = newArgs;
+            }
+        }
 
         // --- Token Capture Strategy ---
         const options = args[1] || {};
@@ -65,7 +93,7 @@ export const installFetchInterceptor = () => {
                         filteredUrl += `&filters[$or][1][parentAdvisorId][$eq]=${encodeURIComponent(advisorCode)}`;
                     }
                     filteredUrl += '&_leads_filtered=1';
-                    const newArgs = [...args] as Parameters<typeof originalFetch>;
+                    const newArgs = [...fetchArgs] as Parameters<typeof originalFetch>;
                     newArgs[0] = filteredUrl;
                     return originalFetch(...newArgs);
                 }
@@ -110,7 +138,7 @@ export const installFetchInterceptor = () => {
                         .map((id, idx) => `filters[id][$in][${idx}]=${id}`)
                         .join('&');
                     const filteredUrl = url + sep + idFilter + '&_leads_filtered=1';
-                    const newArgs = [...args] as Parameters<typeof originalFetch>;
+                    const newArgs = [...fetchArgs] as Parameters<typeof originalFetch>;
                     newArgs[0] = filteredUrl;
                     return originalFetch(...newArgs);
                 }
@@ -141,7 +169,7 @@ export const installFetchInterceptor = () => {
                 const filterKey = role === 'staff' ? 'assignedStaffId' : 'assignedBankerId';
                 const sep = url.includes('?') ? '&' : '?';
                 const filteredUrl = url + sep + `filters[${filterKey}][$eq]=${encodeURIComponent(adminUserId)}`;
-                const newArgs = [...args] as Parameters<typeof originalFetch>;
+                const newArgs = [...fetchArgs] as Parameters<typeof originalFetch>;
                 newArgs[0] = filteredUrl;
                 return originalFetch(...newArgs);
             }
@@ -150,7 +178,23 @@ export const installFetchInterceptor = () => {
 
         // ── Normalize configuration PUT payload before it reaches Strapi ─────────
         if (requestMethod === 'PUT' && url.includes('/content-manager/') && url.includes('configuration')) {
-            const forbiddenListFields = new Set(['id', 'documentId', 'publishedAt']);
+            const forbiddenListLayout = new Set(['id', 'documentId', 'publishedAt']);
+            const forbiddenMetadataKeys = new Set(['documentId', 'publishedAt']);
+            const isPageSizeSync =
+                (() => {
+                    try {
+                        const h = (args[1] as any)?.headers;
+                        if (h instanceof Headers) return h.get('X-Scalex-PageSize-Sync') === '1';
+                        if (h && typeof h === 'object') {
+                            return (h as any)['X-Scalex-PageSize-Sync'] === '1' ||
+                                (h as any)['x-scalex-pagesize-sync'] === '1';
+                        }
+                        if (args[0] instanceof Request) {
+                            return (args[0] as Request).headers.get('X-Scalex-PageSize-Sync') === '1';
+                        }
+                    } catch { /* ignore */ }
+                    return false;
+                })();
 
             try {
                 let rawBody: string | null = (args[1] as any)?.body ?? null;
@@ -166,27 +210,32 @@ export const installFetchInterceptor = () => {
                         payload.layouts.list = payload.layouts.list
                             .filter((f: any) => {
                                 const name = typeof f === 'string' ? f : (f?.name ?? '');
-                                return !forbiddenListFields.has(name);
+                                return !forbiddenListLayout.has(name);
                             });
                         if (payload.layouts.list.length === 0) payload.layouts.list = ['fullName'];
                     }
 
+                    // defaultSortBy may be `id` (newest-first lists). Only rewrite synthetic keys.
                     if (payload?.settings?.defaultSortBy &&
-                        forbiddenListFields.has(payload.settings.defaultSortBy)) {
+                        forbiddenMetadataKeys.has(payload.settings.defaultSortBy)) {
                         const first = payload.layouts?.list?.[0];
                         payload.settings.defaultSortBy = (typeof first === 'string' ? first : first?.name) ?? 'fullName';
                     }
 
-                    // Strapi v5 PUT validation rejects 'visible' inside metadatas[*].list —
-                    // it is not in the allowed schema for that object. Our GET interceptor
-                    // injects it so field visibility is controlled in the UI, but we must
-                    // remove it before sending the PUT back to Strapi.
+                    // Keep metadatas.id — list GET injects `id` into layouts.list and needs list.label.
+                    // Drop documentId / publishedAt (GET-only) and list.visible / list.mainField (yup).
                     if (payload?.metadatas) {
-                        Object.values(payload.metadatas).forEach((meta: any) => {
-                            if (meta?.list && 'visible' in meta.list) {
-                                delete meta.list.visible;
+                        for (const key of Object.keys(payload.metadatas)) {
+                            if (forbiddenMetadataKeys.has(key)) {
+                                delete payload.metadatas[key];
+                                continue;
                             }
-                        });
+                            const meta = payload.metadatas[key];
+                            if (meta?.list) {
+                                delete meta.list.visible;
+                                delete meta.list.mainField;
+                            }
+                        }
                     }
 
                     const normalizedBody = JSON.stringify(payload);
@@ -195,22 +244,37 @@ export const installFetchInterceptor = () => {
                     if (args[0] instanceof Request) {
                         configRes = await originalFetch(new Request(args[0] as Request, { body: normalizedBody }));
                     } else {
-                        const newArgs = [...args] as Parameters<typeof originalFetch>;
+                        const newArgs = [...fetchArgs] as Parameters<typeof originalFetch>;
                         newArgs[1] = { ...(args[1] as any), body: normalizedBody };
                         configRes = await originalFetch(...newArgs);
                     }
 
                     if (!configRes.ok) {
+                        // Footer↔config sync must see real failures (do not fake 200).
+                        if (isPageSizeSync) return configRes;
                         return new Response(JSON.stringify({ data: payload }), {
                             status: 200, headers: { 'Content-Type': 'application/json' },
                         });
                     }
+
+                    // Configure the view saved pageSize → keep footer Entries per page in sync.
+                    // Prefer a dropdown click already locked in memory if the PUT body is stale.
+                    const uidM = url.match(/\/content-types\/(api::[^/?#]+)\/configuration/);
+                    const cfgUid = uidM?.[1];
+                    const lockedPs = cfgUid ? getLockedConfigPageSize(cfgUid) : null;
+                    const savedPs = Number(payload?.settings?.pageSize);
+                    const ps = lockedPs ?? (Number.isFinite(savedPs) && savedPs > 0 ? savedPs : null);
+                    if (cfgUid && ps) {
+                        applyConfiguredPageSize(cfgUid, ps, { forceUrl: true });
+                    }
+
                     return configRes;
                 }
             } catch (_) {}
 
-            const fallback = await originalFetch(...args);
+            const fallback = await originalFetch(...fetchArgs);
             if (!fallback.ok) {
+                if (isPageSizeSync) return fallback;
                 return new Response(JSON.stringify({ data: {} }), {
                     status: 200, headers: { 'Content-Type': 'application/json' },
                 });
@@ -245,7 +309,7 @@ export const installFetchInterceptor = () => {
                     if (args[0] instanceof Request) {
                         return originalFetch(new Request(newUrl, args[0] as Request));
                     }
-                    const newArgs = [...args] as Parameters<typeof originalFetch>;
+                    const newArgs = [...fetchArgs] as Parameters<typeof originalFetch>;
                     newArgs[0] = newUrl;
                     return originalFetch(...newArgs);
                 } catch (_) {}
@@ -271,7 +335,7 @@ export const installFetchInterceptor = () => {
             ? (window as any)._pendingEditRole as string | undefined
             : undefined;
 
-        const response = await originalFetch(...args);
+        const response = await originalFetch(...fetchArgs);
 
         // ── Save product mapping after admin user invite succeeds ─────────────
         // When the "Invite new user" form is submitted, Strapi POSTs to /admin/users.
@@ -401,6 +465,75 @@ export const installFetchInterceptor = () => {
             'advisorStatus',
         ];
 
+        /** ListView crashes if layouts.list has a schema field without metadatas[f].list.label. */
+        const ensureListFieldMetadatas = (
+            target: any,
+            fields: string[],
+            labels: Record<string, string>,
+        ) => {
+            if (!target.metadatas) target.metadatas = {};
+            let changed = false;
+            for (const f of fields) {
+                const label = labels[f.toLowerCase()] || labels[f] || f;
+                if (!target.metadatas[f]) {
+                    target.metadatas[f] = {
+                        edit: {
+                            label,
+                            description: '',
+                            placeholder: '',
+                            visible: true,
+                            editable: true,
+                        },
+                        list: {
+                            label,
+                            searchable: true,
+                            sortable: true,
+                            visible: true,
+                        },
+                    };
+                    changed = true;
+                    continue;
+                }
+                if (!target.metadatas[f].list) {
+                    target.metadatas[f].list = {
+                        label,
+                        searchable: true,
+                        sortable: true,
+                        visible: true,
+                    };
+                    changed = true;
+                } else {
+                    if (
+                        target.metadatas[f].list.label == null ||
+                        target.metadatas[f].list.label === ''
+                    ) {
+                        target.metadatas[f].list.label = label;
+                        changed = true;
+                    }
+                    if (typeof target.metadatas[f].list.searchable !== 'boolean') {
+                        target.metadatas[f].list.searchable = true;
+                        changed = true;
+                    }
+                    if (typeof target.metadatas[f].list.sortable !== 'boolean') {
+                        target.metadatas[f].list.sortable = true;
+                        changed = true;
+                    }
+                    if (target.metadatas[f].list.visible !== true) {
+                        target.metadatas[f].list.visible = true;
+                        changed = true;
+                    }
+                }
+                if (!target.metadatas[f].edit) {
+                    target.metadatas[f].edit = { label };
+                    changed = true;
+                } else if (!target.metadatas[f].edit.label) {
+                    target.metadatas[f].edit.label = label;
+                    changed = true;
+                }
+            }
+            return changed;
+        };
+
         if (
             requestMethod === 'GET' &&
             (
@@ -421,23 +554,22 @@ export const installFetchInterceptor = () => {
 
                 let modified = false;
 
-                // 0. Generic: capture configured pageSize for any collection so
-                //    injectEarlyCSS._fixCollectionPageSize can sync the URL on
-                //    navigation. Covers api::lead.lead, api::advisor.advisor,
-                //    api::activity-log.activity-log, api::lender-master.lenders-catalog,
-                //    api::product.product, and any future collection types.
+                // 0. Generic: overlay shared pageSize onto Configure the view settings.
+                //    Do not let a stale server 20 overwrite a footer-driven value.
                 if (url.includes('configuration') && json?.data) {
                     const uidM = url.match(/\/content-types\/(api::[^/?#]+)\/configuration/);
                     const uid = uidM?.[1];
                     if (uid) {
                         const tgt = (json.data as any).contentType || json.data;
-                        const cfgPs = tgt?.settings?.pageSize;
-                        if (cfgPs) {
-                            if (!(window as any)._configuredPageSizes) (window as any)._configuredPageSizes = {};
-                            if ((window as any)._configuredPageSizes[uid] !== cfgPs) {
-                                (window as any)._configuredPageSizes[uid] = cfgPs;
-                                setTimeout(() => (window as any)._fixCollectionPageSize?.(), 0);
+                        const memPs = getSharedPageSize(uid);
+                        const cfgPs = Number(tgt?.settings?.pageSize);
+                        if (tgt?.settings && memPs != null) {
+                            if (tgt.settings.pageSize !== memPs) {
+                                tgt.settings.pageSize = memPs;
+                                modified = true;
                             }
+                        } else if (Number.isFinite(cfgPs) && cfgPs > 0) {
+                            rememberConfiguredPageSizeFromGet(uid, cfgPs);
                         }
                     }
                 }
@@ -449,6 +581,13 @@ export const installFetchInterceptor = () => {
 
                         if (target.layouts && target.layouts.list) {
                             target.layouts.list = customDefaultSequence;
+                            modified = true;
+                        }
+                        // Newest lead ID first for Admin / Advisor / Staff / Banker
+                        if (!target.settings) target.settings = {};
+                        if (target.settings.defaultSortBy !== 'id' || String(target.settings.defaultSortOrder || '').toUpperCase() !== 'DESC') {
+                            target.settings.defaultSortBy = 'id';
+                            target.settings.defaultSortOrder = 'DESC';
                             modified = true;
                         }
                         if (target.metadatas) {
@@ -463,19 +602,16 @@ export const installFetchInterceptor = () => {
                                     modified = true;
                                 }
                             });
-                             // Force visibility for our mandatory sequence specifically
-                             customDefaultSequence.forEach(f => {
-                                 if (target.metadatas[f]) {
-                                     if (!target.metadatas[f].list) target.metadatas[f].list = {};
-                                     target.metadatas[f].list.visible = true;
-                                     modified = true;
-                                 }
-                             });
+                             if (ensureListFieldMetadatas(target, customDefaultSequence, labelMap)) {
+                                 modified = true;
+                             }
                              // Force hide Locale if it exists
                              if (target.metadatas.locale && target.metadatas.locale.list) {
                                  target.metadatas.locale.list.visible = false;
                                  modified = true;
                              }
+                        } else if (ensureListFieldMetadatas(target, customDefaultSequence, labelMap)) {
+                            modified = true;
                         }
                     }
                 }
@@ -490,19 +626,18 @@ export const installFetchInterceptor = () => {
                             leadCT.layouts.list = customDefaultSequence;
                             modified = true;
                         }
-                        if (leadCT.metadatas) {
-                             customDefaultSequence.forEach(f => {
-                                 if (leadCT.metadatas[f]) {
-                                     if (!leadCT.metadatas[f].list) leadCT.metadatas[f].list = {};
-                                     leadCT.metadatas[f].list.visible = true;
-                                     const cleanKey = f.toLowerCase();
-                                     if (labelMap[cleanKey]) {
-                                         leadCT.metadatas[f].list.label = labelMap[cleanKey];
-                                     }
-                                     modified = true;
-                                 }
-                             });
-                             if (leadCT.metadatas.locale) leadCT.metadatas.locale.list.visible = false;
+                        if (!leadCT.settings) leadCT.settings = {};
+                        if (leadCT.settings.defaultSortBy !== 'id' || String(leadCT.settings.defaultSortOrder || '').toUpperCase() !== 'DESC') {
+                            leadCT.settings.defaultSortBy = 'id';
+                            leadCT.settings.defaultSortOrder = 'DESC';
+                            modified = true;
+                        }
+                        if (ensureListFieldMetadatas(leadCT, customDefaultSequence, labelMap)) {
+                            modified = true;
+                        }
+                        if (leadCT.metadatas?.locale?.list) {
+                            leadCT.metadatas.locale.list.visible = false;
+                            modified = true;
                         }
                     }
 
@@ -513,18 +648,17 @@ export const installFetchInterceptor = () => {
                             advisorCT.layouts.list = advisorSequence;
                             modified = true;
                         }
-                        if (advisorCT.metadatas) {
-                            advisorSequence.forEach(f => {
-                                if (advisorCT.metadatas[f]) {
-                                    if (!advisorCT.metadatas[f].list) advisorCT.metadatas[f].list = {};
-                                    advisorCT.metadatas[f].list.visible = true;
-                                    const cleanKey = f.toLowerCase();
-                                    if (advisorLabelMap[cleanKey]) {
-                                        advisorCT.metadatas[f].list.label = advisorLabelMap[cleanKey];
-                                    }
-                                    modified = true;
-                                }
-                            });
+                        if (!advisorCT.settings) advisorCT.settings = {};
+                        if (
+                            advisorCT.settings.defaultSortBy !== 'advisorId' ||
+                            String(advisorCT.settings.defaultSortOrder || '').toUpperCase() !== 'DESC'
+                        ) {
+                            advisorCT.settings.defaultSortBy = 'advisorId';
+                            advisorCT.settings.defaultSortOrder = 'DESC';
+                            modified = true;
+                        }
+                        if (ensureListFieldMetadatas(advisorCT, advisorSequence, advisorLabelMap)) {
+                            modified = true;
                         }
                     }
                 }
@@ -535,6 +669,15 @@ export const installFetchInterceptor = () => {
                         const target = json.data.contentType || json.data;
                         if (target.layouts && target.layouts.list) {
                             target.layouts.list = advisorSequence;
+                            modified = true;
+                        }
+                        if (!target.settings) target.settings = {};
+                        if (
+                            target.settings.defaultSortBy !== 'advisorId' ||
+                            String(target.settings.defaultSortOrder || '').toUpperCase() !== 'DESC'
+                        ) {
+                            target.settings.defaultSortBy = 'advisorId';
+                            target.settings.defaultSortOrder = 'DESC';
                             modified = true;
                         }
                         if (target.metadatas) {
@@ -548,14 +691,21 @@ export const installFetchInterceptor = () => {
                                     modified = true;
                                 }
                             });
-                            advisorSequence.forEach(f => {
-                                if (target.metadatas[f]) {
-                                    if (!target.metadatas[f].list) target.metadatas[f].list = {};
-                                    target.metadatas[f].list.visible = true;
-                                    modified = true;
-                                }
-                            });
                         }
+                        if (ensureListFieldMetadatas(target, advisorSequence, advisorLabelMap)) {
+                            modified = true;
+                        }
+                    }
+                }
+
+                // Safety net: any collection list column must have list.label
+                if (url.includes('configuration') && json?.data) {
+                    const tgt = (json.data as any).contentType || json.data;
+                    const listFields: string[] = Array.isArray(tgt?.layouts?.list)
+                        ? tgt.layouts.list.map((f: any) => (typeof f === 'string' ? f : f?.name)).filter(Boolean)
+                        : [];
+                    if (listFields.length && ensureListFieldMetadatas(tgt, listFields, { ...labelMap, ...advisorLabelMap })) {
+                        modified = true;
                     }
                 }
 

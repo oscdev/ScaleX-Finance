@@ -83,7 +83,7 @@ export default function AdvisorDashboard() {
 
     const fetchLeads = async (advisorId: string, token: string) => {
         try {
-            const res = await fetch(strapiPublicApi(`/api/leads?filters[advisorReferralId][$eq]=${advisorId}&sort=createdAt:desc`), {
+            const res = await fetch(strapiPublicApi(`/api/leads?filters[advisorReferralId][$eq]=${advisorId}&sort=id:desc`), {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
