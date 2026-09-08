@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Personal Loan run — Test User</title>
+<link rel="stylesheet" href="/suite/styles.css" />
+<style>
+  .report-wrap { max-width: 1200px; margin: 0 auto; padding: 24px 16px 64px; }
+  .report-meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 12px; }
+  .sticky-nav { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0; background: var(--bg); border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .sticky-nav a { font-size: 0.78rem; font-weight: 650; text-decoration: none; padding: 4px 10px; border-radius: 999px; background: var(--accent-light); color: var(--accent-dark); }
+  .elig-toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 12px; }
+  .elig-toolbar select { min-width: min(100%, 280px); padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); font-size: 0.95rem; }
+  #lender-select { min-width: min(100%, 360px); }
+  .elig-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0 0 14px; }
+  @media (max-width: 720px) { .elig-stats { grid-template-columns: 1fr; } }
+  .elig-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .elig-stat .v { font-size: 1.4rem; font-weight: 700; }
+  .elig-stat .l { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+  .elig-stat.pass .v { color: #1f7a4d; }
+  .elig-stat.fail .v { color: #b42318; }
+  .elig-summary { font-size: 0.85rem; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border); background: var(--surface); }
+  .badge.yes { color: #1f7a4d; border-color: #b7e0c8; background: #eefaf3; }
+  .badge.no { color: #b42318; border-color: #f0c4c0; background: #fdf2f1; }
+  .elig-callout { border-radius: 8px; padding: 12px 14px; margin: 0 0 12px; border: 1px solid var(--border); background: var(--surface); font-size: 0.9rem; }
+  .elig-callout.ok { border-color: #b7e0c8; background: #eefaf3; color: #145c38; }
+  .elig-callout.danger { border-color: #f0c4c0; background: #fdf2f1; color: #7a1c14; }
+  .lender-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; }
+  .lender-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .lender-head h3 { margin: 0; font-size: 1.05rem; }
+  .lender-head .code { color: var(--muted); font-weight: 500; }
+  .json-detail { display: block; margin: 0; padding: 12px 16px; background: #f4f6f9; font-size: 0.75rem; overflow: auto; max-height: 360px; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; white-space: pre-wrap; word-break: break-word; }
+  .json-detail.hidden, .json-detail[hidden] { display: none !important; }
+  .json-detail h4 { margin: 8px 0 4px; font-size: 0.8rem; }
+  .json-detail pre { margin: 0 0 12px; white-space: pre-wrap; word-break: break-word; }
+  .timeline { list-style: none; padding: 0; margin: 0; }
+  .timeline li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+  .timeline time { display: block; font-size: 0.72rem; color: var(--muted); }
+  .chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+  .chip.pass { background: #e6f4ed; color: #1f7a4d; }
+  .chip.fail { background: #fdecea; color: #b42318; }
+  .chip.skip { background: #fff8e6; color: #9a6700; }
+  .chip.notrun { background: #f0f0ec; color: #6b7280; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: #eef2f7; font-weight: 650; }
+  td.num { text-align: right; width: 40px; }
+  td.formula { font-family: ui-monospace, monospace; font-size: 0.75rem; }
+  .table-wrap { overflow-x: auto; }
+  .muted { color: var(--muted); }
+  .back { margin-bottom: 12px; display: inline-block; }
+  .field-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .field-card { background: #f7fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .field-card.missing { border-style: dashed; opacity: 0.85; }
+  .field-card .fk { display: block; font-size: 0.7rem; color: var(--muted); margin-bottom: 4px; }
+  .field-card .fv { font-weight: 600; font-size: 0.9rem; word-break: break-word; }
+  .step-tag { font-size: 0.72rem; font-weight: 600; color: var(--muted); margin-left: 8px; }
+  .funnel-step h2 { font-size: 1.02rem; }
+  .doc-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .doc-chip { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; min-width: 180px; background: #fff; }
+  .doc-chip.ok { border-color: #b7e0c8; }
+  .doc-chip.fail { border-color: #f0c4c0; background: #fffbfb; }
+  .doc-chip .path { display: block; font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
+  .error-callout { background: #fff5f5; border: 1px solid #f0c4c0; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  .error-callout.warn { background: #fff8e6; border-color: #e6d19a; }
+  .subh { font-size: 0.95rem; margin: 18px 0 8px; color: var(--accent-dark); }
+  .btn.ghost { margin-top: 10px; }
+  h2 { scroll-margin-top: 56px; }
+</style>
+</head>
+<body>
+<div class="report-wrap">
+  <a class="back" href="/suite/">← Back to suite</a>
+  <h1>Personal Loan run — Test User</h1>
+  <p class="report-meta">
+    Mode: <strong>offline-fail-lab</strong>
+    · runId 22645761-a717-4351-b191-91d8409da09b
+    · lead <strong>offline</strong>
+    · loan-app —
+  </p>
+  <nav class="sticky-nav">
+    <a href="#sec-timeline">Timeline</a>
+    <a href="#sec-forms">Forms</a>
+    <a href="#sec-bureau">Bureau</a>
+    <a href="#sec-eligibility">Eligibility</a>
+    <a href="#sec-scoring">Scoring</a>
+    <a href="#sec-errors">Errors</a>
+  </nav>
+
+  <section class="card" id="sec-timeline" style="margin-bottom:20px">
+    <h2>Timeline — what happened</h2>
+    <ol class="timeline"><li class="tl-form">
+        <time>2026-09-05T12:49:09.869Z</time>
+        <strong>form</strong>
+        <span>Loading personal-loan customer fixture</span>
+      </li><li class="tl-form">
+        <time>2026-09-05T12:49:10.070Z</time>
+        <strong>form</strong>
+        <span>Customer form data ready (offline)</span>
+      </li><li class="tl-bureau">
+        <time>2026-09-05T12:49:10.070Z</time>
+        <strong>bureau</strong>
+        <span>Loading sample bureau extraction fixture</span>
+      </li><li class="tl-bureau">
+        <time>2026-09-05T12:49:10.320Z</time>
+        <strong>bureau</strong>
+        <span>Bureau sample loaded — CIBIL 750</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.320Z</time>
+        <strong>eligibility</strong>
+        <span>Running eligibility pipeline (offline simulation)</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.320Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-PRE-ACTIVE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.361Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-PINCODE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.401Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-CIBIL → FAIL</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.441Z</time>
+        <strong>eligibility</strong>
+        <span>SBI not eligible</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.441Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-PRE-ACTIVE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.482Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-PINCODE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.522Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-CIBIL → FAIL</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.562Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC not eligible</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.562Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-PRE-ACTIVE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.602Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-PINCODE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.643Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-CIBIL → FAIL</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.683Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS not eligible</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.683Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-PRE-ACTIVE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.723Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-PINCODE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.763Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-CIBIL → FAIL</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.803Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI not eligible</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-05T12:49:10.803Z</time>
+        <strong>eligibility</strong>
+        <span>Eligibility complete</span>
+      </li><li class="tl-scoring">
+        <time>2026-09-05T12:49:10.803Z</time>
+        <strong>scoring</strong>
+        <span>Scoring eligible lenders (offline)</span>
+      </li><li class="tl-scoring">
+        <time>2026-09-05T12:49:10.803Z</time>
+        <strong>scoring</strong>
+        <span>Scoring complete</span>
+      </li><li class="tl-rank">
+        <time>2026-09-05T12:49:10.803Z</time>
+        <strong>rank</strong>
+        <span>Ranking lenders</span>
+      </li><li class="tl-rank">
+        <time>2026-09-05T12:49:10.803Z</time>
+        <strong>rank</strong>
+        <span>Ranking complete</span>
+      </li></ol>
+  </section>
+
+  <div id="sec-forms">
+    <section class="card">
+      <h2>0. Lead form</h2>
+      <p class="muted">Personal Loan — funnel steps below match the selected product.</p>
+      <div class="field-grid"><div class="field-card missing">
+    <span class="fk">Full Name</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Email</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Mobile Number</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Required Amount</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Pincode</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Selected Product</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Aadhaar</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">PAN</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Employment Type</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Lead Type</span>
+    <span class="fv">—</span>
+  </div></div>
+    </section>
+    <section class="card funnel-step">
+      <h2>1. Personal Details <span class="step-tag">Personal</span></h2>
+      <div class="field-grid"><div class="field-card missing">
+    <span class="fk">Date of Birth</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Marital Status</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Spouse Name</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Mother Name</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Alternate Number</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Dependents</span>
+    <span class="fv">—</span>
+  </div></div>
+    </section><section class="card funnel-step">
+      <h2>2. Residence Details <span class="step-tag">Residence</span></h2>
+      <div class="field-grid"><div class="field-card missing">
+    <span class="fk">Address Line 1</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Address Line 2</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Landmark</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">State</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">District</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">City</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Residence Type</span>
+    <span class="fv">—</span>
+  </div></div>
+    </section><section class="card funnel-step">
+      <h2>3. Income Details <span class="step-tag">Income</span></h2>
+      <div class="field-grid"><div class="field-card missing">
+    <span class="fk">Company Name</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Designation</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Company Address</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Net Salary (Per Month)</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Salary Mode</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Current Job Stability (Months)</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">PF Deducted</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Other Income</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Income Source</span>
+    <span class="fv">—</span>
+  </div><div class="field-card missing">
+    <span class="fk">Income Amount</span>
+    <span class="fv">—</span>
+  </div></div>
+    </section><section class="card funnel-step">
+      <h2>4. Running Loan (If Any) <span class="step-tag">Other</span></h2>
+      <div class="field-grid"><div class="field-card missing">
+    <span class="fk">Running Loans</span>
+    <span class="fv">—</span>
+  </div></div>
+    </section><section class="card funnel-step">
+        <h2>5. Documents <span class="step-tag">Docs</span></h2>
+        <p class="muted">No documents recorded for this run.</p>
+      </section>
+  </div>
+
+  <div id="sec-bureau"><section class="card"><h2>3. Bureau extraction</h2><p class="muted">Not run</p></section></div>
+
+  <h2 id="sec-eligibility" style="margin:24px 0 12px">4. AI Match — Eligibility (formulas + values)</h2>
+  <p class="muted">Pick a lender to inspect. Each row shows formula, applicant value vs threshold, and Pass/Fail/Skip.</p>
+  <div class="elig-stats" id="elig-stats">
+    <div class="elig-stat pass"><div class="v">0</div><div class="l">Eligible (PASS)</div></div>
+    <div class="elig-stat fail"><div class="v">4</div><div class="l">Not eligible (FAIL)</div></div>
+    <div class="elig-stat"><div class="v">4</div><div class="l">Total lenders · Personal Loan</div></div>
+  </div>
+  <div class="elig-toolbar">
+    <label for="lender-filter"><strong>Show</strong></label>
+    <select id="lender-filter" aria-label="Filter lenders by eligibility">
+      <option value="all">All lenders</option>
+      <option value="pass">Eligible only</option>
+      <option value="fail">Failed only</option>
+    </select>
+    <label for="lender-select"><strong>Lender</strong></label>
+    <select id="lender-select" aria-label="Select lender for eligibility detail"></select>
+    <span id="elig-badge" class="badge"></span>
+  </div>
+  <p id="elig-callout" class="elig-callout" hidden></p>
+  <section class="lender-card" id="elig-panel">
+    <header class="lender-head">
+      <div>
+        <h3 id="elig-title">—</h3>
+        <p class="muted" id="elig-meta"></p>
+      </div>
+      <button type="button" class="btn ghost" id="elig-detail-btn">Show details</button>
+    </header>
+    <pre class="json-detail hidden" id="elig-json" hidden></pre>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Rule</th><th>Name</th><th>Result</th><th>Formula</th><th>How calculated</th><th>Reason</th>
+        </tr></thead>
+        <tbody id="elig-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div id="sec-scoring"><div class="card" id="sec-scoring-card">
+      <h2>5. Scoring &amp; ranking</h2>
+      <p class="muted">No scoring data</p>
+    </div></div>
+  <div id="sec-errors"><section class="card"><h2>Errors &amp; warnings</h2><p class="muted">No errors or warnings.</p></section></div>
+
+  <p class="muted" style="margin-top:24px;font-size:0.78rem">Generated 2026-09-05T12:49:10.814Z · ScaleX Automation Testing Suite</p>
+</div>
+<script type="application/json" id="run-data">{"meta":{"runId":"22645761-a717-4351-b191-91d8409da09b","product":"personal-loan","leadId":"offline","leadName":"Test User","source":"offline-fail-lab","loanType":"Personal Loan","failLab":true,"profile":{"pin":"440001","amount":500000,"cibil":750}},"events":[{"stage":"form","status":"start","message":"Loading personal-loan customer fixture","data":{"fullName":"Test User","loanAmount":500000},"ts":"2026-09-05T12:49:09.869Z"},{"stage":"form","status":"complete","message":"Customer form data ready (offline)","data":{"fields":33},"ts":"2026-09-05T12:49:10.070Z"},{"stage":"bureau","status":"start","message":"Loading sample bureau extraction fixture","ts":"2026-09-05T12:49:10.070Z"},{"stage":"bureau","status":"complete","message":"Bureau sample loaded — CIBIL 750","data":{"cibil_score":750,"open_accounts":1},"ts":"2026-09-05T12:49:10.320Z"},{"stage":"eligibility","status":"start","message":"Running eligibility pipeline (offline simulation)","ts":"2026-09-05T12:49:10.320Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-PRE-ACTIVE → PASS","data":{"lender":"SBI","step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},"ts":"2026-09-05T12:49:10.320Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-PINCODE → PASS","data":{"lender":"SBI","step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},"ts":"2026-09-05T12:49:10.361Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-CIBIL → FAIL","data":{"lender":"SBI","step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"FAIL","evaluation":"750 >= 800 → FAIL","reason":"CIBIL below lender minimum"},"ts":"2026-09-05T12:49:10.401Z"},{"stage":"eligibility","status":"lender","message":"SBI not eligible","data":{"code":"SBI","eligible":false,"failedAt":"PL-CIBIL"},"ts":"2026-09-05T12:49:10.441Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-PRE-ACTIVE → PASS","data":{"lender":"HDFC","step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},"ts":"2026-09-05T12:49:10.441Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-PINCODE → PASS","data":{"lender":"HDFC","step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},"ts":"2026-09-05T12:49:10.482Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-CIBIL → FAIL","data":{"lender":"HDFC","step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"FAIL","evaluation":"750 >= 800 → FAIL","reason":"CIBIL below lender minimum"},"ts":"2026-09-05T12:49:10.522Z"},{"stage":"eligibility","status":"lender","message":"HDFC not eligible","data":{"code":"HDFC","eligible":false,"failedAt":"PL-CIBIL"},"ts":"2026-09-05T12:49:10.562Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-PRE-ACTIVE → PASS","data":{"lender":"AXIS","step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},"ts":"2026-09-05T12:49:10.562Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-PINCODE → PASS","data":{"lender":"AXIS","step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},"ts":"2026-09-05T12:49:10.602Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-CIBIL → FAIL","data":{"lender":"AXIS","step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"FAIL","evaluation":"750 >= 800 → FAIL","reason":"CIBIL below lender minimum"},"ts":"2026-09-05T12:49:10.643Z"},{"stage":"eligibility","status":"lender","message":"AXIS not eligible","data":{"code":"AXIS","eligible":false,"failedAt":"PL-CIBIL"},"ts":"2026-09-05T12:49:10.683Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-PRE-ACTIVE → PASS","data":{"lender":"ICICI","step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},"ts":"2026-09-05T12:49:10.683Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-PINCODE → PASS","data":{"lender":"ICICI","step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},"ts":"2026-09-05T12:49:10.723Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-CIBIL → FAIL","data":{"lender":"ICICI","step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"FAIL","evaluation":"750 >= 800 → FAIL","reason":"CIBIL below lender minimum"},"ts":"2026-09-05T12:49:10.763Z"},{"stage":"eligibility","status":"lender","message":"ICICI not eligible","data":{"code":"ICICI","eligible":false,"failedAt":"PL-CIBIL"},"ts":"2026-09-05T12:49:10.803Z"},{"stage":"eligibility","status":"complete","message":"Eligibility complete","ts":"2026-09-05T12:49:10.803Z"},{"stage":"scoring","status":"start","message":"Scoring eligible lenders (offline)","ts":"2026-09-05T12:49:10.803Z"},{"stage":"scoring","status":"complete","message":"Scoring complete","ts":"2026-09-05T12:49:10.803Z"},{"stage":"rank","status":"start","message":"Ranking lenders","ts":"2026-09-05T12:49:10.803Z"},{"stage":"rank","status":"complete","message":"Ranking complete","ts":"2026-09-05T12:49:10.803Z"}],"lenders":[{"code":"AXIS","lenderName":"Axis Bank","eligible":false,"failedAt":"PL-CIBIL","failedStep":3,"passed":2,"failed":1,"skipped":0,"notRun":16,"steps":[{"step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},{"step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},{"step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"FAIL","evaluation":"750 >= 800 → FAIL","reason":"CIBIL below lender minimum"}]},{"code":"HDFC","lenderName":"HDFC Bank","eligible":false,"failedAt":"PL-CIBIL","failedStep":3,"passed":2,"failed":1,"skipped":0,"notRun":16,"steps":[{"step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},{"step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},{"step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"FAIL","evaluation":"750 >= 800 → FAIL","reason":"CIBIL below lender minimum"}]},{"code":"ICICI","lenderName":"ICICI Bank","eligible":false,"failedAt":"PL-CIBIL","failedStep":3,"passed":2,"failed":1,"skipped":0,"notRun":16,"steps":[{"step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},{"step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},{"step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"FAIL","evaluation":"750 >= 800 → FAIL","reason":"CIBIL below lender minimum"}]},{"code":"SBI","lenderName":"State Bank of India","eligible":false,"failedAt":"PL-CIBIL","failedStep":3,"passed":2,"failed":1,"skipped":0,"notRun":16,"steps":[{"step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},{"step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},{"step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"FAIL","evaluation":"750 >= 800 → FAIL","reason":"CIBIL below lender minimum"}]}],"scoring":[],"errors":[]}</script>
+<script>
+(function() {
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function chip(result) {
+    var r = String(result || '').toUpperCase();
+    var cls = ({
+      PASS: 'chip pass', FAIL: 'chip fail', SKIP: 'chip skip',
+      NOT_RUN: 'chip notrun', NOT_EVALUATED: 'chip notrun',
+      SCORED: 'chip pass', OK: 'chip pass', ERROR: 'chip fail', WARN: 'chip skip'
+    })[r] || 'chip';
+    return '<span class="' + cls + '">' + escapeHtml(r || '—') + '</span>';
+  }
+  function fmtJson(v) {
+    if (v == null || v === '') return '—';
+    if (typeof v === 'object') return escapeHtml(JSON.stringify(v));
+    return escapeHtml(String(v));
+  }
+  function loadRun() {
+    var el = document.getElementById('run-data');
+    if (!el) return null;
+    try { return JSON.parse(el.textContent); } catch (e) { return null; }
+  }
+  var RUN = loadRun();
+  var lenders = ((RUN && RUN.lenders) || []).map(function(l) {
+    var steps = l.fullSteps || l.steps || [];
+    var stepFail = steps.some(function(s) { return String(s.result || '').toUpperCase() === 'FAIL'; });
+    var eligible = !(stepFail || l.failedAt) && l.eligible === true;
+    return Object.assign({}, l, { eligible: eligible });
+  });
+  var scoring = (RUN && RUN.scoring) || [];
+
+  function setJsonPanelVisible(el, btn, show, showLabel, hideLabel) {
+    if (!el) return;
+    if (show) {
+      el.classList.remove('hidden');
+      el.removeAttribute('hidden');
+      el.style.display = 'block';
+    } else {
+      el.classList.add('hidden');
+      el.setAttribute('hidden', '');
+      el.style.display = 'none';
+    }
+    if (btn) btn.textContent = show ? (hideLabel || 'Hide details') : (showLabel || 'Show details');
+  }
+
+  function lenderEligibilityJson(lender) {
+    if (lender && lender.eligibility && typeof lender.eligibility === 'object') {
+      return lender.eligibility;
+    }
+    var code = lender && lender.code;
+    var rules = lender.fullSteps || lender.steps || [];
+    if (rules.length) {
+      var passed = rules.filter(function(s) { return String(s.result || '').toUpperCase() === 'PASS'; }).length;
+      var failed = rules.filter(function(s) { return String(s.result || '').toUpperCase() === 'FAIL'; }).length;
+      return {
+        leadId: RUN && RUN.meta ? RUN.meta.leadId : null,
+        loanType: RUN && RUN.meta ? (RUN.meta.loanType || RUN.meta.product) : null,
+        lenderCode: code,
+        lenderName: lender.lenderName || null,
+        lenderType: lender.lenderType || null,
+        eligible: lender.eligible === true,
+        failedAt: lender.failedAt || null,
+        errorCode: lender.errorCode || null,
+        score: lender.score != null ? lender.score : null,
+        rank: lender.rank != null ? lender.rank : null,
+        passed: passed,
+        failed: failed,
+        rules: rules.map(function(s) {
+          return {
+            step: s.step,
+            ruleId: s.ruleId,
+            ruleName: s.ruleName,
+            formula: s.formula,
+            applicantValue: s.applicantValue != null ? s.applicantValue : s.applicant,
+            threshold: s.threshold,
+            result: s.result,
+            reason: s.reason != null ? s.reason : null,
+            errorCode: s.errorCode != null ? s.errorCode : null,
+            evaluation: s.evaluation != null ? s.evaluation : null,
+            branchUsed: s.branchUsed != null ? s.branchUsed : undefined,
+            matchMode: s.matchMode != null ? s.matchMode : undefined
+          };
+        })
+      };
+    }
+    return {
+      lenderCode: code,
+      lenderName: lender.lenderName,
+      lenderType: lender.lenderType,
+      eligible: lender.eligible,
+      score: lender.score,
+      rank: lender.rank,
+      failedAt: lender.failedAt || null,
+      errorCode: lender.errorCode || null,
+      rules: []
+    };
+  }
+
+  function isEligible(l) {
+    return l && l.eligible === true;
+  }
+
+  function renderLender() {
+    var sel = document.getElementById('lender-select');
+    if (!sel || !lenders.length) return;
+    var lender = lenders.find(function(l) { return l.code === sel.value; }) || lenders[0];
+    if (!lender) return;
+    var ok = isEligible(lender);
+
+    var badge = document.getElementById('elig-badge');
+    badge.textContent = ok ? 'Eligible (PASS)' : 'Not eligible (FAIL)';
+    badge.className = 'badge ' + (ok ? 'yes' : 'no');
+
+    var callout = document.getElementById('elig-callout');
+    if (ok) {
+      callout.hidden = false;
+      callout.className = 'elig-callout ok';
+      callout.textContent = (lender.lenderName || lender.code) + ' passed all eligibility steps for this product.';
+    } else if (lender.failedAt || lender.errorCode) {
+      var failStep = (lender.fullSteps || lender.steps || []).find(function(s) { return String(s.result || '').toUpperCase() === 'FAIL'; });
+      var reason = failStep && failStep.reason ? ' — ' + failStep.reason : '';
+      callout.hidden = false;
+      callout.className = 'elig-callout danger';
+      callout.textContent = (lender.lenderName || lender.code) + ' FAILED at '
+        + (lender.failedAt || (failStep && failStep.ruleId) || '—')
+        + (lender.errorCode ? ' · ' + lender.errorCode : '')
+        + reason;
+    } else {
+      callout.hidden = false;
+      callout.className = 'elig-callout danger';
+      callout.textContent = (lender.lenderName || lender.code) + ' is not eligible for this product.';
+    }
+
+    document.getElementById('elig-title').innerHTML =
+      escapeHtml(lender.lenderName || lender.code)
+      + ' <span class="code">' + escapeHtml(lender.code || '') + '</span>';
+
+    var metaParts = [];
+    metaParts.push(ok ? chip('PASS') + ' Eligible' : chip('FAIL') + ' Not eligible');
+    if (lender.failedAt) metaParts.push('stopped at ' + escapeHtml(lender.failedAt));
+    if (lender.score != null) metaParts.push('score ' + escapeHtml(String(lender.score)));
+    if (lender.rank != null) metaParts.push('rank #' + escapeHtml(String(lender.rank)));
+    document.getElementById('elig-meta').innerHTML = metaParts.join(' · ');
+
+    var steps = lender.fullSteps || lender.steps || [];
+    var tbody = document.getElementById('elig-tbody');
+    tbody.innerHTML = steps.length
+      ? steps.map(function(s) {
+          return '<tr>'
+            + '<td class="num">' + escapeHtml(s.step != null ? s.step : '') + '</td>'
+            + '<td><code>' + escapeHtml(s.ruleId || '') + '</code></td>'
+            + '<td>' + escapeHtml(s.ruleName || '') + '</td>'
+            + '<td>' + chip(s.result) + '</td>'
+            + '<td class="muted formula">' + escapeHtml(s.formula || '') + '</td>'
+            + '<td>' + escapeHtml(s.evaluation || '') + '</td>'
+            + '<td class="muted">' + escapeHtml(s.reason || s.errorCode || '') + '</td>'
+            + '</tr>';
+        }).join('')
+      : '<tr><td colspan="7" class="muted">No step data — open Show details or check eligibility log</td></tr>';
+
+    var jsonEl = document.getElementById('elig-json');
+    var detailBtn = document.getElementById('elig-detail-btn');
+    if (jsonEl) {
+      try {
+        jsonEl.textContent = JSON.stringify(lenderEligibilityJson(lender), null, 2);
+      } catch (err) {
+        jsonEl.textContent = String(err && err.message ? err.message : err);
+      }
+      setJsonPanelVisible(jsonEl, detailBtn, false);
+    }
+  }
+
+  function fillLenderSelect(preferredCode) {
+    var sel = document.getElementById('lender-select');
+    var filter = document.getElementById('lender-filter');
+    if (!sel) return;
+    var mode = filter ? filter.value : 'all';
+    var pass = lenders.filter(isEligible);
+    var fail = lenders.filter(function(l) { return !isEligible(l); });
+    var list = mode === 'pass' ? pass : mode === 'fail' ? fail : lenders.slice().sort(function(a, b) {
+      return Number(isEligible(b)) - Number(isEligible(a)) || String(a.code).localeCompare(String(b.code));
+    });
+
+    function opt(l) {
+      var ok = isEligible(l);
+      var label = (l.code || '?') + ' — ' + (l.lenderName || '')
+        + (ok ? ' · PASS' : (' · FAIL' + (l.failedAt ? ' @ ' + l.failedAt : '')));
+      var selected = preferredCode && l.code === preferredCode ? ' selected' : '';
+      return '<option value="' + escapeHtml(l.code) + '"' + selected + '>'
+        + escapeHtml(label) + '</option>';
+    }
+
+    if (mode === 'all') {
+      sel.innerHTML =
+        '<optgroup label="Eligible (PASS) — ' + pass.length + '">'
+        + pass.map(opt).join('')
+        + '</optgroup>'
+        + '<optgroup label="Not eligible (FAIL) — ' + fail.length + '">'
+        + fail.map(opt).join('')
+        + '</optgroup>';
+    } else {
+      sel.innerHTML = list.map(opt).join('')
+        || '<option value="">No lenders in this filter</option>';
+    }
+
+    if (preferredCode && [].some.call(sel.options, function(o) { return o.value === preferredCode; })) {
+      sel.value = preferredCode;
+    } else if (sel.options.length && sel.options[0].value) {
+      sel.selectedIndex = 0;
+    }
+  }
+
+  function initEligibility() {
+    var sel = document.getElementById('lender-select');
+    var filter = document.getElementById('lender-filter');
+    if (!sel || !lenders.length) return;
+    var preferred = lenders.find(isEligible) || lenders[0];
+    fillLenderSelect(preferred && preferred.code);
+    sel.addEventListener('change', renderLender);
+    if (filter) {
+      filter.addEventListener('change', function() {
+        var current = sel.value;
+        fillLenderSelect(current);
+        renderLender();
+      });
+    }
+    document.getElementById('elig-detail-btn').addEventListener('click', function() {
+      var el = document.getElementById('elig-json');
+      if (!el) return;
+      var currentlyHidden = el.classList.contains('hidden') || el.hasAttribute('hidden') || el.style.display === 'none';
+      setJsonPanelVisible(el, this, currentlyHidden);
+    });
+    renderLender();
+  }
+
+  function renderScoreLender() {
+    var sel = document.getElementById('score-lender-select');
+    if (!sel || !scoring.length) return;
+    var row = scoring.find(function(s) { return String(s.code) === sel.value; }) || scoring[0];
+    if (!row) return;
+
+    var hasScore = row.totalScore != null && row.totalScore !== '';
+    var shown = row.displayed && hasScore && Number(row.totalScore) >= 40;
+    var badge = document.getElementById('score-badge');
+    if (badge) {
+      badge.textContent = shown ? 'Shown (≥40)' : (hasScore ? 'Below 40' : 'No score');
+      badge.className = 'badge ' + (shown ? 'yes' : 'no');
+    }
+
+    var titleEl = document.getElementById('score-title');
+    if (titleEl) {
+      titleEl.innerHTML =
+        escapeHtml(row.lenderName || row.code)
+        + ' <span class="code">' + escapeHtml(row.code || '') + '</span>';
+    }
+    var metaEl = document.getElementById('score-meta');
+    if (metaEl) {
+      metaEl.innerHTML =
+        'Total score <strong>' + escapeHtml(hasScore ? String(row.totalScore) : '—') + '</strong>'
+        + (row.rank != null ? ' · rank #' + escapeHtml(String(row.rank)) : '')
+        + ' · ' + (shown ? chip('PASS') + ' Shown on AI Match' : chip('SKIP') + (hasScore ? ' Below 40' : ' No score'));
+    }
+
+    var crit = row.criteria;
+    var tbody = document.getElementById('score-tbody');
+    if (!tbody) return;
+    var rows = [];
+    if (Array.isArray(crit) && crit.length) {
+      rows = crit.map(function(c) {
+        var rules = c.rules != null
+          ? fmtJson(c.rules) + (c.matchedKey != null ? ' · matched ' + escapeHtml(String(c.matchedKey)) : '')
+          : (c.matchedKey != null ? 'matched ' + escapeHtml(String(c.matchedKey)) : '—');
+        return '<tr>'
+          + '<td><code>' + escapeHtml(c.criterionId || c.id || '') + '</code></td>'
+          + '<td>' + escapeHtml(c.weight != null ? c.weight : '—') + '</td>'
+          + '<td>' + escapeHtml(c.points != null ? c.points : '—') + '</td>'
+          + '<td class="muted formula">' + escapeHtml(c.formula || '') + '</td>'
+          + '<td class="muted">' + rules + '</td>'
+          + '<td>' + fmtJson(c.applicant != null ? c.applicant : c.applicantValue) + '</td>'
+          + '<td>' + fmtJson(c.threshold) + '</td>'
+          + '<td>' + chip(c.result || 'SCORED') + '</td>'
+          + '</tr>';
+      });
+    } else if (crit && typeof crit === 'object' && !Array.isArray(crit)) {
+      rows = Object.entries(crit).map(function(entry) {
+        var k = entry[0], v = entry[1];
+        return '<tr>'
+          + '<td><code>' + escapeHtml(k) + '</code></td>'
+          + '<td>—</td><td>' + fmtJson(v) + '</td>'
+          + '<td class="muted">criterion points</td><td>—</td><td>—</td><td>—</td>'
+          + '<td>' + chip('SCORED') + '</td></tr>';
+      });
+    }
+    tbody.innerHTML = rows.length
+      ? rows.join('')
+      : '<tr><td colspan="8" class="muted">No criterion breakdown for this lender — use Show details for JSON</td></tr>';
+
+    var jsonEl = document.getElementById('score-json');
+    var detailBtn = document.getElementById('score-detail-btn');
+    if (jsonEl) {
+      try {
+        var scoreDetail = Object.assign({}, row);
+        // keep criteria (table already shows them); still useful in JSON
+        jsonEl.textContent = JSON.stringify(scoreDetail, null, 2);
+      } catch (err) {
+        jsonEl.textContent = String(err && err.message ? err.message : err);
+      }
+      setJsonPanelVisible(jsonEl, detailBtn, false);
+    }
+  }
+
+  function initScoring() {
+    var sel = document.getElementById('score-lender-select');
+    var detailBtn = document.getElementById('score-detail-btn');
+    if (detailBtn && !detailBtn._bound) {
+      detailBtn._bound = true;
+      detailBtn.addEventListener('click', function() {
+        var el = document.getElementById('score-json');
+        if (!el) return;
+        var currentlyHidden = el.classList.contains('hidden') || el.hasAttribute('hidden') || el.style.display === 'none';
+        setJsonPanelVisible(el, this, currentlyHidden);
+      });
+    }
+    if (!sel || !scoring.length) return;
+    if (!sel.options.length) {
+      var preferred = scoring.find(function(s) {
+        return s.displayed && s.criteria && s.criteria.length;
+      }) || scoring.find(function(s) { return s.displayed; }) || scoring[0];
+      sel.innerHTML = scoring.map(function(s) {
+        var label = (s.code || '?') + ' — ' + (s.lenderName || '')
+          + ' (' + (s.totalScore != null ? s.totalScore : '?') + ')'
+          + (s.displayed ? ' · shown' : ' · below 40');
+        var selected = preferred && s.code === preferred.code ? ' selected' : '';
+        return '<option value="' + escapeHtml(String(s.code)) + '"' + selected + '>'
+          + escapeHtml(label) + '</option>';
+      }).join('');
+    }
+    sel.addEventListener('change', renderScoreLender);
+    renderScoreLender();
+  }
+
+  document.querySelectorAll('.toggle-detail').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var el = document.getElementById(btn.dataset.target);
+      if (!el) return;
+      var hidden = el.classList.toggle('hidden');
+      if (btn.textContent.indexOf('Show') === 0 || btn.textContent.indexOf('Hide') === 0) {
+        btn.textContent = hidden
+          ? (btn.dataset.target === 'bureau-json' ? 'Show extracted JSON' : 'Show details')
+          : (btn.dataset.target === 'bureau-json' ? 'Hide extracted JSON' : 'Hide details');
+      }
+    });
+  });
+
+  initEligibility();
+  initScoring();
+})();
+</script>
+</body>
+</html>

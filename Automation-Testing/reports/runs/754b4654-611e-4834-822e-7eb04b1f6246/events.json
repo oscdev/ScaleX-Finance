@@ -1,0 +1,157 @@
+[
+  {
+    "stage": "run_start",
+    "message": "Live Run started for Personal Loan",
+    "ts": "2026-09-05T10:54:32.557Z",
+    "runId": "754b4654-611e-4834-822e-7eb04b1f6246",
+    "product": "personal-loan"
+  },
+  {
+    "stage": "form_submit_start",
+    "message": "Creating lead [SUITE-TEST] Test User 05672557",
+    "ts": "2026-09-05T10:54:32.557Z"
+  },
+  {
+    "stage": "form_submit_finish",
+    "message": "Lead created id=191",
+    "ts": "2026-09-05T10:54:32.616Z",
+    "leadId": 191
+  },
+  {
+    "stage": "doc_upload_start",
+    "message": "Uploading required documents from product folder",
+    "ts": "2026-09-05T10:54:32.616Z"
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded aadhaar_front.pdf → aadharCardFront (id=1001)",
+    "ts": "2026-09-05T10:54:32.677Z",
+    "field": "aadharCardFront",
+    "mediaId": 1001
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded aadhaar_back.pdf → aadharCardBack (id=1002)",
+    "ts": "2026-09-05T10:54:32.700Z",
+    "field": "aadharCardBack",
+    "mediaId": 1002
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded pan.pdf → panCard (id=1003)",
+    "ts": "2026-09-05T10:54:32.719Z",
+    "field": "panCard",
+    "mediaId": 1003
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded cibil_report.pdf → cibilReport (id=1004)",
+    "ts": "2026-09-05T10:54:32.748Z",
+    "field": "cibilReport",
+    "mediaId": 1004
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded bank_statement.pdf → bankStatement (id=1005)",
+    "ts": "2026-09-05T10:54:32.765Z",
+    "field": "bankStatement",
+    "mediaId": 1005
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded salary_slip_1.pdf → salarySlips (id=1006)",
+    "ts": "2026-09-05T10:54:32.784Z",
+    "field": "salarySlips",
+    "mediaId": 1006
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded salary_slip_2.pdf → salarySlips (id=1007)",
+    "ts": "2026-09-05T10:54:32.797Z",
+    "field": "salarySlips",
+    "mediaId": 1007
+  },
+  {
+    "stage": "doc_upload",
+    "message": "Uploaded salary_slip_3.pdf → salarySlips (id=1008)",
+    "ts": "2026-09-05T10:54:32.810Z",
+    "field": "salarySlips",
+    "mediaId": 1008
+  },
+  {
+    "stage": "doc_upload_finish",
+    "message": "Uploaded 8 document(s)",
+    "ts": "2026-09-05T10:54:32.810Z"
+  },
+  {
+    "stage": "loan_app_start",
+    "message": "Creating loan application with form_data + media",
+    "ts": "2026-09-05T10:54:32.810Z"
+  },
+  {
+    "stage": "loan_app_finish",
+    "message": "Loan application created id=189",
+    "ts": "2026-09-05T10:54:33.244Z",
+    "loanAppId": 189
+  },
+  {
+    "stage": "bureau_extract_start",
+    "message": "Starting bureau / CIBIL extraction",
+    "ts": "2026-09-05T10:54:33.244Z"
+  },
+  {
+    "stage": "bureau_extract",
+    "message": "Extract API accepted — polling for summary",
+    "ts": "2026-09-05T10:55:34.486Z"
+  },
+  {
+    "stage": "bureau_extract_finish",
+    "message": "Bureau extraction finished — CIBIL 738 (1 polls)",
+    "ts": "2026-09-05T10:55:34.539Z",
+    "cibilScore": "738"
+  },
+  {
+    "stage": "eligibility_start",
+    "message": "Starting AI Match eligibility",
+    "ts": "2026-09-05T10:55:34.539Z"
+  },
+  {
+    "stage": "eligibility_finish",
+    "message": "Eligibility done — 12 displayed, 47 excluded",
+    "ts": "2026-09-05T10:55:36.697Z"
+  },
+  {
+    "stage": "scoring_start",
+    "message": "Collecting scoring / rank details",
+    "ts": "2026-09-05T10:55:36.697Z"
+  },
+  {
+    "stage": "eligibility_restore",
+    "message": "Re-ran matched-lenders so disk logs use source=ai-match",
+    "ts": "2026-09-05T10:55:39.941Z"
+  },
+  {
+    "stage": "eligibility_log",
+    "message": "Parsed eligibility log logs/personal-loan/pl-eligibility/191-SUITE-TESTTestUser05672557_2026-09-05.log",
+    "ts": "2026-09-05T10:55:39.953Z"
+  },
+  {
+    "stage": "scoring_finish",
+    "message": "Scoring/rank ready — 12 on AI Match (≥40)",
+    "ts": "2026-09-05T10:55:40.037Z"
+  },
+  {
+    "stage": "rank_finish",
+    "message": "Ranking complete",
+    "ts": "2026-09-05T10:55:40.037Z"
+  },
+  {
+    "stage": "report_ready",
+    "message": "Report ready",
+    "ts": "2026-09-05T10:55:40.084Z",
+    "runId": "754b4654-611e-4834-822e-7eb04b1f6246",
+    "leadId": 191,
+    "ok": true,
+    "reportUrl": "/suite/reports/runs/754b4654-611e-4834-822e-7eb04b1f6246/report-754b4654-611e-4834-822e-7eb04b1f6246.html"
+  }
+]

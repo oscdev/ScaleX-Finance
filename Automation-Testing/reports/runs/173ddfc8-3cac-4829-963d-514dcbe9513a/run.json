@@ -1,0 +1,1336 @@
+{
+  "meta": {
+    "runId": "173ddfc8-3cac-4829-963d-514dcbe9513a",
+    "source": "live-run",
+    "product": "business-loan",
+    "loanType": "Business Loan",
+    "leadId": 193,
+    "loanAppId": null,
+    "leadName": "[SUITE-TEST] Test Business Owner 10930596",
+    "mode": "live"
+  },
+  "fieldValues": {
+    "lead": {
+      "fullName": "[SUITE-TEST] Test Business Owner 10930596",
+      "email": "biztest+suite10930596@gmail.com",
+      "mobileNumber": "9010930596",
+      "requiredAmount": 1500000,
+      "pinCode": "440001",
+      "selectedProduct": "Business Loan",
+      "aadharCard": "123456789012",
+      "panCard": "ABCDE1234F",
+      "employmentType": "Self Employed",
+      "leadType": "Business Loan",
+      "getEmailNotification": false
+    },
+    "loanApp": {
+      "leadId": 193,
+      "loanType": "Business Loan",
+      "loanAmount": 1500000,
+      "applicantName": "[SUITE-TEST] Test Business Owner 10930596",
+      "email": "biztest+suite10930596@gmail.com",
+      "phone": "9010930596",
+      "aadharNumber": "123456789012",
+      "panNumber": "ABCDE1234F",
+      "form_data": {
+        "businessDetails": {
+          "name": "Owner Traders",
+          "premises": "Owned",
+          "type": "Proprietorship",
+          "turnover": 50,
+          "age": 5,
+          "regProofs": [
+            "Shop Registration Certificate"
+          ],
+          "auditedBooks": true,
+          "address": "45 Market Road, Nagpur 440001"
+        },
+        "personalDetails": {
+          "dob": "1985-03-20",
+          "maritalStatus": "Married",
+          "spouseName": "Anita Owner",
+          "motherName": "Kamala Owner",
+          "alternateNumber": "9999999996"
+        },
+        "addressDetails": {
+          "line1": "45 Market Road",
+          "line2": "Shop 12",
+          "landmark": "Near Main Market",
+          "state": "Maharashtra",
+          "district": "Nagpur",
+          "city": "Nagpur",
+          "residenceType": "Owned"
+        },
+        "otherDetails": {
+          "runningLoans": "None"
+        },
+        "documents": [
+          {
+            "key": "regProof_Shop_Registration_Certificate",
+            "name": "Shop Registration Certificate",
+            "status": "uploaded"
+          }
+        ],
+        "regProofDocuments": [
+          {
+            "proofType": "Shop Registration Certificate",
+            "key": "regProof_Shop_Registration_Certificate"
+          }
+        ],
+        "pdfPasswords": {}
+      },
+      "declarationAccepted": true,
+      "status": "Pending",
+      "aadharCardFront": 1017,
+      "aadharCardBack": 1018,
+      "panCard": 1019,
+      "cibilReport": 1020,
+      "bankStatement": 1021,
+      "proprietorshipDoc": 1022,
+      "itrYear1": 1023,
+      "auditedBooksDoc": 1024,
+      "businessRegProofDoc": [
+        1025
+      ]
+    }
+  },
+  "documents": [
+    {
+      "field": "aadharCardFront",
+      "file": "aadhaar_front.pdf",
+      "localPath": "Automation-Testing/documents/business-loan/aadhaar_front.pdf",
+      "mediaId": 1017,
+      "uploadedName": "aadhaar_front.pdf",
+      "ok": true
+    },
+    {
+      "field": "aadharCardBack",
+      "file": "aadhaar_back.pdf",
+      "localPath": "Automation-Testing/documents/business-loan/aadhaar_back.pdf",
+      "mediaId": 1018,
+      "uploadedName": "aadhaar_back.pdf",
+      "ok": true
+    },
+    {
+      "field": "panCard",
+      "file": "pan.pdf",
+      "localPath": "Automation-Testing/documents/business-loan/pan.pdf",
+      "mediaId": 1019,
+      "uploadedName": "pan.pdf",
+      "ok": true
+    },
+    {
+      "field": "cibilReport",
+      "file": "cibil_report.pdf",
+      "localPath": "Automation-Testing/documents/business-loan/cibil_report.pdf",
+      "mediaId": 1020,
+      "uploadedName": "cibil_report.pdf",
+      "ok": true
+    },
+    {
+      "field": "bankStatement",
+      "file": "bank_statement.pdf",
+      "localPath": "Automation-Testing/documents/business-loan/bank_statement.pdf",
+      "mediaId": 1021,
+      "uploadedName": "bank_statement.pdf",
+      "ok": true
+    },
+    {
+      "field": "proprietorshipDoc",
+      "file": "pan.pdf",
+      "localPath": "Automation-Testing/documents/business-loan/pan.pdf",
+      "mediaId": 1022,
+      "uploadedName": "pan.pdf",
+      "ok": true
+    },
+    {
+      "field": "itrYear1",
+      "file": "bank_statement.pdf",
+      "localPath": "Automation-Testing/documents/business-loan/bank_statement.pdf",
+      "mediaId": 1023,
+      "uploadedName": "bank_statement.pdf",
+      "ok": true
+    },
+    {
+      "field": "auditedBooksDoc",
+      "file": "bank_statement.pdf",
+      "localPath": "Automation-Testing/documents/business-loan/bank_statement.pdf",
+      "mediaId": 1024,
+      "uploadedName": "bank_statement.pdf",
+      "ok": true
+    },
+    {
+      "field": "businessRegProofDoc",
+      "file": "aadhaar_front.pdf",
+      "localPath": "Automation-Testing/documents/business-loan/aadhaar_front.pdf",
+      "mediaId": 1025,
+      "uploadedName": "aadhaar_front.pdf",
+      "ok": true
+    }
+  ],
+  "bureau": null,
+  "httpCapture": [
+    {
+      "label": "POST /api/leads",
+      "method": "POST",
+      "url": "http://127.0.0.1:1337/api/leads",
+      "request": {
+        "data": {
+          "fullName": "[SUITE-TEST] Test Business Owner 10930596",
+          "email": "biztest+suite10930596@gmail.com",
+          "mobileNumber": "9010930596",
+          "requiredAmount": 1500000,
+          "pinCode": "440001",
+          "selectedProduct": "Business Loan",
+          "aadharCard": "****",
+          "panCard": "****",
+          "employmentType": "Self Employed",
+          "leadType": "Business Loan",
+          "getEmailNotification": false
+        }
+      },
+      "status": 201,
+      "ms": 77,
+      "response": {
+        "data": {
+          "id": 193,
+          "documentId": "vodtezfyvk0grmk2jzdjxkxu",
+          "fullName": "[SUITE-TEST] Test Business Owner 10930596",
+          "email": "biztest+suite10930596@gmail.com",
+          "requiredAmount": 1500000,
+          "createdAt": "2026-09-05T12:22:10.632Z",
+          "updatedAt": "2026-09-05T12:22:10.632Z",
+          "publishedAt": "2026-09-05T12:22:10.627Z",
+          "selectedProduct": "Business Loan",
+          "panCard": "****",
+          "pinCode": "440001",
+          "mobileNumber": "9010930596",
+          "advisorReferralId": null,
+          "employmentType": "Self Employed",
+          "aadharCard": "****",
+          "propertyType": null,
+          "propertyStatus": null,
+          "propertyValue": null,
+          "leadType": "Business Loan",
+          "getEmailNotification": false,
+          "leadStatus": "NEW",
+          "parentAdvisorId": null
+        },
+        "meta": {}
+      },
+      "error": null
+    },
+    {
+      "label": "POST /api/upload (aadhaar_front.pdf)",
+      "method": "POST",
+      "url": "http://127.0.0.1:1337/api/upload",
+      "request": {
+        "_overheadLength": 165,
+        "_valueLength": 0,
+        "_valuesToMeasure": [
+          {
+            "fd": null,
+            "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/aadhaar_front.pdf",
+            "flags": "r",
+            "mode": 438,
+            "end": null,
+            "bytesRead": 0,
+            "_events": {},
+            "_readableState": {
+              "highWaterMark": 65536,
+              "buffer": [],
+              "bufferIndex": 0,
+              "length": 0,
+              "pipes": [],
+              "awaitDrainWriters": null
+            },
+            "_eventsCount": 3
+          }
+        ],
+        "writable": false,
+        "readable": true,
+        "dataSize": 0,
+        "maxDataSize": 2097152,
+        "pauseStreams": true,
+        "_released": false,
+        "_streams": [
+          "----------------------------84d36639bf4d785ba6541fe3\r\nContent-Disposition: form-data; name=\"files\"; filename=\"aadhaar_front.pdf\"\r\nContent-Type: application/pdf\r\n\r\n",
+          {
+            "source": {
+              "fd": null,
+              "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/aadhaar_front.pdf",
+              "flags": "r",
+              "mode": 438,
+              "end": null,
+              "bytesRead": 0,
+              "_events": {},
+              "_readableState": {
+                "highWaterMark": 65536,
+                "buffer": [],
+                "bufferIndex": 0,
+                "length": 0,
+                "pipes": [],
+                "awaitDrainWriters": null
+              },
+              "_eventsCount": 3
+            },
+            "dataSize": 0,
+            "maxDataSize": null,
+            "pauseStream": true,
+            "_maxDataSizeExceeded": false,
+            "_released": false,
+            "_bufferedEvents": [
+              {
+                "0": "pause"
+              }
+            ],
+            "_events": {},
+            "_eventsCount": 1
+          },
+          null
+        ],
+        "_currentStream": null,
+        "_insideLoop": false,
+        "_pendingNext": false,
+        "_boundary": "--------------------------84d36639bf4d785ba6541fe3"
+      },
+      "status": 201,
+      "ms": 52,
+      "response": [
+        {
+          "id": 1017,
+          "documentId": "dzkiv0ouiq8cd9es3k7cbkys",
+          "name": "aadhaar_front.pdf",
+          "alternativeText": null,
+          "caption": null,
+          "focalPoint": null,
+          "width": null,
+          "height": null,
+          "formats": null,
+          "hash": "aadhaar_front_b34bafd490",
+          "ext": ".pdf",
+          "mime": "application/pdf",
+          "size": 67.34,
+          "url": "/uploads/aadhaar_front_b34bafd490.pdf",
+          "previewUrl": null,
+          "provider": "local",
+          "provider_metadata": null,
+          "createdAt": "2026-09-05T12:22:10.704Z",
+          "updatedAt": "2026-09-05T12:22:10.704Z",
+          "publishedAt": "2026-09-05T12:22:10.704Z"
+        }
+      ],
+      "error": null
+    },
+    {
+      "label": "POST /api/upload (aadhaar_back.pdf)",
+      "method": "POST",
+      "url": "http://127.0.0.1:1337/api/upload",
+      "request": {
+        "_overheadLength": 164,
+        "_valueLength": 0,
+        "_valuesToMeasure": [
+          {
+            "fd": null,
+            "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/aadhaar_back.pdf",
+            "flags": "r",
+            "mode": 438,
+            "end": null,
+            "bytesRead": 0,
+            "_events": {},
+            "_readableState": {
+              "highWaterMark": 65536,
+              "buffer": [],
+              "bufferIndex": 0,
+              "length": 0,
+              "pipes": [],
+              "awaitDrainWriters": null
+            },
+            "_eventsCount": 3
+          }
+        ],
+        "writable": false,
+        "readable": true,
+        "dataSize": 0,
+        "maxDataSize": 2097152,
+        "pauseStreams": true,
+        "_released": false,
+        "_streams": [
+          "----------------------------662d1a5882b049b31b9f12d8\r\nContent-Disposition: form-data; name=\"files\"; filename=\"aadhaar_back.pdf\"\r\nContent-Type: application/pdf\r\n\r\n",
+          {
+            "source": {
+              "fd": null,
+              "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/aadhaar_back.pdf",
+              "flags": "r",
+              "mode": 438,
+              "end": null,
+              "bytesRead": 0,
+              "_events": {},
+              "_readableState": {
+                "highWaterMark": 65536,
+                "buffer": [],
+                "bufferIndex": 0,
+                "length": 0,
+                "pipes": [],
+                "awaitDrainWriters": null
+              },
+              "_eventsCount": 3
+            },
+            "dataSize": 0,
+            "maxDataSize": null,
+            "pauseStream": true,
+            "_maxDataSizeExceeded": false,
+            "_released": false,
+            "_bufferedEvents": [
+              {
+                "0": "pause"
+              }
+            ],
+            "_events": {},
+            "_eventsCount": 1
+          },
+          null
+        ],
+        "_currentStream": null,
+        "_insideLoop": false,
+        "_pendingNext": false,
+        "_boundary": "--------------------------662d1a5882b049b31b9f12d8"
+      },
+      "status": 201,
+      "ms": 22,
+      "response": [
+        {
+          "id": 1018,
+          "documentId": "pqprl121mfs5r24c13aaxkel",
+          "name": "aadhaar_back.pdf",
+          "alternativeText": null,
+          "caption": null,
+          "focalPoint": null,
+          "width": null,
+          "height": null,
+          "formats": null,
+          "hash": "aadhaar_back_b6132998a3",
+          "ext": ".pdf",
+          "mime": "application/pdf",
+          "size": 67.34,
+          "url": "/uploads/aadhaar_back_b6132998a3.pdf",
+          "previewUrl": null,
+          "provider": "local",
+          "provider_metadata": null,
+          "createdAt": "2026-09-05T12:22:10.741Z",
+          "updatedAt": "2026-09-05T12:22:10.741Z",
+          "publishedAt": "2026-09-05T12:22:10.742Z"
+        }
+      ],
+      "error": null
+    },
+    {
+      "label": "POST /api/upload (pan.pdf)",
+      "method": "POST",
+      "url": "http://127.0.0.1:1337/api/upload",
+      "request": {
+        "_overheadLength": 155,
+        "_valueLength": 0,
+        "_valuesToMeasure": [
+          {
+            "fd": null,
+            "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/pan.pdf",
+            "flags": "r",
+            "mode": 438,
+            "end": null,
+            "bytesRead": 0,
+            "_events": {},
+            "_readableState": {
+              "highWaterMark": 65536,
+              "buffer": [],
+              "bufferIndex": 0,
+              "length": 0,
+              "pipes": [],
+              "awaitDrainWriters": null
+            },
+            "_eventsCount": 3
+          }
+        ],
+        "writable": false,
+        "readable": true,
+        "dataSize": 0,
+        "maxDataSize": 2097152,
+        "pauseStreams": true,
+        "_released": false,
+        "_streams": [
+          "----------------------------3a180050e62d5109912fefb8\r\nContent-Disposition: form-data; name=\"files\"; filename=\"pan.pdf\"\r\nContent-Type: application/pdf\r\n\r\n",
+          {
+            "source": {
+              "fd": null,
+              "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/pan.pdf",
+              "flags": "r",
+              "mode": 438,
+              "end": null,
+              "bytesRead": 0,
+              "_events": {},
+              "_readableState": {
+                "highWaterMark": 65536,
+                "buffer": [],
+                "bufferIndex": 0,
+                "length": 0,
+                "pipes": [],
+                "awaitDrainWriters": null
+              },
+              "_eventsCount": 3
+            },
+            "dataSize": 0,
+            "maxDataSize": null,
+            "pauseStream": true,
+            "_maxDataSizeExceeded": false,
+            "_released": false,
+            "_bufferedEvents": [
+              {
+                "0": "pause"
+              }
+            ],
+            "_events": {},
+            "_eventsCount": 1
+          },
+          null
+        ],
+        "_currentStream": null,
+        "_insideLoop": false,
+        "_pendingNext": false,
+        "_boundary": "--------------------------3a180050e62d5109912fefb8"
+      },
+      "status": 201,
+      "ms": 36,
+      "response": [
+        {
+          "id": 1019,
+          "documentId": "wgzitckmr1r0a0wfamf65qn6",
+          "name": "pan.pdf",
+          "alternativeText": null,
+          "caption": null,
+          "focalPoint": null,
+          "width": null,
+          "height": null,
+          "formats": null,
+          "hash": "pan_1c65e7116f",
+          "ext": ".pdf",
+          "mime": "application/pdf",
+          "size": 153.03,
+          "url": "/uploads/pan_1c65e7116f.pdf",
+          "previewUrl": null,
+          "provider": "local",
+          "provider_metadata": null,
+          "createdAt": "2026-09-05T12:22:10.763Z",
+          "updatedAt": "2026-09-05T12:22:10.763Z",
+          "publishedAt": "2026-09-05T12:22:10.764Z"
+        }
+      ],
+      "error": null
+    },
+    {
+      "label": "POST /api/upload (cibil_report.pdf)",
+      "method": "POST",
+      "url": "http://127.0.0.1:1337/api/upload",
+      "request": {
+        "_overheadLength": 164,
+        "_valueLength": 0,
+        "_valuesToMeasure": [
+          {
+            "fd": null,
+            "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/cibil_report.pdf",
+            "flags": "r",
+            "mode": 438,
+            "end": null,
+            "bytesRead": 0,
+            "_events": {},
+            "_readableState": {
+              "highWaterMark": 65536,
+              "buffer": [],
+              "bufferIndex": 0,
+              "length": 0,
+              "pipes": [],
+              "awaitDrainWriters": null
+            },
+            "_eventsCount": 3
+          }
+        ],
+        "writable": false,
+        "readable": true,
+        "dataSize": 0,
+        "maxDataSize": 2097152,
+        "pauseStreams": true,
+        "_released": false,
+        "_streams": [
+          "----------------------------768cb3af1efd6d83d0c13b19\r\nContent-Disposition: form-data; name=\"files\"; filename=\"cibil_report.pdf\"\r\nContent-Type: application/pdf\r\n\r\n",
+          {
+            "source": {
+              "fd": null,
+              "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/cibil_report.pdf",
+              "flags": "r",
+              "mode": 438,
+              "end": null,
+              "bytesRead": 0,
+              "_events": {},
+              "_readableState": {
+                "highWaterMark": 65536,
+                "buffer": [],
+                "bufferIndex": 0,
+                "length": 0,
+                "pipes": [],
+                "awaitDrainWriters": null
+              },
+              "_eventsCount": 3
+            },
+            "dataSize": 0,
+            "maxDataSize": null,
+            "pauseStream": true,
+            "_maxDataSizeExceeded": false,
+            "_released": false,
+            "_bufferedEvents": [
+              {
+                "0": "pause"
+              }
+            ],
+            "_events": {},
+            "_eventsCount": 1
+          },
+          null
+        ],
+        "_currentStream": null,
+        "_insideLoop": false,
+        "_pendingNext": false,
+        "_boundary": "--------------------------768cb3af1efd6d83d0c13b19"
+      },
+      "status": 201,
+      "ms": 34,
+      "response": [
+        {
+          "id": 1020,
+          "documentId": "zx0x3b9c172cnzjer364f8sk",
+          "name": "cibil_report.pdf",
+          "alternativeText": null,
+          "caption": null,
+          "focalPoint": null,
+          "width": null,
+          "height": null,
+          "formats": null,
+          "hash": "cibil_report_fd16e8e4ca",
+          "ext": ".pdf",
+          "mime": "application/pdf",
+          "size": 815.75,
+          "url": "/uploads/cibil_report_fd16e8e4ca.pdf",
+          "previewUrl": null,
+          "provider": "local",
+          "provider_metadata": null,
+          "createdAt": "2026-09-05T12:22:10.810Z",
+          "updatedAt": "2026-09-05T12:22:10.810Z",
+          "publishedAt": "2026-09-05T12:22:10.810Z"
+        }
+      ],
+      "error": null
+    },
+    {
+      "label": "POST /api/upload (bank_statement.pdf)",
+      "method": "POST",
+      "url": "http://127.0.0.1:1337/api/upload",
+      "request": {
+        "_overheadLength": 166,
+        "_valueLength": 0,
+        "_valuesToMeasure": [
+          {
+            "fd": null,
+            "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/bank_statement.pdf",
+            "flags": "r",
+            "mode": 438,
+            "end": null,
+            "bytesRead": 0,
+            "_events": {},
+            "_readableState": {
+              "highWaterMark": 65536,
+              "buffer": [],
+              "bufferIndex": 0,
+              "length": 0,
+              "pipes": [],
+              "awaitDrainWriters": null
+            },
+            "_eventsCount": 3
+          }
+        ],
+        "writable": false,
+        "readable": true,
+        "dataSize": 0,
+        "maxDataSize": 2097152,
+        "pauseStreams": true,
+        "_released": false,
+        "_streams": [
+          "----------------------------c90c48f07ce15b14e81a0921\r\nContent-Disposition: form-data; name=\"files\"; filename=\"bank_statement.pdf\"\r\nContent-Type: application/pdf\r\n\r\n",
+          {
+            "source": {
+              "fd": null,
+              "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/bank_statement.pdf",
+              "flags": "r",
+              "mode": 438,
+              "end": null,
+              "bytesRead": 0,
+              "_events": {},
+              "_readableState": {
+                "highWaterMark": 65536,
+                "buffer": [],
+                "bufferIndex": 0,
+                "length": 0,
+                "pipes": [],
+                "awaitDrainWriters": null
+              },
+              "_eventsCount": 3
+            },
+            "dataSize": 0,
+            "maxDataSize": null,
+            "pauseStream": true,
+            "_maxDataSizeExceeded": false,
+            "_released": false,
+            "_bufferedEvents": [
+              {
+                "0": "pause"
+              }
+            ],
+            "_events": {},
+            "_eventsCount": 1
+          },
+          null
+        ],
+        "_currentStream": null,
+        "_insideLoop": false,
+        "_pendingNext": false,
+        "_boundary": "--------------------------c90c48f07ce15b14e81a0921"
+      },
+      "status": 201,
+      "ms": 21,
+      "response": [
+        {
+          "id": 1021,
+          "documentId": "zdmeywx5v7u3pcnvi02dq5ds",
+          "name": "bank_statement.pdf",
+          "alternativeText": null,
+          "caption": null,
+          "focalPoint": null,
+          "width": null,
+          "height": null,
+          "formats": null,
+          "hash": "bank_statement_80fbb4f814",
+          "ext": ".pdf",
+          "mime": "application/pdf",
+          "size": 70.78,
+          "url": "/uploads/bank_statement_80fbb4f814.pdf",
+          "previewUrl": null,
+          "provider": "local",
+          "provider_metadata": null,
+          "createdAt": "2026-09-05T12:22:10.836Z",
+          "updatedAt": "2026-09-05T12:22:10.836Z",
+          "publishedAt": "2026-09-05T12:22:10.836Z"
+        }
+      ],
+      "error": null
+    },
+    {
+      "label": "POST /api/upload (pan.pdf)",
+      "method": "POST",
+      "url": "http://127.0.0.1:1337/api/upload",
+      "request": {
+        "_overheadLength": 155,
+        "_valueLength": 0,
+        "_valuesToMeasure": [
+          {
+            "fd": null,
+            "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/pan.pdf",
+            "flags": "r",
+            "mode": 438,
+            "end": null,
+            "bytesRead": 0,
+            "_events": {},
+            "_readableState": {
+              "highWaterMark": 65536,
+              "buffer": [],
+              "bufferIndex": 0,
+              "length": 0,
+              "pipes": [],
+              "awaitDrainWriters": null
+            },
+            "_eventsCount": 3
+          }
+        ],
+        "writable": false,
+        "readable": true,
+        "dataSize": 0,
+        "maxDataSize": 2097152,
+        "pauseStreams": true,
+        "_released": false,
+        "_streams": [
+          "----------------------------e421da272bfdcce81fe1e400\r\nContent-Disposition: form-data; name=\"files\"; filename=\"pan.pdf\"\r\nContent-Type: application/pdf\r\n\r\n",
+          {
+            "source": {
+              "fd": null,
+              "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/pan.pdf",
+              "flags": "r",
+              "mode": 438,
+              "end": null,
+              "bytesRead": 0,
+              "_events": {},
+              "_readableState": {
+                "highWaterMark": 65536,
+                "buffer": [],
+                "bufferIndex": 0,
+                "length": 0,
+                "pipes": [],
+                "awaitDrainWriters": null
+              },
+              "_eventsCount": 3
+            },
+            "dataSize": 0,
+            "maxDataSize": null,
+            "pauseStream": true,
+            "_maxDataSizeExceeded": false,
+            "_released": false,
+            "_bufferedEvents": [
+              {
+                "0": "pause"
+              }
+            ],
+            "_events": {},
+            "_eventsCount": 1
+          },
+          null
+        ],
+        "_currentStream": null,
+        "_insideLoop": false,
+        "_pendingNext": false,
+        "_boundary": "--------------------------e421da272bfdcce81fe1e400"
+      },
+      "status": 201,
+      "ms": 41,
+      "response": [
+        {
+          "id": 1022,
+          "documentId": "y6lp4zzwgvs1pvw1chsr8lom",
+          "name": "pan.pdf",
+          "alternativeText": null,
+          "caption": null,
+          "focalPoint": null,
+          "width": null,
+          "height": null,
+          "formats": null,
+          "hash": "pan_1ecb0940d4",
+          "ext": ".pdf",
+          "mime": "application/pdf",
+          "size": 153.03,
+          "url": "/uploads/pan_1ecb0940d4.pdf",
+          "previewUrl": null,
+          "provider": "local",
+          "provider_metadata": null,
+          "createdAt": "2026-09-05T12:22:10.856Z",
+          "updatedAt": "2026-09-05T12:22:10.856Z",
+          "publishedAt": "2026-09-05T12:22:10.856Z"
+        }
+      ],
+      "error": null
+    },
+    {
+      "label": "POST /api/upload (bank_statement.pdf)",
+      "method": "POST",
+      "url": "http://127.0.0.1:1337/api/upload",
+      "request": {
+        "_overheadLength": 166,
+        "_valueLength": 0,
+        "_valuesToMeasure": [
+          {
+            "fd": null,
+            "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/bank_statement.pdf",
+            "flags": "r",
+            "mode": 438,
+            "end": null,
+            "bytesRead": 0,
+            "_events": {},
+            "_readableState": {
+              "highWaterMark": 65536,
+              "buffer": [],
+              "bufferIndex": 0,
+              "length": 0,
+              "pipes": [],
+              "awaitDrainWriters": null
+            },
+            "_eventsCount": 3
+          }
+        ],
+        "writable": false,
+        "readable": true,
+        "dataSize": 0,
+        "maxDataSize": 2097152,
+        "pauseStreams": true,
+        "_released": false,
+        "_streams": [
+          "----------------------------a5ca6b698df06c59d774c467\r\nContent-Disposition: form-data; name=\"files\"; filename=\"bank_statement.pdf\"\r\nContent-Type: application/pdf\r\n\r\n",
+          {
+            "source": {
+              "fd": null,
+              "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/bank_statement.pdf",
+              "flags": "r",
+              "mode": 438,
+              "end": null,
+              "bytesRead": 0,
+              "_events": {},
+              "_readableState": {
+                "highWaterMark": 65536,
+                "buffer": [],
+                "bufferIndex": 0,
+                "length": 0,
+                "pipes": [],
+                "awaitDrainWriters": null
+              },
+              "_eventsCount": 3
+            },
+            "dataSize": 0,
+            "maxDataSize": null,
+            "pauseStream": true,
+            "_maxDataSizeExceeded": false,
+            "_released": false,
+            "_bufferedEvents": [
+              {
+                "0": "pause"
+              }
+            ],
+            "_events": {},
+            "_eventsCount": 1
+          },
+          null
+        ],
+        "_currentStream": null,
+        "_insideLoop": false,
+        "_pendingNext": false,
+        "_boundary": "--------------------------a5ca6b698df06c59d774c467"
+      },
+      "status": 201,
+      "ms": 19,
+      "response": [
+        {
+          "id": 1023,
+          "documentId": "p29jyg7ns7gi5tka1tpc63k4",
+          "name": "bank_statement.pdf",
+          "alternativeText": null,
+          "caption": null,
+          "focalPoint": null,
+          "width": null,
+          "height": null,
+          "formats": null,
+          "hash": "bank_statement_f7e9445897",
+          "ext": ".pdf",
+          "mime": "application/pdf",
+          "size": 70.78,
+          "url": "/uploads/bank_statement_f7e9445897.pdf",
+          "previewUrl": null,
+          "provider": "local",
+          "provider_metadata": null,
+          "createdAt": "2026-09-05T12:22:10.894Z",
+          "updatedAt": "2026-09-05T12:22:10.894Z",
+          "publishedAt": "2026-09-05T12:22:10.894Z"
+        }
+      ],
+      "error": null
+    },
+    {
+      "label": "POST /api/upload (bank_statement.pdf)",
+      "method": "POST",
+      "url": "http://127.0.0.1:1337/api/upload",
+      "request": {
+        "_overheadLength": 166,
+        "_valueLength": 0,
+        "_valuesToMeasure": [
+          {
+            "fd": null,
+            "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/bank_statement.pdf",
+            "flags": "r",
+            "mode": 438,
+            "end": null,
+            "bytesRead": 0,
+            "_events": {},
+            "_readableState": {
+              "highWaterMark": 65536,
+              "buffer": [],
+              "bufferIndex": 0,
+              "length": 0,
+              "pipes": [],
+              "awaitDrainWriters": null
+            },
+            "_eventsCount": 3
+          }
+        ],
+        "writable": false,
+        "readable": true,
+        "dataSize": 0,
+        "maxDataSize": 2097152,
+        "pauseStreams": true,
+        "_released": false,
+        "_streams": [
+          "----------------------------c57be4c8a39bf9e802ec101a\r\nContent-Disposition: form-data; name=\"files\"; filename=\"bank_statement.pdf\"\r\nContent-Type: application/pdf\r\n\r\n",
+          {
+            "source": {
+              "fd": null,
+              "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/bank_statement.pdf",
+              "flags": "r",
+              "mode": 438,
+              "end": null,
+              "bytesRead": 0,
+              "_events": {},
+              "_readableState": {
+                "highWaterMark": 65536,
+                "buffer": [],
+                "bufferIndex": 0,
+                "length": 0,
+                "pipes": [],
+                "awaitDrainWriters": null
+              },
+              "_eventsCount": 3
+            },
+            "dataSize": 0,
+            "maxDataSize": null,
+            "pauseStream": true,
+            "_maxDataSizeExceeded": false,
+            "_released": false,
+            "_bufferedEvents": [
+              {
+                "0": "pause"
+              }
+            ],
+            "_events": {},
+            "_eventsCount": 1
+          },
+          null
+        ],
+        "_currentStream": null,
+        "_insideLoop": false,
+        "_pendingNext": false,
+        "_boundary": "--------------------------c57be4c8a39bf9e802ec101a"
+      },
+      "status": 201,
+      "ms": 37,
+      "response": [
+        {
+          "id": 1024,
+          "documentId": "hu3zmatjaes5lsizpch76lnd",
+          "name": "bank_statement.pdf",
+          "alternativeText": null,
+          "caption": null,
+          "focalPoint": null,
+          "width": null,
+          "height": null,
+          "formats": null,
+          "hash": "bank_statement_8998c7a75b",
+          "ext": ".pdf",
+          "mime": "application/pdf",
+          "size": 70.78,
+          "url": "/uploads/bank_statement_8998c7a75b.pdf",
+          "previewUrl": null,
+          "provider": "local",
+          "provider_metadata": null,
+          "createdAt": "2026-09-05T12:22:10.912Z",
+          "updatedAt": "2026-09-05T12:22:10.912Z",
+          "publishedAt": "2026-09-05T12:22:10.912Z"
+        }
+      ],
+      "error": null
+    },
+    {
+      "label": "POST /api/upload (aadhaar_front.pdf)",
+      "method": "POST",
+      "url": "http://127.0.0.1:1337/api/upload",
+      "request": {
+        "_overheadLength": 165,
+        "_valueLength": 0,
+        "_valuesToMeasure": [
+          {
+            "fd": null,
+            "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/aadhaar_front.pdf",
+            "flags": "r",
+            "mode": 438,
+            "end": null,
+            "bytesRead": 0,
+            "_events": {},
+            "_readableState": {
+              "highWaterMark": 65536,
+              "buffer": [],
+              "bufferIndex": 0,
+              "length": 0,
+              "pipes": [],
+              "awaitDrainWriters": null
+            },
+            "_eventsCount": 3
+          }
+        ],
+        "writable": false,
+        "readable": true,
+        "dataSize": 0,
+        "maxDataSize": 2097152,
+        "pauseStreams": true,
+        "_released": false,
+        "_streams": [
+          "----------------------------55818200aac492f41e3668d8\r\nContent-Disposition: form-data; name=\"files\"; filename=\"aadhaar_front.pdf\"\r\nContent-Type: application/pdf\r\n\r\n",
+          {
+            "source": {
+              "fd": null,
+              "path": "/var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP/Automation-Testing/documents/business-loan/aadhaar_front.pdf",
+              "flags": "r",
+              "mode": 438,
+              "end": null,
+              "bytesRead": 0,
+              "_events": {},
+              "_readableState": {
+                "highWaterMark": 65536,
+                "buffer": [],
+                "bufferIndex": 0,
+                "length": 0,
+                "pipes": [],
+                "awaitDrainWriters": null
+              },
+              "_eventsCount": 3
+            },
+            "dataSize": 0,
+            "maxDataSize": null,
+            "pauseStream": true,
+            "_maxDataSizeExceeded": false,
+            "_released": false,
+            "_bufferedEvents": [
+              {
+                "0": "pause"
+              }
+            ],
+            "_events": {},
+            "_eventsCount": 1
+          },
+          null
+        ],
+        "_currentStream": null,
+        "_insideLoop": false,
+        "_pendingNext": false,
+        "_boundary": "--------------------------55818200aac492f41e3668d8"
+      },
+      "status": 201,
+      "ms": 38,
+      "response": [
+        {
+          "id": 1025,
+          "documentId": "pnwhll4yrtaudh7y6p3xg2bn",
+          "name": "aadhaar_front.pdf",
+          "alternativeText": null,
+          "caption": null,
+          "focalPoint": null,
+          "width": null,
+          "height": null,
+          "formats": null,
+          "hash": "aadhaar_front_a3e26d2278",
+          "ext": ".pdf",
+          "mime": "application/pdf",
+          "size": 67.34,
+          "url": "/uploads/aadhaar_front_a3e26d2278.pdf",
+          "previewUrl": null,
+          "provider": "local",
+          "provider_metadata": null,
+          "createdAt": "2026-09-05T12:22:10.970Z",
+          "updatedAt": "2026-09-05T12:22:10.970Z",
+          "publishedAt": "2026-09-05T12:22:10.970Z"
+        }
+      ],
+      "error": null
+    },
+    {
+      "label": "POST /api/loan-applications",
+      "method": "POST",
+      "url": "http://127.0.0.1:1337/api/loan-applications",
+      "request": {
+        "data": {
+          "leadId": 193,
+          "loanType": "Business Loan",
+          "loanAmount": 1500000,
+          "applicantName": "[SUITE-TEST] Test Business Owner 10930596",
+          "email": "biztest+suite10930596@gmail.com",
+          "phone": "9010930596",
+          "aadharNumber": "****",
+          "panNumber": "****",
+          "form_data": {
+            "businessDetails": {
+              "name": "Owner Traders",
+              "premises": "Owned",
+              "type": "Proprietorship",
+              "turnover": 50,
+              "age": 5,
+              "regProofs": [
+                "Shop Registration Certificate"
+              ],
+              "auditedBooks": true,
+              "address": "45 Market Road, Nagpur 440001"
+            },
+            "personalDetails": {
+              "dob": "1985-03-20",
+              "maritalStatus": "Married",
+              "spouseName": "Anita Owner",
+              "motherName": "Kamala Owner",
+              "alternateNumber": "9999999996"
+            },
+            "addressDetails": {
+              "line1": "45 Market Road",
+              "line2": "Shop 12",
+              "landmark": "Near Main Market",
+              "state": "Maharashtra",
+              "district": "Nagpur",
+              "city": "Nagpur",
+              "residenceType": "Owned"
+            },
+            "otherDetails": {
+              "runningLoans": "None"
+            },
+            "documents": [
+              {
+                "key": "regProof_Shop_Registration_Certificate",
+                "name": "Shop Registration Certificate",
+                "status": "uploaded"
+              }
+            ],
+            "regProofDocuments": [
+              {
+                "proofType": "Shop Registration Certificate",
+                "key": "regProof_Shop_Registration_Certificate"
+              }
+            ],
+            "pdfPasswords": {}
+          },
+          "declarationAccepted": true,
+          "status": "Pending",
+          "aadharCardFront": 1017,
+          "aadharCardBack": 1018,
+          "panCard": 1019,
+          "cibilReport": 1020,
+          "bankStatement": 1021,
+          "proprietorshipDoc": 1022,
+          "itrYear1": 1023,
+          "auditedBooksDoc": 1024,
+          "businessRegProofDoc": [
+            1025
+          ]
+        }
+      },
+      "status": null,
+      "ms": 515,
+      "response": null,
+      "error": "socket hang up"
+    }
+  ],
+  "lenders": [],
+  "scoring": [],
+  "matchBody": null,
+  "events": [
+    {
+      "stage": "run_start",
+      "message": "Live Run started for Business Loan",
+      "ts": "2026-09-05T12:22:10.596Z",
+      "runId": "173ddfc8-3cac-4829-963d-514dcbe9513a",
+      "product": "business-loan"
+    },
+    {
+      "stage": "form_submit_start",
+      "message": "Creating lead [SUITE-TEST] Test Business Owner 10930596",
+      "ts": "2026-09-05T12:22:10.596Z"
+    },
+    {
+      "stage": "form_submit_finish",
+      "message": "Lead created id=193",
+      "ts": "2026-09-05T12:22:10.674Z",
+      "leadId": 193
+    },
+    {
+      "stage": "doc_upload_start",
+      "message": "Uploading required documents from product folder",
+      "ts": "2026-09-05T12:22:10.674Z"
+    },
+    {
+      "stage": "doc_upload",
+      "message": "Uploaded aadhaar_front.pdf → aadharCardFront (id=1017)",
+      "ts": "2026-09-05T12:22:10.727Z",
+      "field": "aadharCardFront",
+      "mediaId": 1017
+    },
+    {
+      "stage": "doc_upload",
+      "message": "Uploaded aadhaar_back.pdf → aadharCardBack (id=1018)",
+      "ts": "2026-09-05T12:22:10.750Z",
+      "field": "aadharCardBack",
+      "mediaId": 1018
+    },
+    {
+      "stage": "doc_upload",
+      "message": "Uploaded pan.pdf → panCard (id=1019)",
+      "ts": "2026-09-05T12:22:10.786Z",
+      "field": "panCard",
+      "mediaId": 1019
+    },
+    {
+      "stage": "doc_upload",
+      "message": "Uploaded cibil_report.pdf → cibilReport (id=1020)",
+      "ts": "2026-09-05T12:22:10.821Z",
+      "field": "cibilReport",
+      "mediaId": 1020
+    },
+    {
+      "stage": "doc_upload",
+      "message": "Uploaded bank_statement.pdf → bankStatement (id=1021)",
+      "ts": "2026-09-05T12:22:10.842Z",
+      "field": "bankStatement",
+      "mediaId": 1021
+    },
+    {
+      "stage": "doc_upload",
+      "message": "Uploaded pan.pdf → proprietorshipDoc (id=1022)",
+      "ts": "2026-09-05T12:22:10.883Z",
+      "field": "proprietorshipDoc",
+      "mediaId": 1022
+    },
+    {
+      "stage": "doc_upload",
+      "message": "Uploaded bank_statement.pdf → itrYear1 (id=1023)",
+      "ts": "2026-09-05T12:22:10.902Z",
+      "field": "itrYear1",
+      "mediaId": 1023
+    },
+    {
+      "stage": "doc_upload",
+      "message": "Uploaded bank_statement.pdf → auditedBooksDoc (id=1024)",
+      "ts": "2026-09-05T12:22:10.939Z",
+      "field": "auditedBooksDoc",
+      "mediaId": 1024
+    },
+    {
+      "stage": "doc_upload",
+      "message": "Uploaded aadhaar_front.pdf → businessRegProofDoc (id=1025)",
+      "ts": "2026-09-05T12:22:10.978Z",
+      "field": "businessRegProofDoc",
+      "mediaId": 1025
+    },
+    {
+      "stage": "doc_upload_finish",
+      "message": "Uploaded 9 document(s)",
+      "ts": "2026-09-05T12:22:10.978Z"
+    },
+    {
+      "stage": "loan_app_start",
+      "message": "Creating loan application with form_data + media",
+      "ts": "2026-09-05T12:22:10.978Z"
+    },
+    {
+      "stage": "error",
+      "message": "socket hang up",
+      "ts": "2026-09-05T12:22:11.493Z",
+      "error": true
+    }
+  ],
+  "errors": [
+    {
+      "stage": "pipeline",
+      "message": "socket hang up"
+    }
+  ]
+}

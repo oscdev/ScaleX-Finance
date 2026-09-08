@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Personal Loan run — Test User</title>
+<link rel="stylesheet" href="/suite/styles.css" />
+<style>
+  .report-wrap { max-width: 1200px; margin: 0 auto; padding: 24px 16px 64px; }
+  .report-meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 12px; }
+  .sticky-nav { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0; background: var(--bg); border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .sticky-nav a { font-size: 0.78rem; font-weight: 650; text-decoration: none; padding: 4px 10px; border-radius: 999px; background: var(--accent-light); color: var(--accent-dark); }
+  .lender-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+  .lender-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .lender-head h3 { margin: 0; font-size: 1.05rem; }
+  .lender-head .code { color: var(--muted); font-weight: 500; }
+  .json-detail { margin: 8px 0 0; padding: 12px 16px; background: #f4f6f9; font-size: 0.75rem; overflow: auto; max-height: 360px; border: 1px solid var(--border); border-radius: 8px; }
+  .json-detail.hidden { display: none; }
+  .json-detail h4 { margin: 8px 0 4px; font-size: 0.8rem; }
+  .json-detail pre { margin: 0 0 12px; white-space: pre-wrap; word-break: break-word; }
+  .timeline { list-style: none; padding: 0; margin: 0; }
+  .timeline li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+  .timeline time { display: block; font-size: 0.72rem; color: var(--muted); }
+  .chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+  .chip.pass { background: #e6f4ed; color: #1f7a4d; }
+  .chip.fail { background: #fdecea; color: #b42318; }
+  .chip.skip { background: #fff8e6; color: #9a6700; }
+  .chip.notrun { background: #f0f0ec; color: #6b7280; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: #eef2f7; font-weight: 650; }
+  td.num { text-align: right; width: 40px; }
+  td.formula { font-family: ui-monospace, monospace; font-size: 0.75rem; }
+  .table-wrap { overflow-x: auto; }
+  .muted { color: var(--muted); }
+  .back { margin-bottom: 12px; display: inline-block; }
+  .field-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .field-card { background: #f7fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .field-card .fk { display: block; font-size: 0.7rem; color: var(--muted); margin-bottom: 4px; }
+  .field-card .fv { font-weight: 600; font-size: 0.9rem; word-break: break-word; }
+  .doc-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .doc-chip { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; min-width: 180px; background: #fff; }
+  .doc-chip.ok { border-color: #b7e0c8; }
+  .doc-chip.fail { border-color: #f0c4c0; background: #fffbfb; }
+  .doc-chip .path { display: block; font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
+  .http-row { margin-bottom: 8px; }
+  .http-toggle { width: 100%; text-align: left; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; }
+  .error-callout { background: #fff5f5; border: 1px solid #f0c4c0; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  .subh { font-size: 0.95rem; margin: 18px 0 8px; color: var(--accent-dark); }
+  .btn.ghost { margin-top: 10px; }
+  h2 { scroll-margin-top: 56px; }
+</style>
+</head>
+<body>
+<div class="report-wrap">
+  <a class="back" href="/suite/">← Back to suite</a>
+  <h1>Personal Loan run — Test User</h1>
+  <p class="report-meta">
+    Mode: <strong>offline-journey</strong>
+    · runId cee4bd75-ad83-4198-a715-5fa66cdf8cd1
+    · lead <strong>offline</strong>
+    · loan-app —
+  </p>
+  <nav class="sticky-nav">
+    <a href="#sec-timeline">Timeline</a>
+    <a href="#sec-forms">Forms</a>
+    <a href="#sec-docs">Documents</a>
+    <a href="#sec-bureau">Bureau</a>
+    <a href="#sec-eligibility">Eligibility</a>
+    <a href="#sec-scoring">Scoring</a>
+    <a href="#sec-http">HTTP</a>
+    <a href="#sec-errors">Errors</a>
+  </nav>
+
+  <section class="card" id="sec-timeline" style="margin-bottom:20px">
+    <h2>Timeline — what happened</h2>
+    <ol class="timeline"><li class="tl-form">
+        <time>2026-09-04T13:37:25.770Z</time>
+        <strong>form</strong>
+        <span>Loading personal-loan customer fixture</span>
+      </li><li class="tl-form">
+        <time>2026-09-04T13:37:25.970Z</time>
+        <strong>form</strong>
+        <span>Customer form data ready (offline)</span>
+      </li><li class="tl-bureau">
+        <time>2026-09-04T13:37:25.970Z</time>
+        <strong>bureau</strong>
+        <span>Loading sample bureau extraction fixture</span>
+      </li><li class="tl-bureau">
+        <time>2026-09-04T13:37:26.220Z</time>
+        <strong>bureau</strong>
+        <span>Bureau sample loaded — CIBIL 750</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.220Z</time>
+        <strong>eligibility</strong>
+        <span>Running eligibility pipeline (offline simulation)</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.220Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-PRE-ACTIVE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.261Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-PINCODE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.301Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-CIBIL → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.341Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-DPD-LATEST → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.381Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-AGE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.422Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-INCOME → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.462Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-AMOUNT → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.502Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-FOIR → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.542Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-DPD-3M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.582Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-DPD-12M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.623Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-DPD-DAYS → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.663Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-CC-UTIL → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.703Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-UNSECURED → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.743Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-SALARY-TYPE → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.783Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-PF → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.824Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-EMPLOYMENT → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.864Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-ENQ-EXCLUDE → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.904Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-ENQ-1M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.944Z</time>
+        <strong>eligibility</strong>
+        <span>SBI · PL-ENQ-3M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.985Z</time>
+        <strong>eligibility</strong>
+        <span>SBI eligible</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:26.985Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-PRE-ACTIVE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.025Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-PINCODE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.065Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-CIBIL → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.105Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-DPD-LATEST → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.146Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-AGE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.186Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-INCOME → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.226Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-AMOUNT → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.266Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-FOIR → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.307Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-DPD-3M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.347Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-DPD-12M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.387Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-DPD-DAYS → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.427Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-CC-UTIL → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.468Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-UNSECURED → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.508Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-SALARY-TYPE → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.548Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-PF → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.588Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-EMPLOYMENT → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.629Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-ENQ-EXCLUDE → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.669Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-ENQ-1M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.709Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC · PL-ENQ-3M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.750Z</time>
+        <strong>eligibility</strong>
+        <span>HDFC eligible</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.750Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-PRE-ACTIVE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.790Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-PINCODE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.831Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-CIBIL → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.871Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-DPD-LATEST → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.911Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-AGE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.951Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-INCOME → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:27.992Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-AMOUNT → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.032Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-FOIR → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.072Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-DPD-3M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.113Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-DPD-12M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.153Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-DPD-DAYS → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.193Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-CC-UTIL → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.234Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-UNSECURED → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.274Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-SALARY-TYPE → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.314Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-PF → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.355Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-EMPLOYMENT → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.395Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-ENQ-EXCLUDE → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.435Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-ENQ-1M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.475Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS · PL-ENQ-3M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.516Z</time>
+        <strong>eligibility</strong>
+        <span>AXIS eligible</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.516Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-PRE-ACTIVE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.556Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-PINCODE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.596Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-CIBIL → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.637Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-DPD-LATEST → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.677Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-AGE → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.717Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-INCOME → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.757Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-AMOUNT → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.798Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-FOIR → PASS</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.838Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-DPD-3M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.878Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-DPD-12M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.919Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-DPD-DAYS → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.959Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-CC-UTIL → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:28.999Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-UNSECURED → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:29.040Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-SALARY-TYPE → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:29.080Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-PF → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:29.120Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-EMPLOYMENT → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:29.160Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-ENQ-EXCLUDE → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:29.201Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-ENQ-1M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:29.241Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI · PL-ENQ-3M → SKIP</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:29.282Z</time>
+        <strong>eligibility</strong>
+        <span>ICICI eligible</span>
+      </li><li class="tl-eligibility">
+        <time>2026-09-04T13:37:29.282Z</time>
+        <strong>eligibility</strong>
+        <span>Eligibility complete</span>
+      </li><li class="tl-scoring">
+        <time>2026-09-04T13:37:29.282Z</time>
+        <strong>scoring</strong>
+        <span>Scoring eligible lenders (offline)</span>
+      </li><li class="tl-scoring">
+        <time>2026-09-04T13:37:29.282Z</time>
+        <strong>scoring</strong>
+        <span>SBI score 100</span>
+      </li><li class="tl-scoring">
+        <time>2026-09-04T13:37:29.343Z</time>
+        <strong>scoring</strong>
+        <span>HDFC score 66</span>
+      </li><li class="tl-scoring">
+        <time>2026-09-04T13:37:29.403Z</time>
+        <strong>scoring</strong>
+        <span>AXIS score 66</span>
+      </li><li class="tl-scoring">
+        <time>2026-09-04T13:37:29.463Z</time>
+        <strong>scoring</strong>
+        <span>ICICI score 77</span>
+      </li><li class="tl-scoring">
+        <time>2026-09-04T13:37:29.524Z</time>
+        <strong>scoring</strong>
+        <span>Scoring complete</span>
+      </li><li class="tl-rank">
+        <time>2026-09-04T13:37:29.524Z</time>
+        <strong>rank</strong>
+        <span>Ranking lenders</span>
+      </li><li class="tl-rank">
+        <time>2026-09-04T13:37:29.524Z</time>
+        <strong>rank</strong>
+        <span>#1 SBI — 100 pts</span>
+      </li><li class="tl-rank">
+        <time>2026-09-04T13:37:29.554Z</time>
+        <strong>rank</strong>
+        <span>#2 ICICI — 77 pts</span>
+      </li><li class="tl-rank">
+        <time>2026-09-04T13:37:29.584Z</time>
+        <strong>rank</strong>
+        <span>#3 HDFC — 66 pts</span>
+      </li><li class="tl-rank">
+        <time>2026-09-04T13:37:29.614Z</time>
+        <strong>rank</strong>
+        <span>#4 AXIS — 66 pts</span>
+      </li><li class="tl-rank">
+        <time>2026-09-04T13:37:29.645Z</time>
+        <strong>rank</strong>
+        <span>Ranking complete</span>
+      </li></ol>
+  </section>
+
+  <div id="sec-forms">
+    
+    
+  </div>
+
+  <div id="sec-docs"></div>
+  <div id="sec-bureau"><section class="card"><h2>Bureau extraction</h2><p class="muted">Not run</p></section></div>
+
+  <h2 id="sec-eligibility" style="margin:24px 0 12px">4. AI Match — Eligibility (formulas + values)</h2>
+  <p class="muted">Each row shows the hardcoded formula, applicant value vs lender threshold, and Pass/Fail/Skip.</p>
+  <section class="lender-card" id="lender-SBI">
+    <header class="lender-head">
+      <div>
+        <h3>State Bank of India <span class="code">SBI</span></h3>
+        <p class="muted"><span class="chip pass">PASS</span> Eligible
+          
+          
+          
+        </p>
+      </div>
+      <button type="button" class="btn ghost toggle-detail" data-target="lender-detail-0">Show details</button>
+    </header>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Rule</th><th>Name</th><th>Result</th><th>Formula</th><th>How calculated</th><th>Reason</th>
+        </tr></thead>
+        <tbody><tr>
+        <td class="num">1</td>
+        <td><code>PL-PRE-ACTIVE</code></td>
+        <td>Active lenders</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">catalog.isActive &amp;&amp; criteria.isActive</td>
+        <td>catalog.isActive=true &amp;&amp; criteria.isActive=true → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">2</td>
+        <td><code>PL-PINCODE</code></td>
+        <td>Zipcode availability</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">coversAllPincodes OR zipCode === applicantPin</td>
+        <td>zipCode=440001 === applicantPin=440001 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">3</td>
+        <td><code>PL-CIBIL</code></td>
+        <td>Min CIBIL</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">applicantCibil &gt;= minCibil</td>
+        <td>750 &gt;= 650 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">4</td>
+        <td><code>PL-DPD-LATEST</code></td>
+        <td>Latest open-account DPD</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">latestDpdDays &lt;= max_dpd_days_allowed</td>
+        <td>0 &lt;= 30 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">5</td>
+        <td><code>PL-AGE</code></td>
+        <td>Age</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">minAge &lt;= age &lt;= maxAge</td>
+        <td>21 &lt;= 36 &lt;= 60 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">6</td>
+        <td><code>PL-INCOME</code></td>
+        <td>Minimum Monthly Income</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">netSalary &gt;= min_monthly_income</td>
+        <td>netSalary 85000 &gt;= 40000 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">7</td>
+        <td><code>PL-AMOUNT</code></td>
+        <td>Loan amount</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">minLoanAmount &lt;= requestedAmount &lt;= maxLoanAmount</td>
+        <td>50000 &lt;= 500000 &lt;= 5000000 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">8</td>
+        <td><code>PL-FOIR</code></td>
+        <td>FOIR</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">existingTotalEmi / netMonthlyIncome &lt;= foir</td>
+        <td>emi/income = 0.35 &lt;= 0.5 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">9</td>
+        <td><code>PL-DPD-3M</code></td>
+        <td>DPD Last 3 Months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">dpdViolationCount3Months &lt;= max</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">10</td>
+        <td><code>PL-DPD-12M</code></td>
+        <td>DPD Last 12 Months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">dpdViolationCount12Months &lt;= max</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">11</td>
+        <td><code>PL-DPD-DAYS</code></td>
+        <td>Max DPD days</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">maxDpdDays &lt;= maxDpdDaysAllowed</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">12</td>
+        <td><code>PL-CC-UTIL</code></td>
+        <td>Credit card utilization</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">ccOutstanding / ccLimit &lt;= maxCCUtilizationRatio</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">13</td>
+        <td><code>PL-UNSECURED</code></td>
+        <td>Active unsecured accounts</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">activeUnsecured &lt;= maxActiveUnsecuredAccount</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">14</td>
+        <td><code>PL-SALARY-TYPE</code></td>
+        <td>Accepted salary types</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">salaryMode IN acceptedSalaryTypes</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">15</td>
+        <td><code>PL-PF</code></td>
+        <td>PF Deducted</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">pf_required → pfDeducted must be true</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">16</td>
+        <td><code>PL-EMPLOYMENT</code></td>
+        <td>Min employment months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">employmentMonths &gt;= minEmploymentMonths</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">17</td>
+        <td><code>PL-ENQ-EXCLUDE</code></td>
+        <td>Enquiry already with lender</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">no self-enquiry in last 3 months</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">18</td>
+        <td><code>PL-ENQ-1M</code></td>
+        <td>Enquiries 1 month</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">enquiries1m &lt;= maxEnquiries1month</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">19</td>
+        <td><code>PL-ENQ-3M</code></td>
+        <td>Enquiries 3 months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">enquiries3m &lt;= maxEnquiries3months</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr></tbody>
+      </table>
+    </div>
+    <pre class="json-detail hidden" id="lender-detail-0">{
+  &quot;code&quot;: &quot;SBI&quot;,
+  &quot;lenderName&quot;: &quot;State Bank of India&quot;,
+  &quot;eligible&quot;: true,
+  &quot;failedAt&quot;: null,
+  &quot;failedStep&quot;: null,
+  &quot;passed&quot;: 8,
+  &quot;failed&quot;: 0,
+  &quot;skipped&quot;: 11,
+  &quot;notRun&quot;: 0,
+  &quot;steps&quot;: [
+    {
+      &quot;step&quot;: 1,
+      &quot;ruleId&quot;: &quot;PL-PRE-ACTIVE&quot;,
+      &quot;ruleName&quot;: &quot;Active lenders&quot;,
+      &quot;formula&quot;: &quot;catalog.isActive &amp;&amp; criteria.isActive&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;catalog.isActive=true &amp;&amp; criteria.isActive=true → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 2,
+      &quot;ruleId&quot;: &quot;PL-PINCODE&quot;,
+      &quot;ruleName&quot;: &quot;Zipcode availability&quot;,
+      &quot;formula&quot;: &quot;coversAllPincodes OR zipCode === applicantPin&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;zipCode=440001 === applicantPin=440001 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 3,
+      &quot;ruleId&quot;: &quot;PL-CIBIL&quot;,
+      &quot;ruleName&quot;: &quot;Min CIBIL&quot;,
+      &quot;formula&quot;: &quot;applicantCibil &gt;= minCibil&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;750 &gt;= 650 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 4,
+      &quot;ruleId&quot;: &quot;PL-DPD-LATEST&quot;,
+      &quot;ruleName&quot;: &quot;Latest open-account DPD&quot;,
+      &quot;formula&quot;: &quot;latestDpdDays &lt;= max_dpd_days_allowed&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;0 &lt;= 30 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 5,
+      &quot;ruleId&quot;: &quot;PL-AGE&quot;,
+      &quot;ruleName&quot;: &quot;Age&quot;,
+      &quot;formula&quot;: &quot;minAge &lt;= age &lt;= maxAge&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;21 &lt;= 36 &lt;= 60 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 6,
+      &quot;ruleId&quot;: &quot;PL-INCOME&quot;,
+      &quot;ruleName&quot;: &quot;Minimum Monthly Income&quot;,
+      &quot;formula&quot;: &quot;netSalary &gt;= min_monthly_income&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;netSalary 85000 &gt;= 40000 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 7,
+      &quot;ruleId&quot;: &quot;PL-AMOUNT&quot;,
+      &quot;ruleName&quot;: &quot;Loan amount&quot;,
+      &quot;formula&quot;: &quot;minLoanAmount &lt;= requestedAmount &lt;= maxLoanAmount&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;50000 &lt;= 500000 &lt;= 5000000 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 8,
+      &quot;ruleId&quot;: &quot;PL-FOIR&quot;,
+      &quot;ruleName&quot;: &quot;FOIR&quot;,
+      &quot;formula&quot;: &quot;existingTotalEmi / netMonthlyIncome &lt;= foir&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;emi/income = 0.35 &lt;= 0.5 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 9,
+      &quot;ruleId&quot;: &quot;PL-DPD-3M&quot;,
+      &quot;ruleName&quot;: &quot;DPD Last 3 Months&quot;,
+      &quot;formula&quot;: &quot;dpdViolationCount3Months &lt;= max&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 10,
+      &quot;ruleId&quot;: &quot;PL-DPD-12M&quot;,
+      &quot;ruleName&quot;: &quot;DPD Last 12 Months&quot;,
+      &quot;formula&quot;: &quot;dpdViolationCount12Months &lt;= max&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 11,
+      &quot;ruleId&quot;: &quot;PL-DPD-DAYS&quot;,
+      &quot;ruleName&quot;: &quot;Max DPD days&quot;,
+      &quot;formula&quot;: &quot;maxDpdDays &lt;= maxDpdDaysAllowed&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 12,
+      &quot;ruleId&quot;: &quot;PL-CC-UTIL&quot;,
+      &quot;ruleName&quot;: &quot;Credit card utilization&quot;,
+      &quot;formula&quot;: &quot;ccOutstanding / ccLimit &lt;= maxCCUtilizationRatio&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 13,
+      &quot;ruleId&quot;: &quot;PL-UNSECURED&quot;,
+      &quot;ruleName&quot;: &quot;Active unsecured accounts&quot;,
+      &quot;formula&quot;: &quot;activeUnsecured &lt;= maxActiveUnsecuredAccount&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 14,
+      &quot;ruleId&quot;: &quot;PL-SALARY-TYPE&quot;,
+      &quot;ruleName&quot;: &quot;Accepted salary types&quot;,
+      &quot;formula&quot;: &quot;salaryMode IN acceptedSalaryTypes&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 15,
+      &quot;ruleId&quot;: &quot;PL-PF&quot;,
+      &quot;ruleName&quot;: &quot;PF Deducted&quot;,
+      &quot;formula&quot;: &quot;pf_required → pfDeducted must be true&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 16,
+      &quot;ruleId&quot;: &quot;PL-EMPLOYMENT&quot;,
+      &quot;ruleName&quot;: &quot;Min employment months&quot;,
+      &quot;formula&quot;: &quot;employmentMonths &gt;= minEmploymentMonths&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 17,
+      &quot;ruleId&quot;: &quot;PL-ENQ-EXCLUDE&quot;,
+      &quot;ruleName&quot;: &quot;Enquiry already with lender&quot;,
+      &quot;formula&quot;: &quot;no self-enquiry in last 3 months&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 18,
+      &quot;ruleId&quot;: &quot;PL-ENQ-1M&quot;,
+      &quot;ruleName&quot;: &quot;Enquiries 1 month&quot;,
+      &quot;formula&quot;: &quot;enquiries1m &lt;= maxEnquiries1month&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 19,
+      &quot;ruleId&quot;: &quot;PL-ENQ-3M&quot;,
+      &quot;ruleName&quot;: &quot;Enquiries 3 months&quot;,
+      &quot;formula&quot;: &quot;enquiries3m &lt;= maxEnquiries3months&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    }
+  ]
+}</pre>
+  </section>
+<section class="lender-card" id="lender-HDFC">
+    <header class="lender-head">
+      <div>
+        <h3>HDFC Bank <span class="code">HDFC</span></h3>
+        <p class="muted"><span class="chip pass">PASS</span> Eligible
+          
+          
+          
+        </p>
+      </div>
+      <button type="button" class="btn ghost toggle-detail" data-target="lender-detail-1">Show details</button>
+    </header>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Rule</th><th>Name</th><th>Result</th><th>Formula</th><th>How calculated</th><th>Reason</th>
+        </tr></thead>
+        <tbody><tr>
+        <td class="num">1</td>
+        <td><code>PL-PRE-ACTIVE</code></td>
+        <td>Active lenders</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">catalog.isActive &amp;&amp; criteria.isActive</td>
+        <td>catalog.isActive=true &amp;&amp; criteria.isActive=true → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">2</td>
+        <td><code>PL-PINCODE</code></td>
+        <td>Zipcode availability</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">coversAllPincodes OR zipCode === applicantPin</td>
+        <td>zipCode=440001 === applicantPin=440001 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">3</td>
+        <td><code>PL-CIBIL</code></td>
+        <td>Min CIBIL</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">applicantCibil &gt;= minCibil</td>
+        <td>750 &gt;= 650 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">4</td>
+        <td><code>PL-DPD-LATEST</code></td>
+        <td>Latest open-account DPD</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">latestDpdDays &lt;= max_dpd_days_allowed</td>
+        <td>0 &lt;= 30 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">5</td>
+        <td><code>PL-AGE</code></td>
+        <td>Age</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">minAge &lt;= age &lt;= maxAge</td>
+        <td>21 &lt;= 36 &lt;= 60 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">6</td>
+        <td><code>PL-INCOME</code></td>
+        <td>Minimum Monthly Income</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">netSalary &gt;= min_monthly_income</td>
+        <td>netSalary 85000 &gt;= 40000 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">7</td>
+        <td><code>PL-AMOUNT</code></td>
+        <td>Loan amount</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">minLoanAmount &lt;= requestedAmount &lt;= maxLoanAmount</td>
+        <td>50000 &lt;= 500000 &lt;= 5000000 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">8</td>
+        <td><code>PL-FOIR</code></td>
+        <td>FOIR</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">existingTotalEmi / netMonthlyIncome &lt;= foir</td>
+        <td>emi/income = 0.35 &lt;= 0.5 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">9</td>
+        <td><code>PL-DPD-3M</code></td>
+        <td>DPD Last 3 Months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">dpdViolationCount3Months &lt;= max</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">10</td>
+        <td><code>PL-DPD-12M</code></td>
+        <td>DPD Last 12 Months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">dpdViolationCount12Months &lt;= max</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">11</td>
+        <td><code>PL-DPD-DAYS</code></td>
+        <td>Max DPD days</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">maxDpdDays &lt;= maxDpdDaysAllowed</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">12</td>
+        <td><code>PL-CC-UTIL</code></td>
+        <td>Credit card utilization</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">ccOutstanding / ccLimit &lt;= maxCCUtilizationRatio</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">13</td>
+        <td><code>PL-UNSECURED</code></td>
+        <td>Active unsecured accounts</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">activeUnsecured &lt;= maxActiveUnsecuredAccount</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">14</td>
+        <td><code>PL-SALARY-TYPE</code></td>
+        <td>Accepted salary types</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">salaryMode IN acceptedSalaryTypes</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">15</td>
+        <td><code>PL-PF</code></td>
+        <td>PF Deducted</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">pf_required → pfDeducted must be true</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">16</td>
+        <td><code>PL-EMPLOYMENT</code></td>
+        <td>Min employment months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">employmentMonths &gt;= minEmploymentMonths</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">17</td>
+        <td><code>PL-ENQ-EXCLUDE</code></td>
+        <td>Enquiry already with lender</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">no self-enquiry in last 3 months</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">18</td>
+        <td><code>PL-ENQ-1M</code></td>
+        <td>Enquiries 1 month</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">enquiries1m &lt;= maxEnquiries1month</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">19</td>
+        <td><code>PL-ENQ-3M</code></td>
+        <td>Enquiries 3 months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">enquiries3m &lt;= maxEnquiries3months</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr></tbody>
+      </table>
+    </div>
+    <pre class="json-detail hidden" id="lender-detail-1">{
+  &quot;code&quot;: &quot;HDFC&quot;,
+  &quot;lenderName&quot;: &quot;HDFC Bank&quot;,
+  &quot;eligible&quot;: true,
+  &quot;failedAt&quot;: null,
+  &quot;failedStep&quot;: null,
+  &quot;passed&quot;: 8,
+  &quot;failed&quot;: 0,
+  &quot;skipped&quot;: 11,
+  &quot;notRun&quot;: 0,
+  &quot;steps&quot;: [
+    {
+      &quot;step&quot;: 1,
+      &quot;ruleId&quot;: &quot;PL-PRE-ACTIVE&quot;,
+      &quot;ruleName&quot;: &quot;Active lenders&quot;,
+      &quot;formula&quot;: &quot;catalog.isActive &amp;&amp; criteria.isActive&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;catalog.isActive=true &amp;&amp; criteria.isActive=true → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 2,
+      &quot;ruleId&quot;: &quot;PL-PINCODE&quot;,
+      &quot;ruleName&quot;: &quot;Zipcode availability&quot;,
+      &quot;formula&quot;: &quot;coversAllPincodes OR zipCode === applicantPin&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;zipCode=440001 === applicantPin=440001 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 3,
+      &quot;ruleId&quot;: &quot;PL-CIBIL&quot;,
+      &quot;ruleName&quot;: &quot;Min CIBIL&quot;,
+      &quot;formula&quot;: &quot;applicantCibil &gt;= minCibil&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;750 &gt;= 650 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 4,
+      &quot;ruleId&quot;: &quot;PL-DPD-LATEST&quot;,
+      &quot;ruleName&quot;: &quot;Latest open-account DPD&quot;,
+      &quot;formula&quot;: &quot;latestDpdDays &lt;= max_dpd_days_allowed&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;0 &lt;= 30 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 5,
+      &quot;ruleId&quot;: &quot;PL-AGE&quot;,
+      &quot;ruleName&quot;: &quot;Age&quot;,
+      &quot;formula&quot;: &quot;minAge &lt;= age &lt;= maxAge&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;21 &lt;= 36 &lt;= 60 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 6,
+      &quot;ruleId&quot;: &quot;PL-INCOME&quot;,
+      &quot;ruleName&quot;: &quot;Minimum Monthly Income&quot;,
+      &quot;formula&quot;: &quot;netSalary &gt;= min_monthly_income&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;netSalary 85000 &gt;= 40000 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 7,
+      &quot;ruleId&quot;: &quot;PL-AMOUNT&quot;,
+      &quot;ruleName&quot;: &quot;Loan amount&quot;,
+      &quot;formula&quot;: &quot;minLoanAmount &lt;= requestedAmount &lt;= maxLoanAmount&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;50000 &lt;= 500000 &lt;= 5000000 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 8,
+      &quot;ruleId&quot;: &quot;PL-FOIR&quot;,
+      &quot;ruleName&quot;: &quot;FOIR&quot;,
+      &quot;formula&quot;: &quot;existingTotalEmi / netMonthlyIncome &lt;= foir&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;emi/income = 0.35 &lt;= 0.5 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 9,
+      &quot;ruleId&quot;: &quot;PL-DPD-3M&quot;,
+      &quot;ruleName&quot;: &quot;DPD Last 3 Months&quot;,
+      &quot;formula&quot;: &quot;dpdViolationCount3Months &lt;= max&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 10,
+      &quot;ruleId&quot;: &quot;PL-DPD-12M&quot;,
+      &quot;ruleName&quot;: &quot;DPD Last 12 Months&quot;,
+      &quot;formula&quot;: &quot;dpdViolationCount12Months &lt;= max&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 11,
+      &quot;ruleId&quot;: &quot;PL-DPD-DAYS&quot;,
+      &quot;ruleName&quot;: &quot;Max DPD days&quot;,
+      &quot;formula&quot;: &quot;maxDpdDays &lt;= maxDpdDaysAllowed&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 12,
+      &quot;ruleId&quot;: &quot;PL-CC-UTIL&quot;,
+      &quot;ruleName&quot;: &quot;Credit card utilization&quot;,
+      &quot;formula&quot;: &quot;ccOutstanding / ccLimit &lt;= maxCCUtilizationRatio&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 13,
+      &quot;ruleId&quot;: &quot;PL-UNSECURED&quot;,
+      &quot;ruleName&quot;: &quot;Active unsecured accounts&quot;,
+      &quot;formula&quot;: &quot;activeUnsecured &lt;= maxActiveUnsecuredAccount&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 14,
+      &quot;ruleId&quot;: &quot;PL-SALARY-TYPE&quot;,
+      &quot;ruleName&quot;: &quot;Accepted salary types&quot;,
+      &quot;formula&quot;: &quot;salaryMode IN acceptedSalaryTypes&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 15,
+      &quot;ruleId&quot;: &quot;PL-PF&quot;,
+      &quot;ruleName&quot;: &quot;PF Deducted&quot;,
+      &quot;formula&quot;: &quot;pf_required → pfDeducted must be true&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 16,
+      &quot;ruleId&quot;: &quot;PL-EMPLOYMENT&quot;,
+      &quot;ruleName&quot;: &quot;Min employment months&quot;,
+      &quot;formula&quot;: &quot;employmentMonths &gt;= minEmploymentMonths&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 17,
+      &quot;ruleId&quot;: &quot;PL-ENQ-EXCLUDE&quot;,
+      &quot;ruleName&quot;: &quot;Enquiry already with lender&quot;,
+      &quot;formula&quot;: &quot;no self-enquiry in last 3 months&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 18,
+      &quot;ruleId&quot;: &quot;PL-ENQ-1M&quot;,
+      &quot;ruleName&quot;: &quot;Enquiries 1 month&quot;,
+      &quot;formula&quot;: &quot;enquiries1m &lt;= maxEnquiries1month&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 19,
+      &quot;ruleId&quot;: &quot;PL-ENQ-3M&quot;,
+      &quot;ruleName&quot;: &quot;Enquiries 3 months&quot;,
+      &quot;formula&quot;: &quot;enquiries3m &lt;= maxEnquiries3months&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    }
+  ]
+}</pre>
+  </section>
+<section class="lender-card" id="lender-AXIS">
+    <header class="lender-head">
+      <div>
+        <h3>Axis Bank <span class="code">AXIS</span></h3>
+        <p class="muted"><span class="chip pass">PASS</span> Eligible
+          
+          
+          
+        </p>
+      </div>
+      <button type="button" class="btn ghost toggle-detail" data-target="lender-detail-2">Show details</button>
+    </header>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Rule</th><th>Name</th><th>Result</th><th>Formula</th><th>How calculated</th><th>Reason</th>
+        </tr></thead>
+        <tbody><tr>
+        <td class="num">1</td>
+        <td><code>PL-PRE-ACTIVE</code></td>
+        <td>Active lenders</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">catalog.isActive &amp;&amp; criteria.isActive</td>
+        <td>catalog.isActive=true &amp;&amp; criteria.isActive=true → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">2</td>
+        <td><code>PL-PINCODE</code></td>
+        <td>Zipcode availability</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">coversAllPincodes OR zipCode === applicantPin</td>
+        <td>zipCode=440001 === applicantPin=440001 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">3</td>
+        <td><code>PL-CIBIL</code></td>
+        <td>Min CIBIL</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">applicantCibil &gt;= minCibil</td>
+        <td>750 &gt;= 650 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">4</td>
+        <td><code>PL-DPD-LATEST</code></td>
+        <td>Latest open-account DPD</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">latestDpdDays &lt;= max_dpd_days_allowed</td>
+        <td>0 &lt;= 30 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">5</td>
+        <td><code>PL-AGE</code></td>
+        <td>Age</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">minAge &lt;= age &lt;= maxAge</td>
+        <td>21 &lt;= 36 &lt;= 60 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">6</td>
+        <td><code>PL-INCOME</code></td>
+        <td>Minimum Monthly Income</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">netSalary &gt;= min_monthly_income</td>
+        <td>netSalary 85000 &gt;= 40000 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">7</td>
+        <td><code>PL-AMOUNT</code></td>
+        <td>Loan amount</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">minLoanAmount &lt;= requestedAmount &lt;= maxLoanAmount</td>
+        <td>50000 &lt;= 500000 &lt;= 5000000 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">8</td>
+        <td><code>PL-FOIR</code></td>
+        <td>FOIR</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">existingTotalEmi / netMonthlyIncome &lt;= foir</td>
+        <td>emi/income = 0.35 &lt;= 0.5 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">9</td>
+        <td><code>PL-DPD-3M</code></td>
+        <td>DPD Last 3 Months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">dpdViolationCount3Months &lt;= max</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">10</td>
+        <td><code>PL-DPD-12M</code></td>
+        <td>DPD Last 12 Months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">dpdViolationCount12Months &lt;= max</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">11</td>
+        <td><code>PL-DPD-DAYS</code></td>
+        <td>Max DPD days</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">maxDpdDays &lt;= maxDpdDaysAllowed</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">12</td>
+        <td><code>PL-CC-UTIL</code></td>
+        <td>Credit card utilization</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">ccOutstanding / ccLimit &lt;= maxCCUtilizationRatio</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">13</td>
+        <td><code>PL-UNSECURED</code></td>
+        <td>Active unsecured accounts</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">activeUnsecured &lt;= maxActiveUnsecuredAccount</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">14</td>
+        <td><code>PL-SALARY-TYPE</code></td>
+        <td>Accepted salary types</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">salaryMode IN acceptedSalaryTypes</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">15</td>
+        <td><code>PL-PF</code></td>
+        <td>PF Deducted</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">pf_required → pfDeducted must be true</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">16</td>
+        <td><code>PL-EMPLOYMENT</code></td>
+        <td>Min employment months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">employmentMonths &gt;= minEmploymentMonths</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">17</td>
+        <td><code>PL-ENQ-EXCLUDE</code></td>
+        <td>Enquiry already with lender</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">no self-enquiry in last 3 months</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">18</td>
+        <td><code>PL-ENQ-1M</code></td>
+        <td>Enquiries 1 month</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">enquiries1m &lt;= maxEnquiries1month</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">19</td>
+        <td><code>PL-ENQ-3M</code></td>
+        <td>Enquiries 3 months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">enquiries3m &lt;= maxEnquiries3months</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr></tbody>
+      </table>
+    </div>
+    <pre class="json-detail hidden" id="lender-detail-2">{
+  &quot;code&quot;: &quot;AXIS&quot;,
+  &quot;lenderName&quot;: &quot;Axis Bank&quot;,
+  &quot;eligible&quot;: true,
+  &quot;failedAt&quot;: null,
+  &quot;failedStep&quot;: null,
+  &quot;passed&quot;: 8,
+  &quot;failed&quot;: 0,
+  &quot;skipped&quot;: 11,
+  &quot;notRun&quot;: 0,
+  &quot;steps&quot;: [
+    {
+      &quot;step&quot;: 1,
+      &quot;ruleId&quot;: &quot;PL-PRE-ACTIVE&quot;,
+      &quot;ruleName&quot;: &quot;Active lenders&quot;,
+      &quot;formula&quot;: &quot;catalog.isActive &amp;&amp; criteria.isActive&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;catalog.isActive=true &amp;&amp; criteria.isActive=true → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 2,
+      &quot;ruleId&quot;: &quot;PL-PINCODE&quot;,
+      &quot;ruleName&quot;: &quot;Zipcode availability&quot;,
+      &quot;formula&quot;: &quot;coversAllPincodes OR zipCode === applicantPin&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;zipCode=440001 === applicantPin=440001 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 3,
+      &quot;ruleId&quot;: &quot;PL-CIBIL&quot;,
+      &quot;ruleName&quot;: &quot;Min CIBIL&quot;,
+      &quot;formula&quot;: &quot;applicantCibil &gt;= minCibil&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;750 &gt;= 650 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 4,
+      &quot;ruleId&quot;: &quot;PL-DPD-LATEST&quot;,
+      &quot;ruleName&quot;: &quot;Latest open-account DPD&quot;,
+      &quot;formula&quot;: &quot;latestDpdDays &lt;= max_dpd_days_allowed&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;0 &lt;= 30 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 5,
+      &quot;ruleId&quot;: &quot;PL-AGE&quot;,
+      &quot;ruleName&quot;: &quot;Age&quot;,
+      &quot;formula&quot;: &quot;minAge &lt;= age &lt;= maxAge&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;21 &lt;= 36 &lt;= 60 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 6,
+      &quot;ruleId&quot;: &quot;PL-INCOME&quot;,
+      &quot;ruleName&quot;: &quot;Minimum Monthly Income&quot;,
+      &quot;formula&quot;: &quot;netSalary &gt;= min_monthly_income&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;netSalary 85000 &gt;= 40000 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 7,
+      &quot;ruleId&quot;: &quot;PL-AMOUNT&quot;,
+      &quot;ruleName&quot;: &quot;Loan amount&quot;,
+      &quot;formula&quot;: &quot;minLoanAmount &lt;= requestedAmount &lt;= maxLoanAmount&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;50000 &lt;= 500000 &lt;= 5000000 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 8,
+      &quot;ruleId&quot;: &quot;PL-FOIR&quot;,
+      &quot;ruleName&quot;: &quot;FOIR&quot;,
+      &quot;formula&quot;: &quot;existingTotalEmi / netMonthlyIncome &lt;= foir&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;emi/income = 0.35 &lt;= 0.5 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 9,
+      &quot;ruleId&quot;: &quot;PL-DPD-3M&quot;,
+      &quot;ruleName&quot;: &quot;DPD Last 3 Months&quot;,
+      &quot;formula&quot;: &quot;dpdViolationCount3Months &lt;= max&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 10,
+      &quot;ruleId&quot;: &quot;PL-DPD-12M&quot;,
+      &quot;ruleName&quot;: &quot;DPD Last 12 Months&quot;,
+      &quot;formula&quot;: &quot;dpdViolationCount12Months &lt;= max&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 11,
+      &quot;ruleId&quot;: &quot;PL-DPD-DAYS&quot;,
+      &quot;ruleName&quot;: &quot;Max DPD days&quot;,
+      &quot;formula&quot;: &quot;maxDpdDays &lt;= maxDpdDaysAllowed&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 12,
+      &quot;ruleId&quot;: &quot;PL-CC-UTIL&quot;,
+      &quot;ruleName&quot;: &quot;Credit card utilization&quot;,
+      &quot;formula&quot;: &quot;ccOutstanding / ccLimit &lt;= maxCCUtilizationRatio&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 13,
+      &quot;ruleId&quot;: &quot;PL-UNSECURED&quot;,
+      &quot;ruleName&quot;: &quot;Active unsecured accounts&quot;,
+      &quot;formula&quot;: &quot;activeUnsecured &lt;= maxActiveUnsecuredAccount&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 14,
+      &quot;ruleId&quot;: &quot;PL-SALARY-TYPE&quot;,
+      &quot;ruleName&quot;: &quot;Accepted salary types&quot;,
+      &quot;formula&quot;: &quot;salaryMode IN acceptedSalaryTypes&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 15,
+      &quot;ruleId&quot;: &quot;PL-PF&quot;,
+      &quot;ruleName&quot;: &quot;PF Deducted&quot;,
+      &quot;formula&quot;: &quot;pf_required → pfDeducted must be true&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 16,
+      &quot;ruleId&quot;: &quot;PL-EMPLOYMENT&quot;,
+      &quot;ruleName&quot;: &quot;Min employment months&quot;,
+      &quot;formula&quot;: &quot;employmentMonths &gt;= minEmploymentMonths&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 17,
+      &quot;ruleId&quot;: &quot;PL-ENQ-EXCLUDE&quot;,
+      &quot;ruleName&quot;: &quot;Enquiry already with lender&quot;,
+      &quot;formula&quot;: &quot;no self-enquiry in last 3 months&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 18,
+      &quot;ruleId&quot;: &quot;PL-ENQ-1M&quot;,
+      &quot;ruleName&quot;: &quot;Enquiries 1 month&quot;,
+      &quot;formula&quot;: &quot;enquiries1m &lt;= maxEnquiries1month&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 19,
+      &quot;ruleId&quot;: &quot;PL-ENQ-3M&quot;,
+      &quot;ruleName&quot;: &quot;Enquiries 3 months&quot;,
+      &quot;formula&quot;: &quot;enquiries3m &lt;= maxEnquiries3months&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    }
+  ]
+}</pre>
+  </section>
+<section class="lender-card" id="lender-ICICI">
+    <header class="lender-head">
+      <div>
+        <h3>ICICI Bank <span class="code">ICICI</span></h3>
+        <p class="muted"><span class="chip pass">PASS</span> Eligible
+          
+          
+          
+        </p>
+      </div>
+      <button type="button" class="btn ghost toggle-detail" data-target="lender-detail-3">Show details</button>
+    </header>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Rule</th><th>Name</th><th>Result</th><th>Formula</th><th>How calculated</th><th>Reason</th>
+        </tr></thead>
+        <tbody><tr>
+        <td class="num">1</td>
+        <td><code>PL-PRE-ACTIVE</code></td>
+        <td>Active lenders</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">catalog.isActive &amp;&amp; criteria.isActive</td>
+        <td>catalog.isActive=true &amp;&amp; criteria.isActive=true → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">2</td>
+        <td><code>PL-PINCODE</code></td>
+        <td>Zipcode availability</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">coversAllPincodes OR zipCode === applicantPin</td>
+        <td>zipCode=440001 === applicantPin=440001 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">3</td>
+        <td><code>PL-CIBIL</code></td>
+        <td>Min CIBIL</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">applicantCibil &gt;= minCibil</td>
+        <td>750 &gt;= 650 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">4</td>
+        <td><code>PL-DPD-LATEST</code></td>
+        <td>Latest open-account DPD</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">latestDpdDays &lt;= max_dpd_days_allowed</td>
+        <td>0 &lt;= 30 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">5</td>
+        <td><code>PL-AGE</code></td>
+        <td>Age</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">minAge &lt;= age &lt;= maxAge</td>
+        <td>21 &lt;= 36 &lt;= 60 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">6</td>
+        <td><code>PL-INCOME</code></td>
+        <td>Minimum Monthly Income</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">netSalary &gt;= min_monthly_income</td>
+        <td>netSalary 85000 &gt;= 40000 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">7</td>
+        <td><code>PL-AMOUNT</code></td>
+        <td>Loan amount</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">minLoanAmount &lt;= requestedAmount &lt;= maxLoanAmount</td>
+        <td>50000 &lt;= 500000 &lt;= 5000000 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">8</td>
+        <td><code>PL-FOIR</code></td>
+        <td>FOIR</td>
+        <td><span class="chip pass">PASS</span></td>
+        <td class="muted formula">existingTotalEmi / netMonthlyIncome &lt;= foir</td>
+        <td>emi/income = 0.35 &lt;= 0.5 → PASS</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">9</td>
+        <td><code>PL-DPD-3M</code></td>
+        <td>DPD Last 3 Months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">dpdViolationCount3Months &lt;= max</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">10</td>
+        <td><code>PL-DPD-12M</code></td>
+        <td>DPD Last 12 Months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">dpdViolationCount12Months &lt;= max</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">11</td>
+        <td><code>PL-DPD-DAYS</code></td>
+        <td>Max DPD days</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">maxDpdDays &lt;= maxDpdDaysAllowed</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">12</td>
+        <td><code>PL-CC-UTIL</code></td>
+        <td>Credit card utilization</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">ccOutstanding / ccLimit &lt;= maxCCUtilizationRatio</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">13</td>
+        <td><code>PL-UNSECURED</code></td>
+        <td>Active unsecured accounts</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">activeUnsecured &lt;= maxActiveUnsecuredAccount</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">14</td>
+        <td><code>PL-SALARY-TYPE</code></td>
+        <td>Accepted salary types</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">salaryMode IN acceptedSalaryTypes</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">15</td>
+        <td><code>PL-PF</code></td>
+        <td>PF Deducted</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">pf_required → pfDeducted must be true</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">16</td>
+        <td><code>PL-EMPLOYMENT</code></td>
+        <td>Min employment months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">employmentMonths &gt;= minEmploymentMonths</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">17</td>
+        <td><code>PL-ENQ-EXCLUDE</code></td>
+        <td>Enquiry already with lender</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">no self-enquiry in last 3 months</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">18</td>
+        <td><code>PL-ENQ-1M</code></td>
+        <td>Enquiries 1 month</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">enquiries1m &lt;= maxEnquiries1month</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr><tr>
+        <td class="num">19</td>
+        <td><code>PL-ENQ-3M</code></td>
+        <td>Enquiries 3 months</td>
+        <td><span class="chip skip">SKIP</span></td>
+        <td class="muted formula">enquiries3m &lt;= maxEnquiries3months</td>
+        <td>Threshold null or not applicable → SKIP</td>
+        <td class="muted"></td>
+      </tr></tbody>
+      </table>
+    </div>
+    <pre class="json-detail hidden" id="lender-detail-3">{
+  &quot;code&quot;: &quot;ICICI&quot;,
+  &quot;lenderName&quot;: &quot;ICICI Bank&quot;,
+  &quot;eligible&quot;: true,
+  &quot;failedAt&quot;: null,
+  &quot;failedStep&quot;: null,
+  &quot;passed&quot;: 8,
+  &quot;failed&quot;: 0,
+  &quot;skipped&quot;: 11,
+  &quot;notRun&quot;: 0,
+  &quot;steps&quot;: [
+    {
+      &quot;step&quot;: 1,
+      &quot;ruleId&quot;: &quot;PL-PRE-ACTIVE&quot;,
+      &quot;ruleName&quot;: &quot;Active lenders&quot;,
+      &quot;formula&quot;: &quot;catalog.isActive &amp;&amp; criteria.isActive&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;catalog.isActive=true &amp;&amp; criteria.isActive=true → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 2,
+      &quot;ruleId&quot;: &quot;PL-PINCODE&quot;,
+      &quot;ruleName&quot;: &quot;Zipcode availability&quot;,
+      &quot;formula&quot;: &quot;coversAllPincodes OR zipCode === applicantPin&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;zipCode=440001 === applicantPin=440001 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 3,
+      &quot;ruleId&quot;: &quot;PL-CIBIL&quot;,
+      &quot;ruleName&quot;: &quot;Min CIBIL&quot;,
+      &quot;formula&quot;: &quot;applicantCibil &gt;= minCibil&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;750 &gt;= 650 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 4,
+      &quot;ruleId&quot;: &quot;PL-DPD-LATEST&quot;,
+      &quot;ruleName&quot;: &quot;Latest open-account DPD&quot;,
+      &quot;formula&quot;: &quot;latestDpdDays &lt;= max_dpd_days_allowed&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;0 &lt;= 30 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 5,
+      &quot;ruleId&quot;: &quot;PL-AGE&quot;,
+      &quot;ruleName&quot;: &quot;Age&quot;,
+      &quot;formula&quot;: &quot;minAge &lt;= age &lt;= maxAge&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;21 &lt;= 36 &lt;= 60 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 6,
+      &quot;ruleId&quot;: &quot;PL-INCOME&quot;,
+      &quot;ruleName&quot;: &quot;Minimum Monthly Income&quot;,
+      &quot;formula&quot;: &quot;netSalary &gt;= min_monthly_income&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;netSalary 85000 &gt;= 40000 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 7,
+      &quot;ruleId&quot;: &quot;PL-AMOUNT&quot;,
+      &quot;ruleName&quot;: &quot;Loan amount&quot;,
+      &quot;formula&quot;: &quot;minLoanAmount &lt;= requestedAmount &lt;= maxLoanAmount&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;50000 &lt;= 500000 &lt;= 5000000 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 8,
+      &quot;ruleId&quot;: &quot;PL-FOIR&quot;,
+      &quot;ruleName&quot;: &quot;FOIR&quot;,
+      &quot;formula&quot;: &quot;existingTotalEmi / netMonthlyIncome &lt;= foir&quot;,
+      &quot;result&quot;: &quot;PASS&quot;,
+      &quot;evaluation&quot;: &quot;emi/income = 0.35 &lt;= 0.5 → PASS&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 9,
+      &quot;ruleId&quot;: &quot;PL-DPD-3M&quot;,
+      &quot;ruleName&quot;: &quot;DPD Last 3 Months&quot;,
+      &quot;formula&quot;: &quot;dpdViolationCount3Months &lt;= max&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 10,
+      &quot;ruleId&quot;: &quot;PL-DPD-12M&quot;,
+      &quot;ruleName&quot;: &quot;DPD Last 12 Months&quot;,
+      &quot;formula&quot;: &quot;dpdViolationCount12Months &lt;= max&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 11,
+      &quot;ruleId&quot;: &quot;PL-DPD-DAYS&quot;,
+      &quot;ruleName&quot;: &quot;Max DPD days&quot;,
+      &quot;formula&quot;: &quot;maxDpdDays &lt;= maxDpdDaysAllowed&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 12,
+      &quot;ruleId&quot;: &quot;PL-CC-UTIL&quot;,
+      &quot;ruleName&quot;: &quot;Credit card utilization&quot;,
+      &quot;formula&quot;: &quot;ccOutstanding / ccLimit &lt;= maxCCUtilizationRatio&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 13,
+      &quot;ruleId&quot;: &quot;PL-UNSECURED&quot;,
+      &quot;ruleName&quot;: &quot;Active unsecured accounts&quot;,
+      &quot;formula&quot;: &quot;activeUnsecured &lt;= maxActiveUnsecuredAccount&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 14,
+      &quot;ruleId&quot;: &quot;PL-SALARY-TYPE&quot;,
+      &quot;ruleName&quot;: &quot;Accepted salary types&quot;,
+      &quot;formula&quot;: &quot;salaryMode IN acceptedSalaryTypes&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 15,
+      &quot;ruleId&quot;: &quot;PL-PF&quot;,
+      &quot;ruleName&quot;: &quot;PF Deducted&quot;,
+      &quot;formula&quot;: &quot;pf_required → pfDeducted must be true&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 16,
+      &quot;ruleId&quot;: &quot;PL-EMPLOYMENT&quot;,
+      &quot;ruleName&quot;: &quot;Min employment months&quot;,
+      &quot;formula&quot;: &quot;employmentMonths &gt;= minEmploymentMonths&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 17,
+      &quot;ruleId&quot;: &quot;PL-ENQ-EXCLUDE&quot;,
+      &quot;ruleName&quot;: &quot;Enquiry already with lender&quot;,
+      &quot;formula&quot;: &quot;no self-enquiry in last 3 months&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 18,
+      &quot;ruleId&quot;: &quot;PL-ENQ-1M&quot;,
+      &quot;ruleName&quot;: &quot;Enquiries 1 month&quot;,
+      &quot;formula&quot;: &quot;enquiries1m &lt;= maxEnquiries1month&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    },
+    {
+      &quot;step&quot;: 19,
+      &quot;ruleId&quot;: &quot;PL-ENQ-3M&quot;,
+      &quot;ruleName&quot;: &quot;Enquiries 3 months&quot;,
+      &quot;formula&quot;: &quot;enquiries3m &lt;= maxEnquiries3months&quot;,
+      &quot;result&quot;: &quot;SKIP&quot;,
+      &quot;evaluation&quot;: &quot;Threshold null or not applicable → SKIP&quot;,
+      &quot;reason&quot;: null
+    }
+  ]
+}</pre>
+  </section>
+
+  <div id="sec-scoring"><section class="card">
+    <h2>Scoring &amp; ranking</h2>
+    <p class="muted">Lenders with total score ≥ 40 are shown on the AI Match / lenders page.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Rank</th><th>Code</th><th>Lender</th><th>Total score</th><th>AI Match display</th></tr></thead>
+      <tbody><tr>
+        <td>1</td>
+        <td><strong>SBI</strong></td>
+        <td>State Bank of India</td>
+        <td>100</td>
+        <td><span class="chip pass">PASS</span> Shown on AI Match</td>
+      </tr><tr>
+        <td>2</td>
+        <td><strong>ICICI</strong></td>
+        <td>ICICI Bank</td>
+        <td>77</td>
+        <td><span class="chip pass">PASS</span> Shown on AI Match</td>
+      </tr><tr>
+        <td>3</td>
+        <td><strong>HDFC</strong></td>
+        <td>HDFC Bank</td>
+        <td>66</td>
+        <td><span class="chip pass">PASS</span> Shown on AI Match</td>
+      </tr><tr>
+        <td>4</td>
+        <td><strong>AXIS</strong></td>
+        <td>Axis Bank</td>
+        <td>66</td>
+        <td><span class="chip pass">PASS</span> Shown on AI Match</td>
+      </tr></tbody>
+    </table></div>
+    
+  </section></div>
+  <div id="sec-http"></div>
+  <div id="sec-errors"></div>
+
+  <p class="muted" style="margin-top:24px;font-size:0.78rem">Generated 2026-09-04T13:37:29.648Z · ScaleX Automation Testing Suite</p>
+</div>
+<script type="application/json" id="run-data">{"meta":{"runId":"cee4bd75-ad83-4198-a715-5fa66cdf8cd1","product":"personal-loan","leadId":"offline","leadName":"Test User","source":"offline-journey","loanType":"Personal Loan","failLab":false,"profile":{"pin":"440001","amount":500000,"cibil":750}},"events":[{"stage":"form","status":"start","message":"Loading personal-loan customer fixture","data":{"fullName":"Test User","loanAmount":500000},"ts":"2026-09-04T13:37:25.770Z"},{"stage":"form","status":"complete","message":"Customer form data ready (offline)","data":{"fields":31},"ts":"2026-09-04T13:37:25.970Z"},{"stage":"bureau","status":"start","message":"Loading sample bureau extraction fixture","ts":"2026-09-04T13:37:25.970Z"},{"stage":"bureau","status":"complete","message":"Bureau sample loaded — CIBIL 750","data":{"cibil_score":750,"open_accounts":1},"ts":"2026-09-04T13:37:26.220Z"},{"stage":"eligibility","status":"start","message":"Running eligibility pipeline (offline simulation)","ts":"2026-09-04T13:37:26.220Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-PRE-ACTIVE → PASS","data":{"lender":"SBI","step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},"ts":"2026-09-04T13:37:26.220Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-PINCODE → PASS","data":{"lender":"SBI","step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},"ts":"2026-09-04T13:37:26.261Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-CIBIL → PASS","data":{"lender":"SBI","step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"PASS","evaluation":"750 >= 650 → PASS","reason":null},"ts":"2026-09-04T13:37:26.301Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-DPD-LATEST → PASS","data":{"lender":"SBI","step":4,"ruleId":"PL-DPD-LATEST","ruleName":"Latest open-account DPD","formula":"latestDpdDays \u003c= max_dpd_days_allowed","result":"PASS","evaluation":"0 \u003c= 30 → PASS","reason":null},"ts":"2026-09-04T13:37:26.341Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-AGE → PASS","data":{"lender":"SBI","step":5,"ruleId":"PL-AGE","ruleName":"Age","formula":"minAge \u003c= age \u003c= maxAge","result":"PASS","evaluation":"21 \u003c= 36 \u003c= 60 → PASS","reason":null},"ts":"2026-09-04T13:37:26.381Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-INCOME → PASS","data":{"lender":"SBI","step":6,"ruleId":"PL-INCOME","ruleName":"Minimum Monthly Income","formula":"netSalary >= min_monthly_income","result":"PASS","evaluation":"netSalary 85000 >= 40000 → PASS","reason":null},"ts":"2026-09-04T13:37:26.422Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-AMOUNT → PASS","data":{"lender":"SBI","step":7,"ruleId":"PL-AMOUNT","ruleName":"Loan amount","formula":"minLoanAmount \u003c= requestedAmount \u003c= maxLoanAmount","result":"PASS","evaluation":"50000 \u003c= 500000 \u003c= 5000000 → PASS","reason":null},"ts":"2026-09-04T13:37:26.462Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-FOIR → PASS","data":{"lender":"SBI","step":8,"ruleId":"PL-FOIR","ruleName":"FOIR","formula":"existingTotalEmi / netMonthlyIncome \u003c= foir","result":"PASS","evaluation":"emi/income = 0.35 \u003c= 0.5 → PASS","reason":null},"ts":"2026-09-04T13:37:26.502Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-DPD-3M → SKIP","data":{"lender":"SBI","step":9,"ruleId":"PL-DPD-3M","ruleName":"DPD Last 3 Months","formula":"dpdViolationCount3Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:26.542Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-DPD-12M → SKIP","data":{"lender":"SBI","step":10,"ruleId":"PL-DPD-12M","ruleName":"DPD Last 12 Months","formula":"dpdViolationCount12Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:26.582Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-DPD-DAYS → SKIP","data":{"lender":"SBI","step":11,"ruleId":"PL-DPD-DAYS","ruleName":"Max DPD days","formula":"maxDpdDays \u003c= maxDpdDaysAllowed","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:26.623Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-CC-UTIL → SKIP","data":{"lender":"SBI","step":12,"ruleId":"PL-CC-UTIL","ruleName":"Credit card utilization","formula":"ccOutstanding / ccLimit \u003c= maxCCUtilizationRatio","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:26.663Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-UNSECURED → SKIP","data":{"lender":"SBI","step":13,"ruleId":"PL-UNSECURED","ruleName":"Active unsecured accounts","formula":"activeUnsecured \u003c= maxActiveUnsecuredAccount","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:26.703Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-SALARY-TYPE → SKIP","data":{"lender":"SBI","step":14,"ruleId":"PL-SALARY-TYPE","ruleName":"Accepted salary types","formula":"salaryMode IN acceptedSalaryTypes","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:26.743Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-PF → SKIP","data":{"lender":"SBI","step":15,"ruleId":"PL-PF","ruleName":"PF Deducted","formula":"pf_required → pfDeducted must be true","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:26.783Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-EMPLOYMENT → SKIP","data":{"lender":"SBI","step":16,"ruleId":"PL-EMPLOYMENT","ruleName":"Min employment months","formula":"employmentMonths >= minEmploymentMonths","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:26.824Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-ENQ-EXCLUDE → SKIP","data":{"lender":"SBI","step":17,"ruleId":"PL-ENQ-EXCLUDE","ruleName":"Enquiry already with lender","formula":"no self-enquiry in last 3 months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:26.864Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-ENQ-1M → SKIP","data":{"lender":"SBI","step":18,"ruleId":"PL-ENQ-1M","ruleName":"Enquiries 1 month","formula":"enquiries1m \u003c= maxEnquiries1month","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:26.904Z"},{"stage":"eligibility","status":"step","message":"SBI · PL-ENQ-3M → SKIP","data":{"lender":"SBI","step":19,"ruleId":"PL-ENQ-3M","ruleName":"Enquiries 3 months","formula":"enquiries3m \u003c= maxEnquiries3months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:26.944Z"},{"stage":"eligibility","status":"lender","message":"SBI eligible","data":{"code":"SBI","eligible":true,"failedAt":null},"ts":"2026-09-04T13:37:26.985Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-PRE-ACTIVE → PASS","data":{"lender":"HDFC","step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},"ts":"2026-09-04T13:37:26.985Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-PINCODE → PASS","data":{"lender":"HDFC","step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},"ts":"2026-09-04T13:37:27.025Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-CIBIL → PASS","data":{"lender":"HDFC","step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"PASS","evaluation":"750 >= 650 → PASS","reason":null},"ts":"2026-09-04T13:37:27.065Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-DPD-LATEST → PASS","data":{"lender":"HDFC","step":4,"ruleId":"PL-DPD-LATEST","ruleName":"Latest open-account DPD","formula":"latestDpdDays \u003c= max_dpd_days_allowed","result":"PASS","evaluation":"0 \u003c= 30 → PASS","reason":null},"ts":"2026-09-04T13:37:27.105Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-AGE → PASS","data":{"lender":"HDFC","step":5,"ruleId":"PL-AGE","ruleName":"Age","formula":"minAge \u003c= age \u003c= maxAge","result":"PASS","evaluation":"21 \u003c= 36 \u003c= 60 → PASS","reason":null},"ts":"2026-09-04T13:37:27.146Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-INCOME → PASS","data":{"lender":"HDFC","step":6,"ruleId":"PL-INCOME","ruleName":"Minimum Monthly Income","formula":"netSalary >= min_monthly_income","result":"PASS","evaluation":"netSalary 85000 >= 40000 → PASS","reason":null},"ts":"2026-09-04T13:37:27.186Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-AMOUNT → PASS","data":{"lender":"HDFC","step":7,"ruleId":"PL-AMOUNT","ruleName":"Loan amount","formula":"minLoanAmount \u003c= requestedAmount \u003c= maxLoanAmount","result":"PASS","evaluation":"50000 \u003c= 500000 \u003c= 5000000 → PASS","reason":null},"ts":"2026-09-04T13:37:27.226Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-FOIR → PASS","data":{"lender":"HDFC","step":8,"ruleId":"PL-FOIR","ruleName":"FOIR","formula":"existingTotalEmi / netMonthlyIncome \u003c= foir","result":"PASS","evaluation":"emi/income = 0.35 \u003c= 0.5 → PASS","reason":null},"ts":"2026-09-04T13:37:27.266Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-DPD-3M → SKIP","data":{"lender":"HDFC","step":9,"ruleId":"PL-DPD-3M","ruleName":"DPD Last 3 Months","formula":"dpdViolationCount3Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:27.307Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-DPD-12M → SKIP","data":{"lender":"HDFC","step":10,"ruleId":"PL-DPD-12M","ruleName":"DPD Last 12 Months","formula":"dpdViolationCount12Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:27.347Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-DPD-DAYS → SKIP","data":{"lender":"HDFC","step":11,"ruleId":"PL-DPD-DAYS","ruleName":"Max DPD days","formula":"maxDpdDays \u003c= maxDpdDaysAllowed","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:27.387Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-CC-UTIL → SKIP","data":{"lender":"HDFC","step":12,"ruleId":"PL-CC-UTIL","ruleName":"Credit card utilization","formula":"ccOutstanding / ccLimit \u003c= maxCCUtilizationRatio","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:27.427Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-UNSECURED → SKIP","data":{"lender":"HDFC","step":13,"ruleId":"PL-UNSECURED","ruleName":"Active unsecured accounts","formula":"activeUnsecured \u003c= maxActiveUnsecuredAccount","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:27.468Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-SALARY-TYPE → SKIP","data":{"lender":"HDFC","step":14,"ruleId":"PL-SALARY-TYPE","ruleName":"Accepted salary types","formula":"salaryMode IN acceptedSalaryTypes","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:27.508Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-PF → SKIP","data":{"lender":"HDFC","step":15,"ruleId":"PL-PF","ruleName":"PF Deducted","formula":"pf_required → pfDeducted must be true","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:27.548Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-EMPLOYMENT → SKIP","data":{"lender":"HDFC","step":16,"ruleId":"PL-EMPLOYMENT","ruleName":"Min employment months","formula":"employmentMonths >= minEmploymentMonths","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:27.588Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-ENQ-EXCLUDE → SKIP","data":{"lender":"HDFC","step":17,"ruleId":"PL-ENQ-EXCLUDE","ruleName":"Enquiry already with lender","formula":"no self-enquiry in last 3 months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:27.629Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-ENQ-1M → SKIP","data":{"lender":"HDFC","step":18,"ruleId":"PL-ENQ-1M","ruleName":"Enquiries 1 month","formula":"enquiries1m \u003c= maxEnquiries1month","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:27.669Z"},{"stage":"eligibility","status":"step","message":"HDFC · PL-ENQ-3M → SKIP","data":{"lender":"HDFC","step":19,"ruleId":"PL-ENQ-3M","ruleName":"Enquiries 3 months","formula":"enquiries3m \u003c= maxEnquiries3months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:27.709Z"},{"stage":"eligibility","status":"lender","message":"HDFC eligible","data":{"code":"HDFC","eligible":true,"failedAt":null},"ts":"2026-09-04T13:37:27.750Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-PRE-ACTIVE → PASS","data":{"lender":"AXIS","step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},"ts":"2026-09-04T13:37:27.750Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-PINCODE → PASS","data":{"lender":"AXIS","step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},"ts":"2026-09-04T13:37:27.790Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-CIBIL → PASS","data":{"lender":"AXIS","step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"PASS","evaluation":"750 >= 650 → PASS","reason":null},"ts":"2026-09-04T13:37:27.831Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-DPD-LATEST → PASS","data":{"lender":"AXIS","step":4,"ruleId":"PL-DPD-LATEST","ruleName":"Latest open-account DPD","formula":"latestDpdDays \u003c= max_dpd_days_allowed","result":"PASS","evaluation":"0 \u003c= 30 → PASS","reason":null},"ts":"2026-09-04T13:37:27.871Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-AGE → PASS","data":{"lender":"AXIS","step":5,"ruleId":"PL-AGE","ruleName":"Age","formula":"minAge \u003c= age \u003c= maxAge","result":"PASS","evaluation":"21 \u003c= 36 \u003c= 60 → PASS","reason":null},"ts":"2026-09-04T13:37:27.911Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-INCOME → PASS","data":{"lender":"AXIS","step":6,"ruleId":"PL-INCOME","ruleName":"Minimum Monthly Income","formula":"netSalary >= min_monthly_income","result":"PASS","evaluation":"netSalary 85000 >= 40000 → PASS","reason":null},"ts":"2026-09-04T13:37:27.951Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-AMOUNT → PASS","data":{"lender":"AXIS","step":7,"ruleId":"PL-AMOUNT","ruleName":"Loan amount","formula":"minLoanAmount \u003c= requestedAmount \u003c= maxLoanAmount","result":"PASS","evaluation":"50000 \u003c= 500000 \u003c= 5000000 → PASS","reason":null},"ts":"2026-09-04T13:37:27.992Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-FOIR → PASS","data":{"lender":"AXIS","step":8,"ruleId":"PL-FOIR","ruleName":"FOIR","formula":"existingTotalEmi / netMonthlyIncome \u003c= foir","result":"PASS","evaluation":"emi/income = 0.35 \u003c= 0.5 → PASS","reason":null},"ts":"2026-09-04T13:37:28.032Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-DPD-3M → SKIP","data":{"lender":"AXIS","step":9,"ruleId":"PL-DPD-3M","ruleName":"DPD Last 3 Months","formula":"dpdViolationCount3Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.072Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-DPD-12M → SKIP","data":{"lender":"AXIS","step":10,"ruleId":"PL-DPD-12M","ruleName":"DPD Last 12 Months","formula":"dpdViolationCount12Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.113Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-DPD-DAYS → SKIP","data":{"lender":"AXIS","step":11,"ruleId":"PL-DPD-DAYS","ruleName":"Max DPD days","formula":"maxDpdDays \u003c= maxDpdDaysAllowed","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.153Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-CC-UTIL → SKIP","data":{"lender":"AXIS","step":12,"ruleId":"PL-CC-UTIL","ruleName":"Credit card utilization","formula":"ccOutstanding / ccLimit \u003c= maxCCUtilizationRatio","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.193Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-UNSECURED → SKIP","data":{"lender":"AXIS","step":13,"ruleId":"PL-UNSECURED","ruleName":"Active unsecured accounts","formula":"activeUnsecured \u003c= maxActiveUnsecuredAccount","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.234Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-SALARY-TYPE → SKIP","data":{"lender":"AXIS","step":14,"ruleId":"PL-SALARY-TYPE","ruleName":"Accepted salary types","formula":"salaryMode IN acceptedSalaryTypes","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.274Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-PF → SKIP","data":{"lender":"AXIS","step":15,"ruleId":"PL-PF","ruleName":"PF Deducted","formula":"pf_required → pfDeducted must be true","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.314Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-EMPLOYMENT → SKIP","data":{"lender":"AXIS","step":16,"ruleId":"PL-EMPLOYMENT","ruleName":"Min employment months","formula":"employmentMonths >= minEmploymentMonths","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.355Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-ENQ-EXCLUDE → SKIP","data":{"lender":"AXIS","step":17,"ruleId":"PL-ENQ-EXCLUDE","ruleName":"Enquiry already with lender","formula":"no self-enquiry in last 3 months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.395Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-ENQ-1M → SKIP","data":{"lender":"AXIS","step":18,"ruleId":"PL-ENQ-1M","ruleName":"Enquiries 1 month","formula":"enquiries1m \u003c= maxEnquiries1month","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.435Z"},{"stage":"eligibility","status":"step","message":"AXIS · PL-ENQ-3M → SKIP","data":{"lender":"AXIS","step":19,"ruleId":"PL-ENQ-3M","ruleName":"Enquiries 3 months","formula":"enquiries3m \u003c= maxEnquiries3months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.475Z"},{"stage":"eligibility","status":"lender","message":"AXIS eligible","data":{"code":"AXIS","eligible":true,"failedAt":null},"ts":"2026-09-04T13:37:28.516Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-PRE-ACTIVE → PASS","data":{"lender":"ICICI","step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},"ts":"2026-09-04T13:37:28.516Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-PINCODE → PASS","data":{"lender":"ICICI","step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},"ts":"2026-09-04T13:37:28.556Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-CIBIL → PASS","data":{"lender":"ICICI","step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"PASS","evaluation":"750 >= 650 → PASS","reason":null},"ts":"2026-09-04T13:37:28.596Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-DPD-LATEST → PASS","data":{"lender":"ICICI","step":4,"ruleId":"PL-DPD-LATEST","ruleName":"Latest open-account DPD","formula":"latestDpdDays \u003c= max_dpd_days_allowed","result":"PASS","evaluation":"0 \u003c= 30 → PASS","reason":null},"ts":"2026-09-04T13:37:28.637Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-AGE → PASS","data":{"lender":"ICICI","step":5,"ruleId":"PL-AGE","ruleName":"Age","formula":"minAge \u003c= age \u003c= maxAge","result":"PASS","evaluation":"21 \u003c= 36 \u003c= 60 → PASS","reason":null},"ts":"2026-09-04T13:37:28.677Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-INCOME → PASS","data":{"lender":"ICICI","step":6,"ruleId":"PL-INCOME","ruleName":"Minimum Monthly Income","formula":"netSalary >= min_monthly_income","result":"PASS","evaluation":"netSalary 85000 >= 40000 → PASS","reason":null},"ts":"2026-09-04T13:37:28.717Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-AMOUNT → PASS","data":{"lender":"ICICI","step":7,"ruleId":"PL-AMOUNT","ruleName":"Loan amount","formula":"minLoanAmount \u003c= requestedAmount \u003c= maxLoanAmount","result":"PASS","evaluation":"50000 \u003c= 500000 \u003c= 5000000 → PASS","reason":null},"ts":"2026-09-04T13:37:28.757Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-FOIR → PASS","data":{"lender":"ICICI","step":8,"ruleId":"PL-FOIR","ruleName":"FOIR","formula":"existingTotalEmi / netMonthlyIncome \u003c= foir","result":"PASS","evaluation":"emi/income = 0.35 \u003c= 0.5 → PASS","reason":null},"ts":"2026-09-04T13:37:28.798Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-DPD-3M → SKIP","data":{"lender":"ICICI","step":9,"ruleId":"PL-DPD-3M","ruleName":"DPD Last 3 Months","formula":"dpdViolationCount3Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.838Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-DPD-12M → SKIP","data":{"lender":"ICICI","step":10,"ruleId":"PL-DPD-12M","ruleName":"DPD Last 12 Months","formula":"dpdViolationCount12Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.878Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-DPD-DAYS → SKIP","data":{"lender":"ICICI","step":11,"ruleId":"PL-DPD-DAYS","ruleName":"Max DPD days","formula":"maxDpdDays \u003c= maxDpdDaysAllowed","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.919Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-CC-UTIL → SKIP","data":{"lender":"ICICI","step":12,"ruleId":"PL-CC-UTIL","ruleName":"Credit card utilization","formula":"ccOutstanding / ccLimit \u003c= maxCCUtilizationRatio","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.959Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-UNSECURED → SKIP","data":{"lender":"ICICI","step":13,"ruleId":"PL-UNSECURED","ruleName":"Active unsecured accounts","formula":"activeUnsecured \u003c= maxActiveUnsecuredAccount","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:28.999Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-SALARY-TYPE → SKIP","data":{"lender":"ICICI","step":14,"ruleId":"PL-SALARY-TYPE","ruleName":"Accepted salary types","formula":"salaryMode IN acceptedSalaryTypes","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:29.040Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-PF → SKIP","data":{"lender":"ICICI","step":15,"ruleId":"PL-PF","ruleName":"PF Deducted","formula":"pf_required → pfDeducted must be true","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:29.080Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-EMPLOYMENT → SKIP","data":{"lender":"ICICI","step":16,"ruleId":"PL-EMPLOYMENT","ruleName":"Min employment months","formula":"employmentMonths >= minEmploymentMonths","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:29.120Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-ENQ-EXCLUDE → SKIP","data":{"lender":"ICICI","step":17,"ruleId":"PL-ENQ-EXCLUDE","ruleName":"Enquiry already with lender","formula":"no self-enquiry in last 3 months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:29.160Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-ENQ-1M → SKIP","data":{"lender":"ICICI","step":18,"ruleId":"PL-ENQ-1M","ruleName":"Enquiries 1 month","formula":"enquiries1m \u003c= maxEnquiries1month","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:29.201Z"},{"stage":"eligibility","status":"step","message":"ICICI · PL-ENQ-3M → SKIP","data":{"lender":"ICICI","step":19,"ruleId":"PL-ENQ-3M","ruleName":"Enquiries 3 months","formula":"enquiries3m \u003c= maxEnquiries3months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},"ts":"2026-09-04T13:37:29.241Z"},{"stage":"eligibility","status":"lender","message":"ICICI eligible","data":{"code":"ICICI","eligible":true,"failedAt":null},"ts":"2026-09-04T13:37:29.282Z"},{"stage":"eligibility","status":"complete","message":"Eligibility complete","ts":"2026-09-04T13:37:29.282Z"},{"stage":"scoring","status":"start","message":"Scoring eligible lenders (offline)","ts":"2026-09-04T13:37:29.282Z"},{"stage":"scoring","status":"lender","message":"SBI score 100","data":{"code":"SBI","totalScore":100},"ts":"2026-09-04T13:37:29.282Z"},{"stage":"scoring","status":"lender","message":"HDFC score 66","data":{"code":"HDFC","totalScore":66},"ts":"2026-09-04T13:37:29.343Z"},{"stage":"scoring","status":"lender","message":"AXIS score 66","data":{"code":"AXIS","totalScore":66},"ts":"2026-09-04T13:37:29.403Z"},{"stage":"scoring","status":"lender","message":"ICICI score 77","data":{"code":"ICICI","totalScore":77},"ts":"2026-09-04T13:37:29.463Z"},{"stage":"scoring","status":"complete","message":"Scoring complete","ts":"2026-09-04T13:37:29.524Z"},{"stage":"rank","status":"start","message":"Ranking lenders","ts":"2026-09-04T13:37:29.524Z"},{"stage":"rank","status":"item","message":"#1 SBI — 100 pts","data":{"code":"SBI","lenderName":"State Bank of India","totalScore":100,"summary":{"criterionScores":{"CIBIL_SCORE":10,"FOIR_CHECK":10,"DPD_LAST_3M":10,"DPD_LAST_12M":10,"CC_UTILIZATION":10,"ACTIVE_UNSECURED":10,"ENQUIRIES_3M":10,"MONTHLY_INCOME":10,"JOB_EXPERIENCE":10,"ROI_COMPETITIVENESS":10,"MAX_LOAN_ADEQUACY":10},"totalScore":100},"rank":1,"displayed":true},"ts":"2026-09-04T13:37:29.524Z"},{"stage":"rank","status":"item","message":"#2 ICICI — 77 pts","data":{"code":"ICICI","lenderName":"ICICI Bank","totalScore":77,"summary":{"criterionScores":{"CIBIL_SCORE":7,"FOIR_CHECK":7,"DPD_LAST_3M":7,"DPD_LAST_12M":7,"CC_UTILIZATION":7,"ACTIVE_UNSECURED":7,"ENQUIRIES_3M":7,"MONTHLY_INCOME":7,"JOB_EXPERIENCE":7,"ROI_COMPETITIVENESS":7,"MAX_LOAN_ADEQUACY":7},"totalScore":77},"rank":2,"displayed":true},"ts":"2026-09-04T13:37:29.554Z"},{"stage":"rank","status":"item","message":"#3 HDFC — 66 pts","data":{"code":"HDFC","lenderName":"HDFC Bank","totalScore":66,"summary":{"criterionScores":{"CIBIL_SCORE":6,"FOIR_CHECK":6,"DPD_LAST_3M":6,"DPD_LAST_12M":6,"CC_UTILIZATION":6,"ACTIVE_UNSECURED":6,"ENQUIRIES_3M":6,"MONTHLY_INCOME":6,"JOB_EXPERIENCE":6,"ROI_COMPETITIVENESS":6,"MAX_LOAN_ADEQUACY":6},"totalScore":66},"rank":3,"displayed":true},"ts":"2026-09-04T13:37:29.584Z"},{"stage":"rank","status":"item","message":"#4 AXIS — 66 pts","data":{"code":"AXIS","lenderName":"Axis Bank","totalScore":66,"summary":{"criterionScores":{"CIBIL_SCORE":6,"FOIR_CHECK":6,"DPD_LAST_3M":6,"DPD_LAST_12M":6,"CC_UTILIZATION":6,"ACTIVE_UNSECURED":6,"ENQUIRIES_3M":6,"MONTHLY_INCOME":6,"JOB_EXPERIENCE":6,"ROI_COMPETITIVENESS":6,"MAX_LOAN_ADEQUACY":6},"totalScore":66},"rank":4,"displayed":true},"ts":"2026-09-04T13:37:29.614Z"},{"stage":"rank","status":"complete","message":"Ranking complete","ts":"2026-09-04T13:37:29.645Z"}],"lenders":[{"code":"SBI","lenderName":"State Bank of India","eligible":true,"failedAt":null,"failedStep":null,"passed":8,"failed":0,"skipped":11,"notRun":0,"steps":[{"step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},{"step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},{"step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"PASS","evaluation":"750 >= 650 → PASS","reason":null},{"step":4,"ruleId":"PL-DPD-LATEST","ruleName":"Latest open-account DPD","formula":"latestDpdDays \u003c= max_dpd_days_allowed","result":"PASS","evaluation":"0 \u003c= 30 → PASS","reason":null},{"step":5,"ruleId":"PL-AGE","ruleName":"Age","formula":"minAge \u003c= age \u003c= maxAge","result":"PASS","evaluation":"21 \u003c= 36 \u003c= 60 → PASS","reason":null},{"step":6,"ruleId":"PL-INCOME","ruleName":"Minimum Monthly Income","formula":"netSalary >= min_monthly_income","result":"PASS","evaluation":"netSalary 85000 >= 40000 → PASS","reason":null},{"step":7,"ruleId":"PL-AMOUNT","ruleName":"Loan amount","formula":"minLoanAmount \u003c= requestedAmount \u003c= maxLoanAmount","result":"PASS","evaluation":"50000 \u003c= 500000 \u003c= 5000000 → PASS","reason":null},{"step":8,"ruleId":"PL-FOIR","ruleName":"FOIR","formula":"existingTotalEmi / netMonthlyIncome \u003c= foir","result":"PASS","evaluation":"emi/income = 0.35 \u003c= 0.5 → PASS","reason":null},{"step":9,"ruleId":"PL-DPD-3M","ruleName":"DPD Last 3 Months","formula":"dpdViolationCount3Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":10,"ruleId":"PL-DPD-12M","ruleName":"DPD Last 12 Months","formula":"dpdViolationCount12Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":11,"ruleId":"PL-DPD-DAYS","ruleName":"Max DPD days","formula":"maxDpdDays \u003c= maxDpdDaysAllowed","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":12,"ruleId":"PL-CC-UTIL","ruleName":"Credit card utilization","formula":"ccOutstanding / ccLimit \u003c= maxCCUtilizationRatio","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":13,"ruleId":"PL-UNSECURED","ruleName":"Active unsecured accounts","formula":"activeUnsecured \u003c= maxActiveUnsecuredAccount","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":14,"ruleId":"PL-SALARY-TYPE","ruleName":"Accepted salary types","formula":"salaryMode IN acceptedSalaryTypes","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":15,"ruleId":"PL-PF","ruleName":"PF Deducted","formula":"pf_required → pfDeducted must be true","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":16,"ruleId":"PL-EMPLOYMENT","ruleName":"Min employment months","formula":"employmentMonths >= minEmploymentMonths","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":17,"ruleId":"PL-ENQ-EXCLUDE","ruleName":"Enquiry already with lender","formula":"no self-enquiry in last 3 months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":18,"ruleId":"PL-ENQ-1M","ruleName":"Enquiries 1 month","formula":"enquiries1m \u003c= maxEnquiries1month","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":19,"ruleId":"PL-ENQ-3M","ruleName":"Enquiries 3 months","formula":"enquiries3m \u003c= maxEnquiries3months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null}]},{"code":"HDFC","lenderName":"HDFC Bank","eligible":true,"failedAt":null,"failedStep":null,"passed":8,"failed":0,"skipped":11,"notRun":0,"steps":[{"step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},{"step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},{"step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"PASS","evaluation":"750 >= 650 → PASS","reason":null},{"step":4,"ruleId":"PL-DPD-LATEST","ruleName":"Latest open-account DPD","formula":"latestDpdDays \u003c= max_dpd_days_allowed","result":"PASS","evaluation":"0 \u003c= 30 → PASS","reason":null},{"step":5,"ruleId":"PL-AGE","ruleName":"Age","formula":"minAge \u003c= age \u003c= maxAge","result":"PASS","evaluation":"21 \u003c= 36 \u003c= 60 → PASS","reason":null},{"step":6,"ruleId":"PL-INCOME","ruleName":"Minimum Monthly Income","formula":"netSalary >= min_monthly_income","result":"PASS","evaluation":"netSalary 85000 >= 40000 → PASS","reason":null},{"step":7,"ruleId":"PL-AMOUNT","ruleName":"Loan amount","formula":"minLoanAmount \u003c= requestedAmount \u003c= maxLoanAmount","result":"PASS","evaluation":"50000 \u003c= 500000 \u003c= 5000000 → PASS","reason":null},{"step":8,"ruleId":"PL-FOIR","ruleName":"FOIR","formula":"existingTotalEmi / netMonthlyIncome \u003c= foir","result":"PASS","evaluation":"emi/income = 0.35 \u003c= 0.5 → PASS","reason":null},{"step":9,"ruleId":"PL-DPD-3M","ruleName":"DPD Last 3 Months","formula":"dpdViolationCount3Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":10,"ruleId":"PL-DPD-12M","ruleName":"DPD Last 12 Months","formula":"dpdViolationCount12Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":11,"ruleId":"PL-DPD-DAYS","ruleName":"Max DPD days","formula":"maxDpdDays \u003c= maxDpdDaysAllowed","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":12,"ruleId":"PL-CC-UTIL","ruleName":"Credit card utilization","formula":"ccOutstanding / ccLimit \u003c= maxCCUtilizationRatio","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":13,"ruleId":"PL-UNSECURED","ruleName":"Active unsecured accounts","formula":"activeUnsecured \u003c= maxActiveUnsecuredAccount","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":14,"ruleId":"PL-SALARY-TYPE","ruleName":"Accepted salary types","formula":"salaryMode IN acceptedSalaryTypes","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":15,"ruleId":"PL-PF","ruleName":"PF Deducted","formula":"pf_required → pfDeducted must be true","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":16,"ruleId":"PL-EMPLOYMENT","ruleName":"Min employment months","formula":"employmentMonths >= minEmploymentMonths","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":17,"ruleId":"PL-ENQ-EXCLUDE","ruleName":"Enquiry already with lender","formula":"no self-enquiry in last 3 months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":18,"ruleId":"PL-ENQ-1M","ruleName":"Enquiries 1 month","formula":"enquiries1m \u003c= maxEnquiries1month","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":19,"ruleId":"PL-ENQ-3M","ruleName":"Enquiries 3 months","formula":"enquiries3m \u003c= maxEnquiries3months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null}]},{"code":"AXIS","lenderName":"Axis Bank","eligible":true,"failedAt":null,"failedStep":null,"passed":8,"failed":0,"skipped":11,"notRun":0,"steps":[{"step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},{"step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},{"step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"PASS","evaluation":"750 >= 650 → PASS","reason":null},{"step":4,"ruleId":"PL-DPD-LATEST","ruleName":"Latest open-account DPD","formula":"latestDpdDays \u003c= max_dpd_days_allowed","result":"PASS","evaluation":"0 \u003c= 30 → PASS","reason":null},{"step":5,"ruleId":"PL-AGE","ruleName":"Age","formula":"minAge \u003c= age \u003c= maxAge","result":"PASS","evaluation":"21 \u003c= 36 \u003c= 60 → PASS","reason":null},{"step":6,"ruleId":"PL-INCOME","ruleName":"Minimum Monthly Income","formula":"netSalary >= min_monthly_income","result":"PASS","evaluation":"netSalary 85000 >= 40000 → PASS","reason":null},{"step":7,"ruleId":"PL-AMOUNT","ruleName":"Loan amount","formula":"minLoanAmount \u003c= requestedAmount \u003c= maxLoanAmount","result":"PASS","evaluation":"50000 \u003c= 500000 \u003c= 5000000 → PASS","reason":null},{"step":8,"ruleId":"PL-FOIR","ruleName":"FOIR","formula":"existingTotalEmi / netMonthlyIncome \u003c= foir","result":"PASS","evaluation":"emi/income = 0.35 \u003c= 0.5 → PASS","reason":null},{"step":9,"ruleId":"PL-DPD-3M","ruleName":"DPD Last 3 Months","formula":"dpdViolationCount3Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":10,"ruleId":"PL-DPD-12M","ruleName":"DPD Last 12 Months","formula":"dpdViolationCount12Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":11,"ruleId":"PL-DPD-DAYS","ruleName":"Max DPD days","formula":"maxDpdDays \u003c= maxDpdDaysAllowed","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":12,"ruleId":"PL-CC-UTIL","ruleName":"Credit card utilization","formula":"ccOutstanding / ccLimit \u003c= maxCCUtilizationRatio","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":13,"ruleId":"PL-UNSECURED","ruleName":"Active unsecured accounts","formula":"activeUnsecured \u003c= maxActiveUnsecuredAccount","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":14,"ruleId":"PL-SALARY-TYPE","ruleName":"Accepted salary types","formula":"salaryMode IN acceptedSalaryTypes","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":15,"ruleId":"PL-PF","ruleName":"PF Deducted","formula":"pf_required → pfDeducted must be true","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":16,"ruleId":"PL-EMPLOYMENT","ruleName":"Min employment months","formula":"employmentMonths >= minEmploymentMonths","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":17,"ruleId":"PL-ENQ-EXCLUDE","ruleName":"Enquiry already with lender","formula":"no self-enquiry in last 3 months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":18,"ruleId":"PL-ENQ-1M","ruleName":"Enquiries 1 month","formula":"enquiries1m \u003c= maxEnquiries1month","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":19,"ruleId":"PL-ENQ-3M","ruleName":"Enquiries 3 months","formula":"enquiries3m \u003c= maxEnquiries3months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null}]},{"code":"ICICI","lenderName":"ICICI Bank","eligible":true,"failedAt":null,"failedStep":null,"passed":8,"failed":0,"skipped":11,"notRun":0,"steps":[{"step":1,"ruleId":"PL-PRE-ACTIVE","ruleName":"Active lenders","formula":"catalog.isActive && criteria.isActive","result":"PASS","evaluation":"catalog.isActive=true && criteria.isActive=true → PASS","reason":null},{"step":2,"ruleId":"PL-PINCODE","ruleName":"Zipcode availability","formula":"coversAllPincodes OR zipCode === applicantPin","result":"PASS","evaluation":"zipCode=440001 === applicantPin=440001 → PASS","reason":null},{"step":3,"ruleId":"PL-CIBIL","ruleName":"Min CIBIL","formula":"applicantCibil >= minCibil","result":"PASS","evaluation":"750 >= 650 → PASS","reason":null},{"step":4,"ruleId":"PL-DPD-LATEST","ruleName":"Latest open-account DPD","formula":"latestDpdDays \u003c= max_dpd_days_allowed","result":"PASS","evaluation":"0 \u003c= 30 → PASS","reason":null},{"step":5,"ruleId":"PL-AGE","ruleName":"Age","formula":"minAge \u003c= age \u003c= maxAge","result":"PASS","evaluation":"21 \u003c= 36 \u003c= 60 → PASS","reason":null},{"step":6,"ruleId":"PL-INCOME","ruleName":"Minimum Monthly Income","formula":"netSalary >= min_monthly_income","result":"PASS","evaluation":"netSalary 85000 >= 40000 → PASS","reason":null},{"step":7,"ruleId":"PL-AMOUNT","ruleName":"Loan amount","formula":"minLoanAmount \u003c= requestedAmount \u003c= maxLoanAmount","result":"PASS","evaluation":"50000 \u003c= 500000 \u003c= 5000000 → PASS","reason":null},{"step":8,"ruleId":"PL-FOIR","ruleName":"FOIR","formula":"existingTotalEmi / netMonthlyIncome \u003c= foir","result":"PASS","evaluation":"emi/income = 0.35 \u003c= 0.5 → PASS","reason":null},{"step":9,"ruleId":"PL-DPD-3M","ruleName":"DPD Last 3 Months","formula":"dpdViolationCount3Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":10,"ruleId":"PL-DPD-12M","ruleName":"DPD Last 12 Months","formula":"dpdViolationCount12Months \u003c= max","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":11,"ruleId":"PL-DPD-DAYS","ruleName":"Max DPD days","formula":"maxDpdDays \u003c= maxDpdDaysAllowed","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":12,"ruleId":"PL-CC-UTIL","ruleName":"Credit card utilization","formula":"ccOutstanding / ccLimit \u003c= maxCCUtilizationRatio","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":13,"ruleId":"PL-UNSECURED","ruleName":"Active unsecured accounts","formula":"activeUnsecured \u003c= maxActiveUnsecuredAccount","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":14,"ruleId":"PL-SALARY-TYPE","ruleName":"Accepted salary types","formula":"salaryMode IN acceptedSalaryTypes","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":15,"ruleId":"PL-PF","ruleName":"PF Deducted","formula":"pf_required → pfDeducted must be true","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":16,"ruleId":"PL-EMPLOYMENT","ruleName":"Min employment months","formula":"employmentMonths >= minEmploymentMonths","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":17,"ruleId":"PL-ENQ-EXCLUDE","ruleName":"Enquiry already with lender","formula":"no self-enquiry in last 3 months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":18,"ruleId":"PL-ENQ-1M","ruleName":"Enquiries 1 month","formula":"enquiries1m \u003c= maxEnquiries1month","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null},{"step":19,"ruleId":"PL-ENQ-3M","ruleName":"Enquiries 3 months","formula":"enquiries3m \u003c= maxEnquiries3months","result":"SKIP","evaluation":"Threshold null or not applicable → SKIP","reason":null}]}],"scoring":[{"code":"SBI","lenderName":"State Bank of India","totalScore":100,"summary":{"criterionScores":{"CIBIL_SCORE":10,"FOIR_CHECK":10,"DPD_LAST_3M":10,"DPD_LAST_12M":10,"CC_UTILIZATION":10,"ACTIVE_UNSECURED":10,"ENQUIRIES_3M":10,"MONTHLY_INCOME":10,"JOB_EXPERIENCE":10,"ROI_COMPETITIVENESS":10,"MAX_LOAN_ADEQUACY":10},"totalScore":100},"rank":1,"displayed":true},{"code":"ICICI","lenderName":"ICICI Bank","totalScore":77,"summary":{"criterionScores":{"CIBIL_SCORE":7,"FOIR_CHECK":7,"DPD_LAST_3M":7,"DPD_LAST_12M":7,"CC_UTILIZATION":7,"ACTIVE_UNSECURED":7,"ENQUIRIES_3M":7,"MONTHLY_INCOME":7,"JOB_EXPERIENCE":7,"ROI_COMPETITIVENESS":7,"MAX_LOAN_ADEQUACY":7},"totalScore":77},"rank":2,"displayed":true},{"code":"HDFC","lenderName":"HDFC Bank","totalScore":66,"summary":{"criterionScores":{"CIBIL_SCORE":6,"FOIR_CHECK":6,"DPD_LAST_3M":6,"DPD_LAST_12M":6,"CC_UTILIZATION":6,"ACTIVE_UNSECURED":6,"ENQUIRIES_3M":6,"MONTHLY_INCOME":6,"JOB_EXPERIENCE":6,"ROI_COMPETITIVENESS":6,"MAX_LOAN_ADEQUACY":6},"totalScore":66},"rank":3,"displayed":true},{"code":"AXIS","lenderName":"Axis Bank","totalScore":66,"summary":{"criterionScores":{"CIBIL_SCORE":6,"FOIR_CHECK":6,"DPD_LAST_3M":6,"DPD_LAST_12M":6,"CC_UTILIZATION":6,"ACTIVE_UNSECURED":6,"ENQUIRIES_3M":6,"MONTHLY_INCOME":6,"JOB_EXPERIENCE":6,"ROI_COMPETITIVENESS":6,"MAX_LOAN_ADEQUACY":6},"totalScore":66},"rank":4,"displayed":true}]}</script>
+<script>
+document.querySelectorAll('.toggle-detail').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var el = document.getElementById(btn.dataset.target);
+    if (!el) return;
+    var hidden = el.classList.toggle('hidden');
+    if (btn.textContent.indexOf('Show') === 0 || btn.textContent.indexOf('Hide') === 0) {
+      btn.textContent = hidden ? 'Show details' : 'Hide details';
+    }
+  });
+});
+</script>
+</body>
+</html>

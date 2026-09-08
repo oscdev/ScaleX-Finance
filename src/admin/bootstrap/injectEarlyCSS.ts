@@ -1,5 +1,6 @@
-// This file has NO exports and NO functions — every line runs at module evaluation
-// time, which happens before Strapi's React app renders its first frame.
+// This file runs at module evaluation time (imported first from app.tsx), which
+// happens before Strapi's React app renders its first frame. Side effects only —
+// page-size sync helpers live in ./pageSizeSync.
 
 // Set body class synchronously so the CSS rule below takes effect before React
 // renders the first frame — this is what prevents the Preview aside from flashing.
@@ -9,46 +10,18 @@ const setAdvisorEditClass = () => {
 };
 setAdvisorEditClass();
 
-// ── Collection list page-size sync ───────────────────────────────────────────
-// React Router wraps history.pushState AFTER this file runs, making it the
-// outermost handler. That means it reads the URL *before* our pushState wrapper
-// can modify it — so pre-modifying the URL in pushState does not work.
-//
-// Instead we use a post-navigation fix: after React Router has settled its state
-// (via setTimeout), we call history.replaceState to update the URL to the
-// configured pageSize and then dispatch a 'popstate' event.  React Router listens
-// to popstate and re-reads the URL, causing every useSearchParams / useQueryParams
-// consumer (including the "Entries per page" dropdown) to update.
-//
-// _configuredPageSizes is a map of collection UID → configured pageSize,
-// populated by fetchInterceptor.ts as each collection's configuration GET arrives.
-let _doingPageSizeReplace = false;
+// ── Collection list page-size sync (footer ↔ Configure the view) ─────────────
+// Soft-fill missing URL pageSize from config; footer changes persist to config;
+// Configure View saves force the list URL. See pageSizeSync.ts.
+import {
+    applyConfigPageSizeAfterLeavingView,
+    fixCollectionPageSize,
+    isDoingPageSizeReplace,
+    schedulePersistPageSizeFromUrl,
+    syncConfigureViewPageSize,
+} from './pageSizeSync';
 
-const _getCollectionUid = (href: string): string | null => {
-    const m = href.match(/collection-types\/(api::[^/?#]+)/);
-    return m ? m[1] : null;
-};
-
-const _fixCollectionPageSize = () => {
-    const uid = _getCollectionUid(window.location.href);
-    if (!uid) return;
-    const pageSizes = (window as any)._configuredPageSizes as Record<string, number> | undefined;
-    const configPageSize = pageSizes?.[uid];
-    if (!configPageSize) return;
-    try {
-        const urlObj = new URL(window.location.href);
-        const urlPageSize = Number(urlObj.searchParams.get('pageSize') || '0');
-        if (urlPageSize === configPageSize) return;
-        urlObj.searchParams.set('pageSize', String(configPageSize));
-        urlObj.searchParams.set('page', '1');
-        _doingPageSizeReplace = true;
-        history.replaceState(history.state, '', urlObj.pathname + urlObj.search + urlObj.hash);
-        _doingPageSizeReplace = false;
-        // Notify React Router so it re-reads the URL and updates all components
-        window.dispatchEvent(new PopStateEvent('popstate', { state: history.state }));
-    } catch { _doingPageSizeReplace = false; }
-};
-(window as any)._fixCollectionPageSize = _fixCollectionPageSize;
+let _prevPathForPageSize = window.location.pathname;
 
 // Re-sync the class on every SPA navigation (history.pushState / replaceState).
 // We wrap here — before patchHistoryMethods in domOverrides — so the class is
@@ -58,21 +31,117 @@ const _origEarlyReplace = history.replaceState.bind(history);
 history.pushState = function (data: any, unused: string, url?: string | URL | null) {
     const r = _origEarlyPush(data, unused, url);
     setAdvisorEditClass();
-    // Schedule page-size fix after React Router has processed this navigation
     const urlStr = typeof url === 'string' ? url : (url as any)?.toString?.() ?? '';
-    if (urlStr.includes('collection-types/api::')) {
-        setTimeout(_fixCollectionPageSize, 80);
+    const onCollection =
+        urlStr.includes('collection-types/api::') ||
+        window.location.pathname.includes('collection-types/api::');
+    if (onCollection) {
+        const leftConfig =
+            _prevPathForPageSize.includes('/configurations/') &&
+            !window.location.pathname.includes('/configurations/');
+        const enteredConfig =
+            !_prevPathForPageSize.includes('/configurations/') &&
+            window.location.pathname.includes('/configurations/');
+        _prevPathForPageSize = window.location.pathname;
+        setTimeout(() => {
+            if (enteredConfig) {
+                syncConfigureViewPageSize();
+                return;
+            }
+            if (leftConfig) {
+                // Apply Configure the view pageSize to footer immediately so the
+                // stale list URL cannot persist-from-url and wipe the save.
+                applyConfigPageSizeAfterLeavingView();
+                return;
+            }
+            fixCollectionPageSize();
+            schedulePersistPageSizeFromUrl();
+        }, leftConfig ? 0 : 80);
+    } else {
+        _prevPathForPageSize = window.location.pathname;
     }
     return r;
 };
 history.replaceState = function (data: any, unused: string, url?: string | URL | null) {
-    // Guard: skip when we're the ones doing the replacement (avoid infinite loop)
-    if (_doingPageSizeReplace) { _origEarlyReplace(data, unused, url); return; }
+    if (isDoingPageSizeReplace()) {
+        _origEarlyReplace(data, unused, url);
+        return;
+    }
+    const leftConfig =
+        _prevPathForPageSize.includes('/configurations/') &&
+        !(typeof url === 'string' ? url : String(url ?? window.location.pathname)).includes('/configurations/');
+
+    let targetHasPageSize = false;
+    try {
+        const urlStr = url == null ? '' : String(url);
+        if (urlStr) {
+            const u = new URL(urlStr, window.location.origin);
+            targetHasPageSize = u.searchParams.has('pageSize') &&
+                u.pathname.includes('collection-types/api::') &&
+                !u.pathname.includes('/configurations/');
+        }
+    } catch { /* ignore */ }
+
     const r = _origEarlyReplace(data, unused, url);
     setAdvisorEditClass();
+    _prevPathForPageSize = window.location.pathname;
+    if (leftConfig) {
+        applyConfigPageSizeAfterLeavingView();
+        return r;
+    }
+    if (targetHasPageSize || (
+        window.location.pathname.includes('collection-types/api::') &&
+        !window.location.pathname.includes('/configurations/')
+    )) {
+        schedulePersistPageSizeFromUrl();
+    }
     return r;
 };
-window.addEventListener('popstate', setAdvisorEditClass);
+window.addEventListener('popstate', () => {
+    setAdvisorEditClass();
+    const leftConfig =
+        _prevPathForPageSize.includes('/configurations/') &&
+        !window.location.pathname.includes('/configurations/');
+    _prevPathForPageSize = window.location.pathname;
+    if (window.location.pathname.includes('/configurations/')) {
+        syncConfigureViewPageSize();
+    } else if (leftConfig) {
+        applyConfigPageSizeAfterLeavingView();
+    } else if (window.location.pathname.includes('collection-types/api::')) {
+        schedulePersistPageSizeFromUrl();
+    }
+});
+
+/** Sync body.scalex-theme-dark from Strapi theme (STRAPI_THEME) + system preference. */
+const syncScalexAdminThemeClass = () => {
+    try {
+        const stored = localStorage.getItem('STRAPI_THEME') || 'system';
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDark = stored === 'dark' || (stored === 'system' && systemDark);
+        document.body.classList.toggle('scalex-theme-dark', isDark);
+    } catch {
+        /* ignore */
+    }
+};
+syncScalexAdminThemeClass();
+try {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncScalexAdminThemeClass);
+} catch {
+    /* older browsers */
+}
+window.addEventListener('storage', (e) => {
+    if (e.key === 'STRAPI_THEME') syncScalexAdminThemeClass();
+});
+// Catch same-tab theme changes (Profile page writes STRAPI_THEME)
+try {
+    const _origSetItem = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = (key: string, value: string) => {
+        _origSetItem(key, value);
+        if (key === 'STRAPI_THEME') syncScalexAdminThemeClass();
+    };
+} catch {
+    /* ignore */
+}
 
 const style = document.createElement('style');
 style.id = 'scalex-early-css';
@@ -92,6 +161,14 @@ style.textContent = `
     }
     nav ol, nav ul, aside ol, aside ul {
         padding-left: 0 !important;
+    }
+
+    /* Dark-theme layered nav: readable before full overrides load */
+    body.scalex-theme-dark aside a:not([aria-current="page"]):not(.active):not(.is-nav-active),
+    body.scalex-theme-dark nav a:not([aria-current="page"]):not(.active):not(.is-nav-active),
+    body.scalex-theme-dark #custom-leads-add-link,
+    body.scalex-theme-dark #custom-leads-overview-link:not(.is-nav-active) {
+        color: #e2e8f0 !important;
     }
 
     /* Hide loan-application link in sidebar immediately */

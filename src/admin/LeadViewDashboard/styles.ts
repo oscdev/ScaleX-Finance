@@ -73,21 +73,29 @@ export const styles: Record<string, CSSProperties> = {
     docTable: {
         width: '100%',
         borderCollapse: 'collapse',
+        background: '#ffffff',
     },
     docHeadRow: {
-        background: '#f6f6f9',
+        background: '#f8fafc',
         textAlign: 'left',
         borderBottom: '1px solid #dcdce4',
     },
     docRow: {
-        borderBottom: '1px solid #f6f6f9',
+        borderBottom: '1px solid #e2e8f0',
+        background: '#ffffff',
     },
     docCell: {
         padding: '12px',
+        color: '#1e293b',
     },
     docCellCenter: {
         padding: '12px',
         textAlign: 'center',
+        color: '#1e293b',
+    },
+    docTypeText: {
+        color: '#1e293b',
+        fontWeight: 700,
     },
     fileFormatBoxBase: {
         display: 'flex',

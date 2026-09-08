@@ -503,7 +503,7 @@ const initOverrides = () => {
 
         // Pages we don't heavily customize — native CM UI only (overlays already cleared)
         if (!isAdvisorsPage && !isLeadsPage && !isLoanPage && !isAdminUsersListPage && !isAdminUserEditPage && !isRoleEditPage) {
-            // Soft default sort for mapped collections (e.g. Lenders Catalog → id:DESC)
+            // Force newest ID first on CM dashboard lists (all roles)
             safe(() => enforceDefaultListSettings());
             safe(() => applyLoginPageOverride());
             safe(() => applyNavOverride());

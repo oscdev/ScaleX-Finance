@@ -4,6 +4,10 @@ import { AdvisorOverviewDashboard } from '../../AdvisorOverview';
 import { reactRoots, unmountAndRemove } from './reactRoots';
 import { advisorLabelMap } from './constants';
 import { getStrapiToken } from './strapiToken';
+import {
+    buildAdvisorStatusBadgeHtml,
+    buildVerifiedBadgeHtml,
+} from './statusBadgeHtml';
 
 // ─── Header tagging ───────────────────────────────────────────────────────────
 
@@ -128,13 +132,11 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
     // Hide raw email column
     if (emailIdx !== -1 && cells[emailIdx]) cells[emailIdx].style.display = 'none';
 
-    // EMAIL VERIFY STATUS badge — CSS modifier class
+    // EMAIL VERIFY STATUS badge — inline colors for cross-browser chips
     if (emailVerifiedIdx !== -1 && cells[emailVerifiedIdx] && !cells[emailVerifiedIdx].querySelector('.adv-verified-badge')) {
         const val = cells[emailVerifiedIdx].textContent?.trim().toLowerCase();
         const verified = val === 'true' || val === 'yes' || val === '1';
-        cells[emailVerifiedIdx].innerHTML = verified
-            ? '<span class="adv-verified-badge adv-verified-badge--verified">VERIFIED</span>'
-            : '<span class="adv-verified-badge adv-verified-badge--unverified">UNVERIFIED</span>';
+        cells[emailVerifiedIdx].innerHTML = buildVerifiedBadgeHtml(verified);
     }
 
     // EARNINGS formatted as ₹
@@ -143,7 +145,7 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
         cells[earningsIdx].innerHTML = `<span class="adv-earnings">₹${raw.toLocaleString('en-IN')}</span>`;
     }
 
-    // ADVISOR STATUS badge — CSS modifier class
+    // ADVISOR STATUS badge — inline colors for cross-browser chips
     if (statusIdx !== -1 && cells[statusIdx]) {
         const statusCell = cells[statusIdx];
         const rowIdCell = cells[idIdx !== -1 ? idIdx : 0];
@@ -157,11 +159,8 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
 
         if (hasGhost || !statusCell.querySelector('.adv-status-badge')) {
             statusCell.innerHTML = '';
-            if (val) {
-                const isApproved = val === 'Approved';
-                statusCell.innerHTML = isApproved
-                    ? `<div class="adv-status-badge adv-status-badge--approved">APPROVED</div>`
-                    : `<div class="adv-status-badge adv-status-badge--disapproved">DISAPPROVED</div>`;
+            if (val && !String(val).toLowerCase().includes('published')) {
+                statusCell.innerHTML = buildAdvisorStatusBadgeHtml(String(val));
             }
         }
     }

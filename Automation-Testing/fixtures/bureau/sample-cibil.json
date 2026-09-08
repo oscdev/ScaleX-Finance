@@ -1,0 +1,37 @@
+{
+  "cibil_score": 750,
+  "consumer_name": "Test User",
+  "date_of_birth": "1990-05-15",
+  "gender": "Male",
+  "pan_number": "ABCDE1234F",
+  "permanent_address": "123 Test Street, Nagpur, Maharashtra 440001",
+  "telephone_numbers": ["9999999999"],
+  "email_id": "test@gmail.com",
+  "employment_account_type": "Salaried",
+  "occupation": "Engineer",
+  "active_unsecured_loan_count": 1,
+  "open_accounts": [
+    {
+      "account_type": "Credit Card",
+      "member_name": "HDFC Bank",
+      "sanctioned_amount": 150000,
+      "current_balance": 25000,
+      "payment_history": [
+        { "month": "2026-01", "dpdDays": 0 },
+        { "month": "2025-12", "dpdDays": 0 },
+        { "month": "2025-11", "dpdDays": 0 }
+      ]
+    }
+  ],
+  "enquiries": [
+    {
+      "member": "ICICI Bank",
+      "date": "2026-02-15",
+      "purpose": "Personal Loan"
+    }
+  ],
+  "_extractionMeta": {
+    "source": "offline-fixture",
+    "sourcePdfMtimeMs": 0
+  }
+}

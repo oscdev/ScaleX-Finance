@@ -28,6 +28,14 @@ const nextConfig: NextConfig = {
         source: '/uploads/:path*',
         destination: 'http://127.0.0.1:1337/uploads/:path*',
       },
+      {
+        source: '/suite',
+        destination: 'http://127.0.0.1:4100/suite',
+      },
+      {
+        source: '/suite/:path*',
+        destination: 'http://127.0.0.1:4100/suite/:path*',
+      },
     ];
   },
 };
