@@ -4,12 +4,13 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { DOC_HASH_RING_PATH } from './paths.js';
+import { getDocHashRingPath } from './paths.js';
 
 function loadRing() {
-  if (!fs.existsSync(DOC_HASH_RING_PATH)) return { defaultIndex: {} };
+  const ringPath = getDocHashRingPath();
+  if (!fs.existsSync(ringPath)) return { defaultIndex: {} };
   try {
-    const data = JSON.parse(fs.readFileSync(DOC_HASH_RING_PATH, 'utf8'));
+    const data = JSON.parse(fs.readFileSync(ringPath, 'utf8'));
     return {
       defaultIndex:
         data?.defaultIndex && typeof data.defaultIndex === 'object' ? data.defaultIndex : {},
@@ -20,8 +21,9 @@ function loadRing() {
 }
 
 function saveRing(data) {
-  fs.mkdirSync(path.dirname(DOC_HASH_RING_PATH), { recursive: true });
-  fs.writeFileSync(DOC_HASH_RING_PATH, `${JSON.stringify(data, null, 2)}\n`);
+  const ringPath = getDocHashRingPath();
+  fs.mkdirSync(path.dirname(ringPath), { recursive: true });
+  fs.writeFileSync(ringPath, `${JSON.stringify(data, null, 2)}\n`);
 }
 
 /** Next row among the default CSV pool (one lead per no-file Start). */
