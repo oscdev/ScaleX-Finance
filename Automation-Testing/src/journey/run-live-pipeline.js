@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { publish } from '../event-bus.js';
-import { REPORTS_DIR, REPO_ROOT } from '../paths.js';
+import { REPO_ROOT, reportProductDir, reportArtifactNames } from '../paths.js';
 import {
   createLead,
   createLoanApplication,
@@ -25,8 +25,15 @@ import {
   buildUniqueCustomer,
   buildLeadPayload,
   buildLoanAppPayload,
-  resolveDocumentUploads,
+  buildDocumentStubs,
 } from '../live-payloads.js';
+import {
+  getLeadRequiredErrors,
+  getLoanAppFormRequiredErrors,
+  getLoanAppMediaRequiredErrors,
+  getRequiredDocFileErrors,
+  assertRequired,
+} from '../validate-required.js';
 import { generateRunReport } from '../report/generate-run-report.js';
 import { parseEligibilityLog, parseScoringLog, mergeScoringRows } from '../utils/log-parse.js';
 
@@ -333,7 +340,7 @@ function mergeLenderDetails(matchBody, evaluations, logParsed) {
 }
 
 /**
- * @param {{ product: string, confirm: boolean, runId?: string }} opts
+ * @param {{ product: string, confirm: boolean, runId?: string, batchId?: string, cibilPath?: string, customer?: object, uploads?: object[], csvRowNumber?: number }} opts
  */
 export async function runLivePipeline(opts) {
   const { product: productId } = opts;
@@ -345,8 +352,21 @@ export async function runLivePipeline(opts) {
   }
 
   const product = getProduct(productId);
+  const uploads = Array.isArray(opts.uploads) && opts.uploads.length ? opts.uploads : null;
+  if (!uploads) {
+    throw new Error('Live Run requires document uploads from the product folder');
+  }
+  const cibilPath =
+    opts.cibilPath || uploads.find((u) => u.field === 'cibilReport')?.filePath;
+  if (!cibilPath) {
+    throw new Error('Live Run requires a CIBIL PDF in the row uploads');
+  }
   const runId = opts.runId || randomUUID();
-  const runDir = path.join(REPORTS_DIR, 'runs', runId);
+  const runDir = opts.runDir || reportProductDir(productId);
+  const artifacts = reportArtifactNames({
+    rowCount: opts.rowCount,
+    csvRowNumber: opts.csvRowNumber,
+  });
   fs.mkdirSync(runDir, { recursive: true });
 
   const events = [];
@@ -369,10 +389,25 @@ export async function runLivePipeline(opts) {
     emit(events, 'run_start', `Live Run started for ${product.label}`, {
       runId,
       product: productId,
+      csvRowNumber: opts.csvRowNumber || null,
+      cibilFile: path.basename(cibilPath),
     });
 
-    customer = buildUniqueCustomer(productId);
+    customer = opts.customer || buildUniqueCustomer(productId);
     fieldValues.lead = buildLeadPayload(customer, product);
+    assertRequired(getLeadRequiredErrors(fieldValues.lead), 'lead');
+
+    assertRequired(getRequiredDocFileErrors(uploads), 'documents');
+
+    const preflightApp = buildLoanAppPayload(
+      customer,
+      product,
+      1,
+      {},
+      buildDocumentStubs(uploads)
+    );
+    assertRequired(getLoanAppFormRequiredErrors(preflightApp), 'loan-application');
+
     emit(events, 'form_submit_start', `Creating lead ${customer.fullName}`);
 
     const leadRes = await createLead(fieldValues.lead, httpCapture);
@@ -381,7 +416,6 @@ export async function runLivePipeline(opts) {
 
     // Upload documents first so media IDs can attach on loan-app create
     emit(events, 'doc_upload_start', 'Uploading required documents from product folder');
-    const uploads = resolveDocumentUploads(product);
     const mediaFields = {};
     for (const u of uploads) {
       if (!u.exists) {
@@ -426,9 +460,25 @@ export async function runLivePipeline(opts) {
     emit(events, 'doc_upload_finish', `Uploaded ${documents.length} document(s)`);
 
     emit(events, 'loan_app_start', 'Creating loan application with form_data + media');
-    fieldValues.loanApp = buildLoanAppPayload(customer, product, leadId, mediaFields);
+    fieldValues.loanApp = buildLoanAppPayload(
+      customer,
+      product,
+      leadId,
+      mediaFields,
+      buildDocumentStubs(uploads)
+    );
+    assertRequired(
+      [
+        ...getLoanAppFormRequiredErrors(fieldValues.loanApp),
+        ...getLoanAppMediaRequiredErrors(fieldValues.loanApp),
+      ],
+      'loan-application'
+    );
     const appRes = await createLoanApplication(fieldValues.loanApp, httpCapture);
     loanAppId = appRes.id;
+    if (!loanAppId) {
+      throw new Error('Loan application was not saved');
+    }
     emit(events, 'loan_app_finish', `Loan application created id=${loanAppId}`, { loanAppId });
 
     // Docs attach on create → LOAN_APP_SUBMIT_SUCCESS only (same as public form).
@@ -680,6 +730,9 @@ export async function runLivePipeline(opts) {
       leadId,
       loanAppId,
       leadName: customer?.fullName,
+      csvRowNumber: opts.csvRowNumber || null,
+      batchId: opts.batchId || null,
+      cibilFile: path.basename(cibilPath),
       mode: 'live',
     },
     fieldValues,
@@ -693,26 +746,36 @@ export async function runLivePipeline(opts) {
     errors,
   };
 
-  fs.writeFileSync(path.join(runDir, 'events.json'), JSON.stringify(events, null, 2));
-  fs.writeFileSync(path.join(runDir, 'run.json'), JSON.stringify(run, null, 2));
+  const eventsPath = path.join(runDir, artifacts.eventsFile);
+  const runPath = path.join(runDir, artifacts.runFile);
+  fs.writeFileSync(eventsPath, JSON.stringify(events, null, 2));
+  fs.writeFileSync(runPath, JSON.stringify(run, null, 2));
 
-  const report = generateRunReport(run, { runDir });
+  const report = generateRunReport(run, {
+    runDir,
+    productId,
+    fileName: artifacts.reportFile,
+  });
   emit(events, 'report_ready', `Report ready`, {
     runId,
     leadId,
-    ok: errors.filter((e) => e.severity !== 'warning').length === 0 && leadId != null,
+    ok: errors.filter((e) => e.severity !== 'warning').length === 0 && leadId != null && loanAppId != null,
     reportUrl: `/suite/${report.relativePath}`,
   });
-  // refresh events file with report_ready
-  fs.writeFileSync(path.join(runDir, 'events.json'), JSON.stringify(events, null, 2));
+  fs.writeFileSync(eventsPath, JSON.stringify(events, null, 2));
 
-  const ok = errors.filter((e) => e.severity !== 'warning').length === 0 && leadId != null;
+  const ok =
+    errors.filter((e) => e.severity !== 'warning').length === 0 &&
+    leadId != null &&
+    loanAppId != null;
   return {
     ok,
     runId,
     leadId,
     loanAppId,
+    cibilFile: path.basename(cibilPath),
     report,
+    eventsRelativePath: `reports/runs/${productId}/${artifacts.eventsFile}`,
     errors,
     events,
   };

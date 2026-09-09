@@ -4,6 +4,8 @@
 .claude/
 .vscode
 docs/
+!Automation-Testing/src/docs/
+!Automation-Testing/src/docs/**
 graphify-out
 graphify-out/
 .cursor
@@ -47,6 +49,12 @@ $RECYCLE.BIN/
 
 *.7z
 *.csv
+
+# Keep suite Live Run example + default CSVs
+!Automation-Testing/documents/**/*.csv
+Automation-Testing/documents/upload/*/live-run.csv
+Automation-Testing/documents/upload/.last-doc-hashes.json
+Automation-Testing/documents/upload/*/*.pdf
 *.dat
 *.dmg
 *.gz
@@ -93,6 +101,9 @@ public/uploads/*
 !public/uploads/.gitkeep
 .tsbuildinfo
 .eslintcache
+
+# Generated Live Run / journey reports (recreated on each run)
+Automation-Testing/reports/runs/**
 
 ############################
 # Node.js

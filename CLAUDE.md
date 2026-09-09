@@ -104,7 +104,7 @@ Before completing every task:
 
 ```bash
 # Development with hot reload
-npm run dev                  # Starts Strapi on http://localhost:1337
+npm run dev                  # Starts Strapi on http://localhost:1337 and /suite on :4100
 
 # Build admin panel
 npm run build
@@ -155,10 +155,8 @@ npm run lint
 ### Running Both Locally
 
 To develop locally, you typically need both running:
-1. **Terminal 1**: `npm run dev` (from root) → Strapi on :1337
-2. **Terminal 2**: `cd frontend && npm run dev` → Next.js on :3000
-
-The frontend's `next.config.ts` rewrites `/strapi-api/*` requests to the Strapi backend.
+1. **Terminal 1**: `npm run dev` (from root) → Strapi on :1337 **and** Automation Testing `/suite` on :4100
+2. **Terminal 2**: `cd frontend && npm run dev` → Next.js on :3000 (rewrites `/suite` and `/strapi-api/*`)
 
 ## Strapi API Collections
 
@@ -265,8 +263,9 @@ These are single-type or collection-type entries managed via Strapi admin for fr
   - Syncs approved advisors to Strapi admin users (enables dashboard login)
   - When an advisor is approved, an admin account is auto-created with their email/password
   - Grants Advisor Media Library `plugin::upload.read` + `plugin::upload.assets.create` so Lead View **Add Document** can call `/upload/folders` and `/upload` (Document Details View/Edit only gates UI via `loan-app-section-permission`)
+  - Starts the Automation Testing dashboard on `:4100` (`SUITE_DASHBOARD=false` skips; no-ops if the port is already in use). Live Run report files under `Automation-Testing/` do not reload Admin (`watchIgnoreFiles` in [`config/admin.ts`](config/admin.ts)).
 - **Email Templates** (`src/email-templates/`): Used by Strapi for notifications
-- **Admin Extensions** (`src/admin/`): Custom admin panel UI overrides; **Lead View Dashboard** (`LeadViewDashboard/`) for loan-app list + `currentLeadId`; **Loan Application CM edit** (`LoanForm/LoanApplicationEditForm.tsx`) replaces native flat CM form on record edit with funnel-scoped fields matching the public loan form (select/radio/checkbox/state→district). Admin always shows every field in the Product → Funnel → Step schema for that record (`getFieldsForFunnel(..., { ignoreShowWhen: true })`); visibility does not depend on `form_data` completion. **Step field values** use `getAdminLoanFormDisplayData()` — stale automation prefill (`declarationAccepted === true` + data but no `LOAN_APP_SUBMITTED`) is hidden; staff can still edit/save from admin (clears declaration until frontend submit). **Tick saves** merge via `getAdminLoanFormSaveBase()` (same gating as display) so only edited sections persist, not hidden stale blobs. After frontend submit, full `form_data` displays. Loan-app lookup in Lead View is **leadId-only** (no email/phone fallback). Shared field schema in `src/shared/loan-form/`. CM dashboard lists force newest-first IDs for all roles (`id:DESC` leads/lenders/admin users; `advisorId:DESC` advisors) via [`enforceListSettings.ts`](src/admin/LeadOverview/enforceListSettings.ts) + fetch interceptor. Footer and **Configure the view** “Entries per page” share one page size per collection ([`pageSizeSync.ts`](src/admin/bootstrap/pageSizeSync.ts)); a config-save lock prevents the stale list URL from wiping a Configure the view save, while footer dropdown clicks clear the lock so list pagination still works.
+- **Admin Extensions** (`src/admin/`): Custom admin panel UI overrides; **Lead View Dashboard** (`LeadViewDashboard/`) for loan-app list + `currentLeadId`; **Loan Application CM edit** (`LoanForm/LoanApplicationEditForm.tsx`) replaces native flat CM form on record edit with funnel-scoped fields matching the public loan form (select/radio/checkbox/state→district). Admin always shows every field in the Product → Funnel → Step schema for that record (`getFieldsForFunnel(..., { ignoreShowWhen: true })`); visibility does not depend on `form_data` completion. **Step field values** use `getAdminLoanFormDisplayData()` — saved funnel `form_data` stays visible after reload (Live Run / public submit is not blanked when `LOAN_APP_SUBMITTED` is missing from activity). **Tick saves** merge via `getAdminLoanFormSaveBase()`. Loan-app lookup in Lead View is **leadId-only** (no email/phone fallback). Shared field schema in `src/shared/loan-form/`. CM dashboard lists force newest-first IDs for all roles (`id:DESC` leads/lenders/admin users; `advisorId:DESC` advisors) via [`enforceListSettings.ts`](src/admin/LeadOverview/enforceListSettings.ts) + fetch interceptor. Footer and **Configure the view** “Entries per page” share one page size per collection ([`pageSizeSync.ts`](src/admin/bootstrap/pageSizeSync.ts)); a config-save lock prevents the stale list URL from wiping a Configure the view save, while footer dropdown clicks clear the lock so list pagination still works.
 - **Direct DB access**: Uses `strapi.db.query()` API (Strapi v5 pattern), not raw SQL
 
 ### Next.js Frontend
@@ -356,6 +355,7 @@ Copy `.env.example` to `.env` and update:
 - Database connection details (if not using default localhost)
 - **Python extraction:** bootstrap `ensurePythonEnvironment()` auto-creates `.venv` and installs deps on first `npm run dev`; optional `PYTHON_PATH` in `.env`
 - **API Uploads mirror:** `API_UPLOADS_MIRROR_WATCH=false` disables the disk → Media Library `chokidar` watcher (default on); run watcher on one Strapi instance only in multi-node deploys
+- **Automation Testing `/suite`:** started from Strapi bootstrap on `:4100` (Next rewrite still proxies there). Set `SUITE_DASHBOARD=false` to skip, or `SUITE_PORT` to change the port. `npm run dashboard` in `Automation-Testing/` is optional. `config/admin.ts` `watchIgnoreFiles` includes `**/Automation-Testing/**`, `**/graphify-out/**`, and `**/CLAUDE.md` so Live Run reports and doc edits do not restart Admin.
 
 ### Global Setting — logging toggles
 
@@ -398,15 +398,15 @@ Submission audit helper: [`src/utils/pl-lead-submission-logger.ts`](src/utils/pl
 | Admin lead / loan-app save (CM, Lead View) | [`src/api/lead/content-types/lead/lifecycles.ts`](src/api/lead/content-types/lead/lifecycles.ts), [`src/api/loan-application/content-types/loan-application/lifecycles.ts`](src/api/loan-application/content-types/loan-application/lifecycles.ts) → single `ADMIN_UPDATE` JSON (cumulative `updates` array; upsert by `form`+`field`) in the **record’s** product folder + `{leadId}-{Name}_YYYY-MM-DD.log`; resolves `documentId`/`id` via [`findLoanAppFromLifecycleEvent`](src/api/loan-application/services/admin-change-log.ts); media-only loan-app updates → Document Details rows via [`appendAdminDocumentUploadLog`](src/utils/pl-lead-submission-logger.ts) |
 | Lead View Add Document (`sync-documents`) | [`src/api/loan-application/controllers/loan-application.ts`](src/api/loan-application/controllers/loan-application.ts) `syncDocuments` → `appendAdminDocumentUploadLog` when `docType` + mirror ok |
 | Client validation / upload errors | `POST /api/pl-submission-audit/log` ← [`frontend/src/lib/plSubmissionLogger.ts`](frontend/src/lib/plSubmissionLogger.ts) |
-| Automation Testing Suite | [`Automation-Testing/`](Automation-Testing/) — offline PL/BL fixtures + **Live Run** (creates `[SUITE-TEST]` leads) + Journey Demo / Search; dashboard at **`/suite`** (`npm run dashboard` on :4100; Next rewrite). See [`Automation-Testing/README.md`](Automation-Testing/README.md) |
+| Automation Testing Suite | [`Automation-Testing/`](Automation-Testing/) — offline PL/BL fixtures + **Live Run** (no files = one `[SUITE-TEST]` lead from `documents/default/{product}/`; CSV + Documents together = max 5 rows, filenames match attached PDFs; CSV overwrite `documents/upload/{product}/live-run.csv`; PDFs persist under `public/uploads/api_uploads/{leadId}-{name}/`) + Journey Demo (eligibility **Show** filter matches Live Run `report.html`: All / Eligible only / Failed only) / Search; dashboard at **`/suite`** starts with Strapi (`npm run dev` → `:4100`; Next rewrite). See [`Automation-Testing/README.md`](Automation-Testing/README.md) |
 
 PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are omitted (keys only). Pre-lead-create client validation uses module daily fallback when `leadId` is absent.
 
 ## Key Files to Know
 
-- **[src/index.ts](src/index.ts)** — Bootstrap logic for advisor role creation and syncing
+- **[src/index.ts](src/index.ts)** — Bootstrap logic for advisor role creation and syncing; starts `/suite` dashboard on `:4100`
 - **[frontend/next.config.ts](frontend/next.config.ts)** — API rewrite rules, `/suite` → Automation Testing dashboard (:4100), and allowed origins
-- **[Automation-Testing/](Automation-Testing/)** — Automation Testing Suite (offline fixtures, Live Run writes `[SUITE-TEST]` leads, Journey Demo / Search); open `/suite`
+- **[Automation-Testing/](Automation-Testing/)** — Automation Testing Suite (offline fixtures, Live Run writes `[SUITE-TEST]` leads, Journey Demo / Search); open `/suite` while Strapi is running
 - **[frontend/src/lib/strapi.ts](frontend/src/lib/strapi.ts)** — `strapiPublicApi()` URL helper
 - **[frontend/src/lib/safeStorage.ts](frontend/src/lib/safeStorage.ts)** — SSR-safe localStorage/sessionStorage wrappers
 - **[src/api/](src/api/)** — All Strapi collections
@@ -428,7 +428,7 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - **[src/api/loan-application/](src/api/loan-application/)** — Loan app API; on create logs `LOAN_APP_SUBMIT_*` to per-lead submission file; **bidirectional** `api-uploads-mirror` keeps Media Library `API Uploads/` and `public/uploads/api_uploads/` in sync; `syncLeadDocumentsToDisk` delegates to mirror; Business Loan payloads validated via `utils/validate-business-loan.ts`; CM record edit (`/admin/content-manager/.../loan-application/{documentId}`) mounts custom **`LoanApplicationEditForm`** (native CM fields hidden) — funnel sections + frontend widget parity via **`src/shared/loan-form/field-schema.ts`** + **`FormFieldControl`**
 - **[src/admin/LoanForm/](src/admin/LoanForm/)** — Admin loan form UI (`LoanFormSections`, `loanAppAdminApi.ts` CM saves). **Do not send loan-app `status` at top level on CM POST/PUT** — Strapi v5 reserves `status` for draft/published; schema default `Pending` applies on create.
 - **[src/admin/LeadViewDashboard/](src/admin/LeadViewDashboard/)** — Lead View overlay on loan-application CM list when `sessionStorage.currentLeadId` is set; inline edits use same **`LoanFormSections`** / **`FormFieldControl`** as CM edit
-- **[src/shared/loan-form/](src/shared/loan-form/)** — Shared loan form field schema (`getFieldsForFunnel`, `getAppSteps`, `getAdminLoanFormDisplayData`, `getAdminLoanFormSaveBase`, `isStaleLoanFormPrefill`), India state/district data, widget metadata (importable from Strapi admin). Admin UI passes `{ ignoreShowWhen: true }` so conditional fields stay visible when empty/null; step **values** mask stale prefill only — tick **saves** use the same save base so hidden stale data is not re-persisted.
+- **[src/shared/loan-form/](src/shared/loan-form/)** — Shared loan form field schema (`getFieldsForFunnel`, `getAppSteps`, `getAdminLoanFormDisplayData`, `getAdminLoanFormSaveBase`, `isStaleLoanFormPrefill`), India state/district data, widget metadata (importable from Strapi admin). Admin UI passes `{ ignoreShowWhen: true }` so conditional fields stay visible when empty/null. Saved funnel `form_data` is shown after reload (completed Live Run / public submit is not blanked when activity fetch misses `LOAN_APP_SUBMITTED`).
 - **[src/api/bureau-data-extraction/](src/api/bureau-data-extraction/)** — Bureau PDF extraction (`POST /api/cibil-report-summaries/extract`; reads `public/uploads/api_uploads/`)
 - **[src/api/lender-master/](src/api/lender-master/)** — Lender master registry + zip coverage + scoring catalog (`lenders-catalog`, `zip-code`, `lender-scoring-criteria`)
 - **[src/api/personal-loan-eligibility/](src/api/personal-loan-eligibility/)** — PL eligibility thresholds + 19-step matching engine (`matched-lenders` / `evaluate`; file audit in `logs/personal-loan/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`)

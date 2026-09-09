@@ -14,17 +14,7 @@
         "eligibility": "logs/personal-loan/pl-eligibility",
         "scoring": "logs/personal-loan/pl-scoring"
       },
-      "documentsDir": "documents/personal-loan",
-      "documentFieldMap": [
-        { "field": "aadharCardFront", "file": "aadhaar_front.pdf", "multi": false },
-        { "field": "aadharCardBack", "file": "aadhaar_back.pdf", "multi": false },
-        { "field": "panCard", "file": "pan.pdf", "multi": false },
-        { "field": "cibilReport", "file": "cibil_report.pdf", "multi": false },
-        { "field": "bankStatement", "file": "bank_statement.pdf", "multi": false },
-        { "field": "salarySlips", "file": "salary_slip_1.pdf", "multi": true },
-        { "field": "salarySlips", "file": "salary_slip_2.pdf", "multi": true },
-        { "field": "salarySlips", "file": "salary_slip_3.pdf", "multi": true }
-      ]
+      "documentsDir": "documents/default/personal-loan"
     },
     {
       "id": "business-loan",
@@ -40,18 +30,7 @@
         "eligibility": "logs/business-loan/bl-eligibility",
         "scoring": "logs/business-loan/bl-scoring"
       },
-      "documentsDir": "documents/business-loan",
-      "documentFieldMap": [
-        { "field": "aadharCardFront", "file": "aadhaar_front.pdf", "multi": false },
-        { "field": "aadharCardBack", "file": "aadhaar_back.pdf", "multi": false },
-        { "field": "panCard", "file": "pan.pdf", "multi": false },
-        { "field": "cibilReport", "file": "cibil_report.pdf", "multi": false },
-        { "field": "bankStatement", "file": "bank_statement.pdf", "multi": false },
-        { "field": "proprietorshipDoc", "file": "pan.pdf", "multi": false },
-        { "field": "itrYear1", "file": "bank_statement.pdf", "multi": false },
-        { "field": "auditedBooksDoc", "file": "bank_statement.pdf", "multi": false },
-        { "field": "businessRegProofDoc", "file": "aadhaar_front.pdf", "multi": true }
-      ]
+      "documentsDir": "documents/default/business-loan"
     }
   ]
 }

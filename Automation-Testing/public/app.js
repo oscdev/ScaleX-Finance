@@ -99,7 +99,7 @@
                   r.status +
                   (t ? ': ' + t.replace(/<[^>]+>/g, ' ').trim().slice(0, 200) : '') +
                   (r.status === 502 || r.status === 504 || r.status === 500
-                    ? ' — if Live Run was in progress, the proxy may have timed out; check reports/runs/ for a partial report'
+                    ? ' — if Live Run was in progress, the proxy may have timed out; check reports/runs/{product}/ for a partial report'
                     : '')
           );
         });
@@ -118,24 +118,58 @@
     var out = document.getElementById('liveResult');
     if (!out) return;
     var ok = res.ok !== false;
+    var entries = Array.isArray(res.entries) && res.entries.length ? res.entries : null;
+    if (entries && entries.length > 1) {
+      var items = entries
+        .map(function (e) {
+          var label = 'lead <strong>' + (e.leadId || '—') + '</strong>';
+          if (e.cibilFile) label += ' · ' + e.cibilFile;
+          var link = e.reportUrl
+            ? ' — <a href="' + e.reportUrl + '" target="_blank" rel="noopener">Report</a>'
+            : '';
+          return '<li>' + (e.ok === false ? 'Issue' : 'OK') + ' · ' + label + link + '</li>';
+        })
+        .join('');
+      out.innerHTML =
+        (ok ? 'Completed' : 'Finished with issues') +
+        ' · ' +
+        entries.length +
+        ' leads<ul class="live-batch-list">' +
+        items +
+        '</ul>';
+      if (entries[0] && entries[0].reportUrl) window.open(entries[0].reportUrl, '_blank');
+      clearLiveRunUploads();
+      return;
+    }
+    var reportUrl = (entries && entries[0] && entries[0].reportUrl) || res.reportUrl;
+    var leadId = (entries && entries[0] && entries[0].leadId) || res.leadId;
     out.innerHTML =
       (ok ? 'Completed' : 'Finished with issues') +
       ' · lead <strong>' +
-      (res.leadId || '—') +
+      (leadId || '—') +
       '</strong> — <a href="' +
-      res.reportUrl +
+      reportUrl +
       '" target="_blank" rel="noopener">Open detailed report</a>';
-    if (res.reportUrl) window.open(res.reportUrl, '_blank');
+    if (reportUrl) window.open(reportUrl, '_blank');
+    clearLiveRunUploads();
   }
 
-  function pollLiveRunStatus(runId) {
+  function pollLiveRunStatus(runId, leadCount) {
     var attempts = 0;
-    var maxAttempts = 200;
+    var count = Math.max(1, Number(leadCount) || 1);
+    var maxAttempts = 200 * count;
     var timer = setInterval(function () {
       attempts += 1;
       api('/api/live-run/' + encodeURIComponent(runId))
         .then(function (st) {
           if (!st || st.status === 'running') {
+            var outRun = document.getElementById('liveResult');
+            if (outRun && st && st.progress) {
+              outRun.textContent =
+                'Live Run in progress (' +
+                st.progress +
+                ') — bureau may take a few minutes per lead';
+            }
             if (attempts >= maxAttempts) {
               clearInterval(timer);
               activeLiveRunId = null;
@@ -143,7 +177,9 @@
               var out = document.getElementById('liveResult');
               if (out) {
                 out.textContent =
-                  'Still running (timed out waiting). Check reports/runs/' + runId;
+                  'Still running (timed out waiting). Check reports/runs/' +
+                  (st.product || 'personal-loan') +
+                  '/';
               }
             }
             return;
@@ -155,6 +191,7 @@
             var msg = st.error || 'Live Run failed';
             var outFail = document.getElementById('liveResult');
             if (outFail) outFail.textContent = msg;
+            clearLiveRunUploads();
             alert(msg);
             return;
           }
@@ -205,6 +242,13 @@
     var box = document.getElementById('liveConfirm');
     if (!btn || !box) return;
     btn.disabled = !!(activeLiveRunId || !(window.__strapiReachable && box.checked));
+  }
+
+  function clearLiveRunUploads() {
+    var csvEl = document.getElementById('liveCsv');
+    var docsEl = document.getElementById('liveDocs');
+    if (csvEl) csvEl.value = '';
+    if (docsEl) docsEl.value = '';
   }
 
   function clearPipelineDocs() {
@@ -383,6 +427,92 @@
   var journeyEligLenders = [];
   var journeyScoreLenders = [];
 
+  /** Same PASS/FAIL rule as Live Run report.html */
+  function journeyLenderIsEligible(lender) {
+    return lender && lender.eligible === true;
+  }
+
+  function normalizeJourneyEligLenders(list) {
+    return (list || []).map(function (l) {
+      var steps = l.fullSteps || l.steps || [];
+      var stepFail = steps.some(function (s) {
+        return String(s.result || '').toUpperCase() === 'FAIL';
+      });
+      var eligible = !(stepFail || l.failedAt) && l.eligible === true;
+      return Object.assign({}, l, { eligible: eligible });
+    });
+  }
+
+  function fillJourneyEligSelect(preferredCode) {
+    var sel = document.getElementById('demo-elig-lender');
+    var filter = document.getElementById('demo-elig-filter');
+    if (!sel) return;
+    var mode = filter ? filter.value : 'all';
+    var pass = journeyEligLenders.filter(journeyLenderIsEligible);
+    var fail = journeyEligLenders.filter(function (l) {
+      return !journeyLenderIsEligible(l);
+    });
+    var list =
+      mode === 'pass'
+        ? pass
+        : mode === 'fail'
+          ? fail
+          : journeyEligLenders.slice().sort(function (a, b) {
+              return (
+                Number(journeyLenderIsEligible(b)) - Number(journeyLenderIsEligible(a)) ||
+                String(a.code).localeCompare(String(b.code))
+              );
+            });
+
+    function opt(l) {
+      var ok = journeyLenderIsEligible(l);
+      var label =
+        (l.code || '?') +
+        ' — ' +
+        (l.lenderName || '') +
+        (ok ? ' · PASS' : ' · FAIL' + (l.failedAt ? ' @ ' + l.failedAt : ''));
+      var selected =
+        preferredCode && String(l.code) === String(preferredCode) ? ' selected' : '';
+      return (
+        '<option value="' +
+        escapeHtml(String(l.code)) +
+        '"' +
+        selected +
+        '>' +
+        escapeHtml(label) +
+        '</option>'
+      );
+    }
+
+    if (mode === 'all') {
+      sel.innerHTML =
+        '<optgroup label="Eligible (PASS) — ' +
+        pass.length +
+        '">' +
+        pass.map(opt).join('') +
+        '</optgroup>' +
+        '<optgroup label="Not eligible (FAIL) — ' +
+        fail.length +
+        '">' +
+        fail.map(opt).join('') +
+        '</optgroup>';
+    } else {
+      sel.innerHTML =
+        list.map(opt).join('') || '<option value="">No lenders in this filter</option>';
+    }
+
+    if (
+      preferredCode &&
+      [].some.call(sel.options, function (o) {
+        return o.value === String(preferredCode);
+      })
+    ) {
+      sel.value = String(preferredCode);
+    } else if (sel.options.length && sel.options[0].value) {
+      sel.selectedIndex = 0;
+    }
+  }
+
   function formatDemoVal(v) {
     if (v == null || v === '') return '—';
     if (typeof v === 'boolean') return v ? 'Yes' : 'No';
@@ -440,6 +570,90 @@
     return out;
   }
 
+  function runningLoanRows(loans) {
+    if (!Array.isArray(loans) || !loans.length) {
+      return [{ label: 'Running Loans', value: 'None' }];
+    }
+    var rows = [];
+    loans.forEach(function (loan, i) {
+      var prefix = loans.length > 1 ? 'Loan ' + (i + 1) + ' — ' : '';
+      rows.push({ label: prefix + 'Loan Type', value: loan && loan.type });
+      rows.push({ label: prefix + 'Bank Name', value: loan && loan.bank });
+      rows.push({ label: prefix + 'Loan Amount', value: loan && loan.amount });
+      rows.push({ label: prefix + 'EMI amount', value: loan && loan.emi });
+      rows.push({ label: prefix + 'No of Paid EMI', value: loan && loan.paidEmi });
+    });
+    return rows;
+  }
+
+  var DOC_LABELS = {
+    aadharCardFront: 'Aadhaar Card (Front)',
+    aadharCardBack: 'Aadhaar Card (Back)',
+    panCard: 'PAN Card',
+    cibilReport: 'CIBIL Report',
+    bankStatement: 'Bank Statement',
+    salarySlips: 'Salary Slip 1 year',
+    itrYear1: 'ITR (1st Year)',
+    proprietorshipDoc: 'Business Type document',
+    auditedBooksDoc: 'Audited Books',
+    businessRegProofDoc: 'Business Registration Proof',
+  };
+
+  function docLabel(key, loanType) {
+    if (key === 'bankStatement' && loanType !== 'Business Loan') {
+      return '6 Month Bank Statement';
+    }
+    if (key && DOC_LABELS[key]) return DOC_LABELS[key];
+    return key || 'Document';
+  }
+
+  function mediaDisplay(val) {
+    if (val == null || val === '') return '';
+    if (typeof val === 'object') {
+      if (val.name) return String(val.name);
+      if (val.file) return String(val.file);
+      if (val.fileId != null) return 'media #' + val.fileId;
+      if (Array.isArray(val.fileIds) && val.fileIds.length) {
+        return val.fileIds.map(function (id) {
+          return 'media #' + id;
+        }).join(', ');
+      }
+      if (val.id != null) return 'media #' + val.id;
+    }
+    return String(val);
+  }
+
+  function documentRows(formData, fields, loanType) {
+    var stubs = formData && Array.isArray(formData.documents) ? formData.documents : [];
+    var rows = [];
+    if (stubs.length) {
+      stubs.forEach(function (d) {
+        rows.push({
+          label: docLabel(d && d.key, loanType),
+          value: (d && d.name) || mediaDisplay(d) || 'None',
+        });
+      });
+      return rows;
+    }
+    [
+      'aadharCardFront',
+      'aadharCardBack',
+      'panCard',
+      'cibilReport',
+      'bankStatement',
+      'salarySlips',
+      'itrYear1',
+      'proprietorshipDoc',
+      'auditedBooksDoc',
+      'businessRegProofDoc',
+    ].forEach(function (key) {
+      var shown = mediaDisplay(fields && fields[key]);
+      if (shown) rows.push({ label: docLabel(key, loanType), value: shown });
+    });
+    if (!rows.length) return [{ label: 'Documents', value: 'None' }];
+    return rows;
+  }
+
   function renderLeadSubmission(data, loanType) {
     if (!data) return '<p class="muted">No lead-submission log</p>';
     var html = '<div class="demo-stage"><h3>Lead Submission</h3>';
@@ -489,13 +703,24 @@
           ' — ' +
           escapeHtml(step.title) +
           '</h5>';
-        if (!step.fields || !step.fields.length) {
-          html += '<p class="muted small">Document uploads (see disk / Media Library)</p>';
+        if (step.step === 'Docs') {
+          html += labelValueTable(
+            documentRows(formData, fields, fields.loanType || loanType)
+          );
           return;
         }
-        var rows = step.fields.map(function (f) {
+        if (!step.fields || !step.fields.length) {
+          html += '<p class="muted small">No fields for this step.</p>';
+          return;
+        }
+        var rows = [];
+        step.fields.forEach(function (f) {
           var sec = formData[f.section] || {};
-          return { label: f.label, value: sec[f.key] };
+          if (f.key === 'runningLoans') {
+            rows = rows.concat(runningLoanRows(sec[f.key]));
+            return;
+          }
+          rows.push({ label: f.label, value: sec[f.key] });
         });
         html += labelValueTable(rows);
       });
@@ -533,34 +758,14 @@
 
   function renderEligibilityShell(data) {
     if (!data) return '<p class="muted">No eligibility log</p>';
-    journeyEligLenders = data.lenders || [];
+    journeyEligLenders = normalizeJourneyEligLenders(data.lenders || []);
     if (!journeyEligLenders.length) {
       return '<div class="demo-stage"><h3>Eligibility</h3><p class="muted">No lenders in log</p></div>';
     }
-    var preferred =
-      journeyEligLenders.find(function (l) {
-        return l.eligible;
-      }) || journeyEligLenders[0];
-    var options = journeyEligLenders
-      .map(function (l) {
-        var ok = l.eligible === true;
-        var label =
-          (l.code || '?') +
-          ' — ' +
-          (l.lenderName || '') +
-          (ok ? ' · PASS' : ' · FAIL' + (l.failedAt ? ' @ ' + l.failedAt : ''));
-        var sel = preferred && l.code === preferred.code ? ' selected' : '';
-        return (
-          '<option value="' +
-          escapeHtml(String(l.code)) +
-          '"' +
-          sel +
-          '>' +
-          escapeHtml(label) +
-          '</option>'
-        );
-      })
-      .join('');
+    var pass = journeyEligLenders.filter(journeyLenderIsEligible).length;
+    var fail = journeyEligLenders.length - pass;
+    var productLabel =
+      (data.meta && (data.meta.loanType || data.meta.product)) || 'selected product';
     return (
       '<div class="demo-stage legacy-panel" id="demo-elig-panel">' +
       '<h3>Eligibility</h3>' +
@@ -569,11 +774,28 @@
       ' · ' +
       journeyEligLenders.length +
       ' lender(s)</p>' +
+      '<div class="legacy-stats elig-overview" id="demo-elig-overview">' +
+      '<div class="legacy-stat pass"><div class="v">' +
+      pass +
+      '</div><div class="l">Eligible (PASS)</div></div>' +
+      '<div class="legacy-stat fail"><div class="v">' +
+      fail +
+      '</div><div class="l">Not eligible (FAIL)</div></div>' +
+      '<div class="legacy-stat"><div class="v">' +
+      journeyEligLenders.length +
+      '</div><div class="l">Total lenders · ' +
+      escapeHtml(String(productLabel)) +
+      '</div></div>' +
+      '</div>' +
       '<div class="legacy-toolbar">' +
-      '<label for="demo-elig-lender"><strong>Lender</strong></label>' +
-      '<select id="demo-elig-lender" aria-label="Select lender">' +
-      options +
+      '<label for="demo-elig-filter"><strong>Show</strong></label>' +
+      '<select id="demo-elig-filter" aria-label="Filter lenders by eligibility">' +
+      '<option value="all">All lenders</option>' +
+      '<option value="pass">Eligible only</option>' +
+      '<option value="fail">Failed only</option>' +
       '</select>' +
+      '<label for="demo-elig-lender"><strong>Lender</strong></label>' +
+      '<select id="demo-elig-lender" aria-label="Select lender for eligibility detail"></select>' +
       '<span id="demo-elig-badge" class="legacy-badge"></span>' +
       '<button type="button" class="btn ghost" id="demo-elig-detail-btn">Show details</button>' +
       '</div>' +
@@ -593,6 +815,27 @@
   function paintEligibilityLender() {
     var sel = document.getElementById('demo-elig-lender');
     if (!sel || !journeyEligLenders.length) return;
+    if (!sel.value) {
+      var emptyBadge = document.getElementById('demo-elig-badge');
+      if (emptyBadge) {
+        emptyBadge.textContent = '';
+        emptyBadge.className = 'legacy-badge';
+      }
+      var emptyCallout = document.getElementById('demo-elig-callout');
+      if (emptyCallout) {
+        emptyCallout.hidden = false;
+        emptyCallout.className = 'legacy-callout';
+        emptyCallout.textContent = 'No lenders in this filter.';
+      }
+      var emptyTbody = document.getElementById('demo-elig-tbody');
+      if (emptyTbody) {
+        emptyTbody.innerHTML =
+          '<tr><td colspan="8" class="muted">No lenders in this filter</td></tr>';
+      }
+      var emptyStats = document.getElementById('demo-elig-stats');
+      if (emptyStats) emptyStats.innerHTML = '';
+      return;
+    }
     var lender =
       journeyEligLenders.find(function (l) {
         return String(l.code) === sel.value;
@@ -600,11 +843,11 @@
     if (!lender) return;
     var steps = lender.fullSteps || lender.steps || [];
     var counts = countStepResults(steps);
-    var ok = lender.eligible === true;
+    var ok = journeyLenderIsEligible(lender);
 
     var badge = document.getElementById('demo-elig-badge');
     if (badge) {
-      badge.textContent = ok ? 'Eligible' : 'Not eligible';
+      badge.textContent = ok ? 'Eligible (PASS)' : 'Not eligible (FAIL)';
       badge.className = 'legacy-badge ' + (ok ? 'yes' : 'no');
     }
 
@@ -873,8 +1116,18 @@
 
   function bindJourneyDemoPanels() {
     var eligSel = document.getElementById('demo-elig-lender');
+    var eligFilter = document.getElementById('demo-elig-filter');
     if (eligSel) {
+      var preferred =
+        journeyEligLenders.find(journeyLenderIsEligible) || journeyEligLenders[0];
+      fillJourneyEligSelect(preferred && preferred.code);
       eligSel.addEventListener('change', paintEligibilityLender);
+      if (eligFilter) {
+        eligFilter.addEventListener('change', function () {
+          fillJourneyEligSelect(eligSel.value);
+          paintEligibilityLender();
+        });
+      }
       paintEligibilityLender();
     }
     var eligBtn = document.getElementById('demo-elig-detail-btn');
@@ -1002,6 +1255,43 @@
   if (liveConfirm) {
     liveConfirm.addEventListener('change', updateLiveRunEnabled);
   }
+
+  var LIVE_SAMPLES = {
+    'personal-loan': {
+      pdfs:
+        'PDFs to attach: aadhaar_front.pdf, aadhaar_back.pdf, pan.pdf, Ganga_CIBIL_Report.pdf, bank_statement.pdf, salary_slip.pdf',
+      csv:
+        'fullName,email,mobileNumber,requiredAmount,pinCode,aadharCard,panCard,employmentType,dob,maritalStatus,motherName,line1,landmark,state,district,city,residenceType,companyName,designation,netSalary,salaryMode,jobStability,pfDeducted,hasOtherIncome,aadhaar_front,aadhaar_back,pan,cibil,bank_statement,salary_slip\n' +
+        '[SUITE-TEST] Test User,suite.test@example.com,9876543210,500000,560001,123412341234,ABCDE1234F,Salaried,1990-01-15,Single,Mother Name,12 MG Road,Near Park,Karnataka,Bengaluru Urban,Bengaluru,Owned,Acme Pvt Ltd,Engineer,75000,Account Transfer,24,Yes,No,aadhaar_front.pdf,aadhaar_back.pdf,pan.pdf,Ganga_CIBIL_Report.pdf,bank_statement.pdf,salary_slip.pdf',
+    },
+    'business-loan': {
+      pdfs:
+        'PDFs to attach: aadhaar_front.pdf, aadhaar_back.pdf, pan.pdf, Ganga_CIBIL_Report.pdf, bank_statement.pdf, proprietorship.pdf, itr_year1.pdf, gst_certificate.pdf (plus audited_books.pdf when Audited Books = Yes)',
+      csv:
+        'fullName,email,mobileNumber,requiredAmount,pinCode,aadharCard,panCard,employmentType,dob,maritalStatus,motherName,line1,landmark,state,district,city,residenceType,businessName,premises,businessType,turnover,age,regProofs,auditedBooks,businessAddress,aadhaar_front,aadhaar_back,pan,cibil,bank_statement,proprietorship,itr_year1,business_reg_proof,audited_books_doc\n' +
+        '[SUITE-TEST] Test Business,suite.biz@example.com,9876543211,800000,560001,123412341235,ABCDE1234G,Self Employed,1985-06-20,Married,Mother Name,12 MG Road,Near Park,Karnataka,Bengaluru Urban,Bengaluru,Owned,Test Traders,Rented,Proprietorship,50,5,GST Certificate,No,45 Industrial Layout,aadhaar_front.pdf,aadhaar_back.pdf,pan.pdf,Ganga_CIBIL_Report.pdf,bank_statement.pdf,proprietorship.pdf,itr_year1.pdf,gst_certificate.pdf,',
+    },
+  };
+
+  function updateLiveSampleFormat() {
+    var productEl = document.getElementById('liveProduct');
+    var pdfsEl = document.getElementById('liveSamplePdfs');
+    var csvEl = document.getElementById('liveSampleCsv');
+    var dl = document.getElementById('liveSampleDownload');
+    if (!productEl || !pdfsEl || !csvEl) return;
+    var product = productEl.value || 'personal-loan';
+    var sample = LIVE_SAMPLES[product] || LIVE_SAMPLES['personal-loan'];
+    pdfsEl.textContent = sample.pdfs;
+    csvEl.textContent = sample.csv;
+    if (dl) dl.href = BASE + '/api/live-run/example.csv?product=' + encodeURIComponent(product);
+  }
+
+  var liveProduct = document.getElementById('liveProduct');
+  if (liveProduct) {
+    liveProduct.addEventListener('change', updateLiveSampleFormat);
+    updateLiveSampleFormat();
+  }
+
   var runLive = document.getElementById('runLive');
   if (runLive) {
     runLive.addEventListener('click', function () {
@@ -1010,33 +1300,73 @@
       }
       runLive.disabled = true;
       var out = document.getElementById('liveResult');
-      out.textContent = 'Live Run starting…';
-      api('/api/live-run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          product: document.getElementById('liveProduct').value,
-          confirm: true,
-        }),
-      })
-        .then(function (res) {
-          if (res.accepted && res.runId) {
-            activeLiveRunId = res.runId;
-            out.textContent =
-              'Live Run in progress (run ' +
-              res.runId.slice(0, 8) +
-              '…) — bureau may take a few minutes; this page will update when done';
-            pollLiveRunStatus(res.runId);
-            return;
-          }
-          showLiveRunResult(res);
-          updateLiveRunEnabled();
-        })
-        .catch(function (err) {
-          out.textContent = err.message;
-          alert(err.message);
-          updateLiveRunEnabled();
+      var fileEl = document.getElementById('liveCsv');
+      var file = fileEl && fileEl.files && fileEl.files[0];
+      var docsEl = document.getElementById('liveDocs');
+      var docs = docsEl && docsEl.files ? Array.prototype.slice.call(docsEl.files) : [];
+      var product = document.getElementById('liveProduct').value;
+      var pairError =
+        'CSV and Documents must be attached together. Leave both empty to run one lead from the default pool.';
+      if (Boolean(file) !== Boolean(docs.length)) {
+        out.textContent = pairError;
+        alert(pairError);
+        updateLiveRunEnabled();
+        return;
+      }
+      out.textContent = file ? 'Live Run CSV starting…' : 'Live Run starting…';
+
+      function postLiveRunJson(body) {
+        return api('/api/live-run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
         });
+      }
+
+      function postLiveRunForm(formData) {
+        return api('/api/live-run', {
+          method: 'POST',
+          body: formData,
+        });
+      }
+
+      function onAccepted(res) {
+        if (res.accepted && res.runId) {
+          activeLiveRunId = res.runId;
+          var n = res.count || 1;
+          out.textContent =
+            (n > 1 ? 'Live Run of ' + n + ' leads in progress' : 'Live Run in progress') +
+            ' (run ' +
+            res.runId.slice(0, 8) +
+            '…) — bureau may take a few minutes per lead; this page will update when done';
+          pollLiveRunStatus(res.runId, n);
+          return;
+        }
+        showLiveRunResult(res);
+        updateLiveRunEnabled();
+      }
+
+      function onFail(err) {
+        out.textContent = err.message;
+        alert(err.message);
+        updateLiveRunEnabled();
+      }
+
+      if (file) {
+        var fd = new FormData();
+        fd.append('product', product);
+        fd.append('confirm', 'true');
+        fd.append('csv', file, file.name);
+        docs.forEach(function (pdf) {
+          fd.append('documents', pdf, pdf.name);
+        });
+        postLiveRunForm(fd).then(onAccepted).catch(onFail);
+        return;
+      }
+
+      postLiveRunJson({ product: product, confirm: true })
+        .then(onAccepted)
+        .catch(onFail);
     });
   }
 

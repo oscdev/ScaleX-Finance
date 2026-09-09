@@ -1,10 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { REPORTS_DIR, REPO_ROOT } from '../paths.js';
+import { REPORTS_DIR, REPO_ROOT, reportProductDir } from '../paths.js';
 import { parseScoringLog, mergeScoringRows } from '../utils/log-parse.js';
 import {
   LEAD_FIELDS,
   getFunnelSteps,
+  isFunnelFieldRequired,
+  isFunnelFieldEmpty,
 } from './funnel-fields.js';
 
 function escapeHtml(s) {
@@ -34,6 +36,7 @@ function chip(result) {
 function formatVal(v) {
   if (v == null || v === '') return '—';
   if (typeof v === 'boolean') return v ? 'Yes' : 'No';
+  if (Array.isArray(v)) return v.length ? JSON.stringify(v) : 'None';
   if (typeof v === 'object') return JSON.stringify(v);
   return String(v);
 }
@@ -91,11 +94,32 @@ function readSectionValue(formData, section, key) {
 }
 
 function fieldCard(label, value, missing = false) {
-  const empty = value == null || value === '';
-  return `<div class="field-card${missing || empty ? ' missing' : ''}">
+  return `<div class="field-card${missing ? ' missing' : ''}">
     <span class="fk">${escapeHtml(label)}</span>
     <span class="fv">${escapeHtml(formatVal(value))}</span>
   </div>`;
+}
+
+const RUNNING_LOAN_FIELDS = [
+  { key: 'type', label: 'Loan Type' },
+  { key: 'bank', label: 'Bank Name' },
+  { key: 'amount', label: 'Loan Amount' },
+  { key: 'emi', label: 'EMI amount' },
+  { key: 'paidEmi', label: 'No of Paid EMI' },
+];
+
+function buildRunningLoansHtml(loans) {
+  if (!Array.isArray(loans) || loans.length === 0) {
+    return '<p class="muted">None</p>';
+  }
+  const showHeadings = loans.length > 1;
+  return loans
+    .map((loan, i) => {
+      const cards = RUNNING_LOAN_FIELDS.map((f) => fieldCard(f.label, loan?.[f.key])).join('');
+      const heading = showHeadings ? `<h3 class="subh">Loan ${i + 1}</h3>` : '';
+      return `${heading}<div class="field-grid">${cards}</div>`;
+    })
+    .join('');
 }
 
 function buildFormsSection(run) {
@@ -105,7 +129,11 @@ function buildFormsSection(run) {
   const formData = loanApp.form_data || {};
   const steps = getFunnelSteps(loanType);
 
-  const leadCards = LEAD_FIELDS.map((f) => fieldCard(f.label, lead[f.key], lead[f.key] == null || lead[f.key] === '')).join('');
+  const leadCards = LEAD_FIELDS.map((f) => {
+    const val = lead[f.key];
+    const missing = f.required === true && isFunnelFieldEmpty(val);
+    return fieldCard(f.label, val, missing);
+  }).join('');
 
   let stepHtml = '';
   let stepNum = 1;
@@ -144,10 +172,21 @@ function buildFormsSection(run) {
       continue;
     }
 
+    if (step.step === 'Other') {
+      const loans = readSectionValue(formData, 'otherDetails', 'runningLoans');
+      stepHtml += `<section class="card funnel-step">
+        <h2>${stepNum}. ${escapeHtml(step.title)} <span class="step-tag">${escapeHtml(step.step)}</span></h2>
+        ${buildRunningLoansHtml(loans)}
+      </section>`;
+      stepNum += 1;
+      continue;
+    }
+
     const cards = step.fields
+      .filter((f) => f.requiredWhen == null || isFunnelFieldRequired(f, formData))
       .map((f) => {
         const val = readSectionValue(formData, f.section, f.key);
-        const missing = val == null || val === '';
+        const missing = isFunnelFieldRequired(f, formData) && isFunnelFieldEmpty(val);
         return fieldCard(f.label, val, missing);
       })
       .join('');
@@ -161,7 +200,11 @@ function buildFormsSection(run) {
   return `<div id="sec-forms">
     <section class="card">
       <h2>0. Lead form</h2>
-      <p class="muted">${escapeHtml(loanType)} — funnel steps below match the selected product.</p>
+      <p class="muted">${escapeHtml(loanType)} — funnel steps below match the selected product.${
+        run.meta?.cibilFile
+          ? ` CIBIL file: <code>${escapeHtml(run.meta.cibilFile)}</code>.`
+          : ''
+      }</p>
       <div class="field-grid">${leadCards}</div>
     </section>
     ${stepHtml}
@@ -425,7 +468,10 @@ function nav() {
  */
 export function generateRunReport(run, opts = {}) {
   const runId = run.meta?.runId || 'unknown';
-  const runDir = opts.runDir || path.join(REPORTS_DIR, 'runs', runId);
+  const productId = opts.productId || run.meta?.product;
+  const runDir =
+    opts.runDir ||
+    (productId ? reportProductDir(productId) : path.join(REPORTS_DIR, 'runs', runId));
   fs.mkdirSync(runDir, { recursive: true });
 
   const title = `${run.meta?.loanType || 'Loan'} ${run.meta?.mode === 'live' ? 'Live Run' : 'run'} — ${run.meta?.leadName || runId}`;
@@ -509,6 +555,7 @@ export function generateRunReport(run, opts = {}) {
   .error-callout { background: #fff5f5; border: 1px solid #f0c4c0; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
   .error-callout.warn { background: #fff8e6; border-color: #e6d19a; }
   .subh { font-size: 0.95rem; margin: 18px 0 8px; color: var(--accent-dark); }
+  .funnel-step .subh:first-child { margin-top: 0; }
   .btn.ghost { margin-top: 10px; }
   h2 { scroll-margin-top: 56px; }
 </style>
@@ -956,11 +1003,12 @@ export function generateRunReport(run, opts = {}) {
 </body>
 </html>`;
 
-  const fileName = `report-${runId}.html`;
+  const fileName = opts.fileName || 'report.html';
   const absolutePath = path.join(runDir, fileName);
   fs.writeFileSync(absolutePath, html);
 
-  const relativePath = `reports/runs/${runId}/${fileName}`;
+  const folder = productId || path.basename(runDir);
+  const relativePath = `reports/runs/${folder}/${fileName}`;
   return { absolutePath, relativePath, fileName };
 }
 

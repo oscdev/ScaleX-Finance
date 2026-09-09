@@ -227,6 +227,53 @@ body {
 }
 .confirm-row input { margin-top: 3px; }
 
+.live-run-card .row .filter-label.live-csv-label input[type="file"],
+.live-run-card .row .filter-label.live-docs-label input[type="file"] {
+  min-width: 220px;
+  width: auto;
+  max-width: 280px;
+}
+
+.live-run-files {
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sample-format {
+  margin: 12px 0 4px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid #edd4d0;
+  border-radius: 8px;
+}
+.sample-format-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.sample-csv {
+  margin: 8px 0 0;
+  padding: 10px;
+  max-height: 140px;
+  overflow: auto;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  background: #faf6f5;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.live-batch-list {
+  margin: 8px 0 0;
+  padding-left: 1.2em;
+  font-size: 0.88rem;
+}
+.live-batch-list li { margin: 4px 0; }
+
 .btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -365,6 +412,11 @@ a.back { text-decoration: none; font-weight: 600; }
   font-weight: 600;
   color: var(--muted);
 }
+.filter-label .field-hint {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--muted);
+}
 .filter-label.grow { flex: 1 1 140px; min-width: 120px; }
 .filter-label select,
 .filter-label input {
@@ -475,6 +527,12 @@ a.back { text-decoration: none; font-weight: 600; }
   background: var(--surface);
   font-size: 0.95rem;
 }
+#demo-elig-filter {
+  min-width: min(100%, 200px);
+}
+#demo-elig-lender {
+  min-width: min(100%, 360px);
+}
 .legacy-badge {
   display: inline-block;
   padding: 3px 10px;
@@ -492,8 +550,12 @@ a.back { text-decoration: none; font-weight: 600; }
   gap: 10px;
   margin-bottom: 14px;
 }
+.legacy-stats.elig-overview {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 @media (max-width: 720px) {
   .legacy-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .legacy-stats.elig-overview { grid-template-columns: 1fr; }
 }
 .legacy-stat {
   background: var(--surface);

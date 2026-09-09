@@ -8,6 +8,14 @@ import {
 } from '../LoanForm/loanAppAdminApi';
 import { buildLeadUploadFolderName } from '../../api/loan-application/utils/lead-upload-folder';
 
+import {
+  isLoanApplicationSubmitted,
+  getAdminLoanFormDisplayData,
+  getAdminLoanFormSaveBase,
+  isStaleLoanFormPrefill,
+  type AdminLoanFormContextOpts,
+} from '../../shared/loan-form/loan-app-submit';
+
 export { getAppSteps } from '../../shared/loan-form/field-schema';
 export {
   isLoanApplicationSubmitted,
@@ -15,7 +23,7 @@ export {
   getAdminLoanFormSaveBase,
   isStaleLoanFormPrefill,
   type AdminLoanFormContextOpts,
-} from '../../shared/loan-form/loan-app-submit';
+};
 
 export const LEAD_STATUS_OPTIONS = [
     { label: '1 - NEW', value: 'NEW', color: 'primary' },
@@ -1076,11 +1084,14 @@ export const useLeadViewDashboard = (leadId: string) => {
             throw new Error('Lead context is missing — reload the page and try again.');
         }
         const app = await ensureLoanAppForLead(lead, numericId, loanApp);
-        const clearDeclaration = !hasLoanSubmitActivity;
+        const formSubmitted = isLoanApplicationSubmitted(app, {
+            hasSubmitActivity: hasLoanSubmitActivity,
+        });
+        const clearDeclaration = !formSubmitted;
         const updatedFormData = await saveLoanFormData(app, section, fieldKey, value, {
             clearDeclarationUntilSubmit: clearDeclaration,
             leadId: numericId,
-            hasSubmitActivity: hasLoanSubmitActivity,
+            hasSubmitActivity: formSubmitted,
         });
         setLoanApp((prev: any) => ({
             ...(prev || app),
@@ -1092,7 +1103,9 @@ export const useLeadViewDashboard = (leadId: string) => {
 
     const loanFormSaveOpts = (): AdminLoanFormContextOpts => ({
         leadId: resolveNumericId() ?? undefined,
-        hasSubmitActivity: hasLoanSubmitActivity,
+        hasSubmitActivity: isLoanApplicationSubmitted(loanApp, {
+            hasSubmitActivity: hasLoanSubmitActivity,
+        }),
     });
 
     const getLoanFormSaveBase = () =>
@@ -1114,13 +1127,16 @@ export const useLeadViewDashboard = (leadId: string) => {
         }
         const app = await ensureLoanAppForLead(lead, numericId, loanApp);
         const payload: Record<string, unknown> = { form_data: updatedFormData };
-        if (!hasLoanSubmitActivity) payload.declarationAccepted = false;
+        const formSubmitted = isLoanApplicationSubmitted(app, {
+            hasSubmitActivity: hasLoanSubmitActivity,
+        });
+        if (!formSubmitted) payload.declarationAccepted = false;
         const saved = await putLoanAppFields(app, payload);
         setLoanApp((prev: any) => ({
             ...(prev || saved),
             ...saved,
             form_data: updatedFormData,
-            ...(hasLoanSubmitActivity ? {} : { declarationAccepted: false }),
+            ...(formSubmitted ? {} : { declarationAccepted: false }),
         }));
     };
 

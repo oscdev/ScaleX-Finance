@@ -54,21 +54,18 @@ export function isLoanApplicationSubmitted(
 }
 
 /**
- * Stale automation/script prefill: declaration accepted + data but no frontend submit log.
- * Display is hidden; admin can still edit and save (which clears the declaration flag).
+ * Previously hid completed funnel data when LOAN_APP_SUBMITTED was missing from activity.
+ * Live Run and public submit persist declarationAccepted + form_data; hiding them made
+ * Lead View / CM steps look empty after reload. Do not blank saved section values.
  */
 export function isStaleLoanFormPrefill(
-  loanApp: LoanAppSubmitCheck | null | undefined,
-  opts: { leadId?: number | string | null; hasSubmitActivity?: boolean } = {}
+  _loanApp: LoanAppSubmitCheck | null | undefined,
+  _opts: { leadId?: number | string | null; hasSubmitActivity?: boolean } = {}
 ): boolean {
-  if (!loanApp) return false;
-  if (opts.leadId != null && !loanAppMatchesLeadId(loanApp, opts.leadId)) return false;
-  if (opts.hasSubmitActivity === true) return false;
-  if (loanApp.declarationAccepted !== true) return false;
-  return hasMeaningfulFormData(loanApp.form_data);
+  return false;
 }
 
-/** Values to render in admin — masks stale prefill only; does not affect edit permissions. */
+/** Values to render in admin. Completed funnel form_data stays visible after reload. */
 export function getAdminLoanFormDisplayData(
   loanApp: LoanAppSubmitCheck | null | undefined,
   opts: { leadId?: number | string | null; hasSubmitActivity?: boolean } = {}
@@ -84,7 +81,7 @@ export type AdminLoanFormContextOpts = {
   hasSubmitActivity?: boolean;
 };
 
-/** Base for admin tick-save merges — same gating as display (excludes hidden stale prefill). */
+/** Base for admin tick-save merges — same gating as display. */
 export function getAdminLoanFormSaveBase(
   loanApp: LoanAppSubmitCheck | null | undefined,
   opts: AdminLoanFormContextOpts = {}

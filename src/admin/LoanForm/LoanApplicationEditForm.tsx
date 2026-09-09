@@ -7,6 +7,7 @@ import { saveLoanFormData, type LoanAppRecord } from './useLoanFormSave';
 import { getAppSteps } from '../../shared/loan-form/field-schema';
 import {
     getAdminLoanFormDisplayData,
+    isLoanApplicationSubmitted,
     isStaleLoanFormPrefill,
 } from '../../shared/loan-form/loan-app-submit';
 import { normalizeLoanAppRow } from './loanAppRowUtils';
@@ -114,11 +115,14 @@ export const LoanApplicationEditForm = ({ documentId }: { documentId: string }) 
         async (section: string, fieldKey: string, value: FormFieldValue) => {
             if (!loanApp) return;
             try {
-                const clearDeclaration = !hasLoanSubmitActivity;
+                const formSubmitted = isLoanApplicationSubmitted(loanApp, {
+                    hasSubmitActivity: hasLoanSubmitActivity,
+                });
+                const clearDeclaration = !formSubmitted;
                 const updatedFormData = await saveLoanFormData(loanApp, section, fieldKey, value, {
                     clearDeclarationUntilSubmit: clearDeclaration,
                     leadId: loanApp.leadId,
-                    hasSubmitActivity: hasLoanSubmitActivity,
+                    hasSubmitActivity: formSubmitted,
                 });
                 setLoanApp((prev) =>
                     prev
@@ -149,7 +153,10 @@ export const LoanApplicationEditForm = ({ documentId }: { documentId: string }) 
     }
 
     const steps = getAppSteps(loanType, occupation);
-    const displayOpts = { leadId: loanApp.leadId, hasSubmitActivity: hasLoanSubmitActivity };
+    const formSubmitted = isLoanApplicationSubmitted(loanApp, {
+        hasSubmitActivity: hasLoanSubmitActivity,
+    });
+    const displayOpts = { leadId: loanApp.leadId, hasSubmitActivity: formSubmitted };
     const loanFormDisplayData = getAdminLoanFormDisplayData(loanApp, displayOpts);
     const stalePrefill = isStaleLoanFormPrefill(loanApp, displayOpts);
 
@@ -173,7 +180,7 @@ export const LoanApplicationEditForm = ({ documentId }: { documentId: string }) 
                 </Box>
             )}
 
-            {(!hasLoanSubmitActivity || stalePrefill) && (
+            {(!formSubmitted || stalePrefill) && (
                 <Box padding={3} marginBottom={3} background="warning100" borderRadius="4px">
                     <Typography textColor="warning700">
                         {stalePrefill

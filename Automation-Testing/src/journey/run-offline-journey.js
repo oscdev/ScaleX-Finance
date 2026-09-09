@@ -6,8 +6,7 @@ import { publish } from '../event-bus.js';
 import {
   CONFIG_DIR,
   FIXTURES_DIR,
-  REPORTS_DIR,
-  PACKAGE_ROOT,
+  clearReportProductDir,
 } from '../paths.js';
 import {
   PL_PIPELINE,
@@ -161,8 +160,7 @@ export async function runOfflineJourney(opts = {}) {
   const product = opts.product || 'personal-loan';
   const failLab = Boolean(opts.failLab);
   const runId = randomUUID();
-  const runDir = path.join(REPORTS_DIR, 'runs', runId);
-  fs.mkdirSync(runDir, { recursive: true });
+  const runDir = clearReportProductDir(product);
 
   const events = [];
   const record = (e) => {
@@ -351,7 +349,7 @@ export async function runOfflineJourney(opts = {}) {
   const eventsPath = path.join(runDir, 'events.json');
   fs.writeFileSync(eventsPath, JSON.stringify(run, null, 2));
 
-  const report = generateRunReport(run, { runDir });
+  const report = generateRunReport(run, { runDir, productId: product, fileName: 'report.html' });
   record({
     stage: 'complete',
     status: 'done',
