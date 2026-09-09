@@ -19,20 +19,33 @@ You do **not** need `cd Automation-Testing && npm run dashboard`. That CLI is op
 
 Hard-refresh (`Ctrl+Shift+R`) after updates so `/suite/app.js` reloads.
 
-First-time install of suite deps (once):
+Suite npm deps: Strapi bootstrap installs `Automation-Testing` packages on first start if `node_modules` is missing. Manual fallback:
 
 ```bash
-cd Automation-Testing && npm install
+cd Automation-Testing && npm install --omit=dev
 ```
+
+### Server deploy
+
+`/suite` is **not** started by Next.js (`scalex-frontend`). After `git pull`:
+
+1. Restart **Strapi** (so bootstrap binds `127.0.0.1:4100`). Check logs for `[suite] dashboard started`.
+2. Restart **Next.js**.
+3. Confirm `ss -lntp | grep 4100`. Repo-root `.env` must not set `SUITE_DASHBOARD=false`.
+
+If Next logs `ECONNREFUSED 127.0.0.1:4100`, Strapi did not start the dashboard (or it crashed). The frontend rewrite only proxies to that port.
+
+If you change `SUITE_PORT`, set the same value for Strapi and for Next (`SUITE_PORT` or `SUITE_PROXY_ORIGIN` in the frontend env), then rebuild/restart Next.
 
 ## Configuration (`.env`)
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `SUITE_PORT` / `PORT` | `4100` | Express listen port (`PORT` only when running `npm run dashboard` so it does not steal Strapi's `PORT=1337`) |
+| `SUITE_PORT` / `PORT` | `4100` | Express listen port (`PORT` only when running `npm run dashboard` so it does not steal Strapi's `PORT=1337`). Next rewrite uses the same `SUITE_PORT` (or `SUITE_PROXY_ORIGIN`) |
 | `BASE_PATH` | `/suite` | Mount path |
 | `STRAPI_URL` | `http://127.0.0.1:1337` | Strapi base URL |
 | `SUITE_DASHBOARD` | _(on)_ | Set `false` in the **repo root** `.env` to skip starting `/suite` from Strapi |
+| `SUITE_PROXY_ORIGIN` | `http://127.0.0.1:$SUITE_PORT` | Optional Next.js rewrite origin (frontend env). Default matches Strapi's suite bind |
 | `SUITE_ADVISOR_REFERRAL_ID` | _(empty)_ | Optional advisor referral on Live Run lead create |
 | `BUREAU_POLL_MS` | `3000` | Poll interval while waiting for CIBIL extract |
 | `BUREAU_TIMEOUT_MS` | `300000` | Max wait for bureau (5 minutes) |
