@@ -38,21 +38,21 @@
           <h3><span class="mode-badge offline">Offline</span> No Strapi · no DB writes</h3>
           <ul>
             <li><strong>Rules &amp; Scoring Reference</strong> — formulas, field sources, eligibility &amp; scoring rules.</li>
-            <li><strong>Journey Demo</strong> — load a lead’s logs from <code>logs/</code> (submission → bureau → eligibility → scoring).</li>
+            <li><strong>Journey Demo</strong> — load a lead’s logs from <code>logs/</code> (submission → bureau → eligibility → scoring). Eligibility uses the same <strong>Show</strong> filter as the Live Run report: All lenders, Eligible only, or Failed only.</li>
           </ul>
         </div>
         <div class="mode-block live">
           <h3><span class="mode-badge writes">Online</span> Needs Strapi · writes DB</h3>
           <ul>
-            <li><strong>Live Run</strong> — creates a real <code>[SUITE-TEST]</code> lead, uploads docs, waits for bureau, runs AI Match, writes an HTML report.</li>
+            <li><strong>Live Run</strong> — creates a real <code>[SUITE-TEST]</code> lead, uploads docs, waits for bureau, runs AI Match, writes an HTML report. No files: one lead from the 25-row default pool. CSV and Documents must be attached together (max 5 rows). The CSV is saved at <code>documents/upload/{product}/live-run.csv</code>; PDFs persist on the lead in Strapi.</li>
             <li>Requires Strapi (<code>npm run dev</code> in the project root). Check the status pill above.</li>
           </ul>
         </div>
       </div>
       <ol class="howto-steps">
-        <li><strong>Live Run:</strong> pick product → confirm → Start (online only).</li>
+        <li><strong>Live Run:</strong> pick product → confirm → <strong>Start</strong> with no files (one lead from the default 25) <strong>or</strong> attach CSV and Documents together then Start (max 5). Online only.</li>
         <li><strong>Rules &amp; Scoring Reference:</strong> pick product → open Lead / Bureau / Eligibility / Scoring docs (offline).</li>
-        <li><strong>Journey Demo:</strong> pick loan type + stage → optional Lead ID → Load (offline). Wrong product for an ID shows which product it belongs to.</li>
+        <li><strong>Journey Demo:</strong> pick loan type + stage → optional Lead ID → Load (offline). On Eligibility, use <strong>Show</strong> (All / Eligible only / Failed only) then pick a lender — same grouping as <code>report.html</code>.</li>
       </ol>
       <div class="legend">
         <span class="mode-badge offline">Offline</span> No DB writes
@@ -68,20 +68,41 @@
         <span class="mode-badge writes">Writes DB</span>
       </div>
       <p class="help">
-        Creates a real lead and loan application tagged <strong>[SUITE-TEST]</strong>, uploads documents from
-        <code>Automation-Testing/documents/{product}/</code>, waits for bureau extraction, then runs AI Match.
-        Status updates here when the run finishes (async — no long proxy wait). Opens a detailed HTML report.
+        Creates real lead(s) and loan application(s) tagged <strong>[SUITE-TEST]</strong>.
+        Confirm, then <strong>Start Live Run</strong>. CSV and Documents must be attached together; leave both empty to run one lead from the default pool.
+        Required funnel fields and documents are checked before any POST.
+        Status updates here when the run finishes (async).
       </p>
       <ul class="help-list">
-        <li><strong>Product</strong> — Personal Loan or Business Loan.</li>
+        <li><strong>No files</strong> — one unique lead for the selected product, taken from the 25-row pool in <code>documents/default/{product}/sample-default-{product}.csv</code>. Required and optional fields filled. PDFs from the same folder (Personal Loan uses <code>salary_slip.pdf</code>). Each Start rotates to the next row.</li>
+        <li><strong>CSV + Documents</strong> — attach both on the same Start (neither alone). 1–5 data rows. CSV cells name files; those PDFs must be in Documents. The CSV is saved at <code>documents/upload/{product}/live-run.csv</code>. PDFs go to Strapi <code>public/uploads/api_uploads/{leadId}-{name}/</code> (not kept under <code>documents/upload/</code>). Required fields only. More than 5 rows → error, no POST.</li>
+        <li><strong>Sample format</strong> beside Documents switches with product. Filenames in the CSV must match attached PDFs (basename only, not a folder path).</li>
         <li><strong>Confirm checkbox</strong> — required; acknowledges DB writes.</li>
-        <li><strong>Start Live Run</strong> — runs in the background (bureau may take several minutes).</li>
+        <li><strong>Start Live Run</strong> — background (bureau may take several minutes per lead).</li>
       </ul>
-      <div class="row">
+      <div class="row live-run-files">
         <select id="liveProduct" title="Product for Live Run">
           <option value="personal-loan">Personal Loan</option>
           <option value="business-loan">Business Loan</option>
         </select>
+        <label class="filter-label live-csv-label">
+          CSV
+          <span class="field-hint">Required with Documents</span>
+          <input type="file" id="liveCsv" accept=".csv,text/csv" title="CSV and Documents must be attached together. Leave both empty for the default pool." />
+        </label>
+        <label class="filter-label live-docs-label">
+          Documents (PDFs)
+          <span class="field-hint">Required with CSV</span>
+          <input type="file" id="liveDocs" accept="application/pdf,.pdf" multiple title="CSV and Documents must be attached together. Leave both empty for the default pool." />
+        </label>
+      </div>
+      <div class="sample-format" id="liveSampleFormat">
+        <div class="sample-format-head">
+          <strong>Sample format</strong>
+          <a id="liveSampleDownload" href="/suite/api/live-run/example.csv?product=personal-loan" download>Download example CSV</a>
+        </div>
+        <p class="muted small" id="liveSamplePdfs"></p>
+        <pre class="sample-csv" id="liveSampleCsv"></pre>
       </div>
       <label class="confirm-row">
         <input type="checkbox" id="liveConfirm" />
@@ -148,12 +169,13 @@
       <p class="help">
         Reads existing code-level logs under <code>logs/</code> for a lead — no Strapi calls.
         Leave <strong>Lead ID</strong> empty to load the <strong>latest</strong> lead for the selected loan type.
-        Eligibility and Scoring use a lender dropdown and step tables (same layout as the Legacy PL report).
+        Eligibility uses the same <strong>Show</strong> filter and PASS/FAIL lender groups as the Live Run <code>report.html</code>.
       </p>
       <ul class="help-list">
         <li><strong>Loan Type</strong> — Personal Loan or Business Loan log folders.</li>
         <li><strong>Stages</strong> — All, or one of: Lead Submission, Bureau, Eligibility, Scoring.</li>
         <li><strong>Lead ID</strong> — optional; searches that lead’s logs only.</li>
+        <li><strong>Eligibility Show</strong> — All lenders, Eligible only, or Failed only (same as the report).</li>
       </ul>
       <div class="row filters-row">
         <label class="filter-label">
@@ -189,8 +211,10 @@
       <ul class="help-list">
         <li><strong>Strapi</strong> is required only for Live Run — check the status pill. Rules Reference and Journey Demo work offline.</li>
         <li><strong>Journey Demo Lead ID</strong> must match the selected Loan Type; otherwise the error names the correct product.</li>
+        <li><strong>Eligibility</strong> in Journey Demo uses the same <strong>Show</strong> filter as the Live Run report: All lenders, Eligible only, or Failed only (PASS/FAIL groups).</li>
         <li>Hard-refresh (<code>Ctrl+Shift+R</code>) after suite updates so <code>app.js</code> / CSS reload.</li>
-        <li>Live Run HTML reports land under <code>Automation-Testing/reports/runs/</code>.</li>
+        <li>Live Run HTML reports overwrite <code>Automation-Testing/reports/runs/{product}/</code> (one folder per product).</li>
+        <li>CSV Upload is overwritten at <code>documents/upload/{product}/live-run.csv</code>. PDFs are not kept there — they persist on the lead under <code>public/uploads/api_uploads/{leadId}-{name}/</code>.</li>
         <li>Set <code>SUITE_ADVISOR_REFERRAL_ID</code> in <code>Automation-Testing/.env</code> if lead create requires an advisor referral.</li>
       </ul>
     </section>

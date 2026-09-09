@@ -1,6 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { CONFIG_DIR, PACKAGE_ROOT } from './paths.js';
+import { CONFIG_DIR } from './paths.js';
+
+export const MAX_CSV_ROWS = 5;
+export const MAX_DEFAULT_ROWS = 25;
 
 export function loadProducts() {
   return JSON.parse(fs.readFileSync(path.join(CONFIG_DIR, 'products.json'), 'utf8')).products;
@@ -18,19 +21,50 @@ export function loadCustomer(productId) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
+/** Stamp identity fields so repeat Live Runs do not collide in Strapi. */
+export function uniquifyCustomer(customer, rowNumber = 1, stamp = Date.now()) {
+  const n = Math.max(1, Number(rowNumber) || 1);
+  const time7 = String(stamp).slice(-7).padStart(7, '0');
+  const row2 = String(n).padStart(2, '0');
+  const mobile = `9${time7}${row2}`.slice(0, 10);
+  const aadhar = `2${time7}${row2}00`.replace(/\D/g, '').slice(0, 12).padEnd(12, '0');
+  const panDigits = String((Number(time7) + n) % 10000).padStart(4, '0');
+  const baseName = String(customer.fullName || 'Suite User').trim();
+  const tagged = baseName.toUpperCase().startsWith('[SUITE-TEST]')
+    ? baseName
+    : `[SUITE-TEST] ${baseName}`;
+  const emailSrc = String(customer.email || 'suite@test.com');
+  const [localRaw, domainRaw] = emailSrc.split('@');
+  const emailLocal = (localRaw || 'suite').replace(/[^a-zA-Z0-9.+-]/g, '') || 'suite';
+  const domain = domainRaw || 'gmail.com';
+  return {
+    ...customer,
+    fullName: `${tagged} ${time7}${row2}`,
+    email: `${emailLocal}+suite${time7}${row2}@${domain}`,
+    mobile,
+    mobileNumber: mobile,
+    aadharCard: aadhar,
+    panCard: `ABCDE${panDigits}A`,
+  };
+}
+
 /** Unique [SUITE-TEST] tagged customer for Live Run (does not mutate file on disk). */
 export function buildUniqueCustomer(productId) {
   const base = loadCustomer(productId);
-  const stamp = Date.now().toString().slice(-8);
+  const stamp = Date.now().toString().slice(-10);
   const fullName = `[SUITE-TEST] ${base.fullName || 'Suite User'} ${stamp}`;
   const emailLocal = (base.email || 'suite@test.com').split('@')[0].replace(/[^a-zA-Z0-9]/g, '');
+  const time9 = Date.now().toString().slice(-9).padStart(9, '0');
+  const mobile = `9${time9}`.slice(0, 10);
+  const aadhar = `2${time9}00`.replace(/\D/g, '').slice(0, 12).padEnd(12, '0');
+  const panDigits = String(Number(stamp.slice(0, 8)) % 10000).padStart(4, '0');
   return {
     ...base,
     fullName,
     email: `${emailLocal}+suite${stamp}@gmail.com`,
-    mobile: `9${stamp.padStart(9, '0').slice(0, 9)}`,
-    aadharCard: base.aadharCard || '123456789012',
-    panCard: base.panCard || 'ABCDE1234F',
+    mobile,
+    aadharCard: aadhar,
+    panCard: `ABCDE${panDigits}A`,
   };
 }
 
@@ -52,7 +86,27 @@ export function buildLeadPayload(customer, product) {
   };
 }
 
-function plFormData(customer) {
+function runningLoansValue(customer) {
+  if (Array.isArray(customer.runningLoans)) return customer.runningLoans;
+  return [];
+}
+
+function plFormData(customer, documentStubs) {
+  const hasOther = customer.hasOtherIncome === true || customer.hasOtherIncome === 'true';
+  const income = {
+    companyName: customer.companyName || 'Company',
+    designation: customer.designation || 'Employee',
+    companyAddress: customer.companyAddress || 'Mumbai',
+    netSalary: String(customer.netSalary || customer.monthlyIncome || '85000'),
+    salaryMode: customer.salaryMode || 'Account Transfer',
+    jobStability: String(customer.jobStability || '24'),
+    pfDeducted: customer.pfDeducted === true || customer.pfDeducted === 'true',
+    hasOtherIncome: hasOther,
+  };
+  if (hasOther) {
+    income.otherIncomeSource = customer.otherIncomeSource || 'Rent';
+    income.otherIncomeAmount = String(customer.otherIncomeAmount || '5000');
+  }
   return {
     personalDetails: {
       dob: customer.dob || '1990-05-15',
@@ -71,25 +125,16 @@ function plFormData(customer) {
       city: customer.city || 'Nagpur',
       residenceType: customer.residenceType || 'Owned',
     },
-    incomeDetails: {
-      companyName: customer.companyName || 'Company',
-      designation: customer.designation || 'Employee',
-      companyAddress: customer.companyAddress || 'Mumbai',
-      netSalary: String(customer.netSalary || customer.monthlyIncome || '85000'),
-      salaryMode: customer.salaryMode || 'Account Transfer',
-      jobStability: String(customer.jobStability || '24'),
-      pfDeducted: customer.pfDeducted === true || customer.pfDeducted === 'true',
-      hasOtherIncome: false,
-    },
-    otherDetails: { runningLoans: customer.runningLoans || 'None' },
-    documents: [],
+    incomeDetails: income,
+    otherDetails: { runningLoans: runningLoansValue(customer) },
+    documents: documentStubs || [],
     pdfPasswords: {},
   };
 }
 
-function blFormData(customer) {
+function blFormData(customer, documentStubs) {
   const regProofs = customer.regProofs || ['Shop Registration Certificate'];
-  const docs = regProofs.map((proof) => {
+  const regDocs = regProofs.map((proof) => {
     const slug = String(proof)
       .trim()
       .replace(/[^a-zA-Z0-9]+/g, '_')
@@ -100,6 +145,7 @@ function blFormData(customer) {
       status: 'uploaded',
     };
   });
+  const extra = (documentStubs || []).filter((d) => !String(d.key || '').startsWith('regProof_'));
   return {
     businessDetails: {
       name: customer.businessName || `${customer.fullName} Business`,
@@ -108,7 +154,12 @@ function blFormData(customer) {
       turnover: Number(customer.turnover || 50),
       age: Number(customer.businessAge || customer.age || 5),
       regProofs,
-      auditedBooks: customer.auditedBooks !== false,
+      auditedBooks:
+        customer.auditedBooks === true || customer.auditedBooks === 'true'
+          ? true
+          : customer.auditedBooks === false || customer.auditedBooks === 'false'
+            ? false
+            : customer.auditedBooks,
       address: customer.businessAddress || customer.addressLine1 || 'Business Address',
     },
     personalDetails: {
@@ -127,19 +178,30 @@ function blFormData(customer) {
       city: customer.city || 'Nagpur',
       residenceType: customer.residenceType || 'Owned',
     },
-    otherDetails: { runningLoans: customer.runningLoans || 'None' },
-    documents: docs,
+    otherDetails: { runningLoans: runningLoansValue(customer) },
+    documents: [...regDocs, ...extra],
     regProofDocuments: regProofs.map((proof) => ({
       proofType: proof,
-      key: docs.find((d) => d.name === proof)?.key,
+      key: regDocs.find((d) => d.name === proof)?.key,
     })),
     pdfPasswords: {},
   };
 }
 
-export function buildLoanAppPayload(customer, product, leadId, mediaFields) {
+export function buildDocumentStubs(uploads) {
+  return (uploads || [])
+    .filter((u) => u.exists !== false)
+    .map((u) => ({
+      key: u.field,
+      name: u.file,
+      status: 'uploaded',
+    }));
+}
+
+export function buildLoanAppPayload(customer, product, leadId, mediaFields, documentStubs) {
+  const stubs = documentStubs || buildDocumentStubs([]);
   const form_data =
-    product.id === 'business-loan' ? blFormData(customer) : plFormData(customer);
+    product.id === 'business-loan' ? blFormData(customer, stubs) : plFormData(customer, stubs);
   return {
     leadId: Number(leadId),
     loanType: product.loanType,
@@ -151,23 +213,6 @@ export function buildLoanAppPayload(customer, product, leadId, mediaFields) {
     panNumber: customer.panCard,
     form_data,
     declarationAccepted: true,
-    status: 'Pending',
     ...mediaFields,
   };
-}
-
-export function resolveDocumentUploads(product) {
-  const dir = path.join(PACKAGE_ROOT, product.documentsDir || `documents/${product.id}`);
-  const results = [];
-  for (const row of product.documentFieldMap || []) {
-    const filePath = path.join(dir, row.file);
-    results.push({
-      field: row.field,
-      file: row.file,
-      multi: Boolean(row.multi),
-      filePath,
-      exists: fs.existsSync(filePath),
-    });
-  }
-  return results;
 }

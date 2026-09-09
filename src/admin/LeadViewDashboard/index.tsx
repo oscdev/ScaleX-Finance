@@ -10,6 +10,7 @@ import {
     handleDocView,
     resolveNumericLeadId,
     getAdminLoanFormDisplayData,
+    isLoanApplicationSubmitted,
 } from './useLeadViewDashboard';
 import { LoanFormSections } from '../LoanForm/LoanFormSections';
 import { LeadInfoSummary } from '../LoanForm/LeadInfoSummary';
@@ -613,7 +614,9 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
     const loanFormDisplayData = loanApp
         ? getAdminLoanFormDisplayData(loanApp, {
               leadId: numericLeadId,
-              hasSubmitActivity: hasLoanSubmitActivity,
+              hasSubmitActivity: isLoanApplicationSubmitted(loanApp, {
+                  hasSubmitActivity: hasLoanSubmitActivity,
+              }),
           })
         : null;
 

@@ -26,6 +26,9 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Admin => 
   watchIgnoreFiles: [
     '**/bureau-data-extraction/integrations/**',
     '**/__pycache__/**',
+    '**/Automation-Testing/**',
+    '**/graphify-out/**',
+    '**/CLAUDE.md',
   ],
 });
 

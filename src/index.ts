@@ -1502,6 +1502,9 @@ export default {
     );
     await bootstrapApiUploadsMirror(strapi);
 
+    const { startAutomationTestingSuite } = await import('./utils/start-suite-dashboard');
+    await startAutomationTestingSuite(strapi);
+
     // console.log('[Bootstrap] Initialization completed.');
     // Force sync v2
   },
