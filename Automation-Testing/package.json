@@ -4,6 +4,7 @@
   "description": "ScaleX Automation Testing Suite — Rules & Scoring Reference, Journey Demo, Live Run, offline fixtures",
   "type": "module",
   "scripts": {
+    "start": "node src/server.js",
     "dashboard": "node src/server.js",
     "journey": "node src/journey/run-offline-journey.js",
     "test:fixtures": "tsx src/fixtures/run-fixtures.mjs",
