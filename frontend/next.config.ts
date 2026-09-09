@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+/** Same origin Strapi binds for Automation-Testing /suite (default :4100). */
+const suiteOrigin =
+  process.env.SUITE_PROXY_ORIGIN ||
+  `http://127.0.0.1:${process.env.SUITE_PORT || 4100}`;
+
 const nextConfig: NextConfig = {
   reactStrictMode: false,
   turbopack: {
@@ -30,11 +35,11 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/suite',
-        destination: 'http://127.0.0.1:4100/suite',
+        destination: `${suiteOrigin}/suite`,
       },
       {
         source: '/suite/:path*',
-        destination: 'http://127.0.0.1:4100/suite/:path*',
+        destination: `${suiteOrigin}/suite/:path*`,
       },
     ];
   },
