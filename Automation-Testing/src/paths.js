@@ -12,34 +12,7 @@ export const PUBLIC_DIR = path.join(PACKAGE_ROOT, 'public');
 export const CONFIG_DIR = path.join(PACKAGE_ROOT, 'config');
 export const DOCUMENTS_DIR = path.join(PACKAGE_ROOT, 'documents');
 export const UPLOAD_DIR = path.join(DOCUMENTS_DIR, 'upload');
-/** Writable fallback when documents/upload is root-owned (PM2 runs as magento). */
-export const UPLOAD_FALLBACK_DIR = path.join(REPORTS_DIR, 'upload');
-
-function dirIsWritable(dir) {
-  try {
-    fs.mkdirSync(dir, { recursive: true });
-    const probe = path.join(dir, `.write-probe-${process.pid}`);
-    fs.writeFileSync(probe, '');
-    fs.unlinkSync(probe);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-let cachedUploadDir;
-
-/** Prefer documents/upload; fall back to reports/upload if that tree is not writable. */
-export function resolveUploadDir() {
-  if (cachedUploadDir) return cachedUploadDir;
-  cachedUploadDir = dirIsWritable(UPLOAD_DIR) ? UPLOAD_DIR : UPLOAD_FALLBACK_DIR;
-  fs.mkdirSync(cachedUploadDir, { recursive: true });
-  return cachedUploadDir;
-}
-
-export function getDocHashRingPath() {
-  return path.join(resolveUploadDir(), '.last-doc-hashes.json');
-}
+export const DOC_HASH_RING_PATH = path.join(UPLOAD_DIR, '.last-doc-hashes.json');
 
 function assertProductId(productId) {
   if (!['personal-loan', 'business-loan'].includes(productId)) {
@@ -61,7 +34,7 @@ export function defaultExampleCsvPath(productId) {
 }
 
 export function uploadProductDir(productId) {
-  return path.join(resolveUploadDir(), assertProductId(productId));
+  return path.join(UPLOAD_DIR, assertProductId(productId));
 }
 
 export function uploadCsvPath(productId) {
