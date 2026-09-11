@@ -146,12 +146,16 @@ function blFormData(customer, documentStubs) {
     };
   });
   const extra = (documentStubs || []).filter((d) => !String(d.key || '').startsWith('regProof_'));
+  // Live Run CSV / customer.turnover is absolute ₹; form_data stores Lakh (UI contract).
+  const turnoverInr = Number(customer.turnover != null && customer.turnover !== '' ? customer.turnover : 5000000);
+  const turnoverLakh =
+    Number.isFinite(turnoverInr) && turnoverInr > 0 ? Math.round(turnoverInr / 100000) : 50;
   return {
     businessDetails: {
       name: customer.businessName || `${customer.fullName} Business`,
       premises: customer.premises || 'Owned',
       type: customer.businessType || 'Proprietorship',
-      turnover: Number(customer.turnover || 50),
+      turnover: turnoverLakh,
       age: Number(customer.businessAge || customer.age || 5),
       regProofs,
       auditedBooks:

@@ -1,917 +1,307 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Fixture coverage matrix</title>
-<link rel="stylesheet" href="/suite/styles.css" />
-<style>
-  .matrix-wrap { max-width: 1400px; margin: 0 auto; padding: 24px 16px 48px; }
-  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
-  .summary-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
-  .summary-box .v { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
-  .summary-box .l { font-size: 0.75rem; color: var(--muted); }
-  .small { font-size: 0.72rem; }
-  .chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
-  .chip.pass { background: #e6f4ed; color: #1f7a4d; }
-  .chip.fail { background: #fdecea; color: #b42318; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; background: var(--surface); border: 1px solid var(--border); }
-  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
-  th { background: #eef2f7; }
-  tr.row-fail { background: #fffbfb; }
-</style>
+  <meta charset="utf-8" />
+  <title>Fixture Matrix — 2026-09-11T08:08:01.067Z</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1.5rem; }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; vertical-align: top; }
+    th { background: #f3f4f6; text-align: left; }
+    tr.pass td:nth-child(3) { color: #15803d; font-weight: 600; }
+    tr.fail td:nth-child(3) { color: #b91c1c; font-weight: 600; }
+    pre { margin: 0; white-space: pre-wrap; word-break: break-word; max-width: 420px; }
+    .summary { margin-bottom: 1rem; }
+  </style>
 </head>
 <body>
-<div class="matrix-wrap">
-  <a class="back" href="/suite/">← Back to suite</a>
-  <h1>Fixture coverage matrix</h1>
-  <p class="muted">Run at 2026-09-04T14:37:39.894Z</p>
-
-  <div class="summary-grid">
-    <div class="summary-box"><div class="v">182</div><div class="l">Registry entries</div></div>
-    <div class="summary-box"><div class="v">281</div><div class="l">Cases run</div></div>
-    <div class="summary-box"><div class="v">281</div><div class="l">Passed</div></div>
-    <div class="summary-box"><div class="v">0</div><div class="l">Failed</div></div>
+  <h1>Fixture Coverage Matrix</h1>
+  <div class="summary">
+    <p>Total entries: <strong>182</strong> · Cases run: <strong>281</strong> · Passed: <strong>281</strong> · Failed: <strong>0</strong></p>
   </div>
-
-  <div style="overflow:auto">
-    <table>
-      <thead><tr>
-        <th>Entry</th><th>Type</th><th>PASS</th><th>FAIL</th><th>SKIP</th><th>CATALOG</th><th>Overall</th>
-      </tr></thead>
-      <tbody><tr class="row-ok">
-        <td><code>eligibility:pl:PL-PRE-ACTIVE</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-PINCODE</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-CIBIL</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-FTB</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-DPD-LATEST</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-AGE</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-INCOME</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-AMOUNT</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-FOIR</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-DPD-3M</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-DPD-12M</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-DPD-DAYS</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-CC-UTIL</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-UNSECURED</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-SALARY-TYPE</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-PF</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-EMPLOYMENT</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-ENQ-EXCLUDE</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-ENQ-1M</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:pl:PL-ENQ-3M</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-PRE-ACTIVE</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-PINCODE</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-CIBIL</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-FTB</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-CURRENT-OVERDUE</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-AGE</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-ENTITY</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-TURNOVER</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-VINTAGE</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-AMOUNT</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-FOIR</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-CC-UTIL</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-DPD-3M</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-DPD-12M</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-DPD-DAYS</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-UNSECURED</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-ENQ-EXCLUDE</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-ENQ-1M</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-ENQ-3M</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-AUDITED</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>eligibility:bl:BL-SETTLED-WO</code></td>
-        <td>eligibility_rule</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → PASS</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → FAIL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">SKIP → SKIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:pl:CIBIL_SCORE</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:pl:FOIR_CHECK</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:pl:DPD_LAST_3M</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:pl:DPD_LAST_12M</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:pl:CC_UTILIZATION</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:pl:ACTIVE_UNSECURED</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:pl:ENQUIRIES_3M</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:pl:MONTHLY_INCOME</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:pl:JOB_EXPERIENCE</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:pl:ROI_COMPETITIVENESS</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:pl:MAX_LOAN_ADEQUACY</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:bl:CIBIL_SCORE</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:bl:FOIR_CHECK</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:bl:DPD_LAST_3M</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:bl:DPD_LAST_12M</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:bl:CC_UTILIZATION</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:bl:ACTIVE_UNSECURED</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:bl:ENQUIRIES_3M</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:bl:ANNUAL_TURNOVER</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:bl:BUSINESS_VINTAGE</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:bl:ITR_DOCUMENTATION</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:bl:BUSINESS_REGISTRATION_PROOF</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:bl:ROI_COMPETITIVENESS</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>scoring:bl:MAX_LOAN_ADEQUACY</code></td>
-        <td>scoring_criterion</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:VALIDATION</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_VALIDATION</span></td><td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_VALIDATION</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:LEAD_NOT_FOUND</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_LEAD_NOT_FOUND</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:LOAN_APP_MISSING</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_LOAN_APP_MISSING</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:BUREAU_SUMMARY_MISSING</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_BUREAU_SUMMARY_MISSING</span></td><td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_BUREAU_SUMMARY_MISSING</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:LENDER_NOT_FOUND</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_LENDER_NOT_FOUND</span></td><td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_LENDER_NOT_FOUND</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:INACTIVE_CATALOG</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_INACTIVE_CATALOG</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:MISSING_CRITERIA</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_MISSING_CRITERIA</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:CONN_LEAD</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_CONN_LEAD</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:CONN_LOAN_APP</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_CONN_LOAN_APP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:CONN_BUREAU</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_CONN_BUREAU</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:CONN_CATALOG</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_CONN_CATALOG</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:CONN_CRITERIA</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_CONN_CRITERIA</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:CONN_ZIP</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_CONN_ZIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:INTERNAL</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_INTERNAL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_ERR_INTERNAL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:PRE_ACTIVE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_PRE_ACTIVE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:PINCODE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_PINCODE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:CIBIL</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_CIBIL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:FTB</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_FTB</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:DPD_LATEST</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_DPD_LATEST</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:AGE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_AGE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:INCOME</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_INCOME</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:AMOUNT</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_AMOUNT</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:FOIR</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_FOIR</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:DPD_3M</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_DPD_3M</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:DPD_12M</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_DPD_12M</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:DPD_DAYS</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_DPD_DAYS</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:CC_UTIL</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_CC_UTIL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:UNSECURED</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_UNSECURED</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:SALARY_TYPE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_SALARY_TYPE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:PF</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_PF</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:EMPLOYMENT</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_EMPLOYMENT</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:ENQ_EXCLUDE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_ENQ_EXCLUDE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:ENQ_1M</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_ENQ_1M</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:ENQ_3M</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_ENQ_3M</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:MISSING_APPLICANT_VALUE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_FAIL_MISSING_APPLICANT_VALUE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:MISSING_WEIGHT_ROW</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_ERR_MISSING_WEIGHT_ROW</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:INVALID_RULES_SHAPE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_ERR_INVALID_RULES_SHAPE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:MISSING_MIN_CIBIL</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_ERR_MISSING_MIN_CIBIL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:DIV_BY_ZERO</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_ERR_DIV_BY_ZERO</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:MISSING_FOIR</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_ERR_MISSING_FOIR</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:MISSING_MAX_DPD_DAYS_ALLOWED</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:MISSING_CC_LIMIT</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_ERR_MISSING_CC_LIMIT</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:MISSING_ACTIVE_UNSECURED</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_ERR_MISSING_ACTIVE_UNSECURED</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:MISSING_ENQUIRIES_3M</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_ERR_MISSING_ENQUIRIES_3M</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:MISSING_MIN_MONTHLY_INCOME</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_ERR_MISSING_MIN_MONTHLY_INCOME</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:MISSING_MIN_EMPLOYMENT_MONTHS</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_ERR_MISSING_MIN_EMPLOYMENT_MONTHS</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:MISSING_MIN_INTEREST_RATE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_ERR_MISSING_MIN_INTEREST_RATE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:MISSING_LOAN_AMOUNT</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_ERR_MISSING_LOAN_AMOUNT</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:MISSING_MAX_LOAN_AMOUNT</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:BELOW_DISPLAY_THRESHOLD</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_BELOW_DISPLAY_THRESHOLD</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:CRITERION_INACTIVE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_CRITERION_INACTIVE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:pl:BLOCKED</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → PL_SCORE_BLOCKED</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:VALIDATION</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_VALIDATION</span></td><td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_VALIDATION</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:LEAD_NOT_FOUND</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_LEAD_NOT_FOUND</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:LOAN_APP_MISSING</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_LOAN_APP_MISSING</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:BUREAU_SUMMARY_MISSING</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_BUREAU_SUMMARY_MISSING</span></td><td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_BUREAU_SUMMARY_MISSING</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:LENDER_NOT_FOUND</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_LENDER_NOT_FOUND</span></td><td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_LENDER_NOT_FOUND</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:INACTIVE_CATALOG</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_INACTIVE_CATALOG</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:MISSING_CRITERIA</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_MISSING_CRITERIA</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:CONN_LEAD</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_CONN_LEAD</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:CONN_LOAN_APP</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_CONN_LOAN_APP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:CONN_BUREAU</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_CONN_BUREAU</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:CONN_CATALOG</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_CONN_CATALOG</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:CONN_CRITERIA</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_CONN_CRITERIA</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:CONN_ZIP</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_CONN_ZIP</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:INTERNAL</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_INTERNAL</span></td><td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_ERR_INTERNAL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:PRE_ACTIVE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_PRE_ACTIVE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:PINCODE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_PINCODE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:CIBIL</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_CIBIL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:FTB</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_FTB</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:CURRENT_OVERDUE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_CURRENT_OVERDUE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:AGE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_AGE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:ENTITY</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_ENTITY</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:TURNOVER</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_TURNOVER</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:VINTAGE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_VINTAGE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:AMOUNT</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_AMOUNT</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:FOIR</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_FOIR</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:CC_UTIL</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_CC_UTIL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:DPD_3M</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_DPD_3M</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:DPD_12M</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_DPD_12M</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:DPD_DAYS</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_DPD_DAYS</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:UNSECURED</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_UNSECURED</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:ENQ_EXCLUDE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_ENQ_EXCLUDE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:ENQ_1M</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_ENQ_1M</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:ENQ_3M</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_ENQ_3M</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:AUDITED</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_AUDITED</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:SETTLED_WO</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_SETTLED_WO</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:MISSING_APPLICANT_VALUE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_FAIL_MISSING_APPLICANT_VALUE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:MISSING_WEIGHT_ROW</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_ERR_MISSING_WEIGHT_ROW</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:INVALID_RULES_SHAPE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_ERR_INVALID_RULES_SHAPE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:MISSING_MIN_CIBIL</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_ERR_MISSING_MIN_CIBIL</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:DIV_BY_ZERO</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_ERR_DIV_BY_ZERO</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:MISSING_FOIR</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_ERR_MISSING_FOIR</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:MISSING_MAX_DPD_DAYS_ALLOWED</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:MISSING_CC_LIMIT</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_ERR_MISSING_CC_LIMIT</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:MISSING_ACTIVE_UNSECURED</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_ERR_MISSING_ACTIVE_UNSECURED</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:MISSING_ENQUIRIES_3M</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_ERR_MISSING_ENQUIRIES_3M</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:MISSING_MIN_ANNUAL_TURNOVER</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_ERR_MISSING_MIN_ANNUAL_TURNOVER</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:MISSING_MIN_VINTAGE_YEARS</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_ERR_MISSING_MIN_VINTAGE_YEARS</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:MISSING_MIN_INTEREST_RATE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_ERR_MISSING_MIN_INTEREST_RATE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:MISSING_LOAN_AMOUNT</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_ERR_MISSING_LOAN_AMOUNT</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:MISSING_MAX_LOAN_AMOUNT</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:BELOW_DISPLAY_THRESHOLD</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_BELOW_DISPLAY_THRESHOLD</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:CRITERION_INACTIVE</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_CRITERION_INACTIVE</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>error:bl:BLOCKED</code></td>
-        <td>error_code</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BL_SCORE_BLOCKED</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>form:bl:validate-business-loan</code></td>
-        <td>form_validation</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">PASS → [object Object]</span></td><td><span class="chip pass">pass</span><br><span class="muted small">FAIL → [object Object]</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>bureau:shared:MISSING_PDF</code></td>
-        <td>bureau_catalog</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BUREAU_MISSING_PDF</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>bureau:shared:EXTRACT_FAIL</code></td>
-        <td>bureau_catalog</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BUREAU_EXTRACT_FAILED</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr><tr class="row-ok">
-        <td><code>bureau:shared:EXTRACT_OK</code></td>
-        <td>bureau_catalog</td>
-        <td><span class="chip pass">pass</span><br><span class="muted small">CATALOG → BUREAU_EXTRACT_COMPLETED</span></td>
-        <td><span class="chip pass">pass</span></td>
-      </tr></tbody>
-    </table>
-  </div>
-</div>
+  <table>
+    <thead><tr><th>Entry</th><th>Outcome</th><th>Status</th><th>Actual</th></tr></thead>
+    <tbody><tr class="pass"><td>eligibility:pl:PL-PRE-ACTIVE</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-PRE-ACTIVE</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-PINCODE</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-PINCODE</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-PINCODE</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-CIBIL</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-CIBIL</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-CIBIL</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-FTB</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-FTB</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-DPD-LATEST</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-DPD-LATEST</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-DPD-LATEST</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-AGE</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-AGE</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-AGE</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-INCOME</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-INCOME</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-INCOME</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-AMOUNT</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-AMOUNT</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-AMOUNT</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-FOIR</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-FOIR</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-FOIR</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-DPD-3M</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-DPD-3M</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-DPD-3M</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-DPD-12M</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-DPD-12M</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-DPD-12M</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-DPD-DAYS</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-DPD-DAYS</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-DPD-DAYS</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-CC-UTIL</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-CC-UTIL</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-CC-UTIL</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-UNSECURED</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-UNSECURED</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-UNSECURED</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-SALARY-TYPE</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-SALARY-TYPE</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-SALARY-TYPE</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-PF</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-PF</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-PF</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-EMPLOYMENT</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-EMPLOYMENT</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-EMPLOYMENT</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-ENQ-EXCLUDE</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-ENQ-EXCLUDE</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-ENQ-1M</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-ENQ-1M</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-ENQ-1M</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-ENQ-3M</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-ENQ-3M</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:pl:PL-ENQ-3M</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-PRE-ACTIVE</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-PRE-ACTIVE</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-PINCODE</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-PINCODE</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-CIBIL</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-CIBIL</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-CIBIL</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-FTB</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-FTB</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-CURRENT-OVERDUE</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-CURRENT-OVERDUE</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-AGE</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-AGE</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-AGE</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-ENTITY</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-ENTITY</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-ENTITY</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-TURNOVER</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-TURNOVER</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-TURNOVER</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-VINTAGE</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-VINTAGE</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-VINTAGE</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-AMOUNT</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-AMOUNT</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-AMOUNT</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-FOIR</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-FOIR</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-FOIR</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-CC-UTIL</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-CC-UTIL</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-CC-UTIL</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-DPD-3M</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-DPD-3M</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-DPD-3M</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-DPD-12M</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-DPD-12M</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-DPD-12M</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-DPD-DAYS</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-DPD-DAYS</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-DPD-DAYS</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-UNSECURED</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-UNSECURED</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-UNSECURED</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-ENQ-EXCLUDE</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-ENQ-EXCLUDE</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-ENQ-1M</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-ENQ-1M</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-ENQ-1M</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-ENQ-3M</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-ENQ-3M</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-ENQ-3M</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-AUDITED</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-AUDITED</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-AUDITED</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-SETTLED-WO</td><td>PASS</td><td>OK</td><td><pre>"PASS"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-SETTLED-WO</td><td>FAIL</td><td>OK</td><td><pre>"FAIL"</pre></td></tr>
+<tr class="pass"><td>eligibility:bl:BL-SETTLED-WO</td><td>SKIP</td><td>OK</td><td><pre>"SKIP"</pre></td></tr>
+<tr class="pass"><td>scoring:pl:CIBIL_SCORE</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":5}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:CIBIL_SCORE</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"PL_SCORE_ERR_MISSING_MIN_CIBIL"}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:FOIR_CHECK</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":12.65625}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:FOIR_CHECK</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"PL_SCORE_ERR_MISSING_FOIR"}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:DPD_LAST_3M</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":10}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:DPD_LAST_3M</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"PL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED"}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:DPD_LAST_12M</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":8}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:DPD_LAST_12M</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"PL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED"}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:CC_UTILIZATION</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":5}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:CC_UTILIZATION</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"PL_SCORE_ERR_MISSING_CC_LIMIT"}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:ACTIVE_UNSECURED</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":3}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:ACTIVE_UNSECURED</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"PL_SCORE_ERR_MISSING_ACTIVE_UNSECURED"}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:ENQUIRIES_3M</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":2}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:ENQUIRIES_3M</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"PL_SCORE_ERR_MISSING_ENQUIRIES_3M"}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:MONTHLY_INCOME</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":10}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:MONTHLY_INCOME</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"PL_SCORE_ERR_MISSING_MIN_MONTHLY_INCOME"}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:JOB_EXPERIENCE</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":7}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:JOB_EXPERIENCE</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"PL_SCORE_ERR_MISSING_MIN_EMPLOYMENT_MONTHS"}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:ROI_COMPETITIVENESS</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":9}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:ROI_COMPETITIVENESS</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"PL_SCORE_ERR_MISSING_MIN_INTEREST_RATE"}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:MAX_LOAN_ADEQUACY</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":7}</pre></td></tr>
+<tr class="pass"><td>scoring:pl:MAX_LOAN_ADEQUACY</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"PL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT"}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:CIBIL_SCORE</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":6,"errorCode":null}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:CIBIL_SCORE</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"BL_SCORE_ERR_MISSING_MIN_CIBIL"}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:FOIR_CHECK</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":14.325,"errorCode":null}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:FOIR_CHECK</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"BL_SCORE_ERR_MISSING_FOIR"}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:DPD_LAST_3M</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":10,"errorCode":null}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:DPD_LAST_3M</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"BL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED"}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:DPD_LAST_12M</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":8,"errorCode":null}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:DPD_LAST_12M</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"BL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED"}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:CC_UTILIZATION</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":5,"errorCode":null}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:CC_UTILIZATION</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"BL_SCORE_ERR_MISSING_CC_LIMIT"}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:ACTIVE_UNSECURED</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":3,"errorCode":null}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:ACTIVE_UNSECURED</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"BL_SCORE_ERR_MISSING_ACTIVE_UNSECURED"}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:ENQUIRIES_3M</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":2,"errorCode":null}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:ENQUIRIES_3M</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"BL_SCORE_ERR_MISSING_ENQUIRIES_3M"}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:ANNUAL_TURNOVER</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":10}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:ANNUAL_TURNOVER</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"BL_SCORE_ERR_MISSING_MIN_ANNUAL_TURNOVER"}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:BUSINESS_VINTAGE</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":5.25}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:BUSINESS_VINTAGE</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"BL_SCORE_ERR_MISSING_MIN_VINTAGE_YEARS"}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:ITR_DOCUMENTATION</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":3}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:ITR_DOCUMENTATION</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SCORED","points":0}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:BUSINESS_REGISTRATION_PROOF</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":3}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:BUSINESS_REGISTRATION_PROOF</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SCORED","points":0}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:ROI_COMPETITIVENESS</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":5,"errorCode":null}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:ROI_COMPETITIVENESS</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"BL_SCORE_ERR_MISSING_MIN_INTEREST_RATE"}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:MAX_LOAN_ADEQUACY</td><td>PASS</td><td>OK</td><td><pre>{"result":"SCORED","points":4,"errorCode":null}</pre></td></tr>
+<tr class="pass"><td>scoring:bl:MAX_LOAN_ADEQUACY</td><td>FAIL</td><td>OK</td><td><pre>{"result":"SKIP","points":0,"errorCode":"BL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT"}</pre></td></tr>
+<tr class="pass"><td>error:pl:VALIDATION</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_VALIDATION"</pre></td></tr>
+<tr class="pass"><td>error:pl:LEAD_NOT_FOUND</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_LEAD_NOT_FOUND"</pre></td></tr>
+<tr class="pass"><td>error:pl:LOAN_APP_MISSING</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_LOAN_APP_MISSING"</pre></td></tr>
+<tr class="pass"><td>error:pl:BUREAU_SUMMARY_MISSING</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_BUREAU_SUMMARY_MISSING"</pre></td></tr>
+<tr class="pass"><td>error:pl:LENDER_NOT_FOUND</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_LENDER_NOT_FOUND"</pre></td></tr>
+<tr class="pass"><td>error:pl:INACTIVE_CATALOG</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_INACTIVE_CATALOG"</pre></td></tr>
+<tr class="pass"><td>error:pl:MISSING_CRITERIA</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_MISSING_CRITERIA"</pre></td></tr>
+<tr class="pass"><td>error:pl:CONN_LEAD</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_CONN_LEAD"</pre></td></tr>
+<tr class="pass"><td>error:pl:CONN_LOAN_APP</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_CONN_LOAN_APP"</pre></td></tr>
+<tr class="pass"><td>error:pl:CONN_BUREAU</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_CONN_BUREAU"</pre></td></tr>
+<tr class="pass"><td>error:pl:CONN_CATALOG</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_CONN_CATALOG"</pre></td></tr>
+<tr class="pass"><td>error:pl:CONN_CRITERIA</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_CONN_CRITERIA"</pre></td></tr>
+<tr class="pass"><td>error:pl:CONN_ZIP</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_CONN_ZIP"</pre></td></tr>
+<tr class="pass"><td>error:pl:INTERNAL</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_INTERNAL"</pre></td></tr>
+<tr class="pass"><td>error:pl:PRE_ACTIVE</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_PRE_ACTIVE"</pre></td></tr>
+<tr class="pass"><td>error:pl:PINCODE</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_PINCODE"</pre></td></tr>
+<tr class="pass"><td>error:pl:CIBIL</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_CIBIL"</pre></td></tr>
+<tr class="pass"><td>error:pl:FTB</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_FTB"</pre></td></tr>
+<tr class="pass"><td>error:pl:DPD_LATEST</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_DPD_LATEST"</pre></td></tr>
+<tr class="pass"><td>error:pl:AGE</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_AGE"</pre></td></tr>
+<tr class="pass"><td>error:pl:INCOME</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_INCOME"</pre></td></tr>
+<tr class="pass"><td>error:pl:AMOUNT</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_AMOUNT"</pre></td></tr>
+<tr class="pass"><td>error:pl:FOIR</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_FOIR"</pre></td></tr>
+<tr class="pass"><td>error:pl:DPD_3M</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_DPD_3M"</pre></td></tr>
+<tr class="pass"><td>error:pl:DPD_12M</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_DPD_12M"</pre></td></tr>
+<tr class="pass"><td>error:pl:DPD_DAYS</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_DPD_DAYS"</pre></td></tr>
+<tr class="pass"><td>error:pl:CC_UTIL</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_CC_UTIL"</pre></td></tr>
+<tr class="pass"><td>error:pl:UNSECURED</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_UNSECURED"</pre></td></tr>
+<tr class="pass"><td>error:pl:SALARY_TYPE</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_SALARY_TYPE"</pre></td></tr>
+<tr class="pass"><td>error:pl:PF</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_PF"</pre></td></tr>
+<tr class="pass"><td>error:pl:EMPLOYMENT</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_EMPLOYMENT"</pre></td></tr>
+<tr class="pass"><td>error:pl:ENQ_EXCLUDE</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_ENQ_EXCLUDE"</pre></td></tr>
+<tr class="pass"><td>error:pl:ENQ_1M</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_ENQ_1M"</pre></td></tr>
+<tr class="pass"><td>error:pl:ENQ_3M</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_ENQ_3M"</pre></td></tr>
+<tr class="pass"><td>error:pl:MISSING_APPLICANT_VALUE</td><td>CATALOG</td><td>OK</td><td><pre>"PL_FAIL_MISSING_APPLICANT_VALUE"</pre></td></tr>
+<tr class="pass"><td>error:pl:VALIDATION</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_VALIDATION"</pre></td></tr>
+<tr class="pass"><td>error:pl:BUREAU_SUMMARY_MISSING</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_BUREAU_SUMMARY_MISSING"</pre></td></tr>
+<tr class="pass"><td>error:pl:MISSING_WEIGHT_ROW</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_ERR_MISSING_WEIGHT_ROW"</pre></td></tr>
+<tr class="pass"><td>error:pl:INVALID_RULES_SHAPE</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_ERR_INVALID_RULES_SHAPE"</pre></td></tr>
+<tr class="pass"><td>error:pl:LENDER_NOT_FOUND</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_LENDER_NOT_FOUND"</pre></td></tr>
+<tr class="pass"><td>error:pl:INTERNAL</td><td>CATALOG</td><td>OK</td><td><pre>"PL_ERR_INTERNAL"</pre></td></tr>
+<tr class="pass"><td>error:pl:MISSING_MIN_CIBIL</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_ERR_MISSING_MIN_CIBIL"</pre></td></tr>
+<tr class="pass"><td>error:pl:DIV_BY_ZERO</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_ERR_DIV_BY_ZERO"</pre></td></tr>
+<tr class="pass"><td>error:pl:MISSING_FOIR</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_ERR_MISSING_FOIR"</pre></td></tr>
+<tr class="pass"><td>error:pl:MISSING_MAX_DPD_DAYS_ALLOWED</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED"</pre></td></tr>
+<tr class="pass"><td>error:pl:MISSING_CC_LIMIT</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_ERR_MISSING_CC_LIMIT"</pre></td></tr>
+<tr class="pass"><td>error:pl:MISSING_ACTIVE_UNSECURED</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_ERR_MISSING_ACTIVE_UNSECURED"</pre></td></tr>
+<tr class="pass"><td>error:pl:MISSING_ENQUIRIES_3M</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_ERR_MISSING_ENQUIRIES_3M"</pre></td></tr>
+<tr class="pass"><td>error:pl:MISSING_MIN_MONTHLY_INCOME</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_ERR_MISSING_MIN_MONTHLY_INCOME"</pre></td></tr>
+<tr class="pass"><td>error:pl:MISSING_MIN_EMPLOYMENT_MONTHS</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_ERR_MISSING_MIN_EMPLOYMENT_MONTHS"</pre></td></tr>
+<tr class="pass"><td>error:pl:MISSING_MIN_INTEREST_RATE</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_ERR_MISSING_MIN_INTEREST_RATE"</pre></td></tr>
+<tr class="pass"><td>error:pl:MISSING_LOAN_AMOUNT</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_ERR_MISSING_LOAN_AMOUNT"</pre></td></tr>
+<tr class="pass"><td>error:pl:MISSING_MAX_LOAN_AMOUNT</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT"</pre></td></tr>
+<tr class="pass"><td>error:pl:BELOW_DISPLAY_THRESHOLD</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_BELOW_DISPLAY_THRESHOLD"</pre></td></tr>
+<tr class="pass"><td>error:pl:CRITERION_INACTIVE</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_CRITERION_INACTIVE"</pre></td></tr>
+<tr class="pass"><td>error:pl:BLOCKED</td><td>CATALOG</td><td>OK</td><td><pre>"PL_SCORE_BLOCKED"</pre></td></tr>
+<tr class="pass"><td>error:bl:VALIDATION</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_VALIDATION"</pre></td></tr>
+<tr class="pass"><td>error:bl:LEAD_NOT_FOUND</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_LEAD_NOT_FOUND"</pre></td></tr>
+<tr class="pass"><td>error:bl:LOAN_APP_MISSING</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_LOAN_APP_MISSING"</pre></td></tr>
+<tr class="pass"><td>error:bl:BUREAU_SUMMARY_MISSING</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_BUREAU_SUMMARY_MISSING"</pre></td></tr>
+<tr class="pass"><td>error:bl:LENDER_NOT_FOUND</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_LENDER_NOT_FOUND"</pre></td></tr>
+<tr class="pass"><td>error:bl:INACTIVE_CATALOG</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_INACTIVE_CATALOG"</pre></td></tr>
+<tr class="pass"><td>error:bl:MISSING_CRITERIA</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_MISSING_CRITERIA"</pre></td></tr>
+<tr class="pass"><td>error:bl:CONN_LEAD</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_CONN_LEAD"</pre></td></tr>
+<tr class="pass"><td>error:bl:CONN_LOAN_APP</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_CONN_LOAN_APP"</pre></td></tr>
+<tr class="pass"><td>error:bl:CONN_BUREAU</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_CONN_BUREAU"</pre></td></tr>
+<tr class="pass"><td>error:bl:CONN_CATALOG</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_CONN_CATALOG"</pre></td></tr>
+<tr class="pass"><td>error:bl:CONN_CRITERIA</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_CONN_CRITERIA"</pre></td></tr>
+<tr class="pass"><td>error:bl:CONN_ZIP</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_CONN_ZIP"</pre></td></tr>
+<tr class="pass"><td>error:bl:INTERNAL</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_INTERNAL"</pre></td></tr>
+<tr class="pass"><td>error:bl:PRE_ACTIVE</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_PRE_ACTIVE"</pre></td></tr>
+<tr class="pass"><td>error:bl:PINCODE</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_PINCODE"</pre></td></tr>
+<tr class="pass"><td>error:bl:CIBIL</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_CIBIL"</pre></td></tr>
+<tr class="pass"><td>error:bl:FTB</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_FTB"</pre></td></tr>
+<tr class="pass"><td>error:bl:CURRENT_OVERDUE</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_CURRENT_OVERDUE"</pre></td></tr>
+<tr class="pass"><td>error:bl:AGE</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_AGE"</pre></td></tr>
+<tr class="pass"><td>error:bl:ENTITY</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_ENTITY"</pre></td></tr>
+<tr class="pass"><td>error:bl:TURNOVER</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_TURNOVER"</pre></td></tr>
+<tr class="pass"><td>error:bl:VINTAGE</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_VINTAGE"</pre></td></tr>
+<tr class="pass"><td>error:bl:AMOUNT</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_AMOUNT"</pre></td></tr>
+<tr class="pass"><td>error:bl:FOIR</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_FOIR"</pre></td></tr>
+<tr class="pass"><td>error:bl:CC_UTIL</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_CC_UTIL"</pre></td></tr>
+<tr class="pass"><td>error:bl:DPD_3M</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_DPD_3M"</pre></td></tr>
+<tr class="pass"><td>error:bl:DPD_12M</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_DPD_12M"</pre></td></tr>
+<tr class="pass"><td>error:bl:DPD_DAYS</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_DPD_DAYS"</pre></td></tr>
+<tr class="pass"><td>error:bl:UNSECURED</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_UNSECURED"</pre></td></tr>
+<tr class="pass"><td>error:bl:ENQ_EXCLUDE</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_ENQ_EXCLUDE"</pre></td></tr>
+<tr class="pass"><td>error:bl:ENQ_1M</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_ENQ_1M"</pre></td></tr>
+<tr class="pass"><td>error:bl:ENQ_3M</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_ENQ_3M"</pre></td></tr>
+<tr class="pass"><td>error:bl:AUDITED</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_AUDITED"</pre></td></tr>
+<tr class="pass"><td>error:bl:SETTLED_WO</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_SETTLED_WO"</pre></td></tr>
+<tr class="pass"><td>error:bl:MISSING_APPLICANT_VALUE</td><td>CATALOG</td><td>OK</td><td><pre>"BL_FAIL_MISSING_APPLICANT_VALUE"</pre></td></tr>
+<tr class="pass"><td>error:bl:VALIDATION</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_VALIDATION"</pre></td></tr>
+<tr class="pass"><td>error:bl:BUREAU_SUMMARY_MISSING</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_BUREAU_SUMMARY_MISSING"</pre></td></tr>
+<tr class="pass"><td>error:bl:MISSING_WEIGHT_ROW</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_ERR_MISSING_WEIGHT_ROW"</pre></td></tr>
+<tr class="pass"><td>error:bl:INVALID_RULES_SHAPE</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_ERR_INVALID_RULES_SHAPE"</pre></td></tr>
+<tr class="pass"><td>error:bl:LENDER_NOT_FOUND</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_LENDER_NOT_FOUND"</pre></td></tr>
+<tr class="pass"><td>error:bl:INTERNAL</td><td>CATALOG</td><td>OK</td><td><pre>"BL_ERR_INTERNAL"</pre></td></tr>
+<tr class="pass"><td>error:bl:MISSING_MIN_CIBIL</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_ERR_MISSING_MIN_CIBIL"</pre></td></tr>
+<tr class="pass"><td>error:bl:DIV_BY_ZERO</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_ERR_DIV_BY_ZERO"</pre></td></tr>
+<tr class="pass"><td>error:bl:MISSING_FOIR</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_ERR_MISSING_FOIR"</pre></td></tr>
+<tr class="pass"><td>error:bl:MISSING_MAX_DPD_DAYS_ALLOWED</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_ERR_MISSING_MAX_DPD_DAYS_ALLOWED"</pre></td></tr>
+<tr class="pass"><td>error:bl:MISSING_CC_LIMIT</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_ERR_MISSING_CC_LIMIT"</pre></td></tr>
+<tr class="pass"><td>error:bl:MISSING_ACTIVE_UNSECURED</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_ERR_MISSING_ACTIVE_UNSECURED"</pre></td></tr>
+<tr class="pass"><td>error:bl:MISSING_ENQUIRIES_3M</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_ERR_MISSING_ENQUIRIES_3M"</pre></td></tr>
+<tr class="pass"><td>error:bl:MISSING_MIN_ANNUAL_TURNOVER</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_ERR_MISSING_MIN_ANNUAL_TURNOVER"</pre></td></tr>
+<tr class="pass"><td>error:bl:MISSING_MIN_VINTAGE_YEARS</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_ERR_MISSING_MIN_VINTAGE_YEARS"</pre></td></tr>
+<tr class="pass"><td>error:bl:MISSING_MIN_INTEREST_RATE</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_ERR_MISSING_MIN_INTEREST_RATE"</pre></td></tr>
+<tr class="pass"><td>error:bl:MISSING_LOAN_AMOUNT</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_ERR_MISSING_LOAN_AMOUNT"</pre></td></tr>
+<tr class="pass"><td>error:bl:MISSING_MAX_LOAN_AMOUNT</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_ERR_MISSING_MAX_LOAN_AMOUNT"</pre></td></tr>
+<tr class="pass"><td>error:bl:BELOW_DISPLAY_THRESHOLD</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_BELOW_DISPLAY_THRESHOLD"</pre></td></tr>
+<tr class="pass"><td>error:bl:CRITERION_INACTIVE</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_CRITERION_INACTIVE"</pre></td></tr>
+<tr class="pass"><td>error:bl:BLOCKED</td><td>CATALOG</td><td>OK</td><td><pre>"BL_SCORE_BLOCKED"</pre></td></tr>
+<tr class="pass"><td>form:bl:validate-business-loan</td><td>PASS</td><td>OK</td><td><pre>{"outcome":"PASS","errorCount":0,"errors":[]}</pre></td></tr>
+<tr class="pass"><td>form:bl:validate-business-loan</td><td>FAIL</td><td>OK</td><td><pre>{"outcome":"FAIL","errorCount":24,"errors":["Business Name is required.","Business Premises is required.","Business Type is required.","Annual Turnover (Lakh) must be a positive whole number.","Business Age (Years) must be a whole number &gt;= 0."]}</pre></td></tr>
+<tr class="pass"><td>bureau:shared:MISSING_PDF</td><td>CATALOG</td><td>OK</td><td><pre>"BUREAU_MISSING_PDF"</pre></td></tr>
+<tr class="pass"><td>bureau:shared:EXTRACT_FAIL</td><td>CATALOG</td><td>OK</td><td><pre>"BUREAU_EXTRACT_FAILED"</pre></td></tr>
+<tr class="pass"><td>bureau:shared:EXTRACT_OK</td><td>CATALOG</td><td>OK</td><td><pre>"BUREAU_EXTRACT_COMPLETED"</pre></td></tr></tbody>
+  </table>
 </body>
 </html>

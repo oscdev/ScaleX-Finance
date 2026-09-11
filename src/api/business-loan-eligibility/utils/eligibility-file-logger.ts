@@ -176,7 +176,7 @@ export async function createEligibilityRunLogger(
       `source: ${runSource}`,
       `profile: ${JSON.stringify({
         pin: profile.applicantPin ?? null,
-        amount: profile.loanAmount ?? profile.requestedAmount ?? null,
+        amount: profile.requestedAmount ?? profile.loanAmount ?? null,
         loanType: profile.loanType ?? 'Business Loan',
         bureau: profile.hasBureau ?? false,
         loanApp: profile.hasLoanApp ?? false,

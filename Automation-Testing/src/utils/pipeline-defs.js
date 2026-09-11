@@ -29,7 +29,7 @@ export const BL_PIPELINE = [
   { step: 4, ruleId: 'BL-CURRENT-OVERDUE', ruleName: 'Current overdue', formula: 'no current overdue accounts' },
   { step: 5, ruleId: 'BL-AGE', ruleName: 'Age', formula: 'minAge <= age <= maxAge' },
   { step: 6, ruleId: 'BL-ENTITY', ruleName: 'Entity type', formula: 'entity IN eligible_entity_types' },
-  { step: 7, ruleId: 'BL-TURNOVER', ruleName: 'Annual turnover', formula: 'turnoverLakh >= min_annual_turnover' },
+  { step: 7, ruleId: 'BL-TURNOVER', ruleName: 'Annual turnover', formula: 'turnoverLakh * 100000 >= min_annual_turnover' },
   { step: 8, ruleId: 'BL-VINTAGE', ruleName: 'Business vintage', formula: 'businessAgeYears >= min_business_vintage' },
   { step: 9, ruleId: 'BL-AMOUNT', ruleName: 'Loan amount', formula: 'minLoanAmount <= requestedAmount <= maxLoanAmount' },
   { step: 10, ruleId: 'BL-FOIR', ruleName: 'FOIR', formula: 'existingTotalEmi / income <= foir' },

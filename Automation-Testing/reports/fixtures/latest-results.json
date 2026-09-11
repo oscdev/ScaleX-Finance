@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-04T14:37:39.894Z",
+  "generatedAt": "2026-09-11T08:08:01.067Z",
   "totalEntries": 182,
   "totalCases": 281,
   "passed": 281,
@@ -1853,7 +1853,7 @@
         "step": 9,
         "ruleId": "BL-AMOUNT",
         "ruleName": "Loan amount band",
-        "formula": "minLoanAmount <= loanAmount <= maxLoanAmount",
+        "formula": "minLoanAmount <= requestedAmount <= maxLoanAmount",
         "applicantValue": 1500000,
         "threshold": {
           "minLoanAmount": 100000,
@@ -1875,7 +1875,7 @@
         "step": 9,
         "ruleId": "BL-AMOUNT",
         "ruleName": "Loan amount band",
-        "formula": "minLoanAmount <= loanAmount <= maxLoanAmount",
+        "formula": "minLoanAmount <= requestedAmount <= maxLoanAmount",
         "applicantValue": 50000,
         "threshold": {
           "minLoanAmount": 100000,
@@ -1897,7 +1897,7 @@
         "step": 9,
         "ruleId": "BL-AMOUNT",
         "ruleName": "Loan amount band",
-        "formula": "minLoanAmount <= loanAmount <= maxLoanAmount",
+        "formula": "minLoanAmount <= requestedAmount <= maxLoanAmount",
         "threshold": {
           "minLoanAmount": null,
           "maxLoanAmount": null
