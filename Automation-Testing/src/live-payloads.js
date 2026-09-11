@@ -146,7 +146,8 @@ function blFormData(customer, documentStubs) {
     };
   });
   const extra = (documentStubs || []).filter((d) => !String(d.key || '').startsWith('regProof_'));
-  // Live Run CSV / customer.turnover is absolute ₹; form_data stores Lakh (UI contract).
+  // Live Run CSV / customer.turnover is absolute ₹; form_data stores Lakh (loan-form contract).
+  // Suite report / Journey Demo convert back to full ₹ for display.
   const turnoverInr = Number(customer.turnover != null && customer.turnover !== '' ? customer.turnover : 5000000);
   const turnoverLakh =
     Number.isFinite(turnoverInr) && turnoverInr > 0 ? Math.round(turnoverInr / 100000) : 50;

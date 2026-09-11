@@ -74,7 +74,7 @@ export const FUNNEL_BY_LOAN_TYPE = {
         { section: 'businessDetails', key: 'name', label: 'Business Name', required: true },
         { section: 'businessDetails', key: 'premises', label: 'Business Premises', required: true },
         { section: 'businessDetails', key: 'type', label: 'Business Type', required: true },
-        { section: 'businessDetails', key: 'turnover', label: 'Annual Turnover (Lakh)', required: true },
+        { section: 'businessDetails', key: 'turnover', label: 'Annual Turnover', required: true },
         { section: 'businessDetails', key: 'age', label: 'Business Age (Years)', required: true },
         { section: 'businessDetails', key: 'regProofs', label: 'Business Registration Proof', required: true },
         { section: 'businessDetails', key: 'auditedBooks', label: 'Audited Books', required: true },

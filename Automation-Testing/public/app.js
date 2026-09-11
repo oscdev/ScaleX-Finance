@@ -22,7 +22,7 @@
   function formatStepCondition(s) {
     if (!s) return '';
     if (s.evaluation) return String(s.evaluation);
-    var applicant = s.applicant != null ? s.applicant : s.applicantValue;
+    var applicant = applicantDisplayValue(s.applicant != null ? s.applicant : s.applicantValue);
     if (applicant != null || s.threshold != null) {
       return (
         'applicant=' +
@@ -384,7 +384,7 @@
           { section: 'businessDetails', key: 'name', label: 'Business Name' },
           { section: 'businessDetails', key: 'premises', label: 'Business Premises' },
           { section: 'businessDetails', key: 'type', label: 'Business Type' },
-          { section: 'businessDetails', key: 'turnover', label: 'Annual Turnover (Lakh)' },
+          { section: 'businessDetails', key: 'turnover', label: 'Annual Turnover' },
           { section: 'businessDetails', key: 'age', label: 'Business Age (Years)' },
           { section: 'businessDetails', key: 'regProofs', label: 'Business Registration Proof' },
           { section: 'businessDetails', key: 'auditedBooks', label: 'Audited Books' },
@@ -513,11 +513,34 @@
     }
   }
 
+  function turnoverLakhToInr(val) {
+    if (val == null || val === '') return val;
+    var n = Number(val);
+    if (!isFinite(n) || n <= 0) return val;
+    return n < 100000 ? Math.round(n * 100000) : n;
+  }
+
+  function applicantDisplayValue(applicant) {
+    if (
+      applicant != null &&
+      typeof applicant === 'object' &&
+      !Array.isArray(applicant) &&
+      applicant.annualTurnoverInr != null &&
+      applicant.turnoverLakh != null &&
+      applicant.existingTotalEmi == null &&
+      applicant.applicantFoir == null
+    ) {
+      return applicant.annualTurnoverInr;
+    }
+    return applicant;
+  }
+
   function formatDemoVal(v) {
-    if (v == null || v === '') return '—';
-    if (typeof v === 'boolean') return v ? 'Yes' : 'No';
-    if (typeof v === 'object') return JSON.stringify(v);
-    return String(v);
+    var display = applicantDisplayValue(v);
+    if (display == null || display === '') return '—';
+    if (typeof display === 'boolean') return display ? 'Yes' : 'No';
+    if (typeof display === 'object') return JSON.stringify(display);
+    return String(display);
   }
 
   /** Rules / matched band for eligibility steps or scoring criteria. */
@@ -720,7 +743,11 @@
             rows = rows.concat(runningLoanRows(sec[f.key]));
             return;
           }
-          rows.push({ label: f.label, value: sec[f.key] });
+          var value = sec[f.key];
+          if (f.key === 'turnover' && f.section === 'businessDetails') {
+            value = turnoverLakhToInr(value);
+          }
+          rows.push({ label: f.label, value: value });
         });
         html += labelValueTable(rows);
       });

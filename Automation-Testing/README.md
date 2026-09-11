@@ -91,7 +91,7 @@ npm run build:pipeline-docs
 2. Open `/suite` → **Live Run** → pick product → confirm → **Start Live Run** (`202` async). Leave CSV and Documents empty for the default pool, or attach **both** together (neither alone).
 3. Required lead and loan-application fields, plus required document files, are checked **before** any POST. If a check fails, nothing is written.
 4. **No files** — one unique `[SUITE-TEST]` lead for the selected product, taken from `documents/default/{product}/sample-default-{product}.csv` (25-row pool; each Start uses the next row). Required and optional dummy values are filled, including Other-step `runningLoans` (JSON array) and, for Personal Loan, other-income source/amount. PDFs from the same folder (Personal Loan uses `salary_slip.pdf`). Identity is re-stamped each Start. The shared default PDFs may be reused.
-5. **CSV + Documents** — attach both on the same Start (400 if only one is present). Header + 1–5 data rows (see `documents/default/{product}/live-run.example.csv`). Document columns are filenames (`aadhaar_front`, `cibil`, `salary_slip`, …) matched to the PDFs attached on Start. The CSV is overwritten at `documents/upload/{product}/live-run.csv`; PDFs are not stored there. More than 5 rows → **400**, no POST. Required fields only. Identity (email, mobile, PAN, Aadhaar) must be unique in the file. Names missing `[SUITE-TEST]` are prefixed. For **Business Loan**, CSV column `turnover` is **full ₹** (e.g. `5000000`); Live Run converts to Lakh before writing `form_data.businessDetails.turnover` (UI still shows Lakh).
+5. **CSV + Documents** — attach both on the same Start (400 if only one is present). Header + 1–5 data rows (see `documents/default/{product}/live-run.example.csv`). Document columns are filenames (`aadhaar_front`, `cibil`, `salary_slip`, …) matched to the PDFs attached on Start. The CSV is overwritten at `documents/upload/{product}/live-run.csv`; PDFs are not stored there. More than 5 rows → **400**, no POST. Required fields only. Identity (email, mobile, PAN, Aadhaar) must be unique in the file. Names missing `[SUITE-TEST]` are prefixed. For **Business Loan**, CSV column `turnover` is **full ₹** (e.g. `5000000`); Live Run converts to Lakh before writing `form_data.businessDetails.turnover` (loan form contract). The suite report and Journey Demo show the **full rupee** amount, not Lakh.
 6. Runs are sequential. A lead without a saved loan application is a failed row. Uploaded CSV is stored at `reports/runs/{product}/input.csv` and `documents/upload/{product}/live-run.csv` (not reused as the next run’s input unless you upload again). Each Start **overwrites** that product’s report folder. PDFs persist on the lead under `public/uploads/api_uploads/{leadId}-{name}/`.
 
 ## Tips
@@ -102,7 +102,7 @@ npm run build:pipeline-docs
 - Hard-refresh (`Ctrl+Shift+R`) after suite UI updates so `/suite/app.js` reloads.
 - Live Run HTML reports overwrite `Automation-Testing/reports/runs/{product}/` (one folder per product).
 - CSV Upload is overwritten at `documents/upload/{product}/live-run.csv`. PDFs persist on the lead under `public/uploads/api_uploads/{leadId}-{name}/`.
-- Business Loan Live Run `turnover` CSV values are absolute rupees (not Lakh).
+- Business Loan Live Run `turnover` CSV values are absolute rupees (not Lakh). Suite report / Journey Demo display Annual Turnover in full ₹ even though `form_data` stores Lakh.
 - Set `SUITE_ADVISOR_REFERRAL_ID` in `Automation-Testing/.env` if lead create requires an advisor referral.
 
 ## CLI

@@ -8,6 +8,7 @@ import {
   isFunnelFieldRequired,
   isFunnelFieldEmpty,
 } from './funnel-fields.js';
+import { applicantDisplayValue, turnoverLakhToInr } from '../utils/turnover-display.js';
 
 function escapeHtml(s) {
   return String(s ?? '')
@@ -34,18 +35,19 @@ function chip(result) {
 }
 
 function formatVal(v) {
-  if (v == null || v === '') return '—';
-  if (typeof v === 'boolean') return v ? 'Yes' : 'No';
-  if (Array.isArray(v)) return v.length ? JSON.stringify(v) : 'None';
-  if (typeof v === 'object') return JSON.stringify(v);
-  return String(v);
+  const display = applicantDisplayValue(v);
+  if (display == null || display === '') return '—';
+  if (typeof display === 'boolean') return display ? 'Yes' : 'No';
+  if (Array.isArray(display)) return display.length ? JSON.stringify(display) : 'None';
+  if (typeof display === 'object') return JSON.stringify(display);
+  return String(display);
 }
 
 /** Prefer evaluation; else applicant vs threshold → result (disk logs often omit evaluation). */
 function formatStepCondition(s) {
   if (!s) return '';
   if (s.evaluation) return String(s.evaluation);
-  const applicant = s.applicant != null ? s.applicant : s.applicantValue;
+  const applicant = applicantDisplayValue(s.applicant != null ? s.applicant : s.applicantValue);
   if (applicant != null || s.threshold != null) {
     return (
       'applicant=' +
@@ -187,7 +189,11 @@ function buildFormsSection(run) {
       .map((f) => {
         const val = readSectionValue(formData, f.section, f.key);
         const missing = isFunnelFieldRequired(f, formData) && isFunnelFieldEmpty(val);
-        return fieldCard(f.label, val, missing);
+        const displayVal =
+          f.key === 'turnover' && f.section === 'businessDetails'
+            ? turnoverLakhToInr(val)
+            : val;
+        return fieldCard(f.label, displayVal, missing);
       })
       .join('');
     stepHtml += `<section class="card funnel-step">
@@ -609,10 +615,24 @@ export function generateRunReport(run, opts = {}) {
     })[r] || 'chip';
     return '<span class="' + cls + '">' + escapeHtml(r || '—') + '</span>';
   }
+  function applicantDisplayValue(applicant) {
+    if (
+      applicant != null &&
+      typeof applicant === 'object' &&
+      !Array.isArray(applicant) &&
+      applicant.annualTurnoverInr != null &&
+      applicant.turnoverLakh != null &&
+      applicant.existingTotalEmi == null &&
+      applicant.applicantFoir == null
+    ) {
+      return applicant.annualTurnoverInr;
+    }
+    return applicant;
+  }
   function formatStepCondition(s) {
     if (!s) return '';
     if (s.evaluation) return String(s.evaluation);
-    var applicant = s.applicant != null ? s.applicant : s.applicantValue;
+    var applicant = applicantDisplayValue(s.applicant != null ? s.applicant : s.applicantValue);
     if (applicant != null || s.threshold != null) {
       return 'applicant=' + JSON.stringify(applicant)
         + ' vs threshold=' + JSON.stringify(s.threshold)
@@ -629,10 +649,11 @@ export function generateRunReport(run, opts = {}) {
     return s.reason || s.errorCode || s.reasonDisplay || '';
   }
   function fmtPlain(v) {
-    if (v == null || v === '') return '—';
-    if (typeof v === 'boolean') return v ? 'Yes' : 'No';
-    if (typeof v === 'object') return JSON.stringify(v);
-    return String(v);
+    var display = applicantDisplayValue(v);
+    if (display == null || display === '') return '—';
+    if (typeof display === 'boolean') return display ? 'Yes' : 'No';
+    if (typeof display === 'object') return JSON.stringify(display);
+    return String(display);
   }
   function formatRulesMatched(row) {
     if (!row) return '—';

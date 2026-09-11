@@ -18,4 +18,4 @@ CSV document columns are filenames in the **same folder**. Personal Loan uses a 
 
 Identity fields are re-stamped on each Start so repeat runs do not collide in Strapi. Required **and optional** dummy values are filled, including Other-step `runningLoans` and Personal Loan other-income fields. Spouse stays empty on Single rows. These fixture PDFs may be reused on every no-CSV Start.
 
-**Business Loan `turnover`:** CSV values are **full ₹** (e.g. `4200000`). Live Run converts to Lakh when writing `form_data.businessDetails.turnover`.
+**Business Loan `turnover`:** CSV values are **full ₹** (e.g. `4200000`). Live Run converts to Lakh when writing `form_data.businessDetails.turnover`. Suite report / Journey Demo show the full rupee amount.
