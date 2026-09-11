@@ -92,7 +92,10 @@ function evaluatePlStep(ruleId, customer, bureau, failLab) {
 }
 
 function evaluateBlStep(ruleId, customer, bureau, failLab) {
-  const turnover = Number(customer.turnover || 0);
+  // Live Run / customer.turnover is absolute ₹; offline demo compares in Lakh.
+  const turnoverInr = Number(customer.turnover || 0);
+  const turnoverLakh =
+    Number.isFinite(turnoverInr) && turnoverInr > 0 ? Math.round(turnoverInr / 100000) : 0;
   const vintage = Number(customer.businessAge || 0);
   const entity = customer.businessType || 'Proprietorship';
 
@@ -117,10 +120,10 @@ function evaluateBlStep(ruleId, customer, bureau, failLab) {
     }
     case 'BL-TURNOVER': {
       const min = 25;
-      const ok = turnover >= min;
+      const ok = turnoverLakh >= min;
       return {
         result: ok ? 'PASS' : 'FAIL',
-        evaluation: `${turnover} Lakh >= ${min} Lakh → ${ok ? 'PASS' : 'FAIL'}`,
+        evaluation: `${turnoverLakh} Lakh >= ${min} Lakh → ${ok ? 'PASS' : 'FAIL'}`,
       };
     }
     case 'BL-VINTAGE': {

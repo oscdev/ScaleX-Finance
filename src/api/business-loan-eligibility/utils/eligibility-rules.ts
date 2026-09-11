@@ -395,30 +395,31 @@ export function evaluateLoanAmount(
   profile: BlApplicantProfile,
   criteria: BlLenderCriteria
 ): ConditionResult {
-  const formula = 'minLoanAmount <= loanAmount <= maxLoanAmount';
+  // Prefer lead.requiredAmount (UI Loan Requirement); fall back to loan_applications.loanAmount.
+  const amount =
+    profile.requestedAmount != null ? profile.requestedAmount : profile.loanAmount;
+  const formula = 'minLoanAmount <= requestedAmount <= maxLoanAmount';
   if (criteria.minLoanAmount == null && criteria.maxLoanAmount == null) {
     return skip(step, 'BL-AMOUNT', 'Loan amount band', formula, {
       minLoanAmount: null,
       maxLoanAmount: null,
     });
   }
-  if (profile.loanAmount == null) {
+  if (amount == null) {
     return missingFail(step, 'BL-AMOUNT', 'Loan amount band', formula, {
       minLoanAmount: criteria.minLoanAmount,
       maxLoanAmount: criteria.maxLoanAmount,
     });
   }
-  const geMin =
-    criteria.minLoanAmount == null || profile.loanAmount >= Number(criteria.minLoanAmount);
-  const leMax =
-    criteria.maxLoanAmount == null || profile.loanAmount <= Number(criteria.maxLoanAmount);
+  const geMin = criteria.minLoanAmount == null || amount >= Number(criteria.minLoanAmount);
+  const leMax = criteria.maxLoanAmount == null || amount <= Number(criteria.maxLoanAmount);
   const ok = geMin && leMax;
   return {
     step,
     ruleId: 'BL-AMOUNT',
     ruleName: 'Loan amount band',
     formula,
-    applicantValue: profile.loanAmount,
+    applicantValue: amount,
     threshold: {
       minLoanAmount: criteria.minLoanAmount,
       maxLoanAmount: criteria.maxLoanAmount,

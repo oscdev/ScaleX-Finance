@@ -1074,6 +1074,16 @@ export const useLeadViewDashboard = (leadId: string) => {
                     });
                     setLoanApp((prev: any) => (prev ? { ...prev, loanType: value } : prev));
                 }
+                if (key === 'requiredAmount' && loanApp) {
+                    const loanDocId = loanApp.documentId || String(loanApp.id);
+                    const loanAmount = value === '' ? null : value;
+                    await fetch(`/api/loan-applications/${loanDocId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: { loanAmount } }),
+                    });
+                    setLoanApp((prev: any) => (prev ? { ...prev, loanAmount } : prev));
+                }
             }
         } catch (e) {}
     };

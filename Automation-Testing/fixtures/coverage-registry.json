@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-04T12:02:13.409Z",
+  "generatedAt": "2026-09-11T08:07:45.565Z",
   "entryCount": 182,
   "entries": [
     {
@@ -417,7 +417,7 @@
       "type": "eligibility_rule",
       "product": "bl",
       "ruleId": "BL-AMOUNT",
-      "formula": "(min_loan_amount is null OR loan_applications.loan_amount >= min_loan_amount) AND (max_loan_amount is null OR loan_applications.loan_amount <= max_loan_amount)",
+      "formula": "(min_loan_amount is null OR leads.required_amount >= min_loan_amount) AND (max_loan_amount is null OR leads.required_amount <= max_loan_amount)",
       "docsHint": "Requested loan amount must fall within lender min/max (rupees)",
       "codeSymbol": "BL-AMOUNT",
       "ftbBranch": false

@@ -155,8 +155,8 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ruleName: 'Loan amount band',
     condition: 'Requested loan amount must fall within lender min/max (rupees)',
     formula:
-      '(min_loan_amount is null OR loan_applications.loan_amount >= min_loan_amount) AND (max_loan_amount is null OR loan_applications.loan_amount <= max_loan_amount)',
-    applicantSources: [{ table: 'loan_applications', column: 'loan_amount' }],
+      '(min_loan_amount is null OR leads.required_amount >= min_loan_amount) AND (max_loan_amount is null OR leads.required_amount <= max_loan_amount)',
+    applicantSources: [{ table: 'leads', column: 'required_amount' }],
     thresholdSources: [
       { table: 'lenders_criteria_bl', column: 'min_loan_amount' },
       { table: 'lenders_criteria_bl', column: 'max_loan_amount' },

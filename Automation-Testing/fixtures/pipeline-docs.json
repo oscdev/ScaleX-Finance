@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-05T07:34:24.684Z",
+  "generatedAt": "2026-09-11T08:07:45.071Z",
   "products": {
     "personal-loan": {
       "lead-submission": [
@@ -2836,12 +2836,12 @@
         {
           "type": "eligibility_rule",
           "title": "BL-AMOUNT",
-          "description": "Requested loan amount must fall within lender min/max (rupees) · formula: (min_loan_amount is null OR loan_applications.loan_amount >= min_loan_amount) AND (max_loan_amount is null OR loan_applications.loan_amount <= max_loan_amount) · applicant: loan_applications.loan_amount · threshold: lenders_criteria_bl.min_loan_amount; lenders_criteria_bl.max_loan_amount · step: 9 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
-          "formula": "(min_loan_amount is null OR loan_applications.loan_amount >= min_loan_amount) AND (max_loan_amount is null OR loan_applications.loan_amount <= max_loan_amount)",
+          "description": "Requested loan amount must fall within lender min/max (rupees) · formula: (min_loan_amount is null OR leads.required_amount >= min_loan_amount) AND (max_loan_amount is null OR leads.required_amount <= max_loan_amount) · applicant: leads.required_amount · threshold: lenders_criteria_bl.min_loan_amount; lenders_criteria_bl.max_loan_amount · step: 9 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "(min_loan_amount is null OR leads.required_amount >= min_loan_amount) AND (max_loan_amount is null OR leads.required_amount <= max_loan_amount)",
           "sources": [
             {
-              "table": "loan_applications",
-              "column": "loan_amount"
+              "table": "leads",
+              "column": "required_amount"
             },
             {
               "table": "lenders_criteria_bl",
