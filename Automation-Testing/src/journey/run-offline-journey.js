@@ -53,7 +53,7 @@ function evaluatePlStep(ruleId, customer, bureau, failLab) {
     case 'PL-PINCODE':
       return {
         result: 'PASS',
-        evaluation: `loanType=Personal Loan AND zipCode=440001 === applicantPin=${pin} → PASS`,
+        evaluation: `loanType='PL' AND zipCode=440001 === applicantPin=${pin} → PASS`,
       };
     case 'PL-CIBIL': {
       const min = failLab ? 800 : 650;
@@ -106,7 +106,7 @@ function evaluateBlStep(ruleId, customer, bureau, failLab) {
     case 'BL-PINCODE':
       return {
         result: 'PASS',
-        evaluation: 'loanType=Business Loan AND pincode serviceable → PASS',
+        evaluation: "loanType='BL' AND pincode serviceable → PASS",
       };
     case 'BL-CIBIL':
       return { result: 'PASS', evaluation: `${bureau.cibil_score ?? 750} >= 650 → PASS` };

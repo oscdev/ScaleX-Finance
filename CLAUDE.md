@@ -94,6 +94,7 @@ Before completing every task:
 ├── config/                  # Strapi config files
 ├── database/
 │   └── migrations/          # Knex migration files (run on Strapi startup)
+├── Data-Import-Manager/     # CSV import (table/zipcodes/; UI at /data-import-manager on Next)
 ├── package.json             # Root package (Strapi only)
 └── frontend/package.json    # Frontend package
 ```
@@ -132,6 +133,21 @@ npm run dev
 
 # Troubleshooting only — re-run extraction for a lead (Strapi must be running)
 npm run extract:bureau -- <leadId> "<leadName>"
+```
+
+### Data Import Manager (CSV → PostgreSQL)
+
+CSV upsert tools under [`Data-Import-Manager/`](Data-Import-Manager/). Datasets live in `table/<name>/` (e.g. `table/zipcodes/`). **Browser UI:** open **`/data-import-manager`** on the Next.js frontend (same domain — no extra port). CLI optional. See [Data-Import-Manager/README.md](Data-Import-Manager/README.md).
+
+```bash
+# Browser (with frontend running)
+# → /data-import-manager
+
+# CLI upsert zip_codes_to_lenders from Data-Import-Manager/table/zipcodes/upload/*.csv
+npm run import:zipcodes
+
+# Validate only (no DB writes; leave files in upload/)
+npm run import:zipcodes -- --dry-run
 ```
 
 ### Frontend (Next.js)
@@ -181,7 +197,7 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 |---|---|---|
 | `lender-master` | Strapi API module for master lender registry + serviceable pincodes + scoring catalog | Module path `src/api/lender-master/`; see [docs/Lender-Master.md](docs/Lender-Master.md) |
 | `lenders-catalog` | Content type inside `lender-master`; master registry of financial institutions (replaces deprecated `lender`/`lenders` table) | UID: `api::lender-master.lenders-catalog`; table `lenders_catalog`; REST `/api/lenders-catalogs`; fields `lenderName`, `lenderType`, `lenderCode`, `isActive` |
-| `zip-code` | Content type inside `lender-master`; serviceable pincodes per lender **and loanType** | UID: `api::lender-master.zip-code`; table `zip_codes_to_lenders`; REST `/api/zip-codes`; soft-links via `lenderCode`; required `loanType` (`PL` \| `BL` \| `HL` \| `LAP`); PL/BL PINCODE loads rows for that product only; partial UNIQUE + lookup index `(lender_code, loan_type, is_active)`; hidden from Content Manager |
+| `zip-code` | Content type inside `lender-master`; serviceable pincodes per lender **and loanType** | UID: `api::lender-master.zip-code`; table `zip_codes_to_lenders`; REST `/api/zip-codes`; soft-links via `lenderCode`; required `loanType` (`PL` \| `BL` \| `HL` \| `LAP`); PL/BL PINCODE loads rows for that product only; partial UNIQUE + lookup index `(lender_code, loan_type, is_active)`; hidden from Content Manager; CSV upsert via `/data-import-manager` or `npm run import:zipcodes` ([Data-Import-Manager](Data-Import-Manager/README.md)) |
 | `lender-scoring-criteria` | Content type inside `lender-master`; platform criterion catalog (weights + JSON bands) | UID: `api::lender-master.lender-scoring-criteria`; table `lender_scoring_criteria`; REST `/api/lender-scoring-criterias`; hidden from Content Manager; PL scoring engine loads via `catalog-loader` |
 
 ### Personal Loan Eligibility
@@ -438,6 +454,7 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - **[src/shared/loan-form/](src/shared/loan-form/)** — Shared loan form field schema (`getFieldsForFunnel`, `getAppSteps`, `getAdminLoanFormDisplayData`, `getAdminLoanFormSaveBase`, `isStaleLoanFormPrefill`), India state/district data, widget metadata (importable from Strapi admin). Admin UI passes `{ ignoreShowWhen: true }` so conditional fields stay visible when empty/null. Saved funnel `form_data` is shown after reload (completed Live Run / public submit is not blanked when activity fetch misses `LOAN_APP_SUBMITTED`).
 - **[src/api/bureau-data-extraction/](src/api/bureau-data-extraction/)** — Bureau PDF extraction (`POST /api/cibil-report-summaries/extract`; reads `public/uploads/api_uploads/`)
 - **[src/api/lender-master/](src/api/lender-master/)** — Lender master registry + zip coverage + scoring catalog (`lenders-catalog`, `zip-code`, `lender-scoring-criteria`)
+- **[Data-Import-Manager/](Data-Import-Manager/)** — CSV bulk import (`/data-import-manager` UI + `npm run import:zipcodes` → `zip_codes_to_lenders`; datasets under `table/`)
 - **[src/api/personal-loan-eligibility/](src/api/personal-loan-eligibility/)** — PL eligibility thresholds + 19-step matching engine (`matched-lenders` / `evaluate`; file audit in `logs/personal-loan/pl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`)
 - **[src/api/personal-loan-scoring-criteria/](src/api/personal-loan-scoring-criteria/)** — PL scoring/ranking engine (`score` / `rank`; loads `api::lender-master.lender-scoring-criteria`; file audit in `logs/personal-loan/pl-scoring/<leadId>-<Name>_YYYY-MM-DD.log`)
 - **[docs/personal-loan-scoring-criteria/](docs/personal-loan-scoring-criteria/)** — PL scoring criteria, formulas, seed data, API contracts

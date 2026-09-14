@@ -31,7 +31,8 @@
                 "HL",
                 "LAP"
             ],
-            "required": true
+            "required": true,
+            "description": "Canonical product code: PL=Personal Loan, BL=Business Loan, HL=Home Loan, LAP=Loan Against Property. PL/BL PINCODE engines load rows for PL or BL only."
         },
         "zipCode": {
             "type": "integer"

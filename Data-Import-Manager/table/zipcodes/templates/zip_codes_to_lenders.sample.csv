@@ -1,0 +1,5 @@
+lenderCode,loanType,zipCode,coversAllPincodes,isActive
+HDFC,PL,400001,false,true
+HDFC,BL,,true,true
+SBI,PL,110001,false,true
+AXIS,LAP,560001,false,true
