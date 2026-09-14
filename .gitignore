@@ -55,6 +55,15 @@ $RECYCLE.BIN/
 Automation-Testing/documents/upload/*/live-run.csv
 Automation-Testing/documents/upload/.last-doc-hashes.json
 Automation-Testing/documents/upload/*/*.pdf
+
+# Data-Import-Manager: keep templates only (uploads / processed / logs stay local)
+!Data-Import-Manager/**/templates/*.csv
+Data-Import-Manager/**/upload/**
+!Data-Import-Manager/**/upload/.gitkeep
+Data-Import-Manager/**/processed/**
+!Data-Import-Manager/**/processed/.gitkeep
+Data-Import-Manager/**/logs/**
+!Data-Import-Manager/**/logs/.gitkeep
 *.dat
 *.dmg
 *.gz

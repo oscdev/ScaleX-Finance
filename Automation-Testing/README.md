@@ -103,7 +103,7 @@ npm run build:pipeline-docs
 - Live Run HTML reports overwrite `Automation-Testing/reports/runs/{product}/` (one folder per product).
 - CSV Upload is overwritten at `documents/upload/{product}/live-run.csv`. PDFs persist on the lead under `public/uploads/api_uploads/{leadId}-{name}/`.
 - Business Loan Live Run `turnover` CSV values are absolute rupees (not Lakh). Suite report / Journey Demo display Annual Turnover in full ₹ even though `form_data` stores Lakh.
-- Zip coverage (`zip_codes_to_lenders`) is **product-scoped** via `loanType`. PL-PINCODE / BL-PINCODE only use rows for Personal Loan / Business Loan respectively.
+- Zip coverage (`zip_codes_to_lenders`) is **product-scoped** via `loanType`. PL-PINCODE uses rows with `loan_type='PL'`; BL-PINCODE uses `loan_type='BL'`.
 - Set `SUITE_ADVISOR_REFERRAL_ID` in `Automation-Testing/.env` if lead create requires an advisor referral.
 
 ## CLI

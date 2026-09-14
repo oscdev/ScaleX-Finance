@@ -37,7 +37,7 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     step: 2,
     ruleId: 'BL-PINCODE',
     ruleName: 'Zip / pincode coverage',
-    condition: 'Applicant pin must be serviceable for the lender for Business Loan',
+    condition: "Applicant pin must be serviceable for the lender for BL (loan_type='BL' rows in zip_codes_to_lenders)",
     formula:
       "loan_type = 'BL' AND is_active AND (covers_all_pincodes OR zip_codes_to_lenders.zip_code = leads.pin_code)",
     applicantSources: [{ table: 'leads', column: 'pin_code' }],

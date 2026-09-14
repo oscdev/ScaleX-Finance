@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T14:55:06.867Z",
+  "generatedAt": "2026-09-14T14:14:28.043Z",
   "products": {
     "personal-loan": {
       "lead-submission": [
@@ -2642,7 +2642,7 @@
         {
           "type": "eligibility_rule",
           "title": "BL-PINCODE",
-          "description": "Applicant pin must be serviceable for the lender for Business Loan · formula: loan_type = 'BL' AND is_active AND (covers_all_pincodes OR zip_codes_to_lenders.zip_code = leads.pin_code) · applicant: leads.pin_code · threshold: zip_codes_to_lenders.loan_type; zip_codes_to_lenders.zip_code; zip_codes_to_lenders.covers_all_pincodes; zip_codes_to_lenders.is_active; zip_codes_to_lenders.lender_code · step: 2 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "description": "Applicant pin must be serviceable for the lender for BL (loan_type='BL' rows in zip_codes_to_lenders) · formula: loan_type = 'BL' AND is_active AND (covers_all_pincodes OR zip_codes_to_lenders.zip_code = leads.pin_code) · applicant: leads.pin_code · threshold: zip_codes_to_lenders.loan_type; zip_codes_to_lenders.zip_code; zip_codes_to_lenders.covers_all_pincodes; zip_codes_to_lenders.is_active; zip_codes_to_lenders.lender_code · step: 2 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
           "formula": "loan_type = 'BL' AND is_active AND (covers_all_pincodes OR zip_codes_to_lenders.zip_code = leads.pin_code)",
           "sources": [
             {
@@ -2673,7 +2673,7 @@
           "meta": {
             "step": 2,
             "ruleName": "Zip / pincode coverage",
-            "condition": "Applicant pin must be serviceable for the lender for Business Loan"
+            "condition": "Applicant pin must be serviceable for the lender for BL (loan_type='BL' rows in zip_codes_to_lenders)"
           }
         },
         {
