@@ -10,6 +10,7 @@ import {
     isLoanApplicationSubmitted,
     isStaleLoanFormPrefill,
 } from '../../shared/loan-form/loan-app-submit';
+import { coerceLoanTypeCode, DEFAULT_LOAN_TYPE } from '../../utils/loan-type';
 import { normalizeLoanAppRow } from './loanAppRowUtils';
 import type { FormFieldValue } from './FormFieldControl';
 
@@ -108,7 +109,9 @@ export const LoanApplicationEditForm = ({ documentId }: { documentId: string }) 
         loadSubmitActivity();
     }, [loanApp?.leadId]);
 
-    const loanType = String(loanApp?.loanType || lead?.selectedProduct || 'Personal Loan');
+    const loanType = coerceLoanTypeCode(
+        String(loanApp?.loanType || lead?.selectedProduct || DEFAULT_LOAN_TYPE)
+    );
     const occupation = String(lead?.employmentType || '');
 
     const handleSaveLoanFormData = useCallback(

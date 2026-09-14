@@ -103,8 +103,9 @@ export function evaluateZipcode(
   _criteria: BlLenderCriteria,
   zipRows: Array<{ zipCode?: string | null; coversAllPincodes?: boolean; isActive?: boolean }>
 ): ConditionResult {
-  const formula = 'coversAllPincodes OR zipCode === applicantPin';
-  const threshold = { geographyAlwaysEvaluated: true };
+  const formula =
+    "loanType = 'BL' AND isActive AND (coversAllPincodes OR zipCode === applicantPin)";
+  const threshold = { geographyAlwaysEvaluated: true, loanType: 'BL' };
 
   if (!profile.pinCode) {
     return missingFail(step, 'BL-PINCODE', 'Zip / pincode coverage', formula, threshold);

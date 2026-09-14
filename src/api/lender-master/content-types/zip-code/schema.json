@@ -5,7 +5,7 @@
         "singularName": "zip-code",
         "pluralName": "zip-codes",
         "displayName": "Zip Codes",
-        "description": "Serviceable pincodes per lender"
+        "description": "Serviceable pincodes per lender and loan type"
     },
     "options": {
         "draftAndPublish": false
@@ -21,6 +21,16 @@
     "attributes": {
         "lenderCode": {
             "type": "string",
+            "required": true
+        },
+        "loanType": {
+            "type": "enumeration",
+            "enum": [
+                "PL",
+                "BL",
+                "HL",
+                "LAP"
+            ],
             "required": true
         },
         "zipCode": {

@@ -312,18 +312,30 @@ export function purgeExpiredCodeLogs(retentionDays: number): {
   return { deleted: deletedPaths.length, paths: deletedPaths };
 }
 
+import { isBusinessLoanType as isBusinessLoanTypeCode } from './loan-type';
+
+export {
+  coerceLoanTypeCode,
+  DEFAULT_LOAN_TYPE,
+  loanTypeLabel,
+  LOAN_TYPE_CODES,
+  normalizeLoanTypeCode,
+  type LoanTypeCode,
+} from './loan-type';
+
 /** Product folder under logs/: business-loan | personal-loan (default). */
 export type LoanLogProduct = 'business-loan' | 'personal-loan';
 
+/** True when loan type normalizes to BL (accepts legacy "Business Loan" and code BL). */
 export function isBusinessLoanType(
   loanType?: string | null
 ): boolean {
-  return /business\s*loan/i.test(String(loanType ?? '').trim());
+  return isBusinessLoanTypeCode(loanType);
 }
 
 /**
  * Resolve product folder from loanType / selectedProduct (or similar).
- * Anything other than Business Loan → personal-loan.
+ * Anything other than BL → personal-loan.
  */
 export function loanLogProduct(
   loanType?: string | null

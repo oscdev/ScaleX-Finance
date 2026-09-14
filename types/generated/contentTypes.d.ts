@@ -1351,11 +1351,9 @@ export interface ApiLenderMasterLenderScoringCriteria
     isActive: Schema.Attribute.Boolean &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<true>;
-    loanType: Schema.Attribute.Enumeration<
-      ['Personal Loan', 'Business Loan', 'Home Loan', 'LAP Loan']
-    > &
+    loanType: Schema.Attribute.Enumeration<['PL', 'BL', 'HL', 'LAP']> &
       Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'Personal Loan'>;
+      Schema.Attribute.DefaultTo<'PL'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1420,7 +1418,7 @@ export interface ApiLenderMasterLendersCatalog
 export interface ApiLenderMasterZipCode extends Struct.CollectionTypeSchema {
   collectionName: 'zip_codes_to_lenders';
   info: {
-    description: 'Serviceable pincodes per lender';
+    description: 'Serviceable pincodes per lender and loan type';
     displayName: 'Zip Codes';
     pluralName: 'zip-codes';
     singularName: 'zip-code';
@@ -1447,6 +1445,8 @@ export interface ApiLenderMasterZipCode extends Struct.CollectionTypeSchema {
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<true>;
     lenderCode: Schema.Attribute.String & Schema.Attribute.Required;
+    loanType: Schema.Attribute.Enumeration<['PL', 'BL', 'HL', 'LAP']> &
+      Schema.Attribute.Required;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1821,7 +1821,7 @@ export interface ApiLoanApplicationLoanApplication
     itrYear3: Schema.Attribute.Media<'files' | 'images'>;
     leadId: Schema.Attribute.Integer;
     loanAmount: Schema.Attribute.Decimal;
-    loanType: Schema.Attribute.String;
+    loanType: Schema.Attribute.Enumeration<['PL', 'BL', 'HL', 'LAP']>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',

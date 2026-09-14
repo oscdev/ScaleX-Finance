@@ -18,6 +18,7 @@ import { applyLeadTableOverride } from './overrides/leadTableOverride';
 import { applyAdvisorTableOverride } from './overrides/advisorTableOverride';
 import { applyRoleTabOverride } from './overrides/roleTabOverride';
 import { startInviteUserOverride } from './overrides/inviteUserOverride';
+import { shouldPauseAdminOverrides, registerAdminDropdownInteractionLock } from './overlayGuard';
 import adminOverridesCss from './admin-overrides.css?inline';
 
 if (typeof document !== 'undefined' && !document.getElementById('scalex-admin-overrides')) {
@@ -82,6 +83,13 @@ const prefetchAdvisorStatusMap = () => {
                     if (adv.id) (window as any).advisorStatusMap[adv.id] = adv.advisorStatus || 'Disapproved';
                     if (adv.documentId) (window as any).advisorStatusMap[adv.documentId] = adv.advisorStatus || 'Disapproved';
                     if (adv.id && adv.documentId) (window as any).advisorDocumentIdMap[adv.id] = adv.documentId;
+                    // ADV cell shows advisorId — map that too so Login/View resolve documentId
+                    const code = String(adv.advisorId ?? '')
+                        .replace(/^ADV/i, '')
+                        .trim();
+                    if (code && adv.documentId) {
+                        (window as any).advisorDocumentIdMap[code] = adv.documentId;
+                    }
                 });
                 setTimeout(initOverrides, 0);
             })
@@ -471,6 +479,14 @@ const ensureDebugBadge = () => {
 // ─── Main orchestrator ────────────────────────────────────────────────────────
 
 const initOverrides = () => {
+    // Opening a Strapi Combobox/Select mutates <main> and would re-run overrides
+    // mid-interaction (portal text rewrites / buttonHardening). Defer until closed.
+    if (shouldPauseAdminOverrides()) {
+        clearTimeout((window as any)._scalex_overlay_retry);
+        (window as any)._scalex_overlay_retry = setTimeout(initOverrides, 300);
+        return;
+    }
+
     if ((window as any)._is_running_overrides) return;
     (window as any)._is_running_overrides = true;
 
@@ -605,9 +621,15 @@ const loadAddNewLeadNavPermission = () => {
 export const startDomOverrides = () => {
     patchHistoryMethods();
     startInviteUserOverride(); // persistent MutationObserver — run once globally
+    registerAdminDropdownInteractionLock();
 
     let debounceTimer: any;
     const debouncedOverrides = () => {
+        if (shouldPauseAdminOverrides()) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(debouncedOverrides, 300);
+            return;
+        }
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(initOverrides, 150);
     };
@@ -662,6 +684,7 @@ export const startDomOverrides = () => {
                 return id.includes('custom') || id.endsWith('-overview-root') || !!t.closest('[id*="custom"], [id$="-overview-root"]');
             });
             if (fromOurs) return;
+            // debouncedOverrides itself defers while a dropdown is open/locked
             debouncedOverrides();
         });
         observer.observe(main, { childList: true, subtree: true });

@@ -34,9 +34,9 @@
     },
     "loanType": {
       "type": "enumeration",
-      "enum": ["Personal Loan", "Business Loan", "Home Loan", "LAP Loan"],
+      "enum": ["PL", "BL", "HL", "LAP"],
       "required": true,
-      "default": "Personal Loan"
+      "default": "PL"
     },
     "weight": {
       "type": "decimal",

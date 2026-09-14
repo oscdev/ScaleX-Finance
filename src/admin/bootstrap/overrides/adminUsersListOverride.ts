@@ -1,6 +1,8 @@
 // Admin Users list override: adds ID + Product columns, injects ID + Roles filter
 // controls INTO the existing Strapi search/filter toolbar row, and sorts by ID desc.
 
+import { markAdminDropdownInteraction, shouldPauseAdminOverrides } from '../overlayGuard';
+
 const FETCH_FLAG = '_admin_users_id_loaded';
 
 interface AdminUserEntry {
@@ -178,25 +180,231 @@ const findFilterToolbar = (): HTMLElement | null => {
 };
 
 const FILTER_CONTROLS_ID = 'custom-admin-users-filter-controls';
+const ROLE_DROPDOWN_ID = 'custom-admin-role-dropdown';
+
+/** One document-level closer — avoids orphan listeners when Strapi destroys the toolbar. */
+let roleDropdownOutsideCloser: ((ev: Event) => void) | null = null;
+
+const detachRoleDropdownOutsideCloser = () => {
+    if (!roleDropdownOutsideCloser) return;
+    document.removeEventListener('pointerdown', roleDropdownOutsideCloser, true);
+    roleDropdownOutsideCloser = null;
+};
+
+const attachRoleDropdownOutsideCloser = () => {
+    detachRoleDropdownOutsideCloser();
+    roleDropdownOutsideCloser = (ev: Event) => {
+        const live = document.getElementById(ROLE_DROPDOWN_ID);
+        if (!live || !live.isConnected) {
+            detachRoleDropdownOutsideCloser();
+            return;
+        }
+        if (!live.contains(ev.target as Node)) {
+            closeRoleDropdown();
+        }
+    };
+    document.addEventListener('pointerdown', roleDropdownOutsideCloser, true);
+};
+
+const isRoleDropdownOpen = () =>
+    document.getElementById(ROLE_DROPDOWN_ID)?.getAttribute('data-open') === 'true';
+
+const closeRoleDropdown = () => {
+    const root = document.getElementById(ROLE_DROPDOWN_ID);
+    if (!root) return;
+    root.setAttribute('data-open', 'false');
+    const btn = root.querySelector<HTMLElement>('#custom-admin-role-select');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+    const menu = root.querySelector<HTMLElement>('.custom-admin-role-menu');
+    if (menu) menu.style.display = 'none';
+};
+
+const syncRoleDropdownLabel = (role: string) => {
+    const root = document.getElementById(ROLE_DROPDOWN_ID);
+    if (!root) return;
+    const label = root.querySelector<HTMLElement>('.custom-admin-role-label');
+    if (label) label.textContent = role || 'All Roles';
+    root.setAttribute('data-role', role || '');
+    root.querySelectorAll<HTMLElement>('.custom-admin-role-option').forEach((opt) => {
+        const selected = (opt.getAttribute('data-value') || '') === (role || '');
+        opt.style.background = selected ? '#1d4ed8' : '#fff';
+        opt.style.color = selected ? '#fff' : '#32324d';
+        opt.style.fontWeight = selected ? '600' : '400';
+    });
+};
+
+const removeFilterControls = () => {
+    detachRoleDropdownOutsideCloser();
+    const existing = document.getElementById(FILTER_CONTROLS_ID);
+    if (!existing) return;
+    existing.remove();
+};
+
+const buildRoleDropdown = (
+    roles: string[],
+    activeRole: string,
+    onRoleChange: (role: string) => void
+): HTMLElement => {
+    const root = document.createElement('div');
+    root.id = ROLE_DROPDOWN_ID;
+    root.setAttribute('data-open', 'false');
+    root.setAttribute('data-role', activeRole || '');
+    Object.assign(root.style, {
+        position: 'relative',
+        width: '150px',
+        flexShrink: '0',
+    });
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'custom-admin-role-select';
+    btn.setAttribute('aria-haspopup', 'listbox');
+    btn.setAttribute('aria-expanded', 'false');
+    Object.assign(btn.style, {
+        height: '32px',
+        width: '100%',
+        padding: '0 10px',
+        border: '1px solid #dcdce4',
+        borderRadius: '4px',
+        fontSize: '13px',
+        fontFamily: 'inherit',
+        color: '#32324d',
+        background: '#fff',
+        outline: 'none',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '6px',
+        boxSizing: 'border-box',
+    } as Partial<CSSStyleDeclaration>);
+
+    const label = document.createElement('span');
+    label.className = 'custom-admin-role-label';
+    label.textContent = activeRole || 'All Roles';
+    Object.assign(label.style, {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        flex: '1',
+        textAlign: 'left',
+    });
+
+    const chevron = document.createElement('span');
+    chevron.textContent = '▼';
+    Object.assign(chevron.style, { fontSize: '10px', color: '#8e8ea9', flexShrink: '0' });
+
+    btn.appendChild(label);
+    btn.appendChild(chevron);
+
+    const menu = document.createElement('div');
+    menu.className = 'custom-admin-role-menu';
+    menu.setAttribute('role', 'listbox');
+    Object.assign(menu.style, {
+        display: 'none',
+        position: 'absolute',
+        top: 'calc(100% + 4px)',
+        left: '0',
+        right: '0',
+        zIndex: '10000',
+        background: '#fff',
+        border: '1px solid #dcdce4',
+        borderRadius: '4px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+        maxHeight: '240px',
+        overflowY: 'auto',
+    } as Partial<CSSStyleDeclaration>);
+
+    ['', ...roles].forEach((r) => {
+        const opt = document.createElement('div');
+        opt.className = 'custom-admin-role-option';
+        opt.setAttribute('role', 'option');
+        opt.setAttribute('data-value', r);
+        opt.textContent = r || 'All Roles';
+        const selected = r === (activeRole || '');
+        Object.assign(opt.style, {
+            padding: '8px 10px',
+            fontSize: '13px',
+            cursor: 'pointer',
+            background: selected ? '#1d4ed8' : '#fff',
+            color: selected ? '#fff' : '#32324d',
+            fontWeight: selected ? '600' : '400',
+        } as Partial<CSSStyleDeclaration>);
+        opt.addEventListener('mouseenter', () => {
+            if (opt.getAttribute('data-value') !== (root.getAttribute('data-role') || '')) {
+                opt.style.background = '#f0f0ff';
+                opt.style.color = '#32324d';
+            }
+        });
+        opt.addEventListener('mouseleave', () => {
+            const isSel = opt.getAttribute('data-value') === (root.getAttribute('data-role') || '');
+            opt.style.background = isSel ? '#1d4ed8' : '#fff';
+            opt.style.color = isSel ? '#fff' : '#32324d';
+        });
+        opt.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const value = opt.getAttribute('data-value') || '';
+            syncRoleDropdownLabel(value);
+            closeRoleDropdown();
+            onRoleChange(value);
+        });
+        menu.appendChild(opt);
+    });
+
+    const openMenu = () => {
+        root.setAttribute('data-open', 'true');
+        btn.setAttribute('aria-expanded', 'true');
+        menu.style.display = 'block';
+        markAdminDropdownInteraction();
+    };
+
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (root.getAttribute('data-open') === 'true') {
+            closeRoleDropdown();
+        } else {
+            openMenu();
+        }
+    });
+
+    root.appendChild(btn);
+    root.appendChild(menu);
+    attachRoleDropdownOutsideCloser();
+    return root;
+};
 
 const ensureFilterControls = (roles: string[]) => {
     const toolbar = findFilterToolbar();
     if (!toolbar) return;
 
-    const existing = document.getElementById(FILTER_CONTROLS_ID);
-    if (existing && !toolbar.contains(existing)) existing.remove();
-    if (toolbar.contains(document.getElementById(FILTER_CONTROLS_ID))) {
-        const sel = toolbar.querySelector<HTMLSelectElement>('#custom-admin-role-select');
-        if (sel && sel.options.length - 1 < roles.length) {
-            while (sel.options.length > 1) sel.remove(1);
-            roles.forEach((r) => {
-                const opt = document.createElement('option');
-                opt.value = r; opt.textContent = r;
-                sel.appendChild(opt);
-            });
-        }
-        return;
+    // Never tear down / relocate while Roles menu is open or overrides are paused
+    if (isRoleDropdownOpen() || shouldPauseAdminOverrides()) {
+        if (document.getElementById(FILTER_CONTROLS_ID)) return;
     }
+
+    const existing = document.getElementById(FILTER_CONTROLS_ID);
+    if (existing && !toolbar.contains(existing)) {
+        removeFilterControls();
+    }
+
+    const mounted = document.getElementById(FILTER_CONTROLS_ID);
+    if (mounted && toolbar.contains(mounted)) {
+        const root = document.getElementById(ROLE_DROPDOWN_ID);
+        const optionCount =
+            root?.querySelectorAll('.custom-admin-role-option').length || 0;
+        if (root && optionCount >= roles.length + 1) {
+            syncRoleDropdownLabel(
+                new URLSearchParams(window.location.search).get('_frole') || getFilter().role
+            );
+            return;
+        }
+        // Role list grew — rebuild once while closed
+        removeFilterControls();
+    }
+
+    if (document.getElementById(FILTER_CONTROLS_ID)) return;
 
     const wrap = document.createElement('div');
     wrap.id = FILTER_CONTROLS_ID;
@@ -225,28 +433,15 @@ const ensureFilterControls = (roles: string[]) => {
     idInput.id = 'custom-admin-id-filter';
     idInput.placeholder = 'Filter by ID';
     Object.assign(idInput.style, { ...sharedInput, width: '120px' });
-    // Pre-fill from URL params (source of truth after re-renders) with window state as fallback
     const _urlParams = new URLSearchParams(window.location.search);
     idInput.value = _urlParams.get('_fid') || getFilter().id;
 
-    // Role select
-    const roleSelect = document.createElement('select');
-    roleSelect.id = 'custom-admin-role-select';
-    Object.assign(roleSelect.style, { ...sharedInput, width: '150px', cursor: 'pointer' });
-    const allOpt = document.createElement('option');
-    allOpt.value = ''; allOpt.textContent = 'All Roles';
-    roleSelect.appendChild(allOpt);
     const _activeRole = _urlParams.get('_frole') || getFilter().role;
-    roles.forEach((r) => {
-        const opt = document.createElement('option');
-        opt.value = r; opt.textContent = r;
-        if (r === _activeRole) opt.selected = true;
-        roleSelect.appendChild(opt);
-    });
 
     // Clear button — only shown when a filter is active
     const clearBtn = document.createElement('button');
     clearBtn.id = 'custom-admin-filter-clear';
+    clearBtn.type = 'button';
     clearBtn.textContent = '✕ Clear';
     Object.assign(clearBtn.style, {
         height: '32px',
@@ -267,13 +462,14 @@ const ensureFilterControls = (roles: string[]) => {
         clearBtn.style.display = id || role ? '' : 'none';
     };
 
-    idInput.addEventListener('input', () => {
-        setFilter({ id: idInput.value.trim() });
+    const roleDropdown = buildRoleDropdown(roles, _activeRole, (role) => {
+        setFilter({ role });
         updateClearVisibility();
         triggerStrapiRefetch();
     });
-    roleSelect.addEventListener('change', () => {
-        setFilter({ role: roleSelect.value });
+
+    idInput.addEventListener('input', () => {
+        setFilter({ id: idInput.value.trim() });
         updateClearVisibility();
         triggerStrapiRefetch();
     });
@@ -281,13 +477,14 @@ const ensureFilterControls = (roles: string[]) => {
         e.stopPropagation();
         setFilter({ id: '', role: '' });
         idInput.value = '';
-        roleSelect.value = '';
+        syncRoleDropdownLabel('');
+        closeRoleDropdown();
         updateClearVisibility();
         triggerStrapiRefetch();
     });
 
     wrap.appendChild(idInput);
-    wrap.appendChild(roleSelect);
+    wrap.appendChild(roleDropdown);
     wrap.appendChild(clearBtn);
     toolbar.appendChild(wrap);
 };
@@ -438,9 +635,15 @@ export const applyAdminUsersListOverride = (commonHeaders: Record<string, string
         (window as any).adminUsersFullList = undefined;
         (window as any).adminUserEmailIdMap = undefined;
         (window as any)._staffProductMap = undefined;
-        document.getElementById(FILTER_CONTROLS_ID)?.remove();
+        // Don't remove filter controls while the user is interacting with them
+        if (!shouldPauseAdminOverrides() && !isRoleDropdownOpen()) {
+            removeFilterControls();
+        }
         return;
     }
+
+    // Avoid table/filter DOM churn while a select/filter popover is open
+    if (shouldPauseAdminOverrides()) return;
 
     cleanUrl();
 

@@ -52,7 +52,7 @@ export async function runFullScoringPipeline(
   return {
     leadId,
     runId: eligResult.runId,
-    loanType: 'Personal Loan',
+    loanType: 'PL',
     scored,
     rank,
   };

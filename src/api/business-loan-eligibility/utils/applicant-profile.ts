@@ -1,5 +1,6 @@
 import type { BlApplicantProfile, ConnectionFailure, WriteOffAccount } from './types';
 import { BlErr } from './error-codes';
+import { normalizeLoanTypeCode } from '../../../utils/loan-type';
 
 function toNum(v: unknown): number | null {
   if (v == null || v === '') return null;
@@ -296,7 +297,7 @@ export async function buildBlApplicantProfile(
   const existingTotalEmi = deriveFoirEmi(openAccounts);
   const requestedAmount = toNum(lead.requiredAmount ?? lead.required_amount);
   const loanAmount = toNum(loan?.loanAmount ?? loan?.loan_amount);
-  const loanType =
+  const loanTypeRaw =
     loan?.loanType != null
       ? String(loan.loanType)
       : loan?.loan_type != null
@@ -304,6 +305,7 @@ export async function buildBlApplicantProfile(
         : lead.selectedProduct != null
           ? String(lead.selectedProduct)
           : null;
+  const loanType = normalizeLoanTypeCode(loanTypeRaw) ?? 'BL';
 
   const dpd = derivePaymentHistoryMonths(openAccounts, asOf);
   const enq = deriveEnquiries(enquiries, asOf);

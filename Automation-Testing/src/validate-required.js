@@ -91,7 +91,11 @@ export function getLoanAppFormRequiredErrors(payload) {
     errors.push('Declaration must be accepted');
   }
 
-  if (loanType === 'Business Loan') {
+  const isBl =
+    loanType === 'BL' ||
+    String(loanType || '').trim().toLowerCase() === 'business loan';
+
+  if (isBl) {
     const biz = form.businessDetails || {};
     if (!biz.name) errors.push('Business Name is required');
     if (!biz.premises) errors.push('Business Premises is required');
@@ -150,31 +154,34 @@ export function getLoanAppMediaRequiredErrors(payload) {
   const loanType = payload?.loanType;
   const form = payload?.form_data || {};
 
-  const requiredMedia =
-    loanType === 'Business Loan'
-      ? [
-          ['aadharCardFront', 'Aadhaar Card (Front)'],
-          ['aadharCardBack', 'Aadhaar Card (Back)'],
-          ['panCard', 'PAN Card'],
-          ['cibilReport', 'CIBIL Report'],
-          ['bankStatement', 'Bank Statement'],
-          ['itrYear1', 'ITR (1st Year)'],
-          ['proprietorshipDoc', 'Business Type document'],
-        ]
-      : [
-          ['aadharCardFront', 'Aadhaar Card (Front)'],
-          ['aadharCardBack', 'Aadhaar Card (Back)'],
-          ['panCard', 'PAN Card'],
-          ['cibilReport', 'CIBIL Report'],
-          ['bankStatement', '6 Month Bank Statement'],
-          ['salarySlips', 'Salary Slip 1 year'],
-        ];
+  const isBl =
+    loanType === 'BL' ||
+    String(loanType || '').trim().toLowerCase() === 'business loan';
+
+  const requiredMedia = isBl
+    ? [
+        ['aadharCardFront', 'Aadhaar Card (Front)'],
+        ['aadharCardBack', 'Aadhaar Card (Back)'],
+        ['panCard', 'PAN Card'],
+        ['cibilReport', 'CIBIL Report'],
+        ['bankStatement', 'Bank Statement'],
+        ['itrYear1', 'ITR (1st Year)'],
+        ['proprietorshipDoc', 'Business Type document'],
+      ]
+    : [
+        ['aadharCardFront', 'Aadhaar Card (Front)'],
+        ['aadharCardBack', 'Aadhaar Card (Back)'],
+        ['panCard', 'PAN Card'],
+        ['cibilReport', 'CIBIL Report'],
+        ['bankStatement', '6 Month Bank Statement'],
+        ['salarySlips', 'Salary Slip 1 year'],
+      ];
 
   for (const [field, label] of requiredMedia) {
     if (!hasMediaId(payload?.[field])) errors.push(`${label} document is required`);
   }
 
-  if (loanType !== 'Business Loan') return errors;
+  if (!isBl) return errors;
 
   const biz = form.businessDetails || {};
   if (biz.auditedBooks === true && !hasMediaId(payload.auditedBooksDoc)) {

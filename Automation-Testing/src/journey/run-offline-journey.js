@@ -51,7 +51,10 @@ function evaluatePlStep(ruleId, customer, bureau, failLab) {
     case 'PL-PRE-ACTIVE':
       return { result: 'PASS', evaluation: 'catalog.isActive=true && criteria.isActive=true → PASS' };
     case 'PL-PINCODE':
-      return { result: 'PASS', evaluation: `zipCode=440001 === applicantPin=${pin} → PASS` };
+      return {
+        result: 'PASS',
+        evaluation: `loanType=Personal Loan AND zipCode=440001 === applicantPin=${pin} → PASS`,
+      };
     case 'PL-CIBIL': {
       const min = failLab ? 800 : 650;
       const ok = cibil >= min;
@@ -101,7 +104,10 @@ function evaluateBlStep(ruleId, customer, bureau, failLab) {
     case 'BL-ACTIVE':
       return { result: 'PASS', evaluation: 'active lender → PASS' };
     case 'BL-PINCODE':
-      return { result: 'PASS', evaluation: 'pincode serviceable → PASS' };
+      return {
+        result: 'PASS',
+        evaluation: 'loanType=Business Loan AND pincode serviceable → PASS',
+      };
     case 'BL-CIBIL':
       return { result: 'PASS', evaluation: `${bureau.cibil_score ?? 750} >= 650 → PASS` };
     case 'BL-CURRENT-OVERDUE':
@@ -334,7 +340,7 @@ export async function runOfflineJourney(opts = {}) {
       leadId: 'offline',
       leadName: customer.fullName,
       source: failLab ? 'offline-fail-lab' : 'offline-journey',
-      loanType: isBl ? 'Business Loan' : 'Personal Loan',
+      loanType: isBl ? 'BL' : 'PL',
       failLab,
       profile: {
         pin: customer.pincode,

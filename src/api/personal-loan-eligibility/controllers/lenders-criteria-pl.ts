@@ -2,6 +2,7 @@ import { factories } from '@strapi/strapi';
 import { PlEligibilityError } from '../utils/error-codes';
 import { BlEligibilityError } from '../../business-loan-eligibility/utils/error-codes';
 import {
+  DEFAULT_LOAN_TYPE,
   isBusinessLoanType,
   loanLogProduct,
   resolveLeadLoanTypeFromDb,
@@ -69,7 +70,7 @@ function formatBlMatchedBody(result: any, source: string) {
   return {
     leadId: result.leadId,
     leadName: result.profile?.fullName ?? null,
-    loanType: result.loanType || 'Business Loan',
+    loanType: result.loanType || 'BL',
     source,
     runId: result.runId,
     pipeline: scoring ? ['ELIGIBILITY', 'SCORING', 'RANK'] : ['ELIGIBILITY'],
@@ -125,7 +126,7 @@ function formatPlMatchedBody(result: any) {
 
   return {
     leadId: result.leadId,
-    loanType: 'Personal Loan',
+    loanType: 'PL',
     runId: result.runId,
     lenders: lendersList,
     excluded: result.response.excluded,
@@ -164,7 +165,7 @@ export default factories.createCoreController(
           return;
         }
         const loanType =
-          (await resolveLeadLoanTypeFromDb(strapi, leadId)) || 'Personal Loan';
+          (await resolveLeadLoanTypeFromDb(strapi, leadId)) || DEFAULT_LOAN_TYPE;
         ctx.body = {
           leadId,
           loanType,
@@ -231,7 +232,7 @@ export default factories.createCoreController(
           ctx.body = {
             leadId: result.leadId,
             runId: result.runId,
-            loanType: result.loanType || 'Business Loan',
+            loanType: result.loanType || 'BL',
             lenderCode,
             eligible: one?.eligible ?? false,
             rules: one?.conditions || [],
@@ -251,7 +252,7 @@ export default factories.createCoreController(
         ctx.body = {
           leadId: result.leadId,
           runId: result.runId,
-          loanType: 'Personal Loan',
+          loanType: 'PL',
           lenderCode,
           eligible: one?.eligible ?? false,
           rules: one?.conditions || [],

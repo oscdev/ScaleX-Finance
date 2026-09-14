@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Box, Typography, Flex, Badge } from '@strapi/design-system';
-import { getToken, PRODUCT_CONFIG, PRODUCT_OPTIONS } from '../LeadViewDashboard/useLeadViewDashboard';
+import { getToken, PRODUCT_OPTIONS, resolveProductConfig } from '../LeadViewDashboard/useLeadViewDashboard';
+import { coerceLoanTypeCode, loanTypeLabel } from '../../utils/loan-type';
 import { styles } from '../LeadViewDashboard/styles';
 import { EditableField } from './EditableField';
 import { SearchableEditableField, type SearchableOption } from './SearchableEditableField';
@@ -123,7 +124,11 @@ export const LeadInfoSummary = ({
     );
 
     const productOptions = useMemo(
-        () => PRODUCT_OPTIONS.map((p) => ({ value: p, label: p })),
+        () =>
+            PRODUCT_OPTIONS.map((p) => ({
+                value: p,
+                label: loanTypeLabel(p),
+            })),
         []
     );
 
@@ -138,7 +143,8 @@ export const LeadInfoSummary = ({
 
     const displayName = previewName ?? lead.fullName ?? 'N/A';
 
-    const config = PRODUCT_CONFIG[productType] || PRODUCT_CONFIG['Personal Loan'];
+    const productCode = coerceLoanTypeCode(productType);
+    const config = resolveProductConfig(productType);
     const requiredAmount = lead.requiredAmount;
     const requiredAmountNum = typeof requiredAmount === 'number'
         ? requiredAmount
@@ -149,8 +155,8 @@ export const LeadInfoSummary = ({
     const metrics = [
         {
             label: 'Product',
-            val: productType,
-            rawVal: String(lead.selectedProduct || productType),
+            val: loanTypeLabel(productCode),
+            rawVal: coerceLoanTypeCode(String(lead.selectedProduct || productCode)),
             editKey: 'selectedProduct',
             editType: 'select' as const,
             options: productOptions,

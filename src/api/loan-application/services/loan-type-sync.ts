@@ -3,6 +3,7 @@ import {
   loanTypeFromLead,
   readDbString,
 } from '../../../utils/code-file-logger';
+import { coerceLoanTypeCode } from '../../../utils/loan-type';
 
 /** Keep loan-application.loanType aligned with lead.selectedProduct on create/update. */
 export async function syncLoanTypeFromLeadOnWrite(
@@ -22,21 +23,29 @@ export async function syncLoanTypeFromLeadOnWrite(
     where: { id: leadId },
   });
   const selectedProduct = loanTypeFromLead(lead);
-  if (!selectedProduct) return;
+  if (!selectedProduct) {
+    // Still coerce any explicit loanType on the payload to a canonical code.
+    const raw = readDbString(data, 'loanType', 'loan_type');
+    if (raw) data.loanType = coerceLoanTypeCode(raw);
+    return;
+  }
+
+  const selectedCode = coerceLoanTypeCode(selectedProduct);
 
   const currentLoanType =
     readDbString(data, 'loanType', 'loan_type') ??
     readDbString(existing ?? undefined, 'loanType', 'loan_type');
 
   if (!currentLoanType) {
-    data.loanType = selectedProduct;
+    data.loanType = selectedCode;
     return;
   }
 
-  if (currentLoanType !== selectedProduct) {
+  const currentCode = coerceLoanTypeCode(currentLoanType);
+  if (currentCode !== selectedCode) {
     strapi.log.warn(
-      `[LoanType] leadId=${leadId} loanApp.loanType=${currentLoanType} != lead.selectedProduct=${selectedProduct}; syncing loanType`
+      `[LoanType] leadId=${leadId} loanApp.loanType=${currentLoanType} != lead.selectedProduct=${selectedProduct}; syncing loanType=${selectedCode}`
     );
-    data.loanType = selectedProduct;
   }
+  data.loanType = selectedCode;
 }

@@ -12,6 +12,14 @@ import PersonalLoanFunnel from './funnels/PersonalLoanFunnel';
 import HomeLoanFunnel from './funnels/HomeLoanFunnel';
 import LAPFunnel from './funnels/LAPFunnel';
 import { AdvisorReferralField } from './LeadFields';
+import {
+    coerceLoanTypeCode,
+    isBusinessLoanType,
+    isHomeLoanType,
+    isLapLoanType,
+    isPersonalLoanType,
+    loanTypeLabel,
+} from '@/lib/loanType';
 
 export const dynamic = 'force-dynamic';
 
@@ -98,14 +106,14 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
         else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCard.toUpperCase())) newErrors.panCard = 'Invalid Pan Card';
 
         // Conditional fields
-        if (product?.includes('LAP')) {
+        if (isLapLoanType(product)) {
             if (!formData.propertyType) newErrors.propertyType = 'Property Type is required';
             if (!formData.propertyStatus) newErrors.propertyStatus = 'Property Status is required';
             if (!formData.propertyValue) newErrors.propertyValue = 'Property Value is required';
             if (!formData.employmentType) newErrors.employmentType = 'Occupation is required';
         }
 
-        if (product === 'Home Loan') {
+        if (isHomeLoanType(product)) {
             if (!formData.leadType) newErrors.leadType = 'Lead Type is required';
             if (!formData.employmentType) newErrors.employmentType = 'Occupation is required';
         }
@@ -140,7 +148,9 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
                         mobileNumber: formData.mobileNumber,
                         pinCode: formData.pinCode,
                         advisorReferralId: formData.advisorReferralId || null,
-                        selectedProduct: formData.selectedProduct || null,
+                        selectedProduct: formData.selectedProduct
+                            ? coerceLoanTypeCode(formData.selectedProduct)
+                            : null,
                         aadharCard: formData.aadharCard,
                         panCard: formData.panCard,
                         propertyType: formData.propertyType || null,
@@ -227,8 +237,8 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
             <section className="lead-form-section">
                 <div className="lead-form-success-container animate-fade-in delay-200">
                     <div className="lead-form-card lead-form-success-card">
-                        <h2 className="lead-form-success-title">{formData.selectedProduct} Submitted!</h2>
-                        <p className="lead-form-success-text">Thank you for submitting your lead application for <strong>{formData.selectedProduct}</strong>. Please proceed to fill out the detailed loan application form.</p>
+                        <h2 className="lead-form-success-title">{loanTypeLabel(formData.selectedProduct)} Submitted!</h2>
+                        <p className="lead-form-success-text">Thank you for submitting your lead application for <strong>{loanTypeLabel(formData.selectedProduct)}</strong>. Please proceed to fill out the detailed loan application form.</p>
                         <button
                             className="btn btn-primary"
                             onClick={() => router.push('/loan-application')}>
@@ -246,23 +256,26 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
 
     const renderFunnelFields = () => {
         const product = formData.selectedProduct;
-        if (product?.includes('LAP')) {
+        if (isLapLoanType(product)) {
             return <LAPFunnel formData={formData} errors={errors} handleChange={handleChange} pageInfo={pageInfo} />;
         }
-        if (product === 'Home Loan') {
+        if (isHomeLoanType(product)) {
             return <HomeLoanFunnel formData={formData} errors={errors} handleChange={handleChange} pageInfo={pageInfo} />;
         }
-        if (product === 'Personal Loan') {
+        if (isPersonalLoanType(product)) {
             return <PersonalLoanFunnel formData={formData} errors={errors} handleChange={handleChange} pageInfo={pageInfo} />;
         }
-        return <BusinessLoanFunnel formData={formData} errors={errors} handleChange={handleChange} pageInfo={pageInfo} />;
+        if (isBusinessLoanType(product)) {
+            return <BusinessLoanFunnel formData={formData} errors={errors} handleChange={handleChange} pageInfo={pageInfo} />;
+        }
+        return <PersonalLoanFunnel formData={formData} errors={errors} handleChange={handleChange} pageInfo={pageInfo} />;
     };
 
     return (
         <section className="lead-form-section">
             <div className="lead-form-container animate-fade-in delay-200">
                 <h2 className="lead-form-title">
-                    {formData.selectedProduct ? `${formData.selectedProduct} Lead Form` : 'Lead Form'}
+                    {formData.selectedProduct ? `${loanTypeLabel(formData.selectedProduct)} Lead Form` : 'Lead Form'}
                 </h2>
                 <form className="lead-form-card" onSubmit={handleSubmit}>
                     

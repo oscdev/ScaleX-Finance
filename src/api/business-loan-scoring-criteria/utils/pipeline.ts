@@ -24,7 +24,7 @@ export async function runFullBlScoringPipeline(
     leadId,
     profile.fullName,
     strapi,
-    { overwriteLeadLog: true, loanType: 'Business Loan' }
+    { overwriteLeadLog: true, loanType: 'BL' }
   );
 
   const criteriaRows = await strapi.db
@@ -40,7 +40,7 @@ export async function runFullBlScoringPipeline(
   const scored = await scoring.scoreEligibleLenders({
     leadId,
     runId: eligResult.runId,
-    loanType: 'Business Loan',
+    loanType: 'BL',
     profile,
     eligibleLenders: eligResult.response.eligible,
     criteriaByCode,
@@ -56,7 +56,7 @@ export async function runFullBlScoringPipeline(
   return {
     leadId,
     runId: eligResult.runId,
-    loanType: 'Business Loan',
+    loanType: 'BL',
     scored,
     rank,
   };

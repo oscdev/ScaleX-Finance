@@ -33,11 +33,19 @@ export const catalogLender = {
 };
 
 export const zipRowsPass = [
-  { zipCode: '110001', coversAllPincodes: false, isActive: true, lenderCode: 'FIXT' },
+  { zipCode: '110001', coversAllPincodes: false, isActive: true, lenderCode: 'FIXT', loanType: 'PL' },
 ];
 
 export const zipRowsFail = [
-  { zipCode: '400001', coversAllPincodes: false, isActive: true, lenderCode: 'FIXT' },
+  { zipCode: '400001', coversAllPincodes: false, isActive: true, lenderCode: 'FIXT', loanType: 'PL' },
+];
+
+export const blZipRowsPass = [
+  { zipCode: '110001', coversAllPincodes: false, isActive: true, lenderCode: 'FIXT', loanType: 'BL' },
+];
+
+export const blZipRowsFail = [
+  { zipCode: '400001', coversAllPincodes: false, isActive: true, lenderCode: 'FIXT', loanType: 'BL' },
 ];
 
 export const plLenderCriteriaPass = {
@@ -134,7 +142,7 @@ export const blApplicantProfilePass = {
   pinCode: '110001',
   requestedAmount: 1500000,
   loanAmount: 1500000,
-  loanType: 'Business Loan',
+  loanType: 'BL',
   applicationDate: new Date('2026-09-01'),
   entityType: 'Proprietorship',
   turnoverLakh: 50,
@@ -163,38 +171,38 @@ export const blApplicantProfilePass = {
 
 /** PL scoring catalog rows — weights sum to 100 (matches seed SQL). */
 export const plScoringCatalog = [
-  { criterionCode: 'CIBIL_SCORE', criterionName: 'CIBIL Score', category: 'Credit', loanType: 'Personal Loan', weight: 20, ruleType: 'FORMULA', rules: null, isActive: true },
-  { criterionCode: 'FOIR_CHECK', criterionName: 'FOIR Check', category: 'Credit', loanType: 'Personal Loan', weight: 15, ruleType: 'FORMULA', rules: null, isActive: true },
-  { criterionCode: 'DPD_LAST_3M', criterionName: 'DPD Last 3 Months', category: 'Credit', loanType: 'Personal Loan', weight: 10, ruleType: 'JSON', rules: { 0: 10, 2: 8, 4: 6, 6: 4, 8: 2 }, isActive: true },
-  { criterionCode: 'DPD_LAST_12M', criterionName: 'DPD Last 12 Months', category: 'Credit', loanType: 'Personal Loan', weight: 8, ruleType: 'JSON', rules: { 2: 8, 5: 6, 8: 4, 12: 2 }, isActive: true },
-  { criterionCode: 'CC_UTILIZATION', criterionName: 'CC Utilization', category: 'Credit', loanType: 'Personal Loan', weight: 5, ruleType: 'JSON', rules: { 50: 5, 70: 3, 80: 1 }, isActive: true },
-  { criterionCode: 'ACTIVE_UNSECURED', criterionName: 'Active Unsecured Loans', category: 'Credit', loanType: 'Personal Loan', weight: 5, ruleType: 'JSON', rules: { 0: 5, 2: 3, 4: 2, 8: 1 }, isActive: true },
-  { criterionCode: 'ENQUIRIES_3M', criterionName: 'Enquiries (3 Months)', category: 'Credit', loanType: 'Personal Loan', weight: 4, ruleType: 'JSON', rules: { 0: 4, 3: 2, 6: 1 }, isActive: true },
-  { criterionCode: 'MONTHLY_INCOME', criterionName: 'Monthly Income vs Threshold', category: 'Business', loanType: 'Personal Loan', weight: 10, ruleType: 'FORMULA', rules: null, isActive: true },
-  { criterionCode: 'JOB_EXPERIENCE', criterionName: 'Job Experience', category: 'Business', loanType: 'Personal Loan', weight: 7, ruleType: 'FORMULA', rules: null, isActive: true },
-  { criterionCode: 'ROI_COMPETITIVENESS', criterionName: 'ROI Competitiveness', category: 'Loan', loanType: 'Personal Loan', weight: 9, ruleType: 'JSON', rules: { 11: 9, 13: 7, 15: 5, 20: 3, 25: 1 }, isActive: true },
-  { criterionCode: 'MAX_LOAN_ADEQUACY', criterionName: 'Max Loan Adequacy', category: 'Loan', loanType: 'Personal Loan', weight: 7, ruleType: 'JSON+FORMULA', rules: { 50: 7, 75: 4 }, isActive: true },
+  { criterionCode: 'CIBIL_SCORE', criterionName: 'CIBIL Score', category: 'Credit', loanType: 'PL', weight: 20, ruleType: 'FORMULA', rules: null, isActive: true },
+  { criterionCode: 'FOIR_CHECK', criterionName: 'FOIR Check', category: 'Credit', loanType: 'PL', weight: 15, ruleType: 'FORMULA', rules: null, isActive: true },
+  { criterionCode: 'DPD_LAST_3M', criterionName: 'DPD Last 3 Months', category: 'Credit', loanType: 'PL', weight: 10, ruleType: 'JSON', rules: { 0: 10, 2: 8, 4: 6, 6: 4, 8: 2 }, isActive: true },
+  { criterionCode: 'DPD_LAST_12M', criterionName: 'DPD Last 12 Months', category: 'Credit', loanType: 'PL', weight: 8, ruleType: 'JSON', rules: { 2: 8, 5: 6, 8: 4, 12: 2 }, isActive: true },
+  { criterionCode: 'CC_UTILIZATION', criterionName: 'CC Utilization', category: 'Credit', loanType: 'PL', weight: 5, ruleType: 'JSON', rules: { 50: 5, 70: 3, 80: 1 }, isActive: true },
+  { criterionCode: 'ACTIVE_UNSECURED', criterionName: 'Active Unsecured Loans', category: 'Credit', loanType: 'PL', weight: 5, ruleType: 'JSON', rules: { 0: 5, 2: 3, 4: 2, 8: 1 }, isActive: true },
+  { criterionCode: 'ENQUIRIES_3M', criterionName: 'Enquiries (3 Months)', category: 'Credit', loanType: 'PL', weight: 4, ruleType: 'JSON', rules: { 0: 4, 3: 2, 6: 1 }, isActive: true },
+  { criterionCode: 'MONTHLY_INCOME', criterionName: 'Monthly Income vs Threshold', category: 'Business', loanType: 'PL', weight: 10, ruleType: 'FORMULA', rules: null, isActive: true },
+  { criterionCode: 'JOB_EXPERIENCE', criterionName: 'Job Experience', category: 'Business', loanType: 'PL', weight: 7, ruleType: 'FORMULA', rules: null, isActive: true },
+  { criterionCode: 'ROI_COMPETITIVENESS', criterionName: 'ROI Competitiveness', category: 'Loan', loanType: 'PL', weight: 9, ruleType: 'JSON', rules: { 11: 9, 13: 7, 15: 5, 20: 3, 25: 1 }, isActive: true },
+  { criterionCode: 'MAX_LOAN_ADEQUACY', criterionName: 'Max Loan Adequacy', category: 'Loan', loanType: 'PL', weight: 7, ruleType: 'JSON+FORMULA', rules: { 50: 7, 75: 4 }, isActive: true },
 ];
 
 /** BL scoring catalog rows — weights sum to 100; STATIC ITR/reg-proof at 3 each. */
 export const blScoringCatalog = [
-  { criterionCode: 'CIBIL_SCORE', criterionName: 'CIBIL Score', category: 'Credit', loanType: 'Business Loan', weight: 20, ruleType: 'FORMULA', rules: null, isActive: true },
-  { criterionCode: 'FOIR_CHECK', criterionName: 'FOIR Check', category: 'Credit', loanType: 'Business Loan', weight: 15, ruleType: 'FORMULA', rules: null, isActive: true },
-  { criterionCode: 'DPD_LAST_3M', criterionName: 'DPD Last 3 Months', category: 'Credit', loanType: 'Business Loan', weight: 10, ruleType: 'JSON', rules: { 0: 10, 2: 8, 4: 6, 6: 4, 8: 2 }, isActive: true },
-  { criterionCode: 'DPD_LAST_12M', criterionName: 'DPD Last 12 Months', category: 'Credit', loanType: 'Business Loan', weight: 8, ruleType: 'JSON', rules: { 2: 8, 5: 6, 8: 4, 12: 2 }, isActive: true },
-  { criterionCode: 'CC_UTILIZATION', criterionName: 'CC Utilization', category: 'Credit', loanType: 'Business Loan', weight: 5, ruleType: 'JSON', rules: { 50: 5, 70: 3, 80: 1 }, isActive: true },
-  { criterionCode: 'ACTIVE_UNSECURED', criterionName: 'Active Unsecured Loans', category: 'Credit', loanType: 'Business Loan', weight: 5, ruleType: 'JSON', rules: { 0: 5, 2: 3, 4: 2, 8: 1 }, isActive: true },
-  { criterionCode: 'ENQUIRIES_3M', criterionName: 'Enquiries (3 Months)', category: 'Credit', loanType: 'Business Loan', weight: 4, ruleType: 'JSON', rules: { 0: 4, 3: 2, 6: 1 }, isActive: true },
-  { criterionCode: 'ANNUAL_TURNOVER', criterionName: 'Annual Turnover vs Threshold', category: 'Business', loanType: 'Business Loan', weight: 10, ruleType: 'FORMULA', rules: null, isActive: true },
-  { criterionCode: 'BUSINESS_VINTAGE', criterionName: 'Business Vintage', category: 'Business', loanType: 'Business Loan', weight: 7, ruleType: 'FORMULA', rules: null, isActive: true },
-  { criterionCode: 'ITR_DOCUMENTATION', criterionName: 'ITR & Documentation', category: 'Business', loanType: 'Business Loan', weight: 3, ruleType: 'STATIC', rules: null, isActive: true },
-  { criterionCode: 'BUSINESS_REGISTRATION_PROOF', criterionName: 'Business Registration Proof', category: 'Business', loanType: 'Business Loan', weight: 3, ruleType: 'STATIC', rules: null, isActive: true },
-  { criterionCode: 'ROI_COMPETITIVENESS', criterionName: 'ROI Competitiveness', category: 'Loan', loanType: 'Business Loan', weight: 6, ruleType: 'JSON', rules: { 11: 6, 13: 5, 15: 4, 20: 2, 25: 1 }, isActive: true },
-  { criterionCode: 'MAX_LOAN_ADEQUACY', criterionName: 'Max Loan Adequacy', category: 'Loan', loanType: 'Business Loan', weight: 4, ruleType: 'JSON+FORMULA', rules: { 50: 4, 75: 2 }, isActive: true },
+  { criterionCode: 'CIBIL_SCORE', criterionName: 'CIBIL Score', category: 'Credit', loanType: 'BL', weight: 20, ruleType: 'FORMULA', rules: null, isActive: true },
+  { criterionCode: 'FOIR_CHECK', criterionName: 'FOIR Check', category: 'Credit', loanType: 'BL', weight: 15, ruleType: 'FORMULA', rules: null, isActive: true },
+  { criterionCode: 'DPD_LAST_3M', criterionName: 'DPD Last 3 Months', category: 'Credit', loanType: 'BL', weight: 10, ruleType: 'JSON', rules: { 0: 10, 2: 8, 4: 6, 6: 4, 8: 2 }, isActive: true },
+  { criterionCode: 'DPD_LAST_12M', criterionName: 'DPD Last 12 Months', category: 'Credit', loanType: 'BL', weight: 8, ruleType: 'JSON', rules: { 2: 8, 5: 6, 8: 4, 12: 2 }, isActive: true },
+  { criterionCode: 'CC_UTILIZATION', criterionName: 'CC Utilization', category: 'Credit', loanType: 'BL', weight: 5, ruleType: 'JSON', rules: { 50: 5, 70: 3, 80: 1 }, isActive: true },
+  { criterionCode: 'ACTIVE_UNSECURED', criterionName: 'Active Unsecured Loans', category: 'Credit', loanType: 'BL', weight: 5, ruleType: 'JSON', rules: { 0: 5, 2: 3, 4: 2, 8: 1 }, isActive: true },
+  { criterionCode: 'ENQUIRIES_3M', criterionName: 'Enquiries (3 Months)', category: 'Credit', loanType: 'BL', weight: 4, ruleType: 'JSON', rules: { 0: 4, 3: 2, 6: 1 }, isActive: true },
+  { criterionCode: 'ANNUAL_TURNOVER', criterionName: 'Annual Turnover vs Threshold', category: 'Business', loanType: 'BL', weight: 10, ruleType: 'FORMULA', rules: null, isActive: true },
+  { criterionCode: 'BUSINESS_VINTAGE', criterionName: 'Business Vintage', category: 'Business', loanType: 'BL', weight: 7, ruleType: 'FORMULA', rules: null, isActive: true },
+  { criterionCode: 'ITR_DOCUMENTATION', criterionName: 'ITR & Documentation', category: 'Business', loanType: 'BL', weight: 3, ruleType: 'STATIC', rules: null, isActive: true },
+  { criterionCode: 'BUSINESS_REGISTRATION_PROOF', criterionName: 'Business Registration Proof', category: 'Business', loanType: 'BL', weight: 3, ruleType: 'STATIC', rules: null, isActive: true },
+  { criterionCode: 'ROI_COMPETITIVENESS', criterionName: 'ROI Competitiveness', category: 'Loan', loanType: 'BL', weight: 6, ruleType: 'JSON', rules: { 11: 6, 13: 5, 15: 4, 20: 2, 25: 1 }, isActive: true },
+  { criterionCode: 'MAX_LOAN_ADEQUACY', criterionName: 'Max Loan Adequacy', category: 'Loan', loanType: 'BL', weight: 4, ruleType: 'JSON+FORMULA', rules: { 50: 4, 75: 2 }, isActive: true },
 ];
 
 export const blFormPassPayload = {
-  loanType: 'Business Loan',
+  loanType: 'BL',
   form_data: {
     businessDetails: {
       name: 'Fixture Traders',
@@ -232,7 +240,7 @@ export const blFormPassPayload = {
 };
 
 export const blFormFailPayload = {
-  loanType: 'Business Loan',
+  loanType: 'BL',
   form_data: {
     businessDetails: { regProofs: [] },
     personalDetails: {},
@@ -345,7 +353,7 @@ export function blEligibilityVariant(ruleId, outcome) {
     profile: blApplicantProfilePass,
     criteria: blLenderCriteriaPass,
     catalog: catalogLender,
-    zipRows: zipRowsPass,
+    zipRows: blZipRowsPass,
   };
 
   switch (ruleId) {
@@ -353,7 +361,7 @@ export function blEligibilityVariant(ruleId, outcome) {
       if (outcome === 'FAIL') return { ...base, criteria: clone(blLenderCriteriaPass, { isActive: false }) };
       return base;
     case 'BL-PINCODE':
-      if (outcome === 'FAIL') return { ...base, profile: clone(blApplicantProfilePass, { pinCode: '999999' }), zipRows: zipRowsFail };
+      if (outcome === 'FAIL') return { ...base, profile: clone(blApplicantProfilePass, { pinCode: '999999' }), zipRows: blZipRowsFail };
       return base;
     case 'BL-CIBIL':
       if (outcome === 'FAIL') return { ...base, profile: clone(blApplicantProfilePass, { cibilScore: 640 }) };

@@ -31,6 +31,203 @@ async function logUserRegistrationEvent(strapi: Core.Strapi, params: Record<stri
   }
 }
 
+/** Fields Staff/Advisor/Banker need on CM loan-application so section view/edit can save. */
+const LOAN_APP_CM_FIELDS = [
+  'leadId', 'loanAmount', 'loanType', 'form_data', 'status',
+  'aadharNumber', 'panNumber', 'businessName', 'applicantName', 'email', 'phone',
+  'proprietorshipDoc', 'panCard', 'cibilReport', 'aadharCardFront', 'aadharCardBack',
+  'businessRegProofDoc', 'bankStatement', 'propertyPapers', 'coAppPan',
+  'coAppAadharFront', 'coAppAadharBack', 'salarySlips', 'otherDocs',
+  'itrYear1', 'itrYear2', 'itrYear3', 'auditedBooksDoc',
+  'declarationAccepted', 'assignedStaffId', 'assignedBankerId',
+];
+
+const LOAN_APP_CM_ACTIONS = [
+  'plugin::content-manager.explorer.read',
+  'plugin::content-manager.explorer.create',
+  'plugin::content-manager.explorer.update',
+] as const;
+
+async function linkAdminPermissionToRole(
+  strapi: Core.Strapi,
+  permissionId: number | string,
+  roleId: number | string
+): Promise<boolean> {
+  const knex = strapi.db.connection;
+  const linked = await knex('admin_permissions_role_lnk')
+    .where({ permission_id: permissionId, role_id: roleId })
+    .first();
+  if (linked) return true;
+
+  const maxOrd = await knex('admin_permissions_role_lnk')
+    .where({ role_id: roleId })
+    .max('permission_ord as max')
+    .first();
+  const nextOrd = Number(maxOrd?.max ?? 0) + 1;
+
+  try {
+    await knex('admin_permissions_role_lnk').insert({
+      permission_id: permissionId,
+      role_id: roleId,
+      permission_ord: nextOrd,
+    });
+  } catch (e) {
+    // Retry without permission_ord if column is absent / auto-managed
+    try {
+      await knex('admin_permissions_role_lnk').insert({
+        permission_id: permissionId,
+        role_id: roleId,
+      });
+    } catch (e2) {
+      strapi.log.warn(
+        `[Permission Sync] Failed linking permission ${permissionId} → role ${roleId}: ${(e2 as Error)?.message || e2}`
+      );
+      return false;
+    }
+  }
+
+  const verified = await knex('admin_permissions_role_lnk')
+    .where({ permission_id: permissionId, role_id: roleId })
+    .first();
+  if (!verified) {
+    strapi.log.warn(
+      `[Permission Sync] Link missing after insert: permission ${permissionId} → role ${roleId}`
+    );
+    return false;
+  }
+  return true;
+}
+
+async function ensurePermissionFields(
+  strapi: Core.Strapi,
+  perm: { id: number | string; properties?: { fields?: string[] } },
+  fields: string[]
+) {
+  const current = Array.isArray(perm.properties?.fields) ? perm.properties.fields : [];
+  const merged = Array.from(new Set([...current, ...fields]));
+  if (merged.length === current.length && fields.every((f) => current.includes(f))) {
+    return;
+  }
+  await strapi.db.query('admin::permission').update({
+    where: { id: perm.id },
+    data: { properties: { fields: merged } },
+  });
+}
+
+/**
+ * Find a permission for action+subject already linked to this role.
+ * Do NOT reuse another role's / Super Admin shared row — Settings → Roles
+ * saves create per-role rows and drop shared links, breaking other roles.
+ */
+async function findRoleLinkedPermission(
+  strapi: Core.Strapi,
+  roleId: number | string,
+  action: string,
+  subject: string
+) {
+  const knex = strapi.db.connection;
+  const row = await knex('admin_permissions as p')
+    .join('admin_permissions_role_lnk as l', 'l.permission_id', 'p.id')
+    .where('l.role_id', roleId)
+    .andWhere('p.action', action)
+    .andWhere('p.subject', subject)
+    .select('p.id')
+    .first();
+  if (!row?.id) return null;
+  return strapi.db.query('admin::permission').findOne({ where: { id: row.id } });
+}
+
+/**
+ * Ensure a role can CM-read/create/update loan-applications (incl. form_data)
+ * via its own permission rows. Section UI still gates fields; without these
+ * links Advisor/Staff/Banker get HTTP 403 on Lead View GET/PUT.
+ */
+async function ensureLoanAppCmPermissions(strapi: Core.Strapi, roleId: number | string) {
+  const permReadAction = 'plugin::content-manager.explorer.read';
+  const permReadSubject = 'api::loan-app-section-permission.loan-app-section-permission';
+  const loanSubject = 'api::loan-application.loan-application';
+
+  let sectionPerm = await findRoleLinkedPermission(
+    strapi,
+    roleId,
+    permReadAction,
+    permReadSubject
+  );
+  if (!sectionPerm) {
+    sectionPerm = await strapi.db.query('admin::permission').create({
+      data: {
+        action: permReadAction,
+        subject: permReadSubject,
+        properties: { fields: ['roleId', 'roleName', 'permissions'] },
+        conditions: [],
+      },
+    });
+    if (sectionPerm) {
+      await linkAdminPermissionToRole(strapi, sectionPerm.id, roleId);
+    }
+  } else {
+    await ensurePermissionFields(strapi, sectionPerm, [
+      'roleId',
+      'roleName',
+      'permissions',
+    ]);
+  }
+
+  for (const action of LOAN_APP_CM_ACTIONS) {
+    let existing = await findRoleLinkedPermission(strapi, roleId, action, loanSubject);
+
+    if (!existing) {
+      existing = await strapi.db.query('admin::permission').create({
+        data: {
+          action,
+          subject: loanSubject,
+          properties: { fields: [...LOAN_APP_CM_FIELDS] },
+          conditions: [],
+        },
+      });
+      if (existing) {
+        await linkAdminPermissionToRole(strapi, existing.id, roleId);
+      }
+    } else {
+      await ensurePermissionFields(strapi, existing, [...LOAN_APP_CM_FIELDS]);
+    }
+  }
+}
+
+/** Confirm role has explorer read+create+update on loan-application; return action suffixes. */
+async function verifyLoanAppCmLinks(
+  strapi: Core.Strapi,
+  roleId: number | string
+): Promise<string[]> {
+  const knex = strapi.db.connection;
+  const rows = await knex('admin_permissions as p')
+    .join('admin_permissions_role_lnk as l', 'l.permission_id', 'p.id')
+    .where('l.role_id', roleId)
+    .andWhere('p.subject', 'api::loan-application.loan-application')
+    .whereIn('p.action', [...LOAN_APP_CM_ACTIONS])
+    .distinct('p.action')
+    .select('p.action');
+  const suffixes = (rows || []).map((r: { action: string }) =>
+    String(r.action).replace('plugin::content-manager.explorer.', '')
+  );
+  return Array.from(new Set(suffixes)).sort();
+}
+
+async function resolveAdminRoleByCodesOrNames(
+  strapi: Core.Strapi,
+  codes: string[],
+  names: string[]
+) {
+  const codeSet = new Set(codes.map((c) => c.toLowerCase()));
+  const nameSet = new Set(names.map((n) => n.toLowerCase()));
+  const roles = await strapi.db.query('admin::role').findMany({});
+  return (roles || []).find((r: any) => {
+    const code = String(r.code || '').toLowerCase();
+    const name = String(r.name || '').toLowerCase();
+    return codeSet.has(code) || nameSet.has(name);
+  }) || null;
+}
+
 const createAdminUserFromAdvisor = async (strapi: Core.Strapi, advisor: any, rawPassword?: string) => {
   if (advisor.advisorStatus !== 'Approved') return;
 
@@ -396,15 +593,7 @@ export default {
         'propertyValue', 'employmentType', 'leadType', 'getEmailNotification',
         'pinCode', 'leadStatus',
       ];
-      const allLoanAppFields = [
-        'leadId', 'loanAmount', 'loanType', 'form_data', 'status',
-        'aadharNumber', 'panNumber', 'businessName', 'applicantName', 'email', 'phone',
-        'proprietorshipDoc', 'panCard', 'cibilReport', 'aadharCardFront', 'aadharCardBack',
-        'businessRegProofDoc', 'bankStatement', 'propertyPapers', 'coAppPan',
-        'coAppAadharFront', 'coAppAadharBack', 'salarySlips', 'otherDocs',
-        'itrYear1', 'itrYear2', 'itrYear3', 'auditedBooksDoc',
-        'declarationAccepted', 'assignedStaffId', 'assignedBankerId',
-      ];
+      const allLoanAppFields = [...LOAN_APP_CM_FIELDS];
       const permLinks = await strapi.db.connection('admin_permissions_role_lnk')
         .where({ role_id: advisorRole.id })
         .select('permission_id');
@@ -727,88 +916,6 @@ export default {
 
           // console.log(`[Permission Sync] Found ${permissions.length} lead permissions for Advisor role ID: ${dbAdvisorRole.id}`);
 
-          // Grant Loan Application CM permissions — create if missing, then link and set all fields
-          const allLoanAppFields = [
-            'leadId', 'loanAmount', 'loanType', 'form_data', 'status',
-            'aadharNumber', 'panNumber', 'businessName', 'applicantName', 'email', 'phone',
-            'proprietorshipDoc', 'panCard', 'cibilReport', 'aadharCardFront', 'aadharCardBack',
-            'businessRegProofDoc', 'bankStatement', 'propertyPapers', 'coAppPan',
-            'coAppAadharFront', 'coAppAadharBack', 'salarySlips', 'otherDocs',
-            'itrYear1', 'itrYear2', 'itrYear3', 'auditedBooksDoc',
-            'declarationAccepted', 'assignedStaffId', 'assignedBankerId',
-          ];
-          const loanAppActions = [
-            'plugin::content-manager.explorer.read',
-            'plugin::content-manager.explorer.create',
-            'plugin::content-manager.explorer.update'
-          ];
-
-          // Grant read-only access to loan-app-section-permission so advisors can load their permissions
-          const permReadAction = 'plugin::content-manager.explorer.read';
-          const permReadSubject = 'api::loan-app-section-permission.loan-app-section-permission';
-          try {
-            let sectionPermRead = await strapi.db.query('admin::permission').findOne({
-              where: { action: permReadAction, subject: permReadSubject }
-            });
-            if (!sectionPermRead) {
-              sectionPermRead = await strapi.db.query('admin::permission').create({
-                data: {
-                  action: permReadAction,
-                  subject: permReadSubject,
-                  properties: { fields: ['roleId', 'roleName', 'permissions'] },
-                  conditions: [],
-                }
-              });
-            }
-            if (sectionPermRead) {
-              const alreadyLinked = await strapi.db.connection('admin_permissions_role_lnk')
-                .where({ permission_id: sectionPermRead.id, role_id: dbAdvisorRole.id })
-                .first();
-              if (!alreadyLinked) {
-                await strapi.db.connection('admin_permissions_role_lnk').insert({
-                  permission_id: sectionPermRead.id,
-                  role_id: dbAdvisorRole.id,
-                });
-              }
-            }
-          } catch (e) {}
-
-          for (const action of loanAppActions) {
-            let existing = await strapi.db.query('admin::permission').findOne({
-              where: { action, subject: 'api::loan-application.loan-application' }
-            });
-
-            if (!existing) {
-              existing = await strapi.db.query('admin::permission').create({
-                data: {
-                  action,
-                  subject: 'api::loan-application.loan-application',
-                  properties: { fields: allLoanAppFields },
-                  conditions: [],
-                }
-              });
-            } else {
-              // Ensure all fields are present
-              await strapi.db.query('admin::permission').update({
-                where: { id: existing.id },
-                data: { properties: { fields: allLoanAppFields } }
-              });
-            }
-
-            if (existing) {
-              const linked = await strapi.db.connection('admin_permissions_role_lnk')
-                .where({ permission_id: existing.id, role_id: dbAdvisorRole.id })
-                .first();
-
-              if (!linked) {
-                await strapi.db.connection('admin_permissions_role_lnk').insert({
-                  permission_id: existing.id,
-                  role_id: dbAdvisorRole.id
-                });
-              }
-            }
-          }
-
           // Media Library: Lead View Add Document uses GET/POST /upload/folders + POST /upload
           // (Document Details View/Edit alone only gates UI — these actions are required to avoid Policy Failed)
           const uploadActions = [
@@ -839,15 +946,7 @@ export default {
                 });
               }
               if (uploadPerm) {
-                const alreadyLinked = await strapi.db.connection('admin_permissions_role_lnk')
-                  .where({ permission_id: uploadPerm.id, role_id: dbAdvisorRole.id })
-                  .first();
-                if (!alreadyLinked) {
-                  await strapi.db.connection('admin_permissions_role_lnk').insert({
-                    permission_id: uploadPerm.id,
-                    role_id: dbAdvisorRole.id,
-                  });
-                }
+                await linkAdminPermissionToRole(strapi, uploadPerm.id, dbAdvisorRole.id);
               }
             } catch (e) {
               strapi.log.warn(`[Permission Sync] Failed to grant ${action} to strapi-advisor: ${(e as Error)?.message || e}`);
@@ -883,6 +982,52 @@ export default {
       }
     } catch (err) {
       // console.error('[Permission Sync] ERROR:', err);
+    }
+
+    // 6b. Loan Application CM rights for Advisor + Staff + Banker
+    // Settings → Loan Application Section view/edit only gates UI; these CM links
+    // are required so Lead View GET/PUT form_data does not 403.
+    // Advisor GET 200 + PUT 403 usually means explorer.update is not linked.
+    try {
+      const advisorForCm = await strapi.db.query('admin::role').findOne({
+        where: { code: 'strapi-advisor' },
+      });
+      const staffForCm = await resolveAdminRoleByCodesOrNames(
+        strapi,
+        ['strapi-editor', 'staff', 'strapi-staff'],
+        ['staff']
+      );
+      const bankerForCm = await resolveAdminRoleByCodesOrNames(
+        strapi,
+        ['bankers-mosko0d4', 'banker', 'bankers', 'strapi-banker'],
+        ['banker', 'bankers']
+      );
+
+      const required = ['read', 'create', 'update'];
+      for (const role of [advisorForCm, staffForCm, bankerForCm]) {
+        if (!role?.id) continue;
+        const label = role.code || role.name || String(role.id);
+        try {
+          await ensureLoanAppCmPermissions(strapi, role.id);
+          const linked = await verifyLoanAppCmLinks(strapi, role.id);
+          const missing = required.filter((a) => !linked.includes(a));
+          if (missing.length) {
+            strapi.log.warn(
+              `[Permission Sync] loan-app CM incomplete for ${label}: have [${linked.join(',') || 'none'}] missing [${missing.join(',')}]`
+            );
+          } else {
+            strapi.log.info(
+              `[Permission Sync] loan-app CM OK for ${label}: ${linked.join(',')}`
+            );
+          }
+        } catch (e) {
+          strapi.log.warn(
+            `[Permission Sync] Failed loan-app CM grant for role ${label}: ${(e as Error)?.message || e}`
+          );
+        }
+      }
+    } catch (err) {
+      strapi.log.warn(`[Permission Sync] Loan-app CM grant block failed: ${(err as Error)?.message || err}`);
     }
 
     // 4. Content API Public Permissions for Activity Logs (for the Notification Bell)

@@ -9,6 +9,62 @@ import {
     buildVerifiedBadgeHtml,
 } from './statusBadgeHtml';
 
+const ADMIN_DEVICE_ID_KEY = 'strapi.admin.deviceId';
+
+const getOrCreateAdminDeviceId = (): string => {
+    try {
+        const existing = localStorage.getItem(ADMIN_DEVICE_ID_KEY);
+        if (existing) return existing;
+    } catch {
+        /* ignore */
+    }
+    const generated =
+        typeof crypto?.randomUUID === 'function'
+            ? crypto.randomUUID()
+            : `xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx`.replace(/[xy]/g, (c) => {
+                  const r = (Math.random() * 16) | 0;
+                  const v = c === 'x' ? r : (r & 0x3) | 0x8;
+                  return v.toString(16);
+              });
+    try {
+        localStorage.setItem(ADMIN_DEVICE_ID_KEY, generated);
+    } catch {
+        /* ignore */
+    }
+    return generated;
+};
+
+const deleteJwtCookie = () => {
+    document.cookie = 'jwtToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+};
+
+/** Clear prior Super Admin (or other) access token + ScaleX session keys before Advisor login. */
+const clearPriorAdminSession = () => {
+    try {
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('isLoggedIn');
+    } catch {
+        /* ignore */
+    }
+    try {
+        sessionStorage.removeItem('jwtToken');
+        sessionStorage.removeItem('strapiUserRole');
+        sessionStorage.removeItem('strapiRoleIds');
+        sessionStorage.removeItem('strapiAdvisorId');
+        sessionStorage.removeItem('strapiAdvisorEmail');
+        sessionStorage.removeItem('strapiAdvisorCode');
+        sessionStorage.removeItem('strapiAdminUserId');
+    } catch {
+        /* ignore */
+    }
+    deleteJwtCookie();
+    try {
+        delete (window as any)._strapi_last_token;
+    } catch {
+        /* ignore */
+    }
+};
+
 // ─── Header tagging ───────────────────────────────────────────────────────────
 
 const tagAdvisorHeaders = (headers: Element[]) => {
@@ -117,16 +173,20 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
             <div class="adv-contact-container">
                 ${phoneVal ? `
                 <div class="adv-contact-row">
-                    <a href="tel:${phoneVal}" onclick="event.stopPropagation()" title="Call: ${phoneVal}" class="adv-contact-link adv-contact-link--phone" style="text-decoration: none;">📞</a>
+                    <a href="tel:${phoneVal}" title="Call: ${phoneVal}" class="adv-contact-link adv-contact-link--phone" style="text-decoration: none;">📞</a>
                     <span class="adv-contact-phone-text">${phoneVal}</span>
-                    <a href="https://wa.me/${phoneVal.replace(/\D/g, '')}" target="_blank" onclick="event.stopPropagation()" title="WhatsApp: ${phoneVal}" class="adv-contact-link adv-contact-link--whatsapp" style="text-decoration: none;">💬</a>
+                    <a href="https://wa.me/${phoneVal.replace(/\D/g, '')}" target="_blank" title="WhatsApp: ${phoneVal}" class="adv-contact-link adv-contact-link--whatsapp" style="text-decoration: none;">💬</a>
                 </div>` : ''}
                 ${emailVal ? `
                 <div class="adv-contact-row">
-                    <a href="mailto:${emailVal}" onclick="event.stopPropagation()" title="Email: ${emailVal}" class="adv-contact-link adv-contact-link--email" style="text-decoration: none;">✉️</a>
+                    <a href="mailto:${emailVal}" title="Email: ${emailVal}" class="adv-contact-link adv-contact-link--email" style="text-decoration: none;">✉️</a>
                     <span class="adv-contact-email-text">${emailVal}</span>
                 </div>` : ''}
             </div>`;
+        // CSP: script-src-attr 'none' — bind stopPropagation in JS, not HTML onclick attrs
+        cells[phoneIdx].querySelectorAll('.adv-contact-link').forEach((link) => {
+            link.addEventListener('click', (e) => e.stopPropagation());
+        });
     }
 
     // Hide raw email column
@@ -177,6 +237,25 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
         // Specific catch for the production sc-eQxoQn classes if they are empty
         if (!td.classList.contains('adv-actions-cell') && td.classList.contains('sc-eQxoQn') && td.children.length === 0) {
             (td as HTMLElement).style.display = 'none';
+        }
+    });
+
+    // Hide Strapi native "More actions" / Edit (custom ACTIONS column replaces them)
+    row.querySelectorAll('button, a').forEach((el) => {
+        if (el.closest('.adv-actions-cell')) return;
+        if (el.classList.contains('custom-action-btn')) return;
+        const aria = (el.getAttribute('aria-label') || el.getAttribute('title') || '').toLowerCase();
+        const hasPopup = el.getAttribute('aria-haspopup') || '';
+        const text = (el.textContent || '').trim();
+        if (
+            aria.includes('more actions') ||
+            aria === 'edit' ||
+            aria.includes('edit entry') ||
+            hasPopup === 'menu' ||
+            text === '…' ||
+            text === '...'
+        ) {
+            (el as HTMLElement).style.display = 'none';
         }
     });
 
@@ -267,16 +346,51 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
                     ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' }
                     : {};
 
-                // 1. Fetch advisor details
+                // 1. Fetch advisor details (documentId preferred; never GET by bare numeric advisorId)
                 const docId = ((window as any).advisorDocumentIdMap || {})[rawId];
-                const fetchId = docId || rawId;
-                const res = await fetch(
-                    `/content-manager/collection-types/api::advisor.advisor/${fetchId}`,
-                    { headers: authHeaders }
-                );
-                if (!res.ok) throw new Error('Could not fetch advisor data');
-                const advisorDataRaw = await res.json();
-                const advisorData = advisorDataRaw.data || advisorDataRaw;
+                let advisorData: any = null;
+
+                const pickAdvisorRow = (payload: any): any => {
+                    const rows = payload?.results || payload?.data || [];
+                    if (Array.isArray(rows) && rows.length > 0) return rows[0];
+                    if (payload && !Array.isArray(payload) && (payload.email || payload.attributes?.email || payload.documentId)) {
+                        return payload.data || payload;
+                    }
+                    return null;
+                };
+
+                if (docId) {
+                    const res = await fetch(
+                        `/content-manager/collection-types/api::advisor.advisor/${docId}`,
+                        { headers: authHeaders }
+                    );
+                    if (res.ok) {
+                        const advisorDataRaw = await res.json();
+                        advisorData = advisorDataRaw.data || advisorDataRaw;
+                    }
+                }
+
+                if (!advisorData) {
+                    const byCode = await fetch(
+                        `/content-manager/collection-types/api::advisor.advisor?filters[advisorId][$eq]=${encodeURIComponent(rawId)}&pageSize=1`,
+                        { headers: authHeaders }
+                    );
+                    if (byCode.ok) {
+                        advisorData = pickAdvisorRow(await byCode.json());
+                    }
+                }
+
+                if (!advisorData && /^\d+$/.test(rawId)) {
+                    const byPk = await fetch(
+                        `/content-manager/collection-types/api::advisor.advisor?filters[id][$eq]=${encodeURIComponent(rawId)}&pageSize=1`,
+                        { headers: authHeaders }
+                    );
+                    if (byPk.ok) {
+                        advisorData = pickAdvisorRow(await byPk.json());
+                    }
+                }
+
+                if (!advisorData) throw new Error('Could not fetch advisor data');
                 const advEmail = (advisorData.email || advisorData.attributes?.email || '').toLowerCase();
                 const advPassword = advisorData.password || advisorData.attributes?.password;
 
@@ -310,18 +424,30 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
                     return;
                 }
 
-                // 4. Perform admin login
+                // 4. Full session swap — login first, clear prior tokens only on success
+                // (avoids /admin/users/me 401 from clearing JWT while the SPA is still live)
+                const deviceId = getOrCreateAdminDeviceId();
+
                 const loginRes = await fetch('/admin/login', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: advEmail, password: advPassword }),
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                    body: JSON.stringify({
+                        email: advEmail,
+                        password: advPassword,
+                        deviceId,
+                        rememberMe: true,
+                    }),
                 });
 
                 if (loginRes.ok) {
                     const loginData = await loginRes.json();
                     const jwt = loginData.data?.token || loginData.token;
                     if (jwt) {
+                        clearPriorAdminSession();
+                        // Remember-me style storage — same as Strapi login reducer with persist:true
                         localStorage.setItem('jwtToken', JSON.stringify(jwt));
+                        localStorage.setItem('isLoggedIn', 'true');
                         sessionStorage.setItem('jwtToken', jwt);
                         window.location.href = '/admin';
                     } else {

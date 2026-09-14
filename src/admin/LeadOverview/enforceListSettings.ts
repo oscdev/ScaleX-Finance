@@ -65,6 +65,12 @@ export const ensureDashboardListSortUrl = (url: string): string => {
     const defaultSort = DEFAULT_SORTS[uid];
     if (!defaultSort) return url;
 
+    // List fetches only — skip single-document GETs (.../uid/{documentId})
+    const uidIdx = url.indexOf(uid);
+    const afterUid = uidIdx >= 0 ? url.slice(uidIdx + uid.length) : '';
+    const pathPart = afterUid.split('?')[0].split('#')[0];
+    if (pathPart && pathPart !== '/') return url;
+
     try {
         const absolute = url.startsWith('http') ? url : `${window.location.origin}${url.startsWith('/') ? '' : '/'}${url}`;
         const u = new URL(absolute);

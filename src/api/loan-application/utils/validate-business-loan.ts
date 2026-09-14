@@ -3,6 +3,8 @@
  * Mirrors frontend rules in LoanApplicationForm.getValidationErrors (Business Loan branch).
  */
 
+import { isBusinessLoanType } from '../../../utils/loan-type';
+
 function hasMediaId(val: unknown): boolean {
   if (val == null || val === '') return false;
   if (Array.isArray(val)) return val.length > 0 && val.every((id) => hasMediaId(id));
@@ -37,7 +39,7 @@ function slugifyRegProof(name: string): string {
 
 export function validateBusinessLoanPayload(data: Record<string, unknown>): string[] {
   const errors: string[] = [];
-  if (data.loanType !== 'Business Loan') return errors;
+  if (!isBusinessLoanType(data.loanType as string | null | undefined)) return errors;
 
   const form = (data.form_data || {}) as Record<string, any>;
   const biz = (form.businessDetails || {}) as Record<string, any>;

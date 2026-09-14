@@ -47,10 +47,207 @@ const MIME_TO_EXT: Record<string, string> = {
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
 };
 
+const EXT_TO_MIME: Record<string, string> = {
+  '.pdf': 'application/pdf',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.doc': 'application/msword',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.xls': 'application/vnd.ms-excel',
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+};
+
 export function extFromMime(mime?: string | null): string | null {
   if (!mime) return null;
   const normalized = mime.toLowerCase().split(';')[0].trim();
   return MIME_TO_EXT[normalized] ?? null;
+}
+
+/** Infer MIME from a filename extension when `File.type` is empty. */
+export function mimeFromFilename(name?: string | null): string | null {
+  if (!name) return null;
+  const dot = name.lastIndexOf('.');
+  if (dot <= 0 || dot === name.length - 1) return null;
+  const ext = normalizeExtension(name.slice(dot));
+  return EXT_TO_MIME[ext] ?? null;
+}
+
+/**
+ * Blob URL for local Docs-step preview. Ensures a Content-Type so Chrome’s
+ * PDF/image viewers can render the file (empty `File.type` otherwise fails).
+ */
+export function createDocumentPreviewUrl(file: File | Blob, fileName?: string): string {
+  const name = fileName || (file instanceof File ? file.name : '');
+  const type =
+    (file.type && file.type.trim()) ||
+    mimeFromFilename(name) ||
+    'application/octet-stream';
+  if (file.type === type) return URL.createObjectURL(file);
+  return URL.createObjectURL(new Blob([file], { type }));
+}
+
+export function isImageMimeOrFormat(mimeOrFormat?: string | null): boolean {
+  const v = String(mimeOrFormat || '').toLowerCase();
+  return (
+    v.startsWith('image/') ||
+    v === 'png' ||
+    v === 'jpg' ||
+    v === 'jpeg' ||
+    v === 'gif' ||
+    v === 'webp'
+  );
+}
+
+export function isPdfMimeOrFormat(mimeOrFormat?: string | null): boolean {
+  const v = String(mimeOrFormat || '').toLowerCase();
+  return v === 'application/pdf' || v === 'pdf' || v.includes('pdf');
+}
+
+function escapeHtmlAttr(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Open a staged document in a new tab.
+ * Opens the window synchronously (keeps the user-gesture), then writes an
+ * embed/image page with a freshly typed blob — Chrome’s PDF plugin often fails
+ * on bare `location = blob:` navigation.
+ */
+export async function openDocumentInNewTab(options: {
+  file?: File | Blob | null;
+  previewUrl?: string | null;
+  fileName?: string | null;
+  format?: string | null;
+}): Promise<void> {
+  if (typeof window === 'undefined') return;
+
+  const file = options.file;
+  const name =
+    options.fileName ||
+    (file instanceof File ? file.name : '') ||
+    (options.format ? `document.${String(options.format).toLowerCase()}` : 'document');
+
+  // Must open synchronously inside the click handler or the popup is blocked.
+  const win = window.open('', '_blank');
+
+  const resolveBlob = async (): Promise<Blob | null> => {
+    const toTypedBlob = async (source: Blob): Promise<Blob> => {
+      const buf = await source.arrayBuffer();
+      const bytes = new Uint8Array(buf.slice(0, 8));
+      const asText = String.fromCharCode(...bytes);
+      const looksPdf = asText.startsWith('%PDF');
+      const looksPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+      const looksJpeg = bytes[0] === 0xff && bytes[1] === 0xd8;
+      const looksGif = asText.startsWith('GIF8');
+      const looksWebp = asText.startsWith('RIFF') && buf.byteLength >= 12;
+
+      let type =
+        (source.type && source.type.trim()) ||
+        mimeFromFilename(name) ||
+        (isPdfMimeOrFormat(options.format) || isPdfMimeOrFormat(name)
+          ? 'application/pdf'
+          : null) ||
+        'application/octet-stream';
+
+      // Prefer real file magic over wrong extension / empty MIME
+      if (looksPdf) type = 'application/pdf';
+      else if (looksPng) type = 'image/png';
+      else if (looksJpeg) type = 'image/jpeg';
+      else if (looksGif) type = 'image/gif';
+      else if (looksWebp) type = 'image/webp';
+
+      return new Blob([buf], { type });
+    };
+
+    if (file instanceof Blob) {
+      return toTypedBlob(file);
+    }
+    if (options.previewUrl) {
+      const res = await fetch(options.previewUrl);
+      if (!res.ok) return null;
+      return toTypedBlob(await res.blob());
+    }
+    return null;
+  };
+
+  try {
+    if (win) {
+      win.document.write(
+        '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Loading…</title></head>' +
+          '<body style="font-family:sans-serif;padding:2rem;color:#334155">Loading document…</body></html>'
+      );
+    }
+
+    const blob = await resolveBlob();
+    if (!blob) {
+      if (win) {
+        win.document.open();
+        win.document.write(
+          '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem">Unable to open document.</body></html>'
+        );
+        win.document.close();
+      }
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const title = escapeHtmlAttr(name);
+    const isPdf =
+      isPdfMimeOrFormat(blob.type) ||
+      isPdfMimeOrFormat(options.format) ||
+      isPdfMimeOrFormat(name);
+    const isImage = isImageMimeOrFormat(blob.type) || isImageMimeOrFormat(options.format);
+
+    if (!win) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      return;
+    }
+
+    win.document.open();
+    if (isPdf) {
+      win.document.write(
+        `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${title}</title>` +
+          `<style>html,body{margin:0;height:100%;background:#525659}iframe{border:0;width:100%;height:100%}</style></head>` +
+          `<body><iframe src="${url}" title="${title}"></iframe></body></html>`
+      );
+    } else if (isImage) {
+      win.document.write(
+        `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${title}</title>` +
+          `<style>html,body{margin:0;min-height:100%;display:flex;align-items:center;justify-content:center;background:#111}` +
+          `img{max-width:100%;max-height:100vh;object-fit:contain}</style></head>` +
+          `<body><img src="${url}" alt="${title}" /></body></html>`
+      );
+    } else {
+      win.location.href = url;
+      return;
+    }
+    win.document.close();
+  } catch {
+    if (win && !win.closed) {
+      try {
+        win.document.open();
+        win.document.write(
+          '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem">Failed to open document.</body></html>'
+        );
+        win.document.close();
+      } catch {
+        /* ignore */
+      }
+    }
+  }
 }
 
 export function normalizeExtension(ext: string): string {

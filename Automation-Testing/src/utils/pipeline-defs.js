@@ -2,7 +2,7 @@
 
 export const PL_PIPELINE = [
   { step: 1, ruleId: 'PL-PRE-ACTIVE', ruleName: 'Active lenders', formula: 'catalog.isActive && criteria.isActive' },
-  { step: 2, ruleId: 'PL-PINCODE', ruleName: 'Zipcode availability', formula: 'coversAllPincodes OR zipCode === applicantPin' },
+  { step: 2, ruleId: 'PL-PINCODE', ruleName: 'Zipcode availability', formula: "loanType = 'Personal Loan' AND isActive AND (coversAllPincodes OR zipCode === applicantPin)" },
   { step: 3, ruleId: 'PL-CIBIL', ruleName: 'Min CIBIL', formula: 'applicantCibil >= minCibil' },
   { step: 4, ruleId: 'PL-DPD-LATEST', ruleName: 'Latest open-account DPD', formula: 'latestDpdDays <= max_dpd_days_allowed' },
   { step: 5, ruleId: 'PL-AGE', ruleName: 'Age', formula: 'minAge <= age <= maxAge' },
@@ -24,7 +24,7 @@ export const PL_PIPELINE = [
 
 export const BL_PIPELINE = [
   { step: 1, ruleId: 'BL-ACTIVE', ruleName: 'Active lenders', formula: 'catalog.isActive && criteria.isActive' },
-  { step: 2, ruleId: 'BL-PINCODE', ruleName: 'Zipcode availability', formula: 'coversAllPincodes OR zipCode === applicantPin' },
+  { step: 2, ruleId: 'BL-PINCODE', ruleName: 'Zipcode availability', formula: "loanType = 'Business Loan' AND isActive AND (coversAllPincodes OR zipCode === applicantPin)" },
   { step: 3, ruleId: 'BL-CIBIL', ruleName: 'Min CIBIL / FTB', formula: 'cibil >= min OR first_time_borrower_allowed' },
   { step: 4, ruleId: 'BL-CURRENT-OVERDUE', ruleName: 'Current overdue', formula: 'no current overdue accounts' },
   { step: 5, ruleId: 'BL-AGE', ruleName: 'Age', formula: 'minAge <= age <= maxAge' },

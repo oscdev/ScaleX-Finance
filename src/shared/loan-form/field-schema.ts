@@ -1,4 +1,5 @@
 import type { FieldWidget, FunnelContext, FunnelStep, FormFieldDef, FormSectionDef } from './types';
+import { coerceLoanTypeCode, normalizeLoanTypeCode } from '../../utils/loan-type';
 
 export const BUSINESS_REG_PROOF_OPTIONS = [
   'GST',
@@ -45,13 +46,13 @@ export const ALL_FORM_FIELDS: FormFieldDef[] = [
   { section: 'businessDetails', permissionSection: 'businessInfo', key: 'name', label: 'Business Name', widget: 'text', funnelStep: 'Business', placeholder: 'Enter Business Name' },
   { section: 'businessDetails', permissionSection: 'businessInfo', key: 'premises', label: 'Business Premises', widget: 'select', options: [...FIELD_OPTIONS.businessPremises], funnelStep: 'Business' },
   { section: 'businessDetails', permissionSection: 'businessInfo', key: 'type', label: 'Business Type', widget: 'select', options: [...FIELD_OPTIONS.businessType], funnelStep: 'Business' },
-  { section: 'businessDetails', permissionSection: 'businessInfo', key: 'turnover', label: 'Annual Turnover (Lakh)', widget: 'number', funnelStep: 'Business', showForLoanTypes: ['Business Loan'] },
-  { section: 'businessDetails', permissionSection: 'businessInfo', key: 'turnover', label: 'Annual Turnover', widget: 'select', options: [...FIELD_OPTIONS.businessTurnoverLegacy], funnelStep: 'Business', hideForLoanTypes: ['Business Loan'] },
-  { section: 'businessDetails', permissionSection: 'businessInfo', key: 'age', label: 'Business Age (Years)', widget: 'number', funnelStep: 'Business', showForLoanTypes: ['Business Loan'] },
-  { section: 'businessDetails', permissionSection: 'businessInfo', key: 'age', label: 'Business Age', widget: 'select', options: [...FIELD_OPTIONS.businessAgeLegacy], funnelStep: 'Business', hideForLoanTypes: ['Business Loan'] },
-  { section: 'businessDetails', permissionSection: 'businessInfo', key: 'regProofs', label: 'Business Registration Proof', widget: 'checkboxGroup', options: [...BUSINESS_REG_PROOF_OPTIONS], funnelStep: 'Business', showForLoanTypes: ['Business Loan'] },
-  { section: 'businessDetails', permissionSection: 'businessInfo', key: 'regProof', label: 'Business Registration Proof', widget: 'select', options: [...BUSINESS_REG_PROOF_OPTIONS], funnelStep: 'Business', hideForLoanTypes: ['Business Loan'] },
-  { section: 'businessDetails', permissionSection: 'businessInfo', key: 'auditedBooks', label: 'Audited Books', widget: 'radio', funnelStep: 'Business', showForLoanTypes: ['Business Loan'] },
+  { section: 'businessDetails', permissionSection: 'businessInfo', key: 'turnover', label: 'Annual Turnover (Lakh)', widget: 'number', funnelStep: 'Business', showForLoanTypes: ['BL'] },
+  { section: 'businessDetails', permissionSection: 'businessInfo', key: 'turnover', label: 'Annual Turnover', widget: 'select', options: [...FIELD_OPTIONS.businessTurnoverLegacy], funnelStep: 'Business', hideForLoanTypes: ['BL'] },
+  { section: 'businessDetails', permissionSection: 'businessInfo', key: 'age', label: 'Business Age (Years)', widget: 'number', funnelStep: 'Business', showForLoanTypes: ['BL'] },
+  { section: 'businessDetails', permissionSection: 'businessInfo', key: 'age', label: 'Business Age', widget: 'select', options: [...FIELD_OPTIONS.businessAgeLegacy], funnelStep: 'Business', hideForLoanTypes: ['BL'] },
+  { section: 'businessDetails', permissionSection: 'businessInfo', key: 'regProofs', label: 'Business Registration Proof', widget: 'checkboxGroup', options: [...BUSINESS_REG_PROOF_OPTIONS], funnelStep: 'Business', showForLoanTypes: ['BL'] },
+  { section: 'businessDetails', permissionSection: 'businessInfo', key: 'regProof', label: 'Business Registration Proof', widget: 'select', options: [...BUSINESS_REG_PROOF_OPTIONS], funnelStep: 'Business', hideForLoanTypes: ['BL'] },
+  { section: 'businessDetails', permissionSection: 'businessInfo', key: 'auditedBooks', label: 'Audited Books', widget: 'radio', funnelStep: 'Business', showForLoanTypes: ['BL'] },
   { section: 'businessDetails', permissionSection: 'businessInfo', key: 'address', label: 'Business Address', widget: 'textarea', funnelStep: 'Business', placeholder: 'Enter full business address' },
   // Personal
   { section: 'personalDetails', permissionSection: 'personalDetails', key: 'dob', label: 'Date of Birth', widget: 'date', funnelStep: 'Personal' },
@@ -59,7 +60,7 @@ export const ALL_FORM_FIELDS: FormFieldDef[] = [
   { section: 'personalDetails', permissionSection: 'personalDetails', key: 'spouseName', label: 'Spouse Name', widget: 'text', funnelStep: 'Personal', placeholder: 'Enter Spouse Name' },
   { section: 'personalDetails', permissionSection: 'personalDetails', key: 'motherName', label: 'Mother Name', widget: 'text', funnelStep: 'Personal', placeholder: 'Enter Mother Name' },
   { section: 'personalDetails', permissionSection: 'personalDetails', key: 'alternateNumber', label: 'Alternate Number', widget: 'text', funnelStep: 'Personal', placeholder: 'Enter Alternate Mobile' },
-  { section: 'personalDetails', permissionSection: 'personalDetails', key: 'dependents', label: 'Dependent', widget: 'text', funnelStep: 'Personal', hideForLoanTypes: ['Business Loan'], placeholder: 'Enter number of dependents' },
+  { section: 'personalDetails', permissionSection: 'personalDetails', key: 'dependents', label: 'Dependent', widget: 'text', funnelStep: 'Personal', hideForLoanTypes: ['BL'], placeholder: 'Enter number of dependents' },
   // Residence
   { section: 'addressDetails', permissionSection: 'addressDetails', key: 'line1', label: 'Address Line 1', widget: 'text', funnelStep: 'Residence', placeholder: 'Enter address' },
   { section: 'addressDetails', permissionSection: 'addressDetails', key: 'line2', label: 'Address Line 2', widget: 'text', funnelStep: 'Residence', placeholder: 'Enter address line 2' },
@@ -72,7 +73,7 @@ export const ALL_FORM_FIELDS: FormFieldDef[] = [
   { section: 'propertyDetails', permissionSection: 'propertyDetails', key: 'type', label: 'Property Type', widget: 'select', options: [...FIELD_OPTIONS.propertyType], funnelStep: 'Property' },
   { section: 'propertyDetails', permissionSection: 'propertyDetails', key: 'status', label: 'Property Current Status', widget: 'select', options: [...FIELD_OPTIONS.propertyStatus], funnelStep: 'Property' },
   { section: 'propertyDetails', permissionSection: 'propertyDetails', key: 'value', label: 'Property Value', widget: 'select', options: [...FIELD_OPTIONS.propertyValue], funnelStep: 'Property' },
-  { section: 'addressDetails', permissionSection: 'propertyDetails', key: 'propertyAddressPincode', label: 'Property Address With Pincode', widget: 'textarea', funnelStep: 'Property', showForLoanTypes: ['Home Loan'], placeholder: 'Enter full property address with pincode' },
+  { section: 'addressDetails', permissionSection: 'propertyDetails', key: 'propertyAddressPincode', label: 'Property Address With Pincode', widget: 'textarea', funnelStep: 'Property', showForLoanTypes: ['HL'], placeholder: 'Enter full property address with pincode' },
   // Income
   { section: 'incomeDetails', permissionSection: 'incomeDetails', key: 'companyName', label: 'Company Name', widget: 'text', funnelStep: 'Income', placeholder: 'Enter company name' },
   { section: 'incomeDetails', permissionSection: 'incomeDetails', key: 'designation', label: 'Designation', widget: 'text', funnelStep: 'Income', placeholder: 'Enter designation' },
@@ -87,25 +88,24 @@ export const ALL_FORM_FIELDS: FormFieldDef[] = [
 ];
 
 export function getAppSteps(loanType: string, occupation: string): FunnelStep[] {
+  const code = coerceLoanTypeCode(loanType);
   const isSelfEmployed = occupation === 'Self Employed';
-  const isLAP = loanType === 'LAP' || loanType === 'LAP (Loan Against Property)';
 
-  if (isSelfEmployed && loanType === 'Home Loan') {
+  if (isSelfEmployed && code === 'HL') {
     return ['Business', 'Personal', 'Residence', 'Property', 'Other', 'Docs'];
   }
-  if (isSelfEmployed && isLAP) {
+  if (isSelfEmployed && code === 'LAP') {
     return ['Business', 'Personal', 'Residence', 'Other', 'Docs'];
   }
 
-  switch (loanType) {
-    case 'Business Loan':
+  switch (code) {
+    case 'BL':
       return ['Business', 'Personal', 'Residence', 'Other', 'Docs'];
     case 'LAP':
-    case 'LAP (Loan Against Property)':
       return ['Personal', 'Residence', 'Income', 'Other', 'Docs'];
-    case 'Home Loan':
+    case 'HL':
       return ['Personal', 'Residence', 'Property', 'Income', 'Other', 'Docs'];
-    case 'Personal Loan':
+    case 'PL':
     default:
       return ['Personal', 'Residence', 'Income', 'Other', 'Docs'];
   }
@@ -115,8 +115,9 @@ function matchesLoanTypeFilter(
   field: FormFieldDef,
   loanType: string
 ): boolean {
-  if (field.hideForLoanTypes?.includes(loanType)) return false;
-  if (field.showForLoanTypes?.length && !field.showForLoanTypes.includes(loanType)) {
+  const code = normalizeLoanTypeCode(loanType) ?? coerceLoanTypeCode(loanType);
+  if (field.hideForLoanTypes?.includes(code)) return false;
+  if (field.showForLoanTypes?.length && !field.showForLoanTypes.includes(code)) {
     return false;
   }
   return true;

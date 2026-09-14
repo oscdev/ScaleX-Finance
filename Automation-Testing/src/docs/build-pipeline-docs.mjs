@@ -63,7 +63,7 @@ const LEAD_TOP_FIELDS = [
   {
     key: 'pinCode',
     label: 'Pin Code',
-    usedIn: 'POST /api/leads · eligibility PL/BL-PINCODE · zip_codes_to_lenders',
+    usedIn: 'POST /api/leads · eligibility PL/BL-PINCODE · zip_codes_to_lenders (filtered by loan_type)',
   },
   {
     key: 'selectedProduct',
@@ -218,7 +218,7 @@ function itemDescription(parts) {
 }
 
 function buildLeadItems(productId) {
-  const loanType = productId === 'business-loan' ? 'Business Loan' : 'Personal Loan';
+  const loanType = productId === 'business-loan' ? 'BL' : 'PL';
   const occupation = productId === 'business-loan' ? 'Self Employed' : 'Salaried';
   const steps = getAppSteps(loanType, occupation);
   const fields = getFieldsForFunnel(

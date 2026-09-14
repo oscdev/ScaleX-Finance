@@ -17,15 +17,26 @@ import {
     slugifyRegProof,
 } from './businessLoanConfig';
 import {
+    createDocumentPreviewUrl,
     renameFileForDocumentField,
     renameRegProofDocumentFile,
 } from '@/lib/documentFilenames';
+import {
+    coerceLoanTypeCode,
+    isBusinessLoanType,
+    isHomeLoanType,
+    isLapLoanType,
+    isPersonalLoanType,
+    loanTypeLabel,
+    normalizeLoanTypeCode,
+} from '@/lib/loanType';
 
 const getSteps = (loanType: string, occupation: string) => {
     const isSelfEmployed = occupation === 'Self Employed';
-    const isLAP = loanType === 'LAP' || loanType === 'LAP (Loan Against Property)';
+    const isLAP = isLapLoanType(loanType);
+    const code = normalizeLoanTypeCode(loanType);
 
-    if (isSelfEmployed && loanType === 'Home Loan') {
+    if (isSelfEmployed && isHomeLoanType(loanType)) {
         return [
             { id: 1, name: 'Business', icon: '🏢' },
             { id: 2, name: 'Personal', icon: '👤' },
@@ -48,8 +59,8 @@ const getSteps = (loanType: string, occupation: string) => {
         ];
     }
 
-    switch (loanType) {
-        case 'Business Loan':
+    switch (code) {
+        case 'BL':
             return [
                 { id: 1, name: 'Business', icon: '🏢' },
                 { id: 2, name: 'Personal', icon: '👤' },
@@ -59,7 +70,6 @@ const getSteps = (loanType: string, occupation: string) => {
                 { id: 6, name: 'Submit', icon: '✅' }
             ];
         case 'LAP':
-        case 'LAP (Loan Against Property)':
             return [
                 { id: 1, name: 'Personal', icon: '👤' },
                 { id: 2, name: 'Residence', icon: '📍' },
@@ -68,7 +78,7 @@ const getSteps = (loanType: string, occupation: string) => {
                 { id: 5, name: 'Docs', icon: '📂' },
                 { id: 6, name: 'Submit', icon: '✅' }
             ];
-        case 'Home Loan':
+        case 'HL':
             return [
                 { id: 1, name: 'Personal', icon: '👤' },
                 { id: 2, name: 'Residence', icon: '🏠' },
@@ -78,7 +88,7 @@ const getSteps = (loanType: string, occupation: string) => {
                 { id: 6, name: 'Docs', icon: '📂' },
                 { id: 7, name: 'Submit', icon: '✅' }
             ];
-        case 'Personal Loan':
+        case 'PL':
         default:
             return [
                 { id: 1, name: 'Personal', icon: '👤' },
@@ -239,7 +249,13 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                     const nextUploaded = { ...next.uploadedFields };
                     delete nextUploaded.auditedBooksDoc;
                     next.uploadedFields = nextUploaded;
-                    next.addedDocs = (next.addedDocs || []).filter((d: any) => d.key !== 'auditedBooksDoc');
+                    next.addedDocs = (next.addedDocs || []).filter((d: any) => {
+                        if (d.key !== 'auditedBooksDoc') return true;
+                        if (d.previewUrl) {
+                            try { URL.revokeObjectURL(d.previewUrl); } catch { /* ignore */ }
+                        }
+                        return false;
+                    });
                 }
                 return next;
             });
@@ -272,11 +288,20 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
             return;
         }
 
-        // Create a local object URL so the View button can open the file before final upload
-        const previewUrl = URL.createObjectURL(currentFile);
+        // Typed blob URL so Chrome can render PDF/images in the Docs View modal
+        const previewUrl = createDocumentPreviewUrl(currentFile);
 
         setFormData(prev => {
-            const docId = `Doc-${prev.addedDocs.length + 1}`;
+            const multiField = fieldKey === 'otherDocs' || fieldKey === 'salarySlips';
+            const keptDocs = (prev.addedDocs || []).filter((d: any) => {
+                if (multiField || d.key !== fieldKey) return true;
+                if (d.previewUrl) {
+                    try { URL.revokeObjectURL(d.previewUrl); } catch { /* ignore */ }
+                }
+                return false;
+            });
+
+            const docId = `Doc-${keptDocs.length + 1}`;
             const newDoc = {
                 id: docId,
                 key: fieldKey,
@@ -285,13 +310,14 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                 password: prev.pdfPasswords[fieldKey] || 'No',
                 date: new Date().toLocaleDateString('en-IN'),
                 status: 'Staged',
-                previewUrl
+                previewUrl,
+                previewFile: currentFile,
             };
 
             return {
                 ...prev,
                 uploadedFields: { ...prev.uploadedFields, [fieldKey]: true },
-                addedDocs: [...prev.addedDocs, newDoc],
+                addedDocs: [...keptDocs, newDoc],
                 pdfPasswords: { ...prev.pdfPasswords, [fieldKey]: '' },
                 ...(fieldKey === 'otherDocs' ? { docType: '' } : {})
             };
@@ -394,7 +420,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
 
             // Business Loan: multi registration-proof uploads → businessRegProofDoc array
             const regProofMeta: { proofType: string; key: string }[] = [];
-            if (loanType === 'Business Loan' && formData.businessRegProofs?.length) {
+            if (isBusinessLoanType(loanType) && formData.businessRegProofs?.length) {
                 const regProofIds: number[] = [];
                 for (const proof of formData.businessRegProofs) {
                     const key = slugifyRegProof(proof);
@@ -433,7 +459,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
             const cleanLeadId = (leadId && leadId !== 'N/A') ? parseInt(leadId, 10) : null;
             const cleanLoanAmount = parseFloat(String(formData.loanAmount)) || 0;
 
-            const isBusinessLoan = loanType === 'Business Loan';
+            const isBusinessLoan = isBusinessLoanType(loanType);
             const stepNames = new Set(STEPS.map((s) => s.name));
 
             /** Only persist form_data sections that belong to this loan-type funnel. */
@@ -541,7 +567,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
             const payload = {
                 data: {
                     leadId: cleanLeadId,
-                    loanType,
+                    loanType: coerceLoanTypeCode(loanType),
                     loanAmount: cleanLoanAmount,
                     applicantName: ss.getItem('leadName') || formData.applicantName || 'Applicant',
                     email: ss.getItem('leadEmail') || '',
@@ -605,7 +631,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         const errors = [];
 
         // ── Business Loan (dedicated rules) ──────────────────────────────────
-        if (loanType === 'Business Loan') {
+        if (isBusinessLoanType(loanType)) {
             if (!formData.businessName) errors.push(`Please enter "${pageInfo.businessNameLabel || 'Business Name'}*" in "Business" tab.`);
             if (!formData.businessPremises) errors.push(`Please enter "${pageInfo.businessPremisesLabel || 'Business Premises'}*" in "Business" tab.`);
             if (!formData.businessType) errors.push(`Please enter "${pageInfo.businessTypeLabel || 'Business Type'}*" in "Business" tab.`);
@@ -664,7 +690,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
             if (!formData.city) errors.push(`Please enter "${pageInfo.cityLabel || 'City'}*" in "Residence" tab.`);
             if (!formData.residenceType) errors.push(`Please enter "${pageInfo.residenceTypeLabel || 'Residence Type'}*" in "Residence" tab.`);
 
-            if (loanType === 'Home Loan') {
+            if (isHomeLoanType(loanType)) {
                 if (!formData.propertyType) errors.push(`Please select "${pageInfo.propertyTypeLabel || 'Property Type'}*" in "Property" tab.`);
                 if (!formData.propertyStatus) errors.push(`Please select "${pageInfo.propertyStatusLabel || 'Property Status'}*" in "Property" tab.`);
                 if (!formData.propertyValue) errors.push(`Please select "${pageInfo.propertyValueLabel || 'Property Value'}*" in "Property" tab.`);
@@ -684,7 +710,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         }
 
         // ── Standard Validation for other loans (Personal, Home Salaried, LAP Salaried)
-        const isLAPStandard = loanType === 'LAP' || loanType === 'LAP (Loan Against Property)';
+        const isLAPStandard = isLapLoanType(loanType);
         if (!formData.dob) errors.push(`Please enter "${pageInfo.dobLabel || 'Date of Birth'}*" in "Personal" tab.`);
         if (!formData.maritalStatus) errors.push(`Please enter "${pageInfo.maritalStatusLabel || 'Marital Status'}*" in "Personal" tab.`);
         if (!formData.motherName) errors.push(`Please enter "${pageInfo.motherNameLabel || 'Mother Name'}*" in "Personal" tab.`);
@@ -698,9 +724,9 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         if (!formData.city) errors.push(`Please enter "${pageInfo.cityLabel || 'City'}*" in "Residence" tab.`);
         if (!formData.residenceType) errors.push(`Please enter "${pageInfo.residenceTypeLabel || 'Residence Type'}*" in "Residence" tab.`);
 
-        if (loanType === 'Home Loan' || isLAPStandard) {
+        if (isHomeLoanType(loanType) || isLAPStandard) {
             const tabName = isLAPStandard ? 'Residence' : 'Property';
-            if (loanType === 'Home Loan') {
+            if (isHomeLoanType(loanType)) {
                 if (!formData.propertyType) errors.push(`Please enter "${pageInfo.propertyTypeLabel || 'Property Type'}*" in "${tabName}" tab.`);
                 if (!formData.propertyStatus) errors.push(`Please enter "${pageInfo.propertyStatusLabel || 'Property Status'}*" in "${tabName}" tab.`);
                 if (!formData.propertyValue) errors.push(`Please enter "${pageInfo.propertyValueLabel || 'Property Value'}*" in "${tabName}" tab.`);
@@ -746,14 +772,14 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         if (!formData.uploadedFields['aadharCardFront']) errors.push(`Please upload "${pageInfo.adharFrontLabel || 'Aadhar Card Front'}*" in "Docs" tab.`);
         if (!formData.uploadedFields['aadharCardBack']) errors.push(`Please upload "${pageInfo.adharBackLabel || 'Aadhar Card Back'}*" in "Docs" tab.`);
 
-        if (loanType === 'Home Loan') {
+        if (isHomeLoanType(loanType)) {
             if (!formData.uploadedFields['coAppPan']) errors.push(`Please upload "${pageInfo.coAppPanLabel || 'Co-Applicant Pan Card'}*" in "Docs" tab.`);
             if (!formData.uploadedFields['coAppAadharFront']) errors.push(`Please upload "${pageInfo.coAppAadharFrontLabel || 'Co-Applicant Aadhar Card Front'}*" in "Docs" tab.`);
             if (!formData.uploadedFields['coAppAadharBack']) errors.push(`Please upload "${pageInfo.coAppAadharBackLabel || 'Co-Applicant Aadhar Card Back'}*" in "Docs" tab.`);
             if (!formData.uploadedFields['salarySlips']) errors.push(`Please upload "${pageInfo.salarySlipsLabel || 'Salary Slip 1 year'}*" in "Docs" tab.`);
             if (!formData.uploadedFields['bankStatement']) errors.push(`Please upload "${pageInfo.bankStatementLabel || '6 Month Bank Statement'}*" in "Docs" tab.`);
             if (!formData.uploadedFields['propertyPapers']) errors.push(`Please upload "${pageInfo.propertyPapersLabel || 'Property Papers'}*" in "Docs" tab.`);
-        } else if (loanType === 'Personal Loan' || isLAPStandard) {
+        } else if (isPersonalLoanType(loanType) || isLAPStandard) {
             if (!formData.uploadedFields['salarySlips']) errors.push(`Please upload "${pageInfo.salarySlipsLabel || 'Salary Slip 1 year'}*" in "Docs" tab.`);
             if (!formData.uploadedFields['bankStatement']) errors.push(`Please upload "${pageInfo.bankStatementLabel || '6 Month Bank Statement'}*" in "Docs" tab.`);
         }
@@ -781,15 +807,14 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
             occupation
         };
 
-        switch (loanType) {
-            case 'Business Loan':
+        switch (normalizeLoanTypeCode(loanType)) {
+            case 'BL':
                 return <BusinessLoanFunnel {...funnelProps} />;
-            case 'Home Loan':
+            case 'HL':
                 return <HomeLoanFunnel {...funnelProps} />;
             case 'LAP':
-            case 'LAP (Loan Against Property)':
                 return <LAPFunnel {...funnelProps} />;
-            case 'Personal Loan':
+            case 'PL':
             default:
                 return <PersonalLoanFunnel {...funnelProps} />;
         }
@@ -802,7 +827,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                 <div className="loan-app-header-container shadow-sm">
                     {/* Green Success Bar now containing Lead info with Occupation */}
                     <div className="status-success-bar">
-                        {loanType} - {occupation} Lead #{leadId}
+                        {loanTypeLabel(loanType)} - {occupation} Lead #{leadId}
                     </div>
 
                     {/* Stepper Header */}
@@ -855,7 +880,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                                     <span className="loan-profile-icon">💵</span>
                                     <div className="loan-type-info">
                                         <span className="loan-badge loan-badge-inline">LOAN</span>
-                                        <span className="footer-loan-title">{loanType}</span>
+                                        <span className="footer-loan-title">{loanTypeLabel(loanType)}</span>
                                     </div>
                                 </div>
 

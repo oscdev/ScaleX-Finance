@@ -11,6 +11,7 @@ import {
 import { BlScoreErr, BlScoreError } from '../utils/error-codes';
 import { evaluateCriterion } from '../utils/scoring-rules';
 import { BL_CRITERION_ORDER } from '../utils/types';
+import { normalizeLoanTypeCode } from '../../../utils/loan-type';
 import type {
   BlScoreCriterionId,
   CriterionScoreResult,
@@ -91,7 +92,7 @@ export async function scoreEligibleLenders(
   strapi: any,
   input: ScoreEligibleInput
 ): Promise<LenderScoreResult[]> {
-  const loanType = input.loanType ?? 'Business Loan';
+  const loanType = normalizeLoanTypeCode(input.loanType) ?? 'BL';
   const fileLog =
     input.fileLog ??
     (await createScoringRunLogger(
@@ -293,7 +294,7 @@ export async function scoreOneLender(
   const scored = await scoreEligibleLenders(strapi, {
     leadId,
     runId: rid,
-    loanType: 'Business Loan',
+    loanType: 'BL',
     profile,
     eligibleLenders: [eligible],
     criteriaByCode,

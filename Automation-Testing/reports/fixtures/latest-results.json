@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T08:08:01.067Z",
+  "generatedAt": "2026-09-11T15:05:29.691Z",
   "totalEntries": 182,
   "totalCases": 281,
   "passed": 281,
@@ -56,9 +56,10 @@
         "step": 2,
         "ruleId": "PL-PINCODE",
         "ruleName": "Zipcode availability",
-        "formula": "coversAllPincodes OR zipCode === applicantPin",
+        "formula": "loanType = 'PL' AND isActive AND (coversAllPincodes OR zipCode === applicantPin)",
         "threshold": {
-          "pincodeCheckRequired": true
+          "pincodeCheckRequired": true,
+          "loanType": "PL"
         },
         "applicantValue": "110001",
         "result": "PASS",
@@ -77,9 +78,10 @@
         "step": 2,
         "ruleId": "PL-PINCODE",
         "ruleName": "Zipcode availability",
-        "formula": "coversAllPincodes OR zipCode === applicantPin",
+        "formula": "loanType = 'PL' AND isActive AND (coversAllPincodes OR zipCode === applicantPin)",
         "threshold": {
-          "pincodeCheckRequired": true
+          "pincodeCheckRequired": true,
+          "loanType": "PL"
         },
         "applicantValue": "999999",
         "result": "FAIL",
@@ -99,9 +101,10 @@
         "step": 2,
         "ruleId": "PL-PINCODE",
         "ruleName": "Zipcode availability",
-        "formula": "coversAllPincodes OR zipCode === applicantPin",
+        "formula": "loanType = 'PL' AND isActive AND (coversAllPincodes OR zipCode === applicantPin)",
         "threshold": {
-          "pincodeCheckRequired": false
+          "pincodeCheckRequired": false,
+          "loanType": "PL"
         },
         "applicantValue": "110001",
         "result": "SKIP",
@@ -1390,9 +1393,10 @@
         "step": 2,
         "ruleId": "BL-PINCODE",
         "ruleName": "Zip / pincode coverage",
-        "formula": "coversAllPincodes OR zipCode === applicantPin",
+        "formula": "loanType = 'BL' AND isActive AND (coversAllPincodes OR zipCode === applicantPin)",
         "threshold": {
-          "geographyAlwaysEvaluated": true
+          "geographyAlwaysEvaluated": true,
+          "loanType": "BL"
         },
         "applicantValue": "110001",
         "result": "PASS",
@@ -1411,9 +1415,10 @@
         "step": 2,
         "ruleId": "BL-PINCODE",
         "ruleName": "Zip / pincode coverage",
-        "formula": "coversAllPincodes OR zipCode === applicantPin",
+        "formula": "loanType = 'BL' AND isActive AND (coversAllPincodes OR zipCode === applicantPin)",
         "threshold": {
-          "geographyAlwaysEvaluated": true
+          "geographyAlwaysEvaluated": true,
+          "loanType": "BL"
         },
         "applicantValue": "999999",
         "result": "FAIL",

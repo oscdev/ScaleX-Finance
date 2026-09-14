@@ -8,6 +8,8 @@ import {
 } from '../LoanForm/loanAppAdminApi';
 import { buildLeadUploadFolderName } from '../../api/loan-application/utils/lead-upload-folder';
 
+import { coerceLoanTypeCode } from '../../utils/loan-type';
+import { resolveSectionRoleId } from '../bootstrap/resolveSectionRoleId';
 import {
   isLoanApplicationSubmitted,
   getAdminLoanFormDisplayData,
@@ -34,7 +36,7 @@ export const LEAD_STATUS_OPTIONS = [
 ];
 
 export const PRODUCT_CONFIG: Record<string, { leadFields: any[] }> = {
-    'Personal Loan': {
+    PL: {
         leadFields: [
             { label: 'Loan Requirement', key: 'requiredAmount', type: 'currency' },
             { label: 'Full Name', key: 'fullName' },
@@ -45,7 +47,7 @@ export const PRODUCT_CONFIG: Record<string, { leadFields: any[] }> = {
             { label: 'Pin Code', key: 'pinCode' },
         ],
     },
-    'Business Loan': {
+    BL: {
         leadFields: [
             { label: 'Loan Requirement', key: 'requiredAmount', type: 'currency' },
             { label: 'Full Name', key: 'fullName' },
@@ -56,7 +58,7 @@ export const PRODUCT_CONFIG: Record<string, { leadFields: any[] }> = {
             { label: 'Pin Code', key: 'pinCode' },
         ],
     },
-    'Home Loan': {
+    HL: {
         leadFields: [
             { label: 'Lead Type', key: 'leadType' },
             { label: 'Loan Requirement', key: 'requiredAmount', type: 'currency' },
@@ -84,24 +86,15 @@ export const PRODUCT_CONFIG: Record<string, { leadFields: any[] }> = {
             { label: 'Employment Type', key: 'employmentType' },
         ],
     },
-    'LAP (Loan Against Property)': {
-        leadFields: [
-            { label: 'Loan Requirement', key: 'requiredAmount', type: 'currency' },
-            { label: 'Full Name', key: 'fullName' },
-            { label: 'Mobile Number', key: 'mobileNumber' },
-            { label: 'Property Type', key: 'propertyType' },
-            { label: 'Property Status', key: 'propertyStatus' },
-            { label: 'Property Value', key: 'propertyValue', type: 'currency' },
-            { label: 'Email', key: 'email' },
-            { label: 'Aadhar Card', key: 'aadharCard' },
-            { label: 'Pan Card', key: 'panCard' },
-            { label: 'Pin Code', key: 'pinCode' },
-            { label: 'Employment Type', key: 'employmentType' },
-        ],
-    },
 };
 
-export const PRODUCT_OPTIONS = Object.keys(PRODUCT_CONFIG);
+export const PRODUCT_OPTIONS = ['PL', 'BL', 'HL', 'LAP'] as const;
+
+/** Resolve lead-field config for a product code or legacy label. */
+export function resolveProductConfig(productType?: string | null) {
+  const code = coerceLoanTypeCode(productType);
+  return PRODUCT_CONFIG[code] || PRODUCT_CONFIG.PL;
+}
 
 export const resolveNumericLeadId = (lead: { id?: unknown; leadId?: unknown } | null, routeLeadId: string): string | number => {
     if (lead?.leadId != null && /^\d+$/.test(String(lead.leadId))) return Number(lead.leadId);
@@ -784,7 +777,7 @@ export const useLeadViewDashboard = (leadId: string) => {
                 // Super Admins always get full access — skip permission fetch
                 if (roles.some((r: any) => r.code === 'strapi-super-admin')) return;
 
-                const roleId = roles[0]?.id;
+                const roleId = resolveSectionRoleId(roles);
                 if (!roleId) return;
 
                 // Use public REST API — no CM access needed, works for all admin roles
@@ -1057,22 +1050,27 @@ export const useLeadViewDashboard = (leadId: string) => {
 
     const handleSaveLeadField = async (key: string, value: string | boolean) => {
         try {
-            const payload: Record<string, unknown> = { [key]: value === '' ? null : value };
+            let saveValue: string | boolean | null = value === '' ? null : value;
+            if (key === 'selectedProduct' && typeof saveValue === 'string' && saveValue) {
+                saveValue = coerceLoanTypeCode(saveValue);
+            }
+            const payload: Record<string, unknown> = { [key]: saveValue };
             const res = await fetch(`/api/leads/${lead?.documentId || leadId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ data: payload }),
             });
             if (res.ok) {
-                setLead((prev: any) => ({ ...prev, [key]: value === '' ? null : value }));
-                if (key === 'selectedProduct' && loanApp && value) {
+                setLead((prev: any) => ({ ...prev, [key]: saveValue }));
+                if (key === 'selectedProduct' && loanApp && saveValue) {
                     const loanDocId = loanApp.documentId || String(loanApp.id);
+                    const loanTypeCode = coerceLoanTypeCode(String(saveValue));
                     await fetch(`/api/loan-applications/${loanDocId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ data: { loanType: value } }),
+                        body: JSON.stringify({ data: { loanType: loanTypeCode } }),
                     });
-                    setLoanApp((prev: any) => (prev ? { ...prev, loanType: value } : prev));
+                    setLoanApp((prev: any) => (prev ? { ...prev, loanType: loanTypeCode } : prev));
                 }
                 if (key === 'requiredAmount' && loanApp) {
                     const loanDocId = loanApp.documentId || String(loanApp.id);
