@@ -275,7 +275,7 @@ async function loadZipRows(
 ): Promise<any[]> {
   try {
     return await strapi.db.query('api::lender-master.zip-code').findMany({
-      where: { lenderCode, isActive: true },
+      where: { lenderCode, isActive: true, loanType: 'BL' },
       limit: 5000,
     });
   } catch (err: any) {
@@ -379,7 +379,7 @@ export async function runBlEligibilityMatch(
     applicantPin: profile.pinCode,
     requestedAmount: profile.requestedAmount,
     loanAmount: profile.loanAmount,
-    loanType: profile.loanType || 'Business Loan',
+    loanType: profile.loanType || 'BL',
     hasBureau: profile.hasBureau,
     hasLoanApp: profile.hasLoanApp,
     cibilScore: profile.cibilScore,
@@ -563,7 +563,7 @@ export async function runBlEligibilityMatch(
   const result: MatchRunResult = {
     leadId,
     runId,
-    loanType: 'Business Loan',
+    loanType: 'BL',
     profile,
     lenders,
     response,
@@ -611,7 +611,7 @@ export async function runBlEligibilityMatch(
     metadata: {
       leadId,
       runId,
-      loanType: 'Business Loan',
+      loanType: 'BL',
       eligible: response.eligible.map((e) => e.lenderCode),
     },
   });

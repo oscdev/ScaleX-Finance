@@ -66,8 +66,15 @@ export const syncSessionRole = async (isRetry = false): Promise<void> => {
 
     try {
         const token = findJwtInStorage();
-        const headers: any = {};
-        if (token) headers['Authorization'] = `Bearer ${token}`;
+        // No JWT yet (e.g. mid Login-as-Advisor clear) — do not call /admin/users/me (avoids 401 spam).
+        if (!token) {
+            resolveRolePromise();
+            return;
+        }
+
+        const headers: any = {
+            Authorization: `Bearer ${token}`,
+        };
 
         const userRes = await fetch('/admin/users/me', {
             headers,

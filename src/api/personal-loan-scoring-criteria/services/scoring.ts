@@ -7,6 +7,7 @@ import {
   createScoringRunLogger,
   type ScoringRunLogger,
 } from '../utils/scoring-file-logger';
+import { coerceLoanTypeCode } from '../../../utils/loan-type';
 import type {
   CriterionScoreResult,
   LenderScoreResult,
@@ -88,7 +89,7 @@ export async function scoreEligibleLenders(
   strapi: any,
   input: ScoreEligibleInput
 ): Promise<LenderScoreResult[]> {
-  const loanType = input.loanType ?? 'Personal Loan';
+  const loanType = coerceLoanTypeCode(input.loanType ?? 'PL');
   const fileLog =
     input.fileLog ??
     (await createScoringRunLogger(

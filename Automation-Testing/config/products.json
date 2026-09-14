@@ -3,7 +3,7 @@
     {
       "id": "personal-loan",
       "label": "Personal Loan",
-      "loanType": "Personal Loan",
+      "loanType": "PL",
       "eligibilityApi": "/api/personal-loan-eligibility/matched-lenders",
       "loanTypeApi": "/api/personal-loan-eligibility/loan-type",
       "evaluateApi": "/api/personal-loan-eligibility/evaluate",
@@ -19,7 +19,7 @@
     {
       "id": "business-loan",
       "label": "Business Loan",
-      "loanType": "Business Loan",
+      "loanType": "BL",
       "eligibilityApi": "/api/business-loan-eligibility/matched-lenders",
       "loanTypeApi": "/api/personal-loan-eligibility/loan-type",
       "evaluateApi": "/api/business-loan-eligibility/evaluate",

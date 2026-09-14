@@ -466,6 +466,16 @@ tbody tr [role="button"],
 .adv-actions-header { min-width: 180px; width: 180px; }
 .adv-actions-cell { min-width: 180px !important; width: 180px; text-align: right; padding: 8px; }
 
+/* Hide Strapi native row "More actions" when custom ACTIONS column is present */
+table:has(.custom-actions-cell) tbody td:not(.custom-actions-cell) button[aria-haspopup="menu"],
+table:has(.custom-actions-cell) tbody td:not(.custom-actions-cell) button[aria-label*="More" i],
+table:has(.custom-actions-cell) tbody td:not(.custom-actions-cell) button[aria-label*="Edit" i],
+table:has(.adv-actions-cell) tbody td:not(.adv-actions-cell) button[aria-haspopup="menu"],
+table:has(.adv-actions-cell) tbody td:not(.adv-actions-cell) button[aria-label*="More" i],
+table:has(.adv-actions-cell) tbody td:not(.adv-actions-cell) button[aria-label*="Edit" i] {
+    display: none !important;
+}
+
 /* ---------------------------------------------------------
    ACTION BUTTONS
    --------------------------------------------------------- */

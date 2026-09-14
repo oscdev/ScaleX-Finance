@@ -17,7 +17,7 @@ const otherIncomeWhen = { section: 'incomeDetails', key: 'hasOtherIncome', equal
 
 /** @type {Record<string, { step: string, title: string, fields: { section: string, key: string, label: string, required?: boolean, requiredWhen?: object }[] }[]>} */
 export const FUNNEL_BY_LOAN_TYPE = {
-  'Personal Loan': [
+  PL: [
     {
       step: 'Personal',
       title: 'Personal Details',
@@ -66,7 +66,7 @@ export const FUNNEL_BY_LOAN_TYPE = {
     },
     { step: 'Docs', title: 'Documents', fields: [] },
   ],
-  'Business Loan': [
+  BL: [
     {
       step: 'Business',
       title: 'Business Details',
@@ -114,8 +114,22 @@ export const FUNNEL_BY_LOAN_TYPE = {
   ],
 };
 
+/** Normalize product loanType (codes or legacy labels) → PL|BL|HL|LAP. */
+export function normalizeProductLoanType(loanType) {
+  const raw = String(loanType || '').trim();
+  const upper = raw.toUpperCase();
+  if (upper === 'PL' || upper === 'BL' || upper === 'HL' || upper === 'LAP') return upper;
+  const lower = raw.toLowerCase();
+  if (lower === 'personal loan') return 'PL';
+  if (lower === 'business loan') return 'BL';
+  if (lower === 'home loan') return 'HL';
+  if (lower === 'lap' || lower.includes('loan against property')) return 'LAP';
+  return 'PL';
+}
+
 export function getFunnelSteps(loanType) {
-  return FUNNEL_BY_LOAN_TYPE[loanType] || FUNNEL_BY_LOAN_TYPE['Personal Loan'];
+  const code = normalizeProductLoanType(loanType);
+  return FUNNEL_BY_LOAN_TYPE[code] || FUNNEL_BY_LOAN_TYPE.PL;
 }
 
 export function isFunnelFieldRequired(field, formData) {

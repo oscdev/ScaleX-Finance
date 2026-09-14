@@ -125,7 +125,7 @@ function buildRunningLoansHtml(loans) {
 }
 
 function buildFormsSection(run) {
-  const loanType = run.meta?.loanType || 'Personal Loan';
+  const loanType = run.meta?.loanType || 'PL';
   const lead = run.fieldValues?.lead || {};
   const loanApp = run.fieldValues?.loanApp || {};
   const formData = loanApp.form_data || {};
@@ -1107,7 +1107,9 @@ function hydrateRunForReport(run) {
   if (run.meta?.leadId) {
     const product = run.meta.product || '';
     const scoreDir =
-      product === 'business-loan' || run.meta.loanType === 'Business Loan'
+      product === 'business-loan' ||
+      run.meta.loanType === 'BL' ||
+      (run.meta.loanType === 'Business Loan' || run.meta.loanType === 'BL')
         ? 'logs/business-loan/bl-scoring'
         : 'logs/personal-loan/pl-scoring';
     const dir = path.join(REPO_ROOT, scoreDir);

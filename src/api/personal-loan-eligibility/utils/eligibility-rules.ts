@@ -96,8 +96,9 @@ export function evaluateZipcode(
   criteria: LenderCriteria,
   zipRows: Array<{ zipCode?: string | null; coversAllPincodes?: boolean; isActive?: boolean }>
 ): ConditionResult {
-  const formula = 'coversAllPincodes OR zipCode === applicantPin';
-  const threshold = { pincodeCheckRequired: criteria.pincodeCheckRequired };
+  const formula =
+    "loanType = 'PL' AND isActive AND (coversAllPincodes OR zipCode === applicantPin)";
+  const threshold = { pincodeCheckRequired: criteria.pincodeCheckRequired, loanType: 'PL' };
   if (!criteria.pincodeCheckRequired) {
     return {
       step,

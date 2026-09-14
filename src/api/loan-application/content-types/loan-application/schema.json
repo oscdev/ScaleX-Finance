@@ -19,7 +19,13 @@
             "type": "decimal"
         },
         "loanType": {
-            "type": "string"
+            "type": "enumeration",
+            "enum": [
+                "PL",
+                "BL",
+                "HL",
+                "LAP"
+            ]
         },
         "form_data": {
             "type": "json"

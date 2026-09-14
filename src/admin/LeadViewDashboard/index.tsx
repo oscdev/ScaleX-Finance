@@ -16,6 +16,7 @@ import { LoanFormSections } from '../LoanForm/LoanFormSections';
 import { LeadInfoSummary } from '../LoanForm/LeadInfoSummary';
 import { buildLeadUploadFolderName } from '../../api/loan-application/utils/lead-upload-folder';
 import { renameFileForDocumentField } from '../../shared/loan-form/document-filenames';
+import { coerceLoanTypeCode, DEFAULT_LOAN_TYPE, loanTypeLabel } from '../../utils/loan-type';
 import { styles, fileFormatBox, fileFormatText, bubbleStyle, logTextStyle } from './styles';
 
 const SearchableDropdown = ({
@@ -608,7 +609,9 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
         );
     }
 
-    const productType = lead.selectedProduct || loanApp?.loanType || 'Personal Loan';
+    const productType = coerceLoanTypeCode(
+        lead.selectedProduct || loanApp?.loanType || DEFAULT_LOAN_TYPE
+    );
     const numericLeadId = resolveNumericLeadId(lead, leadId);
     const appSteps = getAppSteps(productType, lead.employmentType || '');
     const loanFormDisplayData = loanApp
@@ -646,7 +649,7 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                         <Typography variant="pi" textColor="primary600" fontWeight="bold">← BACK TO LEADS</Typography>
                     </Button>
                     <span>/</span>
-                    <Typography variant="pi" textColor="neutral600">{productType}</Typography>
+                    <Typography variant="pi" textColor="neutral600">{loanTypeLabel(productType)}</Typography>
                     <span>/</span>
                     <Typography variant="pi" fontWeight="bold">Lead View</Typography>
                 </Flex>

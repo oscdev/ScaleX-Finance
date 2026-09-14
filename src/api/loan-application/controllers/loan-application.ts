@@ -12,6 +12,7 @@ import {
 } from '../../../utils/pl-lead-submission-logger';
 import { validateBusinessLoanPayload } from '../utils/validate-business-loan';
 import { LOAN_APP_MEDIA_FIELDS } from '../utils/media-fields';
+import { isBusinessLoanType } from '../../../utils/loan-type';
 
 const MEDIA_FIELDS = [...LOAN_APP_MEDIA_FIELDS];
 
@@ -71,7 +72,7 @@ export default factories.createCoreController(
       const { data } = ctx.request.body ?? {};
       const requestData = (data ?? {}) as Record<string, unknown>;
 
-      if (requestData.loanType === 'Business Loan') {
+      if (isBusinessLoanType(requestData.loanType as string | null | undefined)) {
         const blErrors = validateBusinessLoanPayload(requestData);
         if (blErrors.length > 0) {
           return ctx.badRequest('Business Loan validation failed', { errors: blErrors });

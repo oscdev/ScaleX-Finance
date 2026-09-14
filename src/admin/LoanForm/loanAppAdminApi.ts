@@ -1,6 +1,7 @@
 import { getToken } from '../LeadViewDashboard/useLeadViewDashboard';
 import type { LoanAppRecord, LoanFormData } from './useLoanFormSave';
 import { normalizeLoanAppRow } from './loanAppRowUtils';
+import { coerceLoanTypeCode, DEFAULT_LOAN_TYPE } from '../../utils/loan-type';
 
 const LOAN_APP_UID = 'api::loan-application.loan-application';
 
@@ -158,7 +159,7 @@ export async function ensureLoanAppForLead(
     // Schema default (`Pending`) applies on create.
     const payload: Record<string, unknown> = {
         leadId: numericLeadId,
-        loanType: lead.selectedProduct || 'Personal Loan',
+        loanType: coerceLoanTypeCode(lead.selectedProduct || DEFAULT_LOAN_TYPE),
         applicantName: lead.fullName || 'Applicant',
         email: lead.email || '',
         phone: lead.mobileNumber || '',

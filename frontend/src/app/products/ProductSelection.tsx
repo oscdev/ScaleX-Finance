@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { withStrapiPublicUrl } from '@/lib/strapi';
 import { useRouter } from 'next/navigation';
 import { safeSessionStorage } from '@/lib/safeStorage';
+import { coerceLoanTypeCode, loanTypeLabel } from '@/lib/loanType';
 import './ProductSelection.css';
 
 export default function ProductSelection({ products, buttonConfig }: { products: any[], buttonConfig: any }) {
@@ -27,6 +28,7 @@ export default function ProductSelection({ products, buttonConfig }: { products:
                             const content = product.attributes || product;
                             const isSelected = selectedProduct === product.id;
                             const logoUrl = content.logo?.data?.attributes?.url || content.logo?.url;
+                            const titleLabel = loanTypeLabel(content.title);
 
                             return (
                                 <div
@@ -38,11 +40,11 @@ export default function ProductSelection({ products, buttonConfig }: { products:
                                         {logoUrl && (
                                             <img
                                                 src={withStrapiPublicUrl(logoUrl)}
-                                                alt={content.title}
+                                                alt={titleLabel}
                                                 className="product-card-logo"
                                             />
                                         )}
-                                        <h3 className="product-card-title">{content.title}</h3>
+                                        <h3 className="product-card-title">{titleLabel}</h3>
                                     </div>
                                     <div className="rich-text product-card-description">
                                         {parseBlocks(content.description)}
@@ -73,7 +75,7 @@ export default function ProductSelection({ products, buttonConfig }: { products:
                         onClick={() => {
                             const productObj = products.find(p => p.id === selectedProduct);
                             const title = productObj?.attributes?.title || productObj?.title || 'Unknown Product';
-                            safeSessionStorage().setItem('selectedProduct', title);
+                            safeSessionStorage().setItem('selectedProduct', coerceLoanTypeCode(title));
                             router.push(buttonConfig.continueLink);
                         }}
                     >

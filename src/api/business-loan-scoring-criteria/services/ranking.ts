@@ -103,7 +103,7 @@ export async function rankScoredLenders(
     metadata: {
       leadId,
       runId: opts?.runId,
-      loanType: 'Business Loan',
+      loanType: 'BL',
       scored: scored.length,
       displayed: rank.displayed.length,
       result: 'DONE',

@@ -254,7 +254,7 @@ async function loadZipRows(
 ): Promise<any[]> {
   try {
     return await strapi.db.query('api::lender-master.zip-code').findMany({
-      where: { lenderCode, isActive: true },
+      where: { lenderCode, isActive: true, loanType: 'PL' },
       limit: 5000,
     });
   } catch (err: any) {

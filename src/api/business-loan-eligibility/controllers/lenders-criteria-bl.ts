@@ -70,7 +70,7 @@ function formatBlMatchedBody(result: any, source: string) {
   return {
     leadId: result.leadId,
     leadName: result.profile?.fullName ?? null,
-    loanType: result.loanType || 'Business Loan',
+    loanType: result.loanType || 'BL',
     source,
     runId: result.runId,
     pipeline: scoring ? ['ELIGIBILITY', 'SCORING', 'RANK'] : ['ELIGIBILITY'],
@@ -126,7 +126,7 @@ function formatPlMatchedBody(result: any) {
 
   return {
     leadId: result.leadId,
-    loanType: 'Personal Loan',
+    loanType: 'PL',
     runId: result.runId,
     lenders: lendersList,
     excluded: result.response.excluded,
@@ -156,7 +156,7 @@ export default factories.createCoreController(
           (ctx.request.method === 'GET' ? 'lenders-page' : 'matched-lenders');
 
         const loanType = await resolveLeadLoanTypeFromDb(strapi, leadId);
-        // If we know the lead is Personal Loan, run PL engine (correct logs + scoring).
+        // If we know the lead is PL, run PL engine (correct logs + scoring).
         // Unknown / null → stay on BL path only when explicitly Business; otherwise if
         // not business, delegate to PL (default product).
         if (loanType != null && !isBusinessLoanType(loanType)) {
@@ -205,7 +205,7 @@ export default factories.createCoreController(
           ctx.body = {
             leadId: result.leadId,
             runId: result.runId,
-            loanType: 'Personal Loan',
+            loanType: 'PL',
             lenderCode,
             eligible: one?.eligible ?? false,
             rules: one?.conditions || [],
@@ -224,7 +224,7 @@ export default factories.createCoreController(
         ctx.body = {
           leadId: result.leadId,
           runId: result.runId,
-          loanType: result.loanType || 'Business Loan',
+          loanType: result.loanType || 'BL',
           lenderCode,
           eligible: one?.eligible ?? false,
           rules: one?.conditions || [],

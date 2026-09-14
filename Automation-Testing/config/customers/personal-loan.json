@@ -5,7 +5,7 @@
   "pincode": "440001",
   "aadharCard": "123456789012",
   "panCard": "ABCDE1234F",
-  "loanType": "Personal Loan",
+  "loanType": "PL",
   "loanAmount": 500000,
   "employmentType": "Salaried",
   "monthlyIncome": 85000,

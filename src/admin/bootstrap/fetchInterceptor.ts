@@ -151,7 +151,9 @@ export const installFetchInterceptor = () => {
         // Staff only see loan apps where assignedStaffId = their admin user ID.
         // Bankers only see loan apps where assignedBankerId = their admin user ID.
         // Admin sees all — no filter injected.
+        // Only rewrite list GETs — never PUT/POST (Lead View saves must not get assignment filters).
         if (
+            requestMethod === 'GET' &&
             url.includes('/content-manager/collection-types/api::loan-application.loan-application') &&
             !url.includes('configuration') &&
             !url.includes('filters[assignedStaffId]') &&

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getToken } from '../LeadViewDashboard/useLeadViewDashboard';
+import { resolveSectionRoleId } from '../bootstrap/resolveSectionRoleId';
 
 export type SectionPerms = Record<
     string,
@@ -41,10 +42,10 @@ export const useSectionPermissions = () => {
                 if (!res.ok) return;
                 const data = await res.json();
                 const user = data.data || data;
-                const roles: { id?: number; code?: string }[] = user.roles || [];
+                const roles: { id?: number; code?: string; name?: string }[] = user.roles || [];
                 if (roles.some((r) => r.code === 'strapi-super-admin')) return;
 
-                const roleId = roles[0]?.id;
+                const roleId = resolveSectionRoleId(roles);
                 if (!roleId) return;
 
                 const denied: SectionPerms = {} as SectionPerms;

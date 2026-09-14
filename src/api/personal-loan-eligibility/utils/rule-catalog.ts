@@ -38,10 +38,12 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ruleId: 'PL-PINCODE',
     ruleName: 'Zipcode availability',
     condition: 'Applicant pin must be serviceable when pincode check is required',
-    formula: 'covers_all_pincodes OR zip_codes_to_lenders.zip_code = leads.pin_code',
+    formula:
+      "loan_type = 'PL' AND is_active AND (covers_all_pincodes OR zip_codes_to_lenders.zip_code = leads.pin_code)",
     applicantSources: [{ table: 'leads', column: 'pin_code', description: 'Applicant pin code' }],
     thresholdSources: [
       { table: 'lenders_criteria_pl', column: 'pincode_check_required' },
+      { table: 'zip_codes_to_lenders', column: 'loan_type' },
       { table: 'zip_codes_to_lenders', column: 'zip_code' },
       { table: 'zip_codes_to_lenders', column: 'covers_all_pincodes' },
       { table: 'zip_codes_to_lenders', column: 'is_active' },

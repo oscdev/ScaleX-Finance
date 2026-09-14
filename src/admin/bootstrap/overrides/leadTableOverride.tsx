@@ -4,6 +4,7 @@ import { LeadOverviewDashboard } from '../../LeadOverview';
 import { reactRoots, unmountAndRemove } from './reactRoots';
 import { leadLabelMap } from './constants';
 import { lendersPageUrl, getFrontendBaseUrl } from '../frontendUrl';
+import { shouldPauseAdminOverrides } from '../overlayGuard';
 import {
     buildNtfBadgeHtml,
     buildStatusBadgeHtml,
@@ -194,6 +195,8 @@ const applyGlobalElementStyling = () => {
     });
 
     // Relabel camelCase field names inside portals / popovers
+    if (shouldPauseAdminOverrides()) return;
+
     document
         .querySelectorAll('[data-radix-popper-content-wrapper], [role="dialog"], [data-radix-popover-content]')
         .forEach((portal) => {
@@ -306,12 +309,16 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
             <div class="custom-comm-container">
                 <span class="custom-comm-name">${nameText}</span>
                 <div class="custom-comm-icons" style="margin-top: 4px;">
-                    ${mobileVal ? `<a href="tel:${mobileVal}" onclick="event.stopPropagation()" title="Call: ${mobileVal}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">📞</a>` : ''}
-                    ${mobileVal ? `<a href="https://wa.me/${mobileVal.replace(/\D/g, '')}" target="_blank" onclick="event.stopPropagation()" title="WhatsApp: ${mobileVal}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">💬</a>` : ''}
-                    ${emailVal ? `<a href="mailto:${emailVal}" onclick="event.stopPropagation()" title="Email: ${emailVal}" class="custom-comm-icon" style="text-decoration: none;">✉️</a>` : ''}
+                    ${mobileVal ? `<a href="tel:${mobileVal}" title="Call: ${mobileVal}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">📞</a>` : ''}
+                    ${mobileVal ? `<a href="https://wa.me/${mobileVal.replace(/\D/g, '')}" target="_blank" title="WhatsApp: ${mobileVal}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">💬</a>` : ''}
+                    ${emailVal ? `<a href="mailto:${emailVal}" title="Email: ${emailVal}" class="custom-comm-icon" style="text-decoration: none;">✉️</a>` : ''}
                 </div>
             </div>
         `;
+        // CSP: script-src-attr 'none' — bind stopPropagation in JS, not HTML onclick attrs
+        cells[nameIdx].querySelectorAll('.custom-comm-icon').forEach((link) => {
+            link.addEventListener('click', (e) => e.stopPropagation());
+        });
     }
 
     // Advisor cell — hidden for all non-admin roles
@@ -345,12 +352,16 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
                     <div class="custom-advisor-container">
                         <span class="custom-advisor-name">${advData.name} / ADV${advData.id}</span>
                         <div class="custom-comm-icons" style="margin-top: 4px;">
-                            ${advData.phone ? `<a href="tel:${advData.phone}" onclick="event.stopPropagation()" title="Call: ${advData.phone}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">📞</a>` : ''}
-                            ${advData.phone ? `<a href="https://wa.me/${advData.phone.replace(/\D/g, '')}" target="_blank" onclick="event.stopPropagation()" title="WhatsApp: ${advData.phone}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">💬</a>` : ''}
-                            ${advData.email ? `<a href="mailto:${advData.email}" onclick="event.stopPropagation()" title="Email: ${advData.email}" class="custom-comm-icon" style="text-decoration: none;">✉️</a>` : ''}
+                            ${advData.phone ? `<a href="tel:${advData.phone}" title="Call: ${advData.phone}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">📞</a>` : ''}
+                            ${advData.phone ? `<a href="https://wa.me/${advData.phone.replace(/\D/g, '')}" target="_blank" title="WhatsApp: ${advData.phone}" class="custom-comm-icon" style="text-decoration: none; margin-right: 8px;">💬</a>` : ''}
+                            ${advData.email ? `<a href="mailto:${advData.email}" title="Email: ${advData.email}" class="custom-comm-icon" style="text-decoration: none;">✉️</a>` : ''}
                         </div>
                     </div>
                 `;
+                // CSP: script-src-attr 'none' — bind stopPropagation in JS, not HTML onclick attrs
+                advCell.querySelectorAll('.custom-comm-icon').forEach((link) => {
+                    link.addEventListener('click', (e) => e.stopPropagation());
+                });
             } else if (/^\d+$/.test(rawId!)) {
                 // advisorMap not yet populated — bare-ID fallback (will be upgraded once map arrives)
                 advCell.innerHTML = `<div class="custom-advisor-container"><span class="custom-advisor-name">ADV${rawId}</span></div>`;
@@ -453,6 +464,25 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
         // Specific catch for the production sc-eQxoQn classes if they are empty
         if (!td.classList.contains('custom-actions-cell') && td.classList.contains('sc-eQxoQn') && td.children.length === 0) {
             (td as HTMLElement).style.display = 'none';
+        }
+    });
+
+    // Hide Strapi native "More actions" / Edit in the row (custom ACTIONS column replaces them)
+    row.querySelectorAll('button, a').forEach((el) => {
+        if (el.closest('.custom-actions-cell')) return;
+        if (el.classList.contains('custom-action-btn')) return;
+        const aria = (el.getAttribute('aria-label') || el.getAttribute('title') || '').toLowerCase();
+        const hasPopup = el.getAttribute('aria-haspopup') || '';
+        const text = (el.textContent || '').trim();
+        if (
+            aria.includes('more actions') ||
+            aria === 'edit' ||
+            aria.includes('edit entry') ||
+            hasPopup === 'menu' ||
+            text === '…' ||
+            text === '...'
+        ) {
+            (el as HTMLElement).style.display = 'none';
         }
     });
 

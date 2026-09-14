@@ -48,7 +48,7 @@ export default {
       ctx.body = {
         leadId: Number(leadId),
         lenderCode: String(lenderCode),
-        loanType: 'Business Loan',
+        loanType: 'BL',
         pipeline: ['ELIGIBILITY', 'SCORING'],
         eligibilityNote: { passed: true, eliminated: false },
         totalScore: result.totalScore,
@@ -127,7 +127,7 @@ export default {
 
       ctx.body = {
         leadId: result.leadId,
-        loanType: 'Business Loan',
+        loanType: 'BL',
         phase: 'RANK',
         minDisplayScore: result.rank.minDisplayScore,
         formula: result.rank.formula,

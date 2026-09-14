@@ -1,6 +1,12 @@
 
 import React, { useState } from 'react';
 import { INDIA_STATES_DISTRICTS } from '@/data/india-states-districts';
+import { openDocumentInNewTab } from '@/lib/documentFilenames';
+import {
+    isBusinessLoanType,
+    isHomeLoanType,
+    isLapLoanType,
+} from '@/lib/loanType';
 import {
     BUSINESS_LOAN_NOTES,
     BUSINESS_REG_PROOF_OPTIONS,
@@ -73,7 +79,7 @@ export const BusinessDetailsFields = ({
     loanType,
     setFormData,
 }: FieldProps & { loanType?: string; setFormData?: (updater: any) => void }) => {
-    const isBusinessLoan = loanType === 'Business Loan';
+    const isBusinessLoan = isBusinessLoanType(loanType);
 
     const regProofOptions = (
         pageInfo.businessRegProofOptions
@@ -297,7 +303,7 @@ export const PersonalDetailsFields = ({ formData, handleChange, pageInfo, loanTy
         <div className="form-group"><label className="form-label">{pageInfo.spouseNameLabel || 'Spouse Name'}</label><input name="spouseName" className="form-input" value={formData.spouseName} onChange={handleChange} placeholder={pageInfo.spouseNamePlaceholder || 'Enter Spouse Name'} /></div>
         <div className="form-group"><label className="form-label">{pageInfo.motherNameLabel || 'Mother Name'}<span className="required-star">*</span></label><input name="motherName" className="form-input" value={formData.motherName} onChange={handleChange} placeholder={pageInfo.motherNamePlaceholder || 'Enter Mother Name'} /></div>
         <div className="form-group"><label className="form-label">{pageInfo.alternateNumberLabel || 'Alternate Number'}</label><input name="alternateNumber" className="form-input" value={formData.alternateNumber} onChange={handleChange} placeholder={pageInfo.alternateNumberPlaceholder || 'Enter Alternate Mobile'} /></div>
-        {(loanType !== 'Business Loan') && <div className="form-group"><label className="form-label">{pageInfo.dependentsLabel || 'Dependent'}</label><input name="dependents" className="form-input" value={formData.dependents} onChange={handleChange} placeholder={pageInfo.dependentsPlaceholder || 'Enter number of dependents'} /></div>}
+        {(!isBusinessLoanType(loanType)) && <div className="form-group"><label className="form-label">{pageInfo.dependentsLabel || 'Dependent'}</label><input name="dependents" className="form-input" value={formData.dependents} onChange={handleChange} placeholder={pageInfo.dependentsPlaceholder || 'Enter number of dependents'} /></div>}
     </div>
 );
 
@@ -387,7 +393,7 @@ export const PropertyFields = ({ formData, handleChange, pageInfo, loanType, occ
                 ))}
             </select>
         </div>
-        {(loanType === 'Home Loan' || occupation === 'Self Employed') && (
+        {(isHomeLoanType(loanType) || occupation === 'Self Employed') && (
             <div className="form-group business-address-container">
                 <label className="form-label">{pageInfo.propertyAddressPincodeLabel || 'Property Address With Pincode'}<span className="required-star">*</span></label>
                 <textarea name="propertyAddressPincode" className="form-textarea" value={formData.propertyAddressPincode} onChange={handleChange} placeholder={pageInfo.propertyAddressPincodePlaceholder || 'Enter full property address with pincode'} />
@@ -554,21 +560,30 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
     const [inputPassword, setInputPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
 
+    const openInNewTab = (doc: any) => {
+        void openDocumentInNewTab({
+            file: doc.previewFile instanceof Blob ? doc.previewFile : null,
+            previewUrl: doc.previewUrl || null,
+            fileName: doc.previewFile instanceof File ? doc.previewFile.name : null,
+            format: doc.format || null,
+        });
+    };
+
     const handleViewClick = (doc: any) => {
-        if (!doc.previewUrl) return;
+        if (!doc.previewUrl && !doc.previewFile) return;
         if (doc.password && doc.password !== 'No') {
             setPendingDoc(doc);
             setInputPassword('');
             setPasswordError('');
         } else {
-            window.open(doc.previewUrl, '_blank');
+            openInNewTab(doc);
         }
     };
 
     const handlePasswordSubmit = () => {
         if (!pendingDoc) return;
         if (inputPassword === pendingDoc.password) {
-            window.open(pendingDoc.previewUrl, '_blank');
+            openInNewTab(pendingDoc);
             setPendingDoc(null);
             setInputPassword('');
             setPasswordError('');
@@ -577,7 +592,36 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
         }
     };
 
-    const isBusinessLoan = loanType === 'Business Loan';
+    const passwordModal = pendingDoc ? (
+        <div className="doc-pw-overlay" onClick={() => setPendingDoc(null)}>
+            <div className="doc-pw-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="doc-pw-modal-header">
+                    <span className="doc-pw-lock-icon">🔒</span>
+                    <h3 className="doc-pw-title">Password Required</h3>
+                </div>
+                <p className="doc-pw-desc">
+                    <strong>{pendingDoc.name}</strong> is password protected.<br />
+                    Enter the password to view this document.
+                </p>
+                <input
+                    type="password"
+                    className={`form-input doc-pw-input${passwordError ? ' doc-pw-input-error' : ''}`}
+                    placeholder="Enter document password"
+                    value={inputPassword}
+                    onChange={(e) => { setInputPassword(e.target.value); setPasswordError(''); }}
+                    onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                    autoFocus
+                />
+                {passwordError && <p className="doc-pw-error">{passwordError}</p>}
+                <div className="doc-pw-actions">
+                    <button type="button" className="btn btn-secondary" onClick={() => setPendingDoc(null)}>Cancel</button>
+                    <button type="button" className="btn btn-primary" onClick={handlePasswordSubmit}>Open Document</button>
+                </div>
+            </div>
+        </div>
+    ) : null;
+
+    const isBusinessLoan = isBusinessLoanType(loanType);
     const isSelfEmployedDoc = occupation === 'Self Employed';
     type DocField = { name: any; key: string; id: string; required: boolean; note?: string };
     const withSequentialIds = (fields: Omit<DocField, 'id'>[]): DocField[] =>
@@ -601,7 +645,7 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
                         required: true,
                     },
                 ]
-                : loanType === 'Home Loan'
+                : isHomeLoanType(loanType)
                     ? [
                         { name: pageInfo.adharFrontLabel || 'Aadhaar Card (Front)', key: 'aadharCardFront', required: true },
                         { name: pageInfo.adharBackLabel || 'Aadhaar Card (Back)', key: 'aadharCardBack', required: true },
@@ -626,8 +670,8 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
 
     const showOtherDocs =
         isBusinessLoan ||
-        (loanType !== 'Business Loan' &&
-            !(occupation === 'Self Employed' && (loanType === 'Home Loan' || loanType === 'LAP' || loanType === 'LAP (Loan Against Property)')));
+        (!isBusinessLoanType(loanType) &&
+            !(occupation === 'Self Employed' && (isHomeLoanType(loanType) || isLapLoanType(loanType))));
 
     const onFileChangeForField = (e: React.ChangeEvent<HTMLInputElement>, fieldKey: string) => {
         if (fieldKey.startsWith('regProof_')) {
@@ -781,8 +825,8 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
                                         type="button"
                                         className="doc-view-btn"
                                         onClick={() => handleViewClick(doc)}
-                                        disabled={!doc.previewUrl}
-                                        title={doc.previewUrl ? 'View document' : 'No preview available'}
+                                        disabled={!doc.previewUrl && !doc.previewFile}
+                                        title={(doc.previewUrl || doc.previewFile) ? 'View document' : 'No preview available'}
                                     >
                                         {pageInfo.viewButtonLabel || '👁 View'}
                                     </button>
@@ -808,34 +852,7 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
                 </div>
                 {docsTable}
 
-                {pendingDoc && (
-                    <div className="doc-pw-overlay" onClick={() => setPendingDoc(null)}>
-                        <div className="doc-pw-modal" onClick={(e) => e.stopPropagation()}>
-                            <div className="doc-pw-modal-header">
-                                <span className="doc-pw-lock-icon">🔒</span>
-                                <h3 className="doc-pw-title">Password Required</h3>
-                            </div>
-                            <p className="doc-pw-desc">
-                                <strong>{pendingDoc.name}</strong> is password protected.<br />
-                                Enter the password to view this document.
-                            </p>
-                            <input
-                                type="password"
-                                className={`form-input doc-pw-input${passwordError ? ' doc-pw-input-error' : ''}`}
-                                placeholder="Enter document password"
-                                value={inputPassword}
-                                onChange={(e) => { setInputPassword(e.target.value); setPasswordError(''); }}
-                                onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-                                autoFocus
-                            />
-                            {passwordError && <p className="doc-pw-error">{passwordError}</p>}
-                            <div className="doc-pw-actions">
-                                <button type="button" className="btn btn-secondary" onClick={() => setPendingDoc(null)}>Cancel</button>
-                                <button type="button" className="btn btn-primary" onClick={handlePasswordSubmit}>Open Document</button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                {passwordModal}
             </div>
         );
     }
@@ -848,34 +865,7 @@ export const DocumentsFields = ({ formData, setFormData, handleFileChange, handl
             </div>
             {docsTable}
 
-            {pendingDoc && (
-                <div className="doc-pw-overlay" onClick={() => setPendingDoc(null)}>
-                    <div className="doc-pw-modal" onClick={(e) => e.stopPropagation()}>
-                        <div className="doc-pw-modal-header">
-                            <span className="doc-pw-lock-icon">🔒</span>
-                            <h3 className="doc-pw-title">Password Required</h3>
-                        </div>
-                        <p className="doc-pw-desc">
-                            <strong>{pendingDoc.name}</strong> is password protected.<br />
-                            Enter the password to view this document.
-                        </p>
-                        <input
-                            type="password"
-                            className={`form-input doc-pw-input${passwordError ? ' doc-pw-input-error' : ''}`}
-                            placeholder="Enter document password"
-                            value={inputPassword}
-                            onChange={(e) => { setInputPassword(e.target.value); setPasswordError(''); }}
-                            onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-                            autoFocus
-                        />
-                        {passwordError && <p className="doc-pw-error">{passwordError}</p>}
-                        <div className="doc-pw-actions">
-                            <button type="button" className="btn btn-secondary" onClick={() => setPendingDoc(null)}>Cancel</button>
-                            <button type="button" className="btn btn-primary" onClick={handlePasswordSubmit}>Open Document</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {passwordModal}
         </div>
     );
 };
@@ -920,7 +910,7 @@ export const SummarySection = ({ formData, loanProfile, leadId, pageInfo, loanTy
                         </div>
                     </div>
 
-                    {(loanType === 'Business Loan' || occupation === 'Self Employed') && (
+                    {(isBusinessLoanType(loanType) || occupation === 'Self Employed') && (
                         <div className="summary-card shadow-sm">
                             <h5 className="summary-header">{pageInfo.summaryBusinessTitle || 'Business Details'}</h5>
                             <div className="summary-inner-grid">
@@ -928,16 +918,16 @@ export const SummarySection = ({ formData, loanProfile, leadId, pageInfo, loanTy
                                 <p className="summary-p"><strong>{pageInfo.businessPremisesLabel || 'Premises'}:</strong> {formData.businessPremises}</p>
                                 <p className="summary-p"><strong>{pageInfo.businessTypeLabel || 'Type'}:</strong> {formData.businessType}</p>
                                 <p className="summary-p">
-                                    <strong>{loanType === 'Business Loan' ? 'Annual Turnover (Lakh)' : (pageInfo.annualTurnoverLabel || 'Turnover')}:</strong>{' '}
-                                    {loanType === 'Business Loan'
+                                    <strong>{isBusinessLoanType(loanType) ? 'Annual Turnover (Lakh)' : (pageInfo.annualTurnoverLabel || 'Turnover')}:</strong>{' '}
+                                    {isBusinessLoanType(loanType)
                                         ? `${formData.annualTurnover || '—'} Lakh`
                                         : formData.annualTurnover}
                                 </p>
                                 <p className="summary-p">
-                                    <strong>{loanType === 'Business Loan' ? 'Business Age (Years)' : (pageInfo.businessAgeLabel || 'Age')}:</strong>{' '}
+                                    <strong>{isBusinessLoanType(loanType) ? 'Business Age (Years)' : (pageInfo.businessAgeLabel || 'Age')}:</strong>{' '}
                                     {formData.businessAge}
                                 </p>
-                                {loanType === 'Business Loan' && (
+                                {isBusinessLoanType(loanType) && (
                                     <>
                                         <p className="summary-p">
                                             <strong>Business Registration Proof:</strong>{' '}
@@ -955,7 +945,7 @@ export const SummarySection = ({ formData, loanProfile, leadId, pageInfo, loanTy
                         </div>
                     )}
 
-                    {occupation !== 'Self Employed' && loanType !== 'Business Loan' && (
+                    {occupation !== 'Self Employed' && !isBusinessLoanType(loanType) && (
                         <div className="summary-card shadow-sm">
                             <h5 className="summary-header">{pageInfo.summaryIncomePropertyTitle || 'Income & Property'}</h5>
                             <div className="summary-inner-grid">
@@ -970,7 +960,7 @@ export const SummarySection = ({ formData, loanProfile, leadId, pageInfo, loanTy
                                         <p className="summary-p"><strong>{pageInfo.otherIncomeAmountLabel || 'Income Amount'}:</strong> ₹{parseFloat(formData.otherIncomeAmount || '0').toLocaleString('en-IN')}</p>
                                     </>
                                 )}
-                                {loanType === 'Home Loan' && (
+                                {isHomeLoanType(loanType) && (
                                     <div className="summary-property-detail">
                                         <p className="summary-prop-label">Property Detail:</p>
                                         <p className="summary-p"><strong>{pageInfo.propertyTypeLabel || 'Type'}:</strong> {formData.propertyType}</p>
@@ -984,7 +974,7 @@ export const SummarySection = ({ formData, loanProfile, leadId, pageInfo, loanTy
                     )}
 
                     {/* Only show Property Details for Home Loan or journeys that actually include a property step */}
-                    {(loanType === 'Home Loan') && (
+                    {isHomeLoanType(loanType) && (
                         <div className="summary-card shadow-sm">
                             <h5 className="summary-header">{pageInfo.summaryPropertyTitle || 'Property Details'}</h5>
                             <div className="summary-inner-grid">

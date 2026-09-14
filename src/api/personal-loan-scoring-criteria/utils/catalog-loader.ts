@@ -1,6 +1,7 @@
 import { PlScoreErr, PlScoreError } from './error-codes';
 import { isValidDigitKeyRulesMap } from './rules-map';
 import type { ScoringCatalogRow, ScoreCriterionId } from './types';
+import { coerceLoanTypeCode } from '../../../utils/loan-type';
 
 const CATALOG_UID = 'api::lender-master.lender-scoring-criteria';
 
@@ -56,9 +57,10 @@ function validateCatalogRow(row: ScoringCatalogRow): void {
 
 export async function loadActiveCatalog(
   strapi: any,
-  loanType = 'Personal Loan',
+  loanTypeInput = 'PL',
   opts?: { order?: readonly string[] }
 ): Promise<ScoringCatalogRow[]> {
+  const loanType = coerceLoanTypeCode(loanTypeInput);
   const order = opts?.order ?? CRITERION_ORDER;
   let rows: any[];
   try {

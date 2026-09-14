@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { strapiInternalApi } from '@/lib/strapi';
+import { DEFAULT_LOAN_TYPE, isBusinessLoanType } from '@/lib/loanType';
 import './Lenders.css';
 
 type MatchedLender = {
@@ -28,14 +29,14 @@ async function resolveLeadProduct(leadId: string): Promise<string> {
         );
         const json = await res.json().catch(() => ({}));
         if (res.ok && json?.loanType) return String(json.loanType);
-        return 'Personal Loan';
+        return DEFAULT_LOAN_TYPE;
     } catch {
-        return 'Personal Loan';
+        return DEFAULT_LOAN_TYPE;
     }
 }
 
 function matchApiPath(product: string): string {
-    return /business\s*loan/i.test(product)
+    return isBusinessLoanType(product)
         ? '/api/business-loan-eligibility/matched-lenders'
         : '/api/personal-loan-eligibility/matched-lenders';
 }
