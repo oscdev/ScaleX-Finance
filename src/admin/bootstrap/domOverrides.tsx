@@ -18,6 +18,11 @@ import { applyLeadTableOverride } from './overrides/leadTableOverride';
 import { applyAdvisorTableOverride } from './overrides/advisorTableOverride';
 import { applyRoleTabOverride } from './overrides/roleTabOverride';
 import { startInviteUserOverride } from './overrides/inviteUserOverride';
+import {
+    applyLendersOverviewMount,
+    applyProductOverviewMount,
+    applyUsersOverviewMount,
+} from './overrides/activeInactiveOverviewMounts';
 import { shouldPauseAdminOverrides, registerAdminDropdownInteractionLock } from './overlayGuard';
 import adminOverridesCss from './admin-overrides.css?inline';
 
@@ -513,6 +518,11 @@ const initOverrides = () => {
             safe(() => applyNavOverride());
             safe(() => updateNavActiveStates());
             safe(() => applyLeadActivityTimelineOverride());
+            safe(() => applyLeadTableOverride());
+            safe(() => applyAdvisorTableOverride());
+            safe(() => applyLendersOverviewMount());
+            safe(() => applyProductOverviewMount());
+            safe(() => applyUsersOverviewMount());
             safe(() => ensureAdminNotifications());
             return;
         }
@@ -525,6 +535,14 @@ const initOverrides = () => {
             safe(() => applyNavOverride());
             safe(() => updateNavActiveStates());
             safe(() => applyRoleTabOverride());
+            // Unmount lead/advisor banners when leaving those lists
+            safe(() => applyLeadTableOverride());
+            safe(() => applyAdvisorTableOverride());
+            // Lenders Catalog / Products list Total·Active·Inactive banners
+            safe(() => applyLendersOverviewMount());
+            safe(() => applyProductOverviewMount());
+            // Ensure users banner unmounts when leaving Settings → Users
+            safe(() => applyUsersOverviewMount());
             safe(() => ensureAdminNotifications());
             return;
         }
@@ -552,6 +570,10 @@ const initOverrides = () => {
 
         safe(() => applyLeadTableOverride());
         safe(() => applyAdvisorTableOverride());
+        safe(() => applyUsersOverviewMount());
+        // Unmount lenders/products banners when on advisors/leads/users/roles
+        safe(() => applyLendersOverviewMount());
+        safe(() => applyProductOverviewMount());
         safe(() => applyRoleTabOverride());
 
         if (isRoleEditPage) safe(() => { applyAddNewLeadPermissionRow().catch(() => {}); });

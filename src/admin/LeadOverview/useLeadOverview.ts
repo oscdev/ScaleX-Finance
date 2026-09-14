@@ -1,4 +1,9 @@
 import { useState, useEffect } from 'react';
+import {
+    authHeadersFromToken,
+    cmCollectionUrl,
+    fetchPaginationTotal,
+} from '../shared/cmCount';
 
 export interface LeadStats {
     total: number;
@@ -19,13 +24,11 @@ const initialStats: LeadStats = {
 };
 
 const getToken = (): string => {
-    // 1. Use token captured by the fetch interceptor (most reliable)
     const captured = (window as any)._strapi_last_token;
     if (captured && typeof captured === 'string') {
         return captured.replace('Bearer ', '').trim();
     }
     try {
-        // 2. Scan all localStorage keys for any JWT (starts with 'ey')
         for (let i = 0; i < window.localStorage.length; i++) {
             const key = window.localStorage.key(i);
             if (key) {
@@ -35,7 +38,6 @@ const getToken = (): string => {
                 }
             }
         }
-        // 3. Scan all sessionStorage keys for any JWT
         for (let i = 0; i < window.sessionStorage.length; i++) {
             const key = window.sessionStorage.key(i);
             if (key) {
@@ -46,7 +48,18 @@ const getToken = (): string => {
             }
         }
         return '';
-    } catch { return ''; }
+    } catch {
+        return '';
+    }
+};
+
+const UID = 'api::lead.lead';
+
+const leadFilterQs = (advisorId: string | null, status?: string): string => {
+    const parts: string[] = [];
+    if (advisorId) parts.push(`filters[advisorReferralId][$eq]=${encodeURIComponent(advisorId)}`);
+    if (status) parts.push(`filters[leadStatus][$eq]=${encodeURIComponent(status)}`);
+    return parts.join('&');
 };
 
 export const useLeadOverview = () => {
@@ -58,12 +71,9 @@ export const useLeadOverview = () => {
         const fetchOverview = async () => {
             try {
                 const token = getToken();
-                const authHeader: Record<string, string> = token
-                    ? { Authorization: `Bearer ${token}` }
-                    : {};
+                const headers = authHeadersFromToken(token);
 
-                // 1. Get User Profile and Roles
-                const userRes = await fetch('/admin/users/me', { headers: authHeader });
+                const userRes = await fetch('/admin/users/me', { headers, credentials: 'include' });
                 if (!userRes.ok) return;
                 const userData = await userRes.json();
                 const roles = userData?.data?.roles || [];
@@ -72,8 +82,6 @@ export const useLeadOverview = () => {
                 );
 
                 let advisorId = sessionStorage.getItem('strapiAdvisorId');
-
-                // 2. SECURE WAIT: If advisor but ID not yet synced, retry briefly
                 if (isAdvisor && !advisorId) {
                     let attempts = 0;
                     while (!advisorId && attempts < 20) {
@@ -83,35 +91,58 @@ export const useLeadOverview = () => {
                     }
                 }
 
-                // 3. Construct Filtered Query
-                const filterQuery =
-                    isAdvisor && advisorId
-                        ? `&filters[advisorReferralId][$eq]=${advisorId}`
-                        : '';
+                const scopeId = isAdvisor && advisorId ? advisorId : null;
 
-                const res = await fetch(
-                    `/content-manager/collection-types/api::lead.lead?pageSize=100${filterQuery}`,
-                    { headers: authHeader }
-                );
+                const [total, newC, underC, approvedC, rejectedC, disbursedC, recentRes] =
+                    await Promise.all([
+                        fetchPaginationTotal(cmCollectionUrl(UID, leadFilterQs(scopeId)), headers),
+                        fetchPaginationTotal(
+                            cmCollectionUrl(UID, leadFilterQs(scopeId, 'NEW')),
+                            headers
+                        ),
+                        fetchPaginationTotal(
+                            cmCollectionUrl(UID, leadFilterQs(scopeId, 'UNDER_PROCESS')),
+                            headers
+                        ),
+                        fetchPaginationTotal(
+                            cmCollectionUrl(UID, leadFilterQs(scopeId, 'APPROVED')),
+                            headers
+                        ),
+                        fetchPaginationTotal(
+                            cmCollectionUrl(UID, leadFilterQs(scopeId, 'REJECTED')),
+                            headers
+                        ),
+                        fetchPaginationTotal(
+                            cmCollectionUrl(UID, leadFilterQs(scopeId, 'DISBURSED')),
+                            headers
+                        ),
+                        fetch(
+                            `/content-manager/collection-types/${UID}?pageSize=5&sort=id:DESC${
+                                scopeId
+                                    ? `&filters[advisorReferralId][$eq]=${encodeURIComponent(scopeId)}`
+                                    : ''
+                            }`,
+                            { headers, credentials: 'include' }
+                        ),
+                    ]);
 
-                if (res.ok) {
-                    const data = await res.json();
+                setStats({
+                    total,
+                    new: newC,
+                    underProcess: underC,
+                    approved: approvedC,
+                    rejected: rejectedC,
+                    disbursed: disbursedC,
+                });
+
+                if (recentRes.ok) {
+                    const data = await recentRes.json();
                     const leads = (data.results || data.data || []).map((l: any) => ({
                         ...l,
                         leadStatus: l.leadStatus
-                            ? l.leadStatus.toUpperCase().replace(/\s+/g, '_')
+                            ? String(l.leadStatus).toUpperCase().replace(/\s+/g, '_')
                             : 'NEW',
                     }));
-
-                    const counts: LeadStats = {
-                        total: leads.length,
-                        new: leads.filter((l: any) => l.leadStatus === 'NEW').length,
-                        underProcess: leads.filter((l: any) => l.leadStatus === 'UNDER_PROCESS').length,
-                        approved: leads.filter((l: any) => l.leadStatus === 'APPROVED').length,
-                        rejected: leads.filter((l: any) => l.leadStatus === 'REJECTED').length,
-                        disbursed: leads.filter((l: any) => l.leadStatus === 'DISBURSED').length,
-                    };
-                    setStats(counts);
                     setRecentLeads(leads.slice(0, 5));
                 }
             } catch (err) {
