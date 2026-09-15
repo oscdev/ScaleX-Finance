@@ -75,7 +75,7 @@
       </p>
       <ul class="help-list">
         <li><strong>No files</strong> — one unique lead for the selected product, taken from the 25-row pool in <code>documents/default/{product}/sample-default-{product}.csv</code>. Required and optional fields filled. PDFs from the same folder (Personal Loan uses <code>salary_slip.pdf</code>). Each Start rotates to the next row.</li>
-        <li><strong>CSV + Documents</strong> — attach both on the same Start (neither alone). 1–5 data rows. CSV cells name files; those PDFs must be in Documents. The CSV is saved at <code>documents/upload/{product}/live-run.csv</code>. PDFs go to Strapi <code>public/uploads/api_uploads/{leadId}-{name}/</code> (not kept under <code>documents/upload/</code>). Required fields only. More than 5 rows → error, no POST.</li>
+        <li><strong>CSV + Documents</strong> — attach both on the same Start (neither alone). 1–5 data rows. CSV cells name files; those PDFs must be in Documents (max 60 PDFs; reuse the same basenames across rows). The CSV is saved at <code>documents/upload/{product}/live-run.csv</code>. PDFs go to Strapi <code>public/uploads/api_uploads/{leadId}-{name}/</code> (not kept under <code>documents/upload/</code>). Required fields only. More than 5 rows → error, no POST.</li>
         <li><strong>Sample format</strong> beside Documents switches with product. Filenames in the CSV must match attached PDFs (basename only, not a folder path).</li>
         <li><strong>Confirm checkbox</strong> — required; acknowledges DB writes.</li>
         <li><strong>Start Live Run</strong> — background (bureau may take several minutes per lead).</li>
