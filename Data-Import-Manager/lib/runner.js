@@ -158,11 +158,15 @@ async function runImport({ importer, datasetRoot, dryRun = false, onlyFile }) {
           `File done — inserted ${summary.inserted ?? 0}, updated ${summary.updated ?? 0}, rejected ${summary.rejected ?? 0} (${durationSec}s)`
         );
 
-        if (!dryRun && result.moveToProcessed !== false) {
+        if (!dryRun && result.moveToProcessed === true) {
           const dest = moveToProcessed(filePath, processedDir, stamp);
           logger.info(`Moved ${fileName} → processed/${path.basename(dest)}`);
         } else if (dryRun) {
           logger.info(`Dry run — left ${fileName} in upload/`);
+        } else {
+          logger.info(
+            `Left ${fileName} in upload/ — ${summary.inserted ?? 0} inserted, ${summary.rejected ?? 0} rejected (fix CSV and retry)`
+          );
         }
 
         filesProcessed += 1;

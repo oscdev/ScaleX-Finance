@@ -25,7 +25,7 @@ Future tables: add `table/<name>/` + `importers/<name>.js` + registry entry.
 | Path | Purpose |
 |------|---------|
 | `table/zipcodes/upload/` | Drop / UI-upload CSVs |
-| `table/zipcodes/processed/` | `{name}_{YYYYMMDD-HHMMSS}.csv` after success |
+| `table/zipcodes/processed/` | `{name}_{YYYYMMDD-HHMMSS}.csv` only after a **full** DB upsert (every row accepted); rejects leave the file in `upload/` |
 | `table/zipcodes/logs/` | Human-readable `.log` + optional `*_errors.csv` |
 | `table/zipcodes/templates/zip_codes_to_lenders.sample.csv` | Column example |
 

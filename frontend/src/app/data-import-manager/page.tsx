@@ -33,6 +33,21 @@ type ImportResult = {
   error?: string;
 };
 
+async function readJsonResponse<T extends { error?: string }>(
+  res: Response,
+  fallbackError: string
+): Promise<T> {
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    throw new Error(
+      res.ok
+        ? `${fallbackError} (expected JSON, got ${contentType || 'non-JSON'})`
+        : `${fallbackError} (HTTP ${res.status})`
+    );
+  }
+  return (await res.json()) as T;
+}
+
 export default function DataImportManagerPage() {
   const [importers, setImporters] = useState<ImporterInfo[]>([]);
   const [importer, setImporter] = useState('zipcodes');
@@ -49,7 +64,10 @@ export default function DataImportManagerPage() {
     const res = await fetch(
       `/data-import-manager/api/logs?importer=${encodeURIComponent(importerName)}`
     );
-    const data = await res.json();
+    const data = await readJsonResponse<{ logs?: LogEntry[]; error?: string }>(
+      res,
+      'Failed to load logs'
+    );
     if (!res.ok) throw new Error(data.error || 'Failed to load logs');
     setLogs(data.logs || []);
   }, []);
@@ -61,8 +79,15 @@ export default function DataImportManagerPage() {
         `/data-import-manager/api/logs/${encodeURIComponent(name)}?importer=${encodeURIComponent(importerName)}`
       );
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setLogText(data.error || 'Failed to load log');
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          setLogText(data.error || 'Failed to load log');
+        } else {
+          setLogText(`Failed to load log (HTTP ${res.status})`);
+        }
         return;
       }
       setLogText(await res.text());
@@ -75,7 +100,10 @@ export default function DataImportManagerPage() {
     (async () => {
       try {
         const res = await fetch('/data-import-manager/api/importers');
-        const data = await res.json();
+        const data = await readJsonResponse<{
+          importers?: ImporterInfo[];
+          error?: string;
+        }>(res, 'Failed to load importers');
         if (!res.ok) throw new Error(data.error || 'Failed to load importers');
         if (cancelled) return;
         const list: ImporterInfo[] = data.importers || [];
@@ -112,7 +140,7 @@ export default function DataImportManagerPage() {
         method: 'POST',
         body: form,
       });
-      const data: ImportResult = await res.json();
+      const data = await readJsonResponse<ImportResult>(res, 'Import failed');
       if (!res.ok) throw new Error(data.error || 'Import failed');
       setResult(data);
       const s = data.summaries?.[0];

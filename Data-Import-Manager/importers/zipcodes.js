@@ -290,14 +290,20 @@ async function processFile(ctx) {
     );
   }
 
+  const insertedCount = dryRun ? 0 : inserted;
+  const updatedCount = dryRun ? 0 : updated;
   return {
     rowCount: rows.length,
     valid: valid.length,
     rejected: rejected.length,
-    inserted: dryRun ? 0 : inserted,
-    updated: dryRun ? 0 : updated,
+    inserted: insertedCount,
+    updated: updatedCount,
     dryRun,
-    moveToProcessed: true,
+    moveToProcessed:
+      !dryRun &&
+      rejected.length === 0 &&
+      valid.length > 0 &&
+      insertedCount + updatedCount === valid.length,
   };
 }
 
