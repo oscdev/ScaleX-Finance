@@ -41,13 +41,59 @@ const BASE_PATH = (process.env.BASE_PATH || '/suite').replace(/\/$/, '');
 /** In-memory Live Run status (survives long bureau polls without holding the HTTP proxy open). */
 const liveRuns = new Map();
 
+/** Max PDFs on Live Run multipart `documents` (5 rows × ~10 BL docs with headroom). */
+const LIVE_RUN_MAX_DOCUMENTS = 60;
+
 const liveUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 20 * 1024 * 1024, files: 50 },
+  // csv (1) + documents (LIVE_RUN_MAX_DOCUMENTS)
+  limits: { fileSize: 20 * 1024 * 1024, files: 1 + LIVE_RUN_MAX_DOCUMENTS },
 });
 
 function parseConfirm(value) {
   return value === true || value === 'true' || value === '1' || value === 'on';
+}
+
+/** Map Multer errors to actionable Live Run messages (include field/code). */
+function liveRunUploadError(err) {
+  if (!err) return 'Upload failed';
+  const code = err.code || '';
+  const field = err.field || '';
+  if (code === 'LIMIT_UNEXPECTED_FILE') {
+    if (field === 'documents') {
+      return (
+        `Too many PDFs on Documents (max ${LIVE_RUN_MAX_DOCUMENTS}). ` +
+        `Reuse the same basenames across rows, or reduce attachments. ` +
+        `(Multer ${code}, field "${field}")`
+      );
+    }
+    if (field) {
+      return (
+        `Unexpected file field "${field}". ` +
+        `Use multipart fields "csv" (1 file) and "documents" (PDFs, max ${LIVE_RUN_MAX_DOCUMENTS}). ` +
+        `CSV column names are not upload field names. (Multer ${code})`
+      );
+    }
+    return (
+      `Unexpected file field. ` +
+      `Use multipart fields "csv" and "documents" only (max ${LIVE_RUN_MAX_DOCUMENTS} PDFs). ` +
+      `(Multer ${code})`
+    );
+  }
+  if (code === 'LIMIT_FILE_COUNT') {
+    return (
+      `Too many files in the upload (max ${1 + LIVE_RUN_MAX_DOCUMENTS} including CSV). ` +
+      `(Multer ${code})`
+    );
+  }
+  if (code === 'LIMIT_FILE_SIZE') {
+    return `File too large (max 20MB per file).${field ? ` Field: "${field}".` : ''} (Multer ${code})`;
+  }
+  const base = err.message || 'Upload failed';
+  if (code || field) {
+    return `${base}${field ? ` (field "${field}")` : ''}${code ? ` [${code}]` : ''}`;
+  }
+  return base;
 }
 
 export function createApp() {
@@ -162,9 +208,9 @@ export function createApp() {
       if (!ct.includes('multipart/form-data')) return next();
       liveUpload.fields([
         { name: 'csv', maxCount: 1 },
-        { name: 'documents', maxCount: 40 },
+        { name: 'documents', maxCount: LIVE_RUN_MAX_DOCUMENTS },
       ])(req, res, (err) => {
-        if (err) return res.status(400).json({ error: err.message || 'Upload failed' });
+        if (err) return res.status(400).json({ error: liveRunUploadError(err) });
         next();
       });
     },
