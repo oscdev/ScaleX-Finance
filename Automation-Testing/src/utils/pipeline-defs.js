@@ -12,7 +12,7 @@ export const PL_PIPELINE = [
   { step: 9, ruleId: 'PL-DPD-3M', ruleName: 'DPD Last 3 Months', formula: 'dpdViolationCount3Months <= max' },
   { step: 10, ruleId: 'PL-DPD-12M', ruleName: 'DPD Last 12 Months', formula: 'dpdViolationCount12Months <= max' },
   { step: 11, ruleId: 'PL-DPD-DAYS', ruleName: 'Max DPD days', formula: 'maxDpdDays <= maxDpdDaysAllowed' },
-  { step: 12, ruleId: 'PL-CC-UTIL', ruleName: 'Credit card utilization', formula: 'ccOutstanding / ccLimit <= maxCCUtilizationRatio' },
+  { step: 12, ruleId: 'PL-CC-UTIL', ruleName: 'Credit card utilization', formula: 'ccOutstanding / ccLimit <= maxCCUtilizationRatio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0)' },
   { step: 13, ruleId: 'PL-UNSECURED', ruleName: 'Active unsecured accounts', formula: 'activeUnsecured <= maxActiveUnsecuredAccount' },
   { step: 14, ruleId: 'PL-SALARY-TYPE', ruleName: 'Accepted salary types', formula: 'salaryMode IN acceptedSalaryTypes' },
   { step: 15, ruleId: 'PL-PF', ruleName: 'PF Deducted', formula: 'pf_required → pfDeducted must be true' },

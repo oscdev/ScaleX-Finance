@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
     serverActions: {
       allowedOrigins: ['scalex.local', 'localhost:3000'],
     },
+    // Live Run POST /suite/api/live-run is multipart (CSV + PDFs). Default 10mb
+    // truncates the body and the suite proxy hangs → HTTP 500 for clients.
+    proxyClientMaxBodySize: '100mb',
   },
   // We intentionally ignore allowedDevOrigins lint as it is used by the Next.js runtime warning
   // @ts-ignore

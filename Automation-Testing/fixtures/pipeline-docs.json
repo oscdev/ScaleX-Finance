@@ -1270,8 +1270,8 @@
         {
           "type": "eligibility_rule",
           "title": "PL-CC-UTIL",
-          "description": "Credit card utilization ratio must be within lender cap · formula: ccOutstanding / ccLimit <= maxCCUtilizationRatio · applicant: cibil_report_summary.cibil_data.open_accounts[].account_type (Only accounts where account_type is Credit Card); cibil_report_summary.cibil_data.open_accounts[].credit_limit (Per CC: total_credit_card_utilize = credit_limit - current_balance); cibil_report_summary.cibil_data.open_accounts[].current_balance (ccOutstanding = SUM(total_credit_card_utilize); ccLimit = SUM(credit_limit)) · threshold: lenders_criteria_pl.max_cc_utilization_ratio · step: 12 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
-          "formula": "ccOutstanding / ccLimit <= maxCCUtilizationRatio",
+          "description": "Credit card utilization ratio must be within lender cap · formula: ccOutstanding / ccLimit <= maxCCUtilizationRatio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0) · applicant: cibil_report_summary.cibil_data.open_accounts[].account_type (Only accounts where account_type is Credit Card); cibil_report_summary.cibil_data.open_accounts[].credit_limit (Per CC: total_credit_card_utilize = credit_limit - current_balance); cibil_report_summary.cibil_data.open_accounts[].current_balance (ccOutstanding = SUM(total_credit_card_utilize); ccLimit = SUM(credit_limit)) · threshold: lenders_criteria_pl.max_cc_utilization_ratio · step: 12 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "ccOutstanding / ccLimit <= maxCCUtilizationRatio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0)",
           "sources": [
             {
               "table": "cibil_report_summary",
@@ -2898,8 +2898,8 @@
         {
           "type": "eligibility_rule",
           "title": "BL-CC-UTIL",
-          "description": "Aggregated CC utilization must not exceed lender ratio · formula: per CC: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio · applicant: cibil_report_summary.cibil_data.open_accounts[].credit_limit; cibil_report_summary.cibil_data.open_accounts[].current_balance; cibil_report_summary.cibil_data.open_accounts[].account_type · threshold: lenders_criteria_bl.max_cc_utilization_ratio · step: 11 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
-          "formula": "per CC: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio",
+          "description": "Aggregated CC utilization must not exceed lender ratio · formula: per CC: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0) · applicant: cibil_report_summary.cibil_data.open_accounts[].credit_limit; cibil_report_summary.cibil_data.open_accounts[].current_balance; cibil_report_summary.cibil_data.open_accounts[].account_type · threshold: lenders_criteria_bl.max_cc_utilization_ratio · step: 11 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "per CC: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0)",
           "sources": [
             {
               "table": "cibil_report_summary",

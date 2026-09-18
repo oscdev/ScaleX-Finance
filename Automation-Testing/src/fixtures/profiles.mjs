@@ -313,7 +313,12 @@ export function plEligibilityVariant(ruleId, outcome) {
       return base;
     case 'PL-CC-UTIL':
       if (outcome === 'FAIL') return { ...base, profile: clone(plApplicantProfilePass, { ccOutstanding: 90000, ccLimit: 100000, ccUtil: 0.9 }) };
-      if (outcome === 'SKIP') return { ...base, criteria: clone(plLenderCriteriaPass, { maxCCUtilizationRatio: null }) };
+      if (outcome === 'SKIP') {
+        return {
+          ...base,
+          profile: clone(plApplicantProfilePass, { ccOutstanding: 0, ccLimit: 0, ccUtil: null }),
+        };
+      }
       return base;
     case 'PL-UNSECURED':
       if (outcome === 'FAIL') return { ...base, profile: clone(plApplicantProfilePass, { activeUnsecured: 10 }) };
@@ -401,7 +406,12 @@ export function blEligibilityVariant(ruleId, outcome) {
       return base;
     case 'BL-CC-UTIL':
       if (outcome === 'FAIL') return { ...base, profile: clone(blApplicantProfilePass, { ccOutstanding: 140000, ccLimit: 150000, ccUtil: 0.93 }) };
-      if (outcome === 'SKIP') return { ...base, criteria: clone(blLenderCriteriaPass, { maxCcUtilizationRatio: null }) };
+      if (outcome === 'SKIP') {
+        return {
+          ...base,
+          profile: clone(blApplicantProfilePass, { ccOutstanding: 0, ccLimit: 0, ccUtil: null }),
+        };
+      }
       return base;
     case 'BL-DPD-3M':
       if (outcome === 'FAIL') return { ...base, profile: clone(blApplicantProfilePass, { paymentHistoryMonths: [...dpdViolationHistory, ...cleanPaymentHistory] }) };

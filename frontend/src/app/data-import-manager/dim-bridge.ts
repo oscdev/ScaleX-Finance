@@ -29,6 +29,39 @@ type JobResult = {
   [key: string]: unknown;
 };
 
+/** Prefer a pure JSON blob; otherwise take the last line that looks like JSON. */
+function parseJobStdout(stdout: string, stderr: string, code: number | null): JobResult {
+  const text = stdout.trim() || stderr.trim();
+  if (!text) {
+    return {
+      ok: code === 0,
+      exitCode: code ?? 1,
+      error: `run-job exited with code ${code}`,
+    };
+  }
+
+  try {
+    return JSON.parse(text) as JobResult;
+  } catch {
+    // Logger used to echo INFO lines to stdout; keep a resilient fallback.
+    const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    for (let i = lines.length - 1; i >= 0; i -= 1) {
+      const line = lines[i];
+      if (!line.startsWith('{')) continue;
+      try {
+        return JSON.parse(line) as JobResult;
+      } catch {
+        /* try previous line */
+      }
+    }
+    return {
+      ok: code === 0,
+      exitCode: code ?? 1,
+      error: text.slice(0, 2000) || `run-job exited with code ${code}`,
+    };
+  }
+}
+
 /**
  * Run Data-Import-Manager/run-job.js with root Node (uses root pg + .env).
  */
@@ -39,7 +72,7 @@ export function runDimJob(args: string[]): Promise<JobResult> {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, [script, ...args], {
       cwd: repoRoot,
-      env: process.env,
+      env: { ...process.env, DIM_JOB: '1' },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let stdout = '';
@@ -54,17 +87,7 @@ export function runDimJob(args: string[]): Promise<JobResult> {
       resolve({ ok: false, error: err.message });
     });
     child.on('close', (code) => {
-      const text = stdout.trim() || stderr.trim();
-      try {
-        const parsed = JSON.parse(text) as JobResult;
-        resolve(parsed);
-      } catch {
-        resolve({
-          ok: code === 0,
-          exitCode: code ?? 1,
-          error: text || `run-job exited with code ${code}`,
-        });
-      }
+      resolve(parseJobStdout(stdout, stderr, code));
     });
   });
 }

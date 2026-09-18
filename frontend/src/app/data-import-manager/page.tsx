@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import './data-import-manager.css';
 
 type ImporterInfo = {
@@ -48,6 +48,24 @@ async function readJsonResponse<T extends { error?: string }>(
   return (await res.json()) as T;
 }
 
+function formatImportStatus(data: ImportResult): string {
+  const summaries = data.summaries || [];
+  const hasSummary = summaries.length > 0;
+  const inserted = summaries.reduce((n, s) => n + (s.inserted ?? 0), 0);
+  const updated = summaries.reduce((n, s) => n + (s.updated ?? 0), 0);
+  const rejected = summaries.reduce((n, s) => n + (s.rejected ?? 0), 0);
+  const counts = `inserted ${inserted}, updated ${updated}, rejected ${rejected}`;
+  if (!data.ok) {
+    return hasSummary
+      ? `Finished with errors — ${counts}`
+      : 'Finished with errors — see log';
+  }
+  if (!hasSummary) {
+    return `Done${data.dryRun ? ' (dry run)' : ''} — see log for counts`;
+  }
+  return `Done${data.dryRun ? ' (dry run)' : ''} — ${counts}`;
+}
+
 export default function DataImportManagerPage() {
   const [importers, setImporters] = useState<ImporterInfo[]>([]);
   const [importer, setImporter] = useState('zipcodes');
@@ -55,28 +73,26 @@ export default function DataImportManagerPage() {
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string>('');
+  const [statusKind, setStatusKind] = useState<'info' | 'ok' | 'error'>('info');
   const [result, setResult] = useState<ImportResult | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [activeLog, setActiveLog] = useState<string | null>(null);
   const [logText, setLogText] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [logsMessage, setLogsMessage] = useState('');
+  const activeLogRef = useRef<string | null>(null);
 
-  const refreshLogs = useCallback(async (importerName: string) => {
-    const res = await fetch(
-      `/data-import-manager/api/logs?importer=${encodeURIComponent(importerName)}`
-    );
-    const data = await readJsonResponse<{ logs?: LogEntry[]; error?: string }>(
-      res,
-      'Failed to load logs'
-    );
-    if (!res.ok) throw new Error(data.error || 'Failed to load logs');
-    setLogs(data.logs || []);
-  }, []);
+  useEffect(() => {
+    activeLogRef.current = activeLog;
+  }, [activeLog]);
 
   const openLog = useCallback(
     async (name: string, importerName: string) => {
       setActiveLog(name);
+      activeLogRef.current = name;
       const res = await fetch(
-        `/data-import-manager/api/logs/${encodeURIComponent(name)}?importer=${encodeURIComponent(importerName)}`
+        `/data-import-manager/api/logs/${encodeURIComponent(name)}?importer=${encodeURIComponent(importerName)}`,
+        { cache: 'no-store' }
       );
       if (!res.ok) {
         const contentType = res.headers.get('content-type') || '';
@@ -95,11 +111,66 @@ export default function DataImportManagerPage() {
     []
   );
 
+  const fetchLogList = useCallback(async (importerName: string) => {
+    const res = await fetch(
+      `/data-import-manager/api/logs?importer=${encodeURIComponent(importerName)}`,
+      { cache: 'no-store' }
+    );
+    const data = await readJsonResponse<{ logs?: LogEntry[]; error?: string }>(
+      res,
+      'Failed to load logs'
+    );
+    if (!res.ok) throw new Error(data.error || 'Failed to load logs');
+    const list = data.logs || [];
+    setLogs(list);
+    return list;
+  }, []);
+
+  const refreshLogs = useCallback(
+    async (
+      importerName: string,
+      opts?: { reopenActive?: boolean; openNewest?: boolean }
+    ) => {
+      const list = await fetchLogList(importerName);
+      const current = activeLogRef.current;
+      if (opts?.reopenActive && current) {
+        const stillThere = list.some((l) => l.name === current);
+        if (stillThere) {
+          await openLog(current, importerName);
+          return list;
+        }
+      }
+      if (opts?.openNewest && list[0]) {
+        await openLog(list[0].name, importerName);
+      }
+      return list;
+    },
+    [fetchLogList, openLog]
+  );
+
+  const onRefreshClick = useCallback(async () => {
+    setRefreshing(true);
+    setLogsMessage('');
+    try {
+      await refreshLogs(importer, {
+        reopenActive: true,
+        openNewest: !activeLogRef.current,
+      });
+      setLogsMessage('Log list updated.');
+    } catch (err) {
+      setLogsMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setRefreshing(false);
+    }
+  }, [importer, refreshLogs]);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/data-import-manager/api/importers');
+        const res = await fetch('/data-import-manager/api/importers', {
+          cache: 'no-store',
+        });
         const data = await readJsonResponse<{
           importers?: ImporterInfo[];
           error?: string;
@@ -110,9 +181,10 @@ export default function DataImportManagerPage() {
         setImporters(list);
         const first = list[0]?.name || 'zipcodes';
         setImporter(first);
-        await refreshLogs(first);
+        await refreshLogs(first, { openNewest: true });
       } catch (err) {
         if (!cancelled) {
+          setStatusKind('error');
           setStatus(err instanceof Error ? err.message : String(err));
         }
       }
@@ -125,10 +197,12 @@ export default function DataImportManagerPage() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!file) {
+      setStatusKind('error');
       setStatus('Choose a CSV file first.');
       return;
     }
     setBusy(true);
+    setStatusKind('info');
     setStatus('Importing…');
     setResult(null);
     try {
@@ -139,21 +213,19 @@ export default function DataImportManagerPage() {
       const res = await fetch('/data-import-manager/api/import', {
         method: 'POST',
         body: form,
+        cache: 'no-store',
       });
       const data = await readJsonResponse<ImportResult>(res, 'Import failed');
       if (!res.ok) throw new Error(data.error || 'Import failed');
       setResult(data);
-      const s = data.summaries?.[0];
-      setStatus(
-        data.ok
-          ? `Done${data.dryRun ? ' (dry run)' : ''} — inserted ${s?.inserted ?? 0}, updated ${s?.updated ?? 0}, rejected ${s?.rejected ?? 0}`
-          : `Finished with errors — see log`
-      );
+      setStatusKind(data.ok ? 'ok' : 'error');
+      setStatus(formatImportStatus(data));
       await refreshLogs(importer);
       if (data.logBasename) {
         await openLog(data.logBasename, importer);
       }
     } catch (err) {
+      setStatusKind('error');
       setStatus(err instanceof Error ? err.message : String(err));
     } finally {
       setBusy(false);
@@ -183,7 +255,13 @@ export default function DataImportManagerPage() {
                 onChange={(e) => {
                   const v = e.target.value;
                   setImporter(v);
-                  void refreshLogs(v);
+                  setActiveLog(null);
+                  setLogText('');
+                  setLogsMessage('');
+                  void refreshLogs(v, { openNewest: true }).catch((err) => {
+                    setStatusKind('error');
+                    setStatus(err instanceof Error ? err.message : String(err));
+                  });
                 }}
               >
                 {importers.map((i) => (
@@ -227,7 +305,9 @@ export default function DataImportManagerPage() {
             </button>
           </form>
 
-          {status && <p className="dim-status">{status}</p>}
+          {status && (
+            <p className={`dim-status dim-status-${statusKind}`}>{status}</p>
+          )}
           {result?.summaries && result.summaries.length > 0 && (
             <ul className="dim-summary">
               {result.summaries.map((s) => (
@@ -247,11 +327,15 @@ export default function DataImportManagerPage() {
             <button
               type="button"
               className="dim-secondary"
-              onClick={() => void refreshLogs(importer)}
+              title="Reload log list"
+              aria-label="Reload log list"
+              disabled={refreshing}
+              onClick={() => void onRefreshClick()}
             >
-              Refresh
+              {refreshing ? 'Refreshing…' : 'Refresh'}
             </button>
           </div>
+          {logsMessage && <p className="dim-logs-msg">{logsMessage}</p>}
           <ul className="dim-log-list">
             {logs.length === 0 && <li className="dim-empty">No logs yet.</li>}
             {logs.map((log) => (

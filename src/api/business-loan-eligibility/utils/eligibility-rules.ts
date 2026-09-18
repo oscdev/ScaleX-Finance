@@ -487,6 +487,20 @@ export function evaluateCcu(
       maxCcUtilizationRatio: null,
     });
   }
+  // No credit-card accounts on file → skip CCU (cannot evaluate util); match PL-CC-UTIL
+  if (profile.ccLimit <= 0 && profile.ccOutstanding <= 0) {
+    return {
+      step,
+      ruleId: 'BL-CC-UTIL',
+      ruleName: 'CCU max',
+      formula,
+      applicantValue: { ccOutstanding: 0, ccLimit: 0 },
+      threshold: { maxCcUtilizationRatio: criteria.maxCcUtilizationRatio },
+      result: 'SKIP',
+      errorCode: null,
+      reason: 'No credit-card accounts to evaluate',
+    };
+  }
   if (profile.ccLimit <= 0) {
     return {
       step,

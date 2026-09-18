@@ -219,7 +219,8 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ruleId: 'PL-CC-UTIL',
     ruleName: 'Credit card utilization',
     condition: 'Credit card utilization ratio must be within lender cap',
-    formula: 'ccOutstanding / ccLimit <= maxCCUtilizationRatio',
+    formula:
+      'ccOutstanding / ccLimit <= maxCCUtilizationRatio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0)',
     applicantSources: [
       {
         table: 'cibil_report_summary',

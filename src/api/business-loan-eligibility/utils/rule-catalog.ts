@@ -184,7 +184,7 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ruleName: 'CCU max (credit card)',
     condition: 'Aggregated CC utilization must not exceed lender ratio',
     formula:
-      'per CC: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio',
+      'per CC: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0)',
     applicantSources: [
       { table: 'cibil_report_summary', column: 'cibil_data.open_accounts[].credit_limit' },
       { table: 'cibil_report_summary', column: 'cibil_data.open_accounts[].current_balance' },

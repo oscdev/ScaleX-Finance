@@ -87,26 +87,50 @@
     };
   }
 
+  /** Next.js /suite rewrite body limit (proxyClientMaxBodySize). Keep under this. */
+  var LIVE_RUN_MAX_UPLOAD_BYTES = 95 * 1024 * 1024;
+
+  function formatBytes(n) {
+    if (!n || n < 1024) return String(n || 0) + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+    return (n / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
   function api(path, opts) {
     return fetch(BASE + path, opts).then(function (r) {
       var ct = r.headers.get('content-type') || '';
       if (!ct.includes('application/json')) {
         return r.text().then(function (t) {
+          var bodyText = t ? t.replace(/<[^>]+>/g, ' ').trim().slice(0, 200) : '';
+          var hint = '';
+          if (r.status === 502 || r.status === 504 || r.status === 500) {
+            hint =
+              ' — if Live Run was in progress, the proxy may have timed out; check reports/runs/{product}/ for a partial report and reports/errors/ for suite-errors_*.log';
+            if (
+              /body exceeded|request entity too large|payload too large|413/i.test(bodyText) ||
+              /internal server error/i.test(bodyText)
+            ) {
+              hint +=
+                ' If you uploaded CSV + Documents, keep the total under ~95 MB (Next.js /suite proxy limit is 100 MB; nginx must allow the same).';
+            }
+          }
           throw new Error(
             r.ok
               ? 'Unexpected non-JSON response'
-              : 'HTTP ' +
-                  r.status +
-                  (t ? ': ' + t.replace(/<[^>]+>/g, ' ').trim().slice(0, 200) : '') +
-                  (r.status === 502 || r.status === 504 || r.status === 500
-                    ? ' — if Live Run was in progress, the proxy may have timed out; check reports/runs/{product}/ for a partial report'
-                    : '')
+              : 'HTTP ' + r.status + (bodyText ? ': ' + bodyText : '') + hint
           );
         });
       }
       return r.json().then(function (j) {
         if (r.status === 202 && j.accepted) return j;
-        if (!r.ok) throw new Error(j.error || r.statusText || 'Request failed');
+        if (!r.ok) {
+          var msg = j.error || r.statusText || 'Request failed';
+          if (r.status >= 500) {
+            msg +=
+              ' — see Automation-Testing/reports/errors/suite-errors_*.log for the server reason';
+          }
+          throw new Error(msg);
+        }
         return j;
       });
     });
@@ -1380,6 +1404,20 @@
       }
 
       if (file) {
+        var totalBytes = file.size || 0;
+        docs.forEach(function (pdf) {
+          totalBytes += pdf.size || 0;
+        });
+        if (totalBytes > LIVE_RUN_MAX_UPLOAD_BYTES) {
+          var sizeMsg =
+            'Upload too large (' +
+            formatBytes(totalBytes) +
+            '). Keep CSV + Documents under ~95 MB total (Next.js /suite proxy limit is 100 MB). Use fewer/smaller PDFs or split into multiple Live Runs.';
+          out.textContent = sizeMsg;
+          alert(sizeMsg);
+          updateLiveRunEnabled();
+          return;
+        }
         var fd = new FormData();
         fd.append('product', product);
         fd.append('confirm', 'true');

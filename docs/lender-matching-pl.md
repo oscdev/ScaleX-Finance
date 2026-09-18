@@ -383,4 +383,4 @@ leads (id)
 | 1.13 Min Loan Amount | `requested_loan_amount >= min_loan_amount` | `loan_applications.loan_amount` | `lenders_criteria_pl.min_loan_amount` |
 | 1.14 Pincode | `pincode IN lender zip_codes` | `loan_applications.pincode` | `zip_codes` table — only when `pincode_check_required = true` |
 | 2.1 FOIR | `(existing_emi + proposed_emi) / net_salary <= foir` | `cibil_data.existing_emi_total` + `salary_slip_data.net_salary` | `lenders_criteria_pl.foir` + `typical_interest_rate` |
-| 2.2 CCU | `total_cc_outstanding / total_cc_limit <= max_cc_utilization_ratio` | `cibil_data.total_cc_outstanding` + `cibil_data.total_cc_limit` | `lenders_criteria_pl.max_cc_utilization_ratio` |
+| 2.2 CCU | `total_cc_outstanding / total_cc_limit <= max_cc_utilization_ratio`; **SKIP** when no credit-card accounts (`ccLimit=0` and `ccOutstanding=0` — cannot evaluate util); PASS/FAIL only when CC accounts exist and threshold is set | `cibil_data.total_cc_outstanding` + `cibil_data.total_cc_limit` | `lenders_criteria_pl.max_cc_utilization_ratio` |

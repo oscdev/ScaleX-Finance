@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T14:55:07.199Z",
+  "generatedAt": "2026-09-18T12:07:21.089Z",
   "entryCount": 182,
   "entries": [
     {
@@ -179,7 +179,7 @@
       "type": "eligibility_rule",
       "product": "pl",
       "ruleId": "PL-CC-UTIL",
-      "formula": "ccOutstanding / ccLimit <= maxCCUtilizationRatio",
+      "formula": "ccOutstanding / ccLimit <= maxCCUtilizationRatio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0)",
       "docsHint": "Credit card utilization ratio must be within lender cap",
       "codeSymbol": "PL-CC-UTIL",
       "ftbBranch": false
@@ -306,7 +306,7 @@
       "product": "bl",
       "ruleId": "BL-PINCODE",
       "formula": "loan_type = 'BL' AND is_active AND (covers_all_pincodes OR zip_codes_to_lenders.zip_code = leads.pin_code)",
-      "docsHint": "Applicant pin must be serviceable for the lender for Business Loan",
+      "docsHint": "Applicant pin must be serviceable for the lender for BL (loan_type='BL' rows in zip_codes_to_lenders)",
       "codeSymbol": "BL-PINCODE",
       "ftbBranch": false
     },
@@ -445,7 +445,7 @@
       "type": "eligibility_rule",
       "product": "bl",
       "ruleId": "BL-CC-UTIL",
-      "formula": "per CC: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio",
+      "formula": "per CC: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0)",
       "docsHint": "Aggregated CC utilization must not exceed lender ratio",
       "codeSymbol": "BL-CC-UTIL",
       "ftbBranch": false

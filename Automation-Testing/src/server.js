@@ -24,6 +24,7 @@ import { MAX_CSV_ROWS, MAX_DEFAULT_ROWS } from './live-payloads.js';
 import { parseAndPreflightLiveRunCsv } from './csv-live-run.js';
 import { saveUploadedLiveRunFiles, removeStagedLiveRunFiles, CSV_DOCS_PAIR_ERROR } from './live-run-docs.js';
 import { takeNextDefaultRow } from './doc-hash-ring.js';
+import { logSuiteError, logSuiteHttpError } from './utils/suite-error-log.js';
 
 const thisFile = fileURLToPath(import.meta.url);
 const invoked = process.argv[1] ? path.resolve(process.argv[1]) : '';
@@ -148,6 +149,7 @@ export function createApp() {
         items,
       });
     } catch (err) {
+      logSuiteHttpError(req, err, 500, { product });
       res.status(500).json({ error: err.message || 'Failed to load pipeline docs' });
     }
   });
@@ -168,6 +170,7 @@ export function createApp() {
         eventsUrl: `${BASE_PATH}/reports/runs/${product}/events.json`,
       });
     } catch (err) {
+      logSuiteHttpError(req, err, 500, { product });
       res.status(500).json({ error: err.message || 'Journey failed' });
     }
   });
@@ -183,6 +186,7 @@ export function createApp() {
       res.json(result);
     } catch (err) {
       const status = err.status || (String(err.message || '').includes('must be') ? 400 : 500);
+      logSuiteHttpError(req, err, status, { product });
       res.status(status).json({ error: err.message || 'Journey demo failed' });
     }
   });
@@ -210,11 +214,20 @@ export function createApp() {
         { name: 'csv', maxCount: 1 },
         { name: 'documents', maxCount: LIVE_RUN_MAX_DOCUMENTS },
       ])(req, res, (err) => {
-        if (err) return res.status(400).json({ error: liveRunUploadError(err) });
+        if (err) {
+          const message = liveRunUploadError(err);
+          logSuiteHttpError(req, err, 400, {
+            code: err.code,
+            product: req.body?.product,
+          });
+          return res.status(400).json({ error: message });
+        }
         next();
       });
     },
-    async (req, res) => {
+    async (req, res, next) => {
+    let stagedDocsDirOuter = null;
+    try {
     const product = req.body?.product || 'personal-loan';
     const confirm = parseConfirm(req.body?.confirm);
     if (!confirm) {
@@ -249,6 +262,7 @@ export function createApp() {
           pdfFiles,
         });
         stagedDocsDir = saved.docsDir;
+        stagedDocsDirOuter = stagedDocsDir;
         const csvText = csvBuffer.toString('utf8');
         rows = parseAndPreflightLiveRunCsv(csvText, product, {
           docsDir: saved.docsDir,
@@ -277,6 +291,7 @@ export function createApp() {
       count = rows.length;
     } catch (err) {
       removeStagedLiveRunFiles(stagedDocsDir);
+      logSuiteHttpError(req, err, 400, { product });
       return res.status(400).json({ error: err.message || 'Invalid Live Run request' });
     }
     const reachable = await checkStrapiReachable();
@@ -392,6 +407,17 @@ export function createApp() {
         })
         .catch((err) => {
           const message = err?.message || 'Live Run failed';
+          logSuiteError({
+            level: 'error',
+            route: '/api/live-run',
+            method: 'POST',
+            status: 500,
+            message,
+            code: err?.code,
+            stack: err?.stack,
+            product,
+            runId,
+          });
           liveRuns.set(runId, {
             status: 'failed',
             product,
@@ -412,6 +438,17 @@ export function createApp() {
           removeStagedLiveRunFiles(stagedDocsDir);
         });
     });
+    } catch (err) {
+      removeStagedLiveRunFiles(stagedDocsDirOuter);
+      const message = err?.message || 'Live Run failed';
+      logSuiteHttpError(req, err, 500, {
+        product: req.body?.product,
+      });
+      if (!res.headersSent) {
+        return res.status(500).json({ error: message });
+      }
+      return next(err);
+    }
   });
 
   router.get('/api/live-run/:runId', (req, res) => {
@@ -429,6 +466,14 @@ export function createApp() {
 
   app.use(BASE_PATH, express.static(PUBLIC_DIR, { index: false }));
   app.use(`${BASE_PATH}/reports`, express.static(REPORTS_DIR));
+
+  // eslint-disable-next-line no-unused-vars
+  app.use((err, req, res, next) => {
+    const status = Number(err?.status) || 500;
+    logSuiteHttpError(req, err, status);
+    if (res.headersSent) return next(err);
+    res.status(status).json({ error: err?.message || 'Internal Server Error' });
+  });
 
   return app;
 }

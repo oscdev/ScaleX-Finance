@@ -114,6 +114,24 @@
   font-size: 0.95rem;
 }
 
+.dim-status-ok {
+  color: #166534;
+}
+
+.dim-status-error {
+  color: #b91c1c;
+}
+
+.dim-status-info {
+  color: #1a2332;
+}
+
+.dim-logs-msg {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: #4a5568;
+}
+
 .dim-summary {
   margin: 0.5rem 0 0;
   padding-left: 1.1rem;

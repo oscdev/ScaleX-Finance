@@ -211,6 +211,7 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 | Step 4 (`PL-DPD-LATEST`) | Latest open-account DPD | `latestDpdDays <= max_dpd_days_allowed`; SKIP if threshold null or no history; activity `PL_ELIGIBILITY_RULE` / `_SKIP` + file `logStep` |
 | Step 6 (`PL-INCOME`) | Minimum Monthly Income | Uses `netSalary + otherIncomeAmount` when `hasOtherIncome` is true; otherwise `netSalary` vs `min_monthly_income`; SKIP when threshold null |
 | Step 9–10 (`PL-DPD-3M` / `PL-DPD-12M`) | DPD Last 3m / 12m | Per lender: count **account–month delay events** where payment-history `dpdDays > max_dpd_days_allowed` (same month on two accounts = 2), then compare to `max_dpd_count_*months` |
+| Step 12 (`PL-CC-UTIL`) | Credit card utilization | PASS ⇔ `ccUtil <= max_cc_utilization_ratio`; **SKIP** when no CC accounts (`ccLimit=0` and `ccOutstanding=0`) or threshold null; same no-CC SKIP as `BL-CC-UTIL` |
 | Step 15 (`PL-PF`) | PF Deducted rule | Compares `form_data.incomeDetails.pfDeducted` vs `lenders_criteria_pl.pf_required`; SKIP when PF not required, FAIL when required but not true |
 
 ### Business Loan Eligibility
@@ -219,7 +220,7 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 |---|---|---|
 | `business-loan-eligibility` | Strapi API module for ON/OFF BL lender matching (20-step engine) | Module path `src/api/business-loan-eligibility/`; APIs `GET/POST /api/business-loan-eligibility/matched-lenders`, `POST /api/business-loan-eligibility/evaluate`, CRUD `/api/lenders-criteria-bls`; see [docs/business-loan/business-loan-eligibility/](docs/business-loan/business-loan-eligibility/) |
 | `lenders-criteria-bl` | Per-lender BL eligibility thresholds | UID: `api::business-loan-eligibility.lenders-criteria-bl`; table `lenders_criteria_bl`; REST `/api/lenders-criteria-bls`; soft-links via `lenderCode`; hidden from Content Manager; includes `minInterestRate` / `maxInterestRate` (percent, seeded) |
-| Match engine | 20 ON/OFF rules then scoring handoff | Order: ACTIVE → PINCODE → CIBIL\|FTB → CURRENT-OVERDUE → AGE → ENTITY → TURNOVER → VINTAGE → AMOUNT → FOIR → CC-UTIL → DPD-3M/12M/DAYS → UNSECURED → ENQ-EXCLUDE → ENQ-1M/3M → AUDITED → SETTLED-WO; **BL-AMOUNT** uses `leads.required_amount` (fallback `loan_applications.loan_amount`); blocks without loan app / bureau (`BL_ERR_*` 422); file audit `logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`; scoring [`src/api/business-loan-scoring-criteria/`](src/api/business-loan-scoring-criteria/); activity `BL_ELIGIBILITY_*` |
+| Match engine | 20 ON/OFF rules then scoring handoff | Order: ACTIVE → PINCODE → CIBIL\|FTB → CURRENT-OVERDUE → AGE → ENTITY → TURNOVER → VINTAGE → AMOUNT → FOIR → CC-UTIL → DPD-3M/12M/DAYS → UNSECURED → ENQ-EXCLUDE → ENQ-1M/3M → AUDITED → SETTLED-WO; **BL-CC-UTIL** SKIPs when no credit-card accounts (`ccLimit=0` and `ccOutstanding=0`, same as PL); **BL-AMOUNT** uses `leads.required_amount` (fallback `loan_applications.loan_amount`); blocks without loan app / bureau (`BL_ERR_*` 422); file audit `logs/business-loan/bl-eligibility/<leadId>-<Name>_YYYY-MM-DD.log`; scoring [`src/api/business-loan-scoring-criteria/`](src/api/business-loan-scoring-criteria/); activity `BL_ELIGIBILITY_*` |
 | Seed | 44 lender criteria rows | [`database/lenders-criteria-bl.sql`](database/lenders-criteria-bl.sql) — run via `psql` after Strapi creates the table |
 | Frontend AI Match | `/lenders?leadId=` | Business Loan → BL matched-lenders (+ scoring); Personal Loan → PL matched-lenders (+ scoring) |
 
@@ -428,8 +429,8 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 ## Key Files to Know
 
 - **[src/index.ts](src/index.ts)** — Bootstrap logic for advisor role creation and syncing; starts `/suite` dashboard on `:4100` ([`src/utils/start-suite-dashboard.ts`](src/utils/start-suite-dashboard.ts))
-- **[frontend/next.config.ts](frontend/next.config.ts)** — API rewrite rules, `/suite` → Automation Testing dashboard (`SUITE_PORT` / `SUITE_PROXY_ORIGIN`, default :4100), and allowed origins
-- **[Automation-Testing/](Automation-Testing/)** — Automation Testing Suite (offline fixtures, Live Run writes `[SUITE-TEST]` leads, Journey Demo / Search); open `/suite` while Strapi is running (Next only proxies; it does not bind :4100)
+- **[frontend/next.config.ts](frontend/next.config.ts)** — API rewrite rules, `/suite` → Automation Testing dashboard (`SUITE_PORT` / `SUITE_PROXY_ORIGIN`, default :4100), `experimental.proxyClientMaxBodySize: '100mb'` (Live Run CSV+PDF multipart; default 10mb caused client HTTP 500), and allowed origins
+- **[Automation-Testing/](Automation-Testing/)** — Automation Testing Suite (offline fixtures, Live Run writes `[SUITE-TEST]` leads, Journey Demo / Search); open `/suite` while Strapi is running (Next only proxies; it does not bind :4100); CSV+Documents Live Run total upload should stay under ~95 MB — Apache `LimitRequestBody` + Next `proxyClientMaxBodySize` (see [Automation-Testing/docs/Live-Run-Upload-Limit.md](Automation-Testing/docs/Live-Run-Upload-Limit.md) / [apache-LimitRequestBody.md](Automation-Testing/docs/apache-LimitRequestBody.md)); suite API 400/500 reasons append to `Automation-Testing/reports/errors/suite-errors_YYYY-MM-DD.log`
 - **[frontend/src/lib/strapi.ts](frontend/src/lib/strapi.ts)** — `strapiPublicApi()` URL helper
 - **[frontend/src/lib/safeStorage.ts](frontend/src/lib/safeStorage.ts)** — SSR-safe localStorage/sessionStorage wrappers
 - **[src/api/](src/api/)** — All Strapi collections

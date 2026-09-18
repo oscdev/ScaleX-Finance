@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T15:05:29.691Z",
+  "generatedAt": "2026-09-18T12:08:22.792Z",
   "totalEntries": 182,
   "totalCases": 281,
   "passed": 281,
@@ -910,12 +910,16 @@
         "ruleId": "PL-CC-UTIL",
         "ruleName": "CCU",
         "formula": "ccOutstanding / ccLimit <= maxCCUtilizationRatio (per CC: credit_limit - current_balance)",
+        "applicantValue": {
+          "ccOutstanding": 0,
+          "ccLimit": 0
+        },
         "threshold": {
-          "maxCCUtilizationRatio": null
+          "maxCCUtilizationRatio": 0.8
         },
         "result": "SKIP",
         "errorCode": null,
-        "reason": "Null threshold — rule not applied"
+        "reason": "No credit-card accounts to evaluate"
       }
     },
     {
@@ -2044,12 +2048,16 @@
         "ruleId": "BL-CC-UTIL",
         "ruleName": "CCU max",
         "formula": "ccOutstanding / ccLimit <= maxCcUtilizationRatio (per CC: credit_limit - current_balance)",
+        "applicantValue": {
+          "ccOutstanding": 0,
+          "ccLimit": 0
+        },
         "threshold": {
-          "maxCcUtilizationRatio": null
+          "maxCcUtilizationRatio": 0.85
         },
         "result": "SKIP",
         "errorCode": null,
-        "reason": "Null threshold — rule not applied"
+        "reason": "No credit-card accounts to evaluate"
       }
     },
     {

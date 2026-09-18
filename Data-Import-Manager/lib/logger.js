@@ -36,9 +36,16 @@ function createRunLogger(logsDir, basename) {
   const logPath = path.join(logsDir, `${basename}.log`);
   const stream = fs.createWriteStream(logPath, { flags: 'a' });
 
+  // When spawned by Next (DIM_JOB=1), keep stdout clean for JSON.parse.
+  const quietConsole =
+    process.env.DIM_JOB === '1' ||
+    process.env.DIM_JOB === 'true' ||
+    process.env.DIM_QUIET === '1';
+
   const write = (level, message) => {
     const line = `${formatLogClock()}  ${String(level).padEnd(5)}  ${message}`;
     stream.write(`${line}\n`);
+    if (quietConsole) return;
     const consoleFn = level === 'ERROR' ? console.error : console.log;
     consoleFn(line);
   };
