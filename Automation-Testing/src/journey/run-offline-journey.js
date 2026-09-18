@@ -101,7 +101,8 @@ function evaluateBlStep(ruleId, customer, bureau, failLab) {
   const entity = customer.businessType || 'Proprietorship';
 
   switch (ruleId) {
-    case 'BL-ACTIVE':
+    case 'BL-PRE-ACTIVE':
+    case 'BL-ACTIVE': // legacy alias
       return { result: 'PASS', evaluation: 'active lender → PASS' };
     case 'BL-PINCODE':
       return {
@@ -142,6 +143,11 @@ function evaluateBlStep(ruleId, customer, bureau, failLab) {
       return { result: 'PASS', evaluation: 'loan amount in range → PASS' };
     case 'BL-FOIR':
       return { result: 'PASS', evaluation: 'FOIR within limit → PASS' };
+    case 'BL-CC-UTIL':
+      return {
+        result: 'SKIP',
+        evaluation: 'offline demo: CCU uses live evaluateCcu on fixtures/Live Run; stub → SKIP',
+      };
     default:
       return { result: 'SKIP', evaluation: 'not evaluated in offline demo → SKIP' };
   }
