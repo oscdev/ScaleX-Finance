@@ -105,6 +105,7 @@ npm run build:pipeline-docs
 - Business Loan Live Run `turnover` CSV values are absolute rupees (not Lakh). Suite report / Journey Demo display Annual Turnover in full ₹ even though `form_data` stores Lakh.
 - Zip coverage (`zip_codes_to_lenders`) is **product-scoped** via `loanType`. PL-PINCODE uses rows with `loan_type='PL'`; BL-PINCODE uses `loan_type='BL'`.
 - **CCU (`PL-CC-UTIL` / `BL-CC-UTIL`):** **SKIP** when there are no credit-card accounts (`ccLimit=0` and `ccOutstanding=0`) or the lender threshold is null; FAIL only when util is over the cap (or outstanding with limit ≤ 0). Fixture tests import live `evaluateCcu`. Offline Journey lists the full BL **20-step** pipeline (incl. CCU) in `pipeline-defs.js` but stubs steps after FOIR as SKIP — use fixtures or Live Run for real CCU evaluation.
+- **Bureau vendors:** Live Run / fixtures still call the live Python extractors. Layout auto-detects `Vendor1_NormalCIBIL` (`fields_normal.yaml`) or `Vendor2_PolicyBazaar` (`fields_policybazaar.yaml`); same `cibilData` keys. Policy Bazaar may leave DOB/PAN/employment null and DPD sparse — eligibility/scoring engines are unchanged.
 - Set `SUITE_ADVISOR_REFERRAL_ID` in `Automation-Testing/.env` if lead create requires an advisor referral.
 
 ## CLI

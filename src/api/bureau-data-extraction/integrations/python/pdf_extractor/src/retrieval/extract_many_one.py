@@ -10,7 +10,7 @@ from src.utils.logger import logger
 # Validators that clean/filter the whole candidate list at once
 # (as opposed to validate_candidate, which checks one value in
 # isolation). Add an entry here to support a new "type" from
-# fields.yaml without touching the extractor logic below.
+# fields_normal.yaml / fields_policybazaar.yaml without touching the extractor logic below.
 MULTI_VALUE_VALIDATORS = {
     "enquiry_date": EnquiryValidator,
     "payment_history": PaymentHistoryValidator,

@@ -15,12 +15,32 @@ from src.retrieval.extract_many import extract_many
 from src.retrieval.extract_many_one import extract_many_one
 from src.retrieval.extract_count import extract_count
 from src.retrieval.extract_telephone_numbers import extract_telephone_numbers
+from src.retrieval.extract_telephone_numbers_policybazaar import (
+    extract_telephone_numbers_policybazaar,
+)
 from src.retrieval.extract_open_accounts import extract_open_accounts
+from src.retrieval.extract_open_accounts_policybazaar import (
+    extract_open_accounts_policybazaar,
+)
 from src.retrieval.extract_enquiries import extract_enquiries
+from src.retrieval.extract_enquiries_policybazaar import (
+    extract_enquiries_policybazaar,
+)
+from src.retrieval.detect_vendor import (
+    VENDOR1_NORMAL,
+    VENDOR2_POLICYBAZAAR,
+    detect_vendor,
+)
 from src.utils.logger import logger
 
 
-def load_fields(config_path="configs/fields.yaml"):
+VENDOR_FIELDS = {
+    VENDOR1_NORMAL: "configs/fields_normal.yaml",
+    VENDOR2_POLICYBAZAAR: "configs/fields_policybazaar.yaml",
+}
+
+
+def load_fields(config_path="configs/fields_normal.yaml"):
 
     with open(config_path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)["extract"]
@@ -79,14 +99,22 @@ def extract_field(
     embedder,
     chunks,
     all_text,
+    vendor_id=VENDOR1_NORMAL,
 ):
 
     value_type = field_cfg.get("value", "one")
+    is_pb = vendor_id == VENDOR2_POLICYBAZAAR
 
     # ------------------------------
     # Structured telephone pairs
     # ------------------------------
     if value_type == "telephones":
+
+        if is_pb:
+            return extract_telephone_numbers_policybazaar(
+                field_cfg=field_cfg,
+                all_text=all_text,
+            )
 
         return extract_telephone_numbers(
             field_cfg=field_cfg,
@@ -98,6 +126,12 @@ def extract_field(
     # ------------------------------
     if value_type == "accounts":
 
+        if is_pb:
+            return extract_open_accounts_policybazaar(
+                field_cfg=field_cfg,
+                all_text=all_text,
+            )
+
         return extract_open_accounts(
             field_cfg=field_cfg,
             all_text=all_text,
@@ -107,6 +141,12 @@ def extract_field(
     # Structured enquiries
     # ------------------------------
     if value_type == "enquiries":
+
+        if is_pb:
+            return extract_enquiries_policybazaar(
+                field_cfg=field_cfg,
+                all_text=all_text,
+            )
 
         return extract_enquiries(
             field_cfg=field_cfg,
@@ -168,6 +208,16 @@ def build_lead_upload_folder_name(lead_id: str, applicant_name: str) -> str:
     return f"{lead_id}-{cleaned}"
 
 
+def resolve_fields_config(vendor_id: str) -> str:
+    match vendor_id:
+        case "Vendor1_NormalCIBIL":
+            return VENDOR_FIELDS[VENDOR1_NORMAL]
+        case "Vendor2_PolicyBazaar":
+            return VENDOR_FIELDS[VENDOR2_POLICYBAZAAR]
+        case _:
+            return VENDOR_FIELDS[VENDOR1_NORMAL]
+
+
 def main():
 
     if len(sys.argv) < 3:
@@ -183,15 +233,7 @@ def main():
     lead_id = sys.argv[1]
     lead_name = sys.argv[2]
 
-    # raw_pdf = (
-    #     f"/var/www/vhosts/ScaleX-Finance/public/uploads/api_uploads/{lead_id}_{lead_name}"
-    # )
-
-
-# print("CURRENT FILE:", Path(__file__).resolve())
-# print("PROJECT ROOT:", project_root)
-
-     # Project root:
+    # Project root:
     # /var/www/vhosts/honey/NodeJS/ScaleX-Finance-MVP
     PROJECT_ROOT = Path(__file__).resolve().parents[7]
 
@@ -205,9 +247,16 @@ def main():
 
     logger.info(f"Using PDF directory: {raw_pdf}")
 
-    fields = load_fields()
+    # Ingest once for vendor detect + extraction text.
+    corpus = DocumentIngestor(raw_pdf).ingest()
+    all_text = "\n".join(page["text"] for page in corpus["pages"])
 
-    # Ingest once; build hybrid retrieval only when at least one field
+    vendor_id = detect_vendor(all_text)
+    fields_path = resolve_fields_config(vendor_id)
+    logger.info(f"Vendor {vendor_id} → loading {fields_path}")
+    fields = load_fields(fields_path)
+
+    # Build hybrid retrieval only when at least one field
     # needs value:one (alias/chunk search). Structured extractors use all_text only.
     needs_hybrid = any(
         (field_cfg.get("value", "one") == "one")
@@ -215,12 +264,8 @@ def main():
     )
 
     if needs_hybrid:
-        hybrid, embedder, chunks, all_text = build_pipeline(raw_pdf)
+        hybrid, embedder, chunks, _ = build_pipeline(raw_pdf)
     else:
-        from src.ingestion.document_ingestor import DocumentIngestor
-
-        corpus = DocumentIngestor(raw_pdf).ingest()
-        all_text = "\n".join(page["text"] for page in corpus["pages"])
         hybrid = embedder = chunks = None
 
     extracted = {}
@@ -233,9 +278,13 @@ def main():
             embedder=embedder,
             chunks=chunks,
             all_text=all_text,
+            vendor_id=vendor_id,
         )
 
         logger.info(f"{field_name} -> {extracted[field_name]}")
+
+    # Persist vendor for Strapi _extractionMeta merge (same cibilData keys).
+    extracted["_extractionMeta"] = {"vendorId": vendor_id}
 
     output_path = Path("data/outputs/extracted_fields.json")
 

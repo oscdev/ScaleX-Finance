@@ -16,6 +16,8 @@ const EXTRACTION_META_KEY = '_extractionMeta';
 export type CibilExtractionMeta = {
   sourcePdfMtimeMs: number;
   sourcePdfRelPath: string;
+  /** Set by Python detect_vendor — Vendor1_NormalCIBIL | Vendor2_PolicyBazaar */
+  vendorId?: string;
 };
 
 export type BureauExtractionParams = {
@@ -266,9 +268,26 @@ export function withExtractionMeta(
   cibilData: Record<string, unknown>,
   meta: CibilExtractionMeta
 ): Record<string, unknown> {
+  const prior =
+    cibilData[EXTRACTION_META_KEY] &&
+    typeof cibilData[EXTRACTION_META_KEY] === 'object' &&
+    !Array.isArray(cibilData[EXTRACTION_META_KEY])
+      ? (cibilData[EXTRACTION_META_KEY] as Record<string, unknown>)
+      : {};
+  const vendorId =
+    typeof meta.vendorId === 'string'
+      ? meta.vendorId
+      : typeof prior.vendorId === 'string'
+        ? prior.vendorId
+        : undefined;
   return {
     ...cibilData,
-    [EXTRACTION_META_KEY]: meta,
+    [EXTRACTION_META_KEY]: {
+      ...prior,
+      sourcePdfMtimeMs: meta.sourcePdfMtimeMs,
+      sourcePdfRelPath: meta.sourcePdfRelPath,
+      ...(vendorId ? { vendorId } : {}),
+    },
   };
 }
 
@@ -381,6 +400,20 @@ async function executeBureauExtraction(
       dataSource: 'PDF_EXTRACTION',
     });
 
+    let vendorId: string | undefined;
+    try {
+      const summary = await strapi.db
+        .query('api::bureau-data-extraction.cibil-report-summary')
+        .findOne({ where: { leadId: leadIdNum } });
+      const meta = (summary?.cibilData as Record<string, unknown> | undefined)
+        ?._extractionMeta as Record<string, unknown> | undefined;
+      if (typeof meta?.vendorId === 'string') {
+        vendorId = meta.vendorId;
+      }
+    } catch {
+      // non-fatal — COMPLETED still logs without vendorId
+    }
+
     strapi.log.info(`[Bureau Auto] END extraction for ${cibilRelPath}`);
     await logBureau(strapi, {
       action: 'BUREAU_EXTRACT_COMPLETED',
@@ -391,6 +424,7 @@ async function executeBureauExtraction(
       metadata: {
         loanApplicationId: params.loanApplicationId ?? null,
         file: cibilRelPath,
+        ...(vendorId ? { vendorId } : {}),
       },
     });
   } catch (err) {

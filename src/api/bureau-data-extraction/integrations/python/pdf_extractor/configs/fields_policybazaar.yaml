@@ -1,0 +1,255 @@
+extract:
+
+  consumer_name:
+    aliases:
+      - Name
+      - Consumer Name
+
+    patterns:
+      - '(?is)Hey\s+([A-Za-z][A-Za-z .]{1,60}?),\s*\n\s*here\s+is\s+your\s+Credit\s+Report'
+      - "(?is)([A-Za-z][A-Za-z .]{1,60}?)'s\\s+Credit\\s+Report"
+
+    validation:
+      type: string
+      min_length: 2
+      max_length: 100
+
+    normalization:
+      strip: true
+      collapse_spaces: true
+
+    value: one
+    context_window: 5
+
+
+  date_of_birth:
+    aliases:
+      - Date Of Birth
+      - DOB
+
+    patterns:
+      - '(?is)Date\s*Of\s*Birth\s*[:=]?\s*(\d{2}[/-]\d{2}[/-]\d{4})'
+      - '(?is)DOB\s*[:=]?\s*(\d{2}[/-]\d{2}[/-]\d{4})'
+
+    validation:
+      type: date
+
+    normalization:
+      strip: true
+
+    value: one
+    context_window: 4
+
+
+  gender:
+    aliases:
+      - Gender
+
+    patterns:
+      - '(?is)Gender\s*[:=]?\s*(Male|Female|Other|Transgender)'
+
+    validation:
+      type: regex
+      regex: '^(Male|Female|Other|Transgender)$'
+
+    normalization:
+      strip: true
+
+    value: one
+    context_window: 3
+
+
+  telephone_numbers:
+    value: telephones
+    top_n: 2
+    region_pattern: '(?is)Phone\s*Number(.*?)(?=Email\s*ID|Support|Disclaimer|$)'
+
+
+  email_id:
+    aliases:
+      - Email ID
+      - Email
+
+    patterns:
+      - '(?is)Email\s*ID[\s\S]*?(?<![A-Za-z0-9._%+\-])((?!notavailable@nomail\.com|na@na\.na)[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,})'
+      - '(?is)\b((?!notavailable@nomail\.com|na@na\.na)[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,})\b'
+
+    validation:
+      type: regex
+      regex: '^[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}$'
+
+    normalization:
+      strip: true
+      uppercase: true
+
+    value: one
+    context_window: 4
+
+
+  employment_account_type:
+    aliases:
+      - Account Type
+
+    patterns:
+      - '(?is)EMPLOYMENT\s*DETAILS\s*Account\s*Type\s*\n\s*([^\n]+)'
+
+    validation:
+      type: string
+      min_length: 2
+      max_length: 60
+
+    normalization:
+      strip: true
+      collapse_spaces: true
+
+    value: one
+    context_window: 4
+
+
+  employment_date_reported:
+    aliases:
+      - Date Reported
+
+    patterns:
+      - '(?is)EMPLOYMENT\s*DETAILS.*?Date\s*Reported\s*\n\s*(\d{2}[/-]\d{2}[/-]\d{4})'
+
+    validation:
+      type: date
+
+    normalization:
+      strip: true
+
+    value: one
+    context_window: 6
+
+
+  occupation:
+    aliases:
+      - Occupation
+
+    patterns:
+      - '(?is)EMPLOYMENT\s*DETAILS.*?Occupation\s*\n\s*([A-Za-z ]{2,40})'
+
+    validation:
+      type: string
+      min_length: 2
+      max_length: 40
+
+    normalization:
+      strip: true
+      collapse_spaces: true
+
+    value: one
+    context_window: 6
+
+
+  open_accounts:
+    value: accounts
+    region_pattern: '(?is)Account\s*Details\s*\nThis\s*section\s*has\s*information(.*?)(?=Contact\s*Information|Support|Disclaimer|$)'
+    reference_date_pattern:
+      - '(?i)Report\s*Date\s*:\s*(\d{2}-\d{2}-\d{4})'
+      - '(?i)Report\s*Date\s*:\s*(\d{2}/\d{2}/\d{4})'
+    validation:
+      months_back: 12
+
+
+  enquiries:
+    value: enquiries
+    region_pattern: '(?is)Credit\s*Enquiries\s*\nThis\s*section\s*shows\s*the\s*names(.*?)(?=Summary:\s*(?:Credit|Loan)\s*Accounts|Account\s*Details|Contact\s*Information|$)'
+    reference_date_pattern:
+      - '(?i)Report\s*Date\s*:\s*(\d{2}-\d{2}-\d{4})'
+      - '(?i)Report\s*Date\s*:\s*(\d{2}/\d{2}/\d{4})'
+    validation:
+      months_back: 3
+
+
+  cibil_score:
+    aliases:
+      - CIBIL Score
+      - Credit Score
+
+    patterns:
+      - '(?is)Hey\s+[A-Za-z].{0,80}?Powered\s+by\s*\n\s*([3-9][0-9]{2})\s*\n\s*(?:GOOD|EXCELLENT|FAIR|POOR|AVERAGE)'
+      - '(?is)Powered\s+by\s*\n\s*([3-9][0-9]{2})\s*\n'
+      - '(?is)\b([3-9][0-9]{2})\s*\n\s*(?:GOOD|EXCELLENT|FAIR|POOR|AVERAGE)\b'
+
+    validation:
+      type: integer
+      min: 300
+      max: 900
+
+    normalization:
+      strip: true
+
+    value: one
+    context_window: 3
+
+
+  pan_number:
+    aliases:
+      - PAN
+      - PAN Number
+
+    patterns:
+      - '(?i)PAN\s*[:=]?\s*([A-Z]{5}[0-9]{4}[A-Z])'
+      - '(?i)PAN\s*Number\s*[:=]?\s*([A-Z]{5}[0-9]{4}[A-Z])'
+
+    validation:
+      type: regex
+      regex: '^[A-Z]{5}[0-9]{4}[A-Z]$'
+
+    normalization:
+      uppercase: true
+      strip: true
+
+    value: one
+    context_window: 3
+
+
+  permanent_address:
+    aliases:
+      - Residence Address
+      - Permanent Address
+      - Address
+
+    preferred_category: 'Residence Address'
+
+    patterns:
+      - '(?is)Address\s*Details[\s\S]*?Residence\s*Address\s*\d{2}-\d{2}-\d{4}\s*\n?\s*([A-Za-z0-9,/().#\-\s]{20,250}?\b\d{6}\b)'
+      - '(?is)((?:FLAT|S/O|W/O|H/O)[A-Za-z0-9,/().#\-\s]{10,200}?\b\d{6}\b[^\n]{0,60})'
+
+    validation:
+      type: address
+      min_length: 20
+      max_length: 250
+      min_score: 50
+
+    normalization:
+      strip: true
+      collapse_spaces: true
+      collapse_newlines: true
+
+    value: one
+    context_window: 7
+
+
+  active_unsecured_loan_count:
+
+    region_pattern: '(?is)Account\s*Details\s*\nThis\s*section\s*has\s*information(.*?)(?=Contact\s*Information|Support|Disclaimer|$)'
+
+    block_pattern:
+      - '(?is)Account\s*Number:\s*.*?(?=Account\s*Number:|Contact\s*Information|Support|Disclaimer|$)'
+
+    status_patterns:
+      active: '(?i)Account\s*Status:\s*Active'
+      inactive: '(?i)Account\s*Status:\s*(?:Closed|Written)'
+
+    scope_patterns:
+      active: '(?is)Account\s*Status:\s*Active'
+      inactive: '(?is)Account\s*Status:\s*(?:Closed|Written)'
+
+    # Count every Active account (any account type).
+    # Type keyword lists removed — PL/BL UNSECURED uses this as active open count.
+    count_status: active
+
+    value: count

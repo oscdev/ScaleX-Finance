@@ -148,14 +148,25 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
     ruleId: 'PL-FOIR',
     ruleName: 'FOIR',
     condition: 'Existing obligation to income ratio must be within lender cap',
-    formula: 'existingTotalEmi / netMonthlyIncome <= foir',
+    formula:
+      'totalMonthlyIncome = netSalary + otherIncomeAmount when hasOtherIncome; else netSalary; existingTotalEmi / totalMonthlyIncome <= foir',
     applicantSources: [
       {
         table: 'cibil_report_summary',
         column: 'cibil_data.open_accounts[].emi_amount',
-        description: 'Sum of EMI from non–credit-card open accounts (account_type ≠ Credit Card)',
+        description: 'Sum of EMI from open accounts whose account_type does not contain Card (Credit Card, Kisan Credit Card, … excluded)',
       },
       { table: 'loan_applications', column: 'form_data.incomeDetails.netSalary', description: 'Net salary (form)' },
+      {
+        table: 'loan_applications',
+        column: 'form_data.incomeDetails.hasOtherIncome',
+        description: 'When true, otherIncomeAmount is included in totalMonthlyIncome',
+      },
+      {
+        table: 'loan_applications',
+        column: 'form_data.incomeDetails.otherIncomeAmount',
+        description: 'Added to netSalary when hasOtherIncome is true',
+      },
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'foir' }],
   },
@@ -225,7 +236,7 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
       {
         table: 'cibil_report_summary',
         column: 'cibil_data.open_accounts[].account_type',
-        description: 'Only accounts where account_type is Credit Card',
+        description: 'Only accounts whose account_type contains Card (Credit Card, Kisan Credit Card, …)',
       },
       {
         table: 'cibil_report_summary',
@@ -243,11 +254,16 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
   'PL-UNSECURED': {
     step: 13,
     ruleId: 'PL-UNSECURED',
-    ruleName: 'Active unsecured accounts',
-    condition: 'Active unsecured loan count must not exceed lender cap',
-    formula: 'active_unsecured <= max_active_unsecured_account',
+    ruleName: 'Active open accounts',
+    condition: 'Active open account count must not exceed lender cap',
+    formula:
+      'active_unsecured_loan_count = count of Active/open accounts (all types); active_unsecured <= max_active_unsecured_account',
     applicantSources: [
-      { table: 'cibil_report_summary', column: 'cibil_data.active_unsecured_loan_count' },
+      {
+        table: 'cibil_report_summary',
+        column: 'cibil_data.active_unsecured_loan_count',
+        description: 'Count of Active/open bureau accounts of any account_type',
+      },
     ],
     thresholdSources: [{ table: 'lenders_criteria_pl', column: 'max_active_unsecured_account' }],
   },

@@ -163,7 +163,8 @@ function deriveEnquiries(enquiries: any[], asOf = new Date()) {
 }
 
 function isCreditCard(accountType: string): boolean {
-  return /credit\s*card/i.test(String(accountType || '').trim());
+  // Any account type containing "Card" (Credit Card, Kisan Credit Card, …) → CCU; else FOIR.
+  return /card/i.test(String(accountType || '').trim());
 }
 
 function deriveFoirEmi(openAccounts: any[]): number {

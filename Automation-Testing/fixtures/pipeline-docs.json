@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-18T12:25:57.884Z",
+  "generatedAt": "2026-09-21T10:59:25.631Z",
   "products": {
     "personal-loan": {
       "lead-submission": [
@@ -1169,18 +1169,28 @@
         {
           "type": "eligibility_rule",
           "title": "PL-FOIR",
-          "description": "Existing obligation to income ratio must be within lender cap · formula: existingTotalEmi / netMonthlyIncome <= foir · applicant: cibil_report_summary.cibil_data.open_accounts[].emi_amount (Sum of EMI from non–credit-card open accounts (account_type ≠ Credit Card)); loan_applications.form_data.incomeDetails.netSalary (Net salary (form)) · threshold: lenders_criteria_pl.foir · step: 8 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
-          "formula": "existingTotalEmi / netMonthlyIncome <= foir",
+          "description": "Existing obligation to income ratio must be within lender cap · formula: totalMonthlyIncome = netSalary + otherIncomeAmount when hasOtherIncome; else netSalary; existingTotalEmi / totalMonthlyIncome <= foir · applicant: cibil_report_summary.cibil_data.open_accounts[].emi_amount (Sum of EMI from open accounts whose account_type does not contain Card (Credit Card, Kisan Credit Card, … excluded)); loan_applications.form_data.incomeDetails.netSalary (Net salary (form)); loan_applications.form_data.incomeDetails.hasOtherIncome (When true, otherIncomeAmount is included in totalMonthlyIncome); loan_applications.form_data.incomeDetails.otherIncomeAmount (Added to netSalary when hasOtherIncome is true) · threshold: lenders_criteria_pl.foir · step: 8 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "totalMonthlyIncome = netSalary + otherIncomeAmount when hasOtherIncome; else netSalary; existingTotalEmi / totalMonthlyIncome <= foir",
           "sources": [
             {
               "table": "cibil_report_summary",
               "column": "cibil_data.open_accounts[].emi_amount",
-              "description": "Sum of EMI from non–credit-card open accounts (account_type ≠ Credit Card)"
+              "description": "Sum of EMI from open accounts whose account_type does not contain Card (Credit Card, Kisan Credit Card, … excluded)"
             },
             {
               "table": "loan_applications",
               "column": "form_data.incomeDetails.netSalary",
               "description": "Net salary (form)"
+            },
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.hasOtherIncome",
+              "description": "When true, otherIncomeAmount is included in totalMonthlyIncome"
+            },
+            {
+              "table": "loan_applications",
+              "column": "form_data.incomeDetails.otherIncomeAmount",
+              "description": "Added to netSalary when hasOtherIncome is true"
             },
             {
               "table": "lenders_criteria_pl",
@@ -1270,13 +1280,13 @@
         {
           "type": "eligibility_rule",
           "title": "PL-CC-UTIL",
-          "description": "Credit card utilization ratio must be within lender cap · formula: ccOutstanding / ccLimit <= maxCCUtilizationRatio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0) · applicant: cibil_report_summary.cibil_data.open_accounts[].account_type (Only accounts where account_type is Credit Card); cibil_report_summary.cibil_data.open_accounts[].credit_limit (Per CC: total_credit_card_utilize = credit_limit - current_balance); cibil_report_summary.cibil_data.open_accounts[].current_balance (ccOutstanding = SUM(total_credit_card_utilize); ccLimit = SUM(credit_limit)) · threshold: lenders_criteria_pl.max_cc_utilization_ratio · step: 12 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "description": "Credit card utilization ratio must be within lender cap · formula: ccOutstanding / ccLimit <= maxCCUtilizationRatio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0) · applicant: cibil_report_summary.cibil_data.open_accounts[].account_type (Only accounts whose account_type contains Card (Credit Card, Kisan Credit Card, …)); cibil_report_summary.cibil_data.open_accounts[].credit_limit (Per CC: total_credit_card_utilize = credit_limit - current_balance); cibil_report_summary.cibil_data.open_accounts[].current_balance (ccOutstanding = SUM(total_credit_card_utilize); ccLimit = SUM(credit_limit)) · threshold: lenders_criteria_pl.max_cc_utilization_ratio · step: 12 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
           "formula": "ccOutstanding / ccLimit <= maxCCUtilizationRatio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0)",
           "sources": [
             {
               "table": "cibil_report_summary",
               "column": "cibil_data.open_accounts[].account_type",
-              "description": "Only accounts where account_type is Credit Card"
+              "description": "Only accounts whose account_type contains Card (Credit Card, Kisan Credit Card, …)"
             },
             {
               "table": "cibil_report_summary",
@@ -1302,12 +1312,13 @@
         {
           "type": "eligibility_rule",
           "title": "PL-UNSECURED",
-          "description": "Active unsecured loan count must not exceed lender cap · formula: active_unsecured <= max_active_unsecured_account · applicant: cibil_report_summary.cibil_data.active_unsecured_loan_count · threshold: lenders_criteria_pl.max_active_unsecured_account · step: 13 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
-          "formula": "active_unsecured <= max_active_unsecured_account",
+          "description": "Active open account count must not exceed lender cap · formula: active_unsecured_loan_count = count of Active/open accounts (all types); active_unsecured <= max_active_unsecured_account · applicant: cibil_report_summary.cibil_data.active_unsecured_loan_count (Count of Active/open bureau accounts of any account_type) · threshold: lenders_criteria_pl.max_active_unsecured_account · step: 13 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "active_unsecured_loan_count = count of Active/open accounts (all types); active_unsecured <= max_active_unsecured_account",
           "sources": [
             {
               "table": "cibil_report_summary",
-              "column": "cibil_data.active_unsecured_loan_count"
+              "column": "cibil_data.active_unsecured_loan_count",
+              "description": "Count of Active/open bureau accounts of any account_type"
             },
             {
               "table": "lenders_criteria_pl",
@@ -1316,8 +1327,8 @@
           ],
           "meta": {
             "step": 13,
-            "ruleName": "Active unsecured accounts",
-            "condition": "Active unsecured loan count must not exceed lender cap"
+            "ruleName": "Active open accounts",
+            "condition": "Active open account count must not exceed lender cap"
           }
         },
         {
@@ -2869,8 +2880,8 @@
         {
           "type": "eligibility_rule",
           "title": "BL-FOIR",
-          "description": "Annualised non-CC EMI vs annual turnover must not exceed foir_max · formula: applicantFoir = (SUM(emi_amount WHERE account_type != Credit Card) * 12) / (turnover * 100000); PASS ⇔ applicantFoir <= foir_max · applicant: cibil_report_summary.cibil_data.open_accounts[].emi_amount; cibil_report_summary.cibil_data.open_accounts[].account_type; loan_applications.form_data.businessDetails.turnover · threshold: lenders_criteria_bl.foir_max · step: 10 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
-          "formula": "applicantFoir = (SUM(emi_amount WHERE account_type != Credit Card) * 12) / (turnover * 100000); PASS ⇔ applicantFoir <= foir_max",
+          "description": "Annualised non-Card EMI vs annual turnover must not exceed foir_max · formula: applicantFoir = (SUM(emi_amount WHERE account_type does not contain Card) * 12) / (turnover * 100000); PASS ⇔ applicantFoir <= foir_max · applicant: cibil_report_summary.cibil_data.open_accounts[].emi_amount; cibil_report_summary.cibil_data.open_accounts[].account_type; loan_applications.form_data.businessDetails.turnover · threshold: lenders_criteria_bl.foir_max · step: 10 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "applicantFoir = (SUM(emi_amount WHERE account_type does not contain Card) * 12) / (turnover * 100000); PASS ⇔ applicantFoir <= foir_max",
           "sources": [
             {
               "table": "cibil_report_summary",
@@ -2891,15 +2902,15 @@
           ],
           "meta": {
             "step": 10,
-            "ruleName": "FOIR max (non–credit-card)",
-            "condition": "Annualised non-CC EMI vs annual turnover must not exceed foir_max"
+            "ruleName": "FOIR max (non-Card accounts)",
+            "condition": "Annualised non-Card EMI vs annual turnover must not exceed foir_max"
           }
         },
         {
           "type": "eligibility_rule",
           "title": "BL-CC-UTIL",
-          "description": "Aggregated CC utilization must not exceed lender ratio · formula: per CC: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0) · applicant: cibil_report_summary.cibil_data.open_accounts[].credit_limit; cibil_report_summary.cibil_data.open_accounts[].current_balance; cibil_report_summary.cibil_data.open_accounts[].account_type · threshold: lenders_criteria_bl.max_cc_utilization_ratio · step: 11 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
-          "formula": "per CC: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0)",
+          "description": "Aggregated Card utilization must not exceed lender ratio · formula: account_type contains Card → CCU; per card: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio; SKIP when no Card accounts (ccLimit=0 and ccOutstanding=0) · applicant: cibil_report_summary.cibil_data.open_accounts[].credit_limit; cibil_report_summary.cibil_data.open_accounts[].current_balance; cibil_report_summary.cibil_data.open_accounts[].account_type · threshold: lenders_criteria_bl.max_cc_utilization_ratio · step: 11 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "account_type contains Card → CCU; per card: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio; SKIP when no Card accounts (ccLimit=0 and ccOutstanding=0)",
           "sources": [
             {
               "table": "cibil_report_summary",
@@ -2920,8 +2931,8 @@
           ],
           "meta": {
             "step": 11,
-            "ruleName": "CCU max (credit card)",
-            "condition": "Aggregated CC utilization must not exceed lender ratio"
+            "ruleName": "CCU max (Card accounts)",
+            "condition": "Aggregated Card utilization must not exceed lender ratio"
           }
         },
         {
@@ -2998,12 +3009,13 @@
         {
           "type": "eligibility_rule",
           "title": "BL-UNSECURED",
-          "description": "Bureau unsecured count must not exceed lender cap · formula: cibil_data.active_unsecured_loan_count <= max_active_unsecured_6_months · applicant: cibil_report_summary.cibil_data.active_unsecured_loan_count · threshold: lenders_criteria_bl.max_active_unsecured_6_months · step: 15 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
-          "formula": "cibil_data.active_unsecured_loan_count <= max_active_unsecured_6_months",
+          "description": "Bureau active open account count must not exceed lender cap · formula: active_unsecured_loan_count = count of Active/open accounts (all types); count <= max_active_unsecured_6_months · applicant: cibil_report_summary.cibil_data.active_unsecured_loan_count (Count of Active/open bureau accounts of any account_type) · threshold: lenders_criteria_bl.max_active_unsecured_6_months · step: 15 · result: PASS | FAIL | SKIP → continues or excludes lender until end rank",
+          "formula": "active_unsecured_loan_count = count of Active/open accounts (all types); count <= max_active_unsecured_6_months",
           "sources": [
             {
               "table": "cibil_report_summary",
-              "column": "cibil_data.active_unsecured_loan_count"
+              "column": "cibil_data.active_unsecured_loan_count",
+              "description": "Count of Active/open bureau accounts of any account_type"
             },
             {
               "table": "lenders_criteria_bl",
@@ -3012,8 +3024,8 @@
           ],
           "meta": {
             "step": 15,
-            "ruleName": "Active unsecured count (6 months)",
-            "condition": "Bureau unsecured count must not exceed lender cap"
+            "ruleName": "Active open account count (6 months)",
+            "condition": "Bureau active open account count must not exceed lender cap"
           }
         },
         {

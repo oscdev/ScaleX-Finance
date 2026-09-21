@@ -85,7 +85,7 @@ function evaluatePlStep(ruleId, customer, bureau, failLab) {
       const ok = foir <= 0.5;
       return {
         result: ok ? 'PASS' : 'FAIL',
-        evaluation: `emi/income = ${foir} <= 0.5 → ${ok ? 'PASS' : 'FAIL'}`,
+        evaluation: `emi/totalMonthlyIncome = ${foir} <= 0.5 → ${ok ? 'PASS' : 'FAIL'}`,
         reason: ok ? null : 'FOIR exceeds lender limit',
       };
     }

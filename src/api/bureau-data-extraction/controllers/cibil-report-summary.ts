@@ -11,6 +11,7 @@ async function logBureauExtract(
     leadName: string;
     correlationId: string;
     loanApplicationId?: number;
+    vendorId?: string;
   }
 ) {
   try {
@@ -29,6 +30,7 @@ async function logBureauExtract(
         leadName: params.leadName,
         runId: params.correlationId,
         loanApplicationId: params.loanApplicationId ?? null,
+        ...(params.vendorId ? { vendorId: params.vendorId } : {}),
       },
     });
   } catch {
@@ -73,6 +75,13 @@ export default factories.createCoreController(
           dataSource: dataSource ?? 'PDF_EXTRACTION',
         });
 
+        const vendorId =
+          (result?.extraction as Record<string, unknown> | undefined)
+            ?._extractionMeta &&
+          typeof (result.extraction as any)._extractionMeta?.vendorId === 'string'
+            ? (result.extraction as any)._extractionMeta.vendorId
+            : undefined;
+
         await logBureauExtract(strapi, {
           action: 'BUREAU_EXTRACT_COMPLETED',
           description: `Manual bureau extraction completed for lead ${leadIdNum}`,
@@ -80,6 +89,7 @@ export default factories.createCoreController(
           leadName: name,
           correlationId,
           loanApplicationId: loanAppId,
+          vendorId,
         });
 
         return ctx.send({ data: result });

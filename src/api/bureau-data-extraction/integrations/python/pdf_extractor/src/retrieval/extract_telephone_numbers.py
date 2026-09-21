@@ -12,7 +12,7 @@ PHONE_PAIR_PATTERN = re.compile(
 def extract_telephone_numbers(field_cfg, all_text):
     """
     Parse CONTACT DETAILS phone pairs and return the top N
-    ({type, number}) objects. N defaults to 2 via fields.yaml.
+    ({type, number}) objects. N defaults to 2 via fields_normal.yaml / fields_policybazaar.yaml.
     """
     try:
         top_n = int(field_cfg.get("top_n", 2))

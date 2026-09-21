@@ -4,7 +4,7 @@ import re
 def validate_candidate(candidate, validation):
     """
     Validate an extracted candidate according to the field's
-    validation configuration from fields.yaml.
+    validation configuration from fields_normal.yaml / fields_policybazaar.yaml.
     """
 
     if not validation:
