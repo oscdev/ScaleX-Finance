@@ -1,6 +1,10 @@
 /**
  * Suite error / warning logger — file + console (no request bodies / PII blobs).
  * Path: Automation-Testing/reports/errors/suite-errors_YYYY-MM-DD.log
+ *
+ * Sources:
+ * - HTTP validation / fatal Live Run failures (`server.js`)
+ * - Live Run pipeline stage errors/warnings (`run-live-pipeline.js` → flush after each row)
  */
 import fs from 'node:fs';
 import path from 'node:path';

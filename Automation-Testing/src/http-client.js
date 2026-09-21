@@ -39,7 +39,7 @@ function redactBody(body) {
 /**
  * @param {Array} capture — push { method, url, status, ms, request, response, error? }
  */
-export async function capturedRequest(capture, { method, url, data, headers, params, label }) {
+export async function capturedRequest(capture, { method, url, data, headers, params, label, timeout }) {
   const started = Date.now();
   const entry = {
     label: label || `${method} ${url}`,
@@ -52,7 +52,11 @@ export async function capturedRequest(capture, { method, url, data, headers, par
     error: null,
   };
   try {
-    const res = await client.request({ method, url, data, headers, params });
+    const reqOpts = { method, url, data, headers, params };
+    if (timeout != null && Number.isFinite(Number(timeout)) && Number(timeout) > 0) {
+      reqOpts.timeout = Number(timeout);
+    }
+    const res = await client.request(reqOpts);
     entry.status = res.status;
     entry.ms = Date.now() - started;
     entry.response = redactBody(res.data);
@@ -236,6 +240,12 @@ export async function uploadFile(filePath, capture) {
   return { id: Number(id), name: list[0]?.name || path.basename(filePath), raw: res.data };
 }
 
+/** Max wait for bureau extract POST + Live Run poll (default 5 minutes). */
+export function getBureauTimeoutMs() {
+  const n = Number(process.env.BUREAU_TIMEOUT_MS || 300000);
+  return Number.isFinite(n) && n > 0 ? n : 300000;
+}
+
 export async function extractBureau({ leadId, leadName, loanApplicationId }, capture) {
   const base = getStrapiUrl();
   const body = {
@@ -243,12 +253,14 @@ export async function extractBureau({ leadId, leadName, loanApplicationId }, cap
     leadName: String(leadName),
   };
   if (loanApplicationId != null) body.loanApplicationId = Number(loanApplicationId);
+  // Per-request timeout — large CIBIL PDFs often exceed the default 120s axios client timeout
   const res = await capturedRequest(capture, {
     method: 'POST',
     url: `${base}/api/cibil-report-summaries/extract`,
     data: body,
     headers: { 'Content-Type': 'application/json' },
     label: 'POST cibil-report-summaries/extract',
+    timeout: getBureauTimeoutMs(),
   });
   if (res.status >= 400) {
     throw new Error(res.data?.error?.message || res.data?.message || `extract ${res.status}`);

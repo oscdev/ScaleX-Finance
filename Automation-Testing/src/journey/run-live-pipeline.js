@@ -19,6 +19,7 @@ import {
   scoreLender,
   capturedRequest,
   getStrapiUrl,
+  getBureauTimeoutMs,
 } from '../http-client.js';
 import {
   getProduct,
@@ -36,6 +37,7 @@ import {
 } from '../validate-required.js';
 import { generateRunReport } from '../report/generate-run-report.js';
 import { parseEligibilityLog, parseScoringLog, mergeScoringRows } from '../utils/log-parse.js';
+import { logSuiteError } from '../utils/suite-error-log.js';
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
@@ -170,6 +172,7 @@ function stemName(fullName) {
 }
 
 function findLatestLog(logDirRel, leadId, nameStem) {
+  if (!logDirRel) return null;
   const dir = path.join(REPO_ROOT, logDirRel);
   if (!fs.existsSync(dir)) return null;
   const prefix = `${leadId}-`;
@@ -194,6 +197,46 @@ function findLatestLog(logDirRel, leadId, nameStem) {
     (needle && files.find((x) => x.f.toLowerCase().includes(needle))) ||
     files.find((x) => /suite-?test/i.test(x.f) && stem && x.f.toLowerCase().includes(stem.slice(0, 6)));
   return path.join(dir, (byName || files[0]).f);
+}
+
+/** Read bureau code-level log for Extraction complete / cibil_score (auto-queue may finish after POST timeout). */
+function readBureauLogStatus(product, leadId, nameStem) {
+  const logPath = findLatestLog(product.logDirs?.bureau, leadId, nameStem);
+  if (!logPath || !fs.existsSync(logPath)) {
+    return { complete: false, cibilScore: null, logPath: null };
+  }
+  let text = '';
+  try {
+    text = fs.readFileSync(logPath, 'utf8');
+  } catch {
+    return { complete: false, cibilScore: null, logPath };
+  }
+  const complete = /Extraction complete/i.test(text);
+  const scoreMatch = text.match(/cibil_score\s*->\s*([^\s\n]+)/i);
+  const cibilScore = scoreMatch ? String(scoreMatch[1]).trim() : null;
+  return { complete, cibilScore, logPath };
+}
+
+function flushPipelineErrorsToSuiteLog(errors, { productId, runId, leadId, csvRowNumber }) {
+  for (const e of errors || []) {
+    if (!e?.message && !e?.stage) continue;
+    const parts = [
+      e.stage ? `[${e.stage}]` : null,
+      leadId != null ? `leadId=${leadId}` : null,
+      csvRowNumber != null ? `csvRow=${csvRowNumber}` : null,
+      e.lenderCode ? `lender=${e.lenderCode}` : null,
+      e.message || 'Unknown error',
+    ].filter(Boolean);
+    logSuiteError({
+      level: e.severity === 'warning' ? 'warn' : 'error',
+      route: '/api/live-run',
+      method: 'POST',
+      code: e.stage || 'pipeline',
+      message: parts.join(' '),
+      product: productId,
+      runId,
+    });
+  }
 }
 
 async function evaluateLender(leadId, lenderCode, evaluateApi, capture) {
@@ -382,9 +425,6 @@ export async function runLivePipeline(opts) {
   let scoring = [];
   let fieldValues = { lead: {}, loanApp: {} };
 
-  const pollMs = Number(process.env.BUREAU_POLL_MS || 3000);
-  const timeoutMs = Number(process.env.BUREAU_TIMEOUT_MS || 300000);
-
   try {
     emit(events, 'run_start', `Live Run started for ${product.label}`, {
       runId,
@@ -488,6 +528,10 @@ export async function runLivePipeline(opts) {
     emit(events, 'bureau_extract_start', 'Starting bureau / CIBIL extraction');
     const extractLeadName = customer.fullName;
     const leadNameStem = stemName(customer.fullName);
+    const timeoutMs = getBureauTimeoutMs();
+    const pollMs = Number(process.env.BUREAU_POLL_MS || 3000);
+    // One shared deadline for POST + poll (not 120s axios + another 300s after abort)
+    const deadline = Date.now() + timeoutMs;
     let extractResult = null;
     try {
       // Give mirror time to sync Media Library → disk
@@ -517,9 +561,9 @@ export async function runLivePipeline(opts) {
       errors.push({ stage: 'bureau_extract', message: err.message, severity: 'warning' });
     }
 
-    const deadline = Date.now() + timeoutMs;
     let attempts = 0;
     let summaryRow = null;
+    let logHintedComplete = false;
     while (Date.now() < deadline) {
       attempts += 1;
       const polled = await getBureauSummary(leadId, httpCapture);
@@ -528,16 +572,25 @@ export async function runLivePipeline(opts) {
           summaryRow = extractResult;
           break;
         }
-        // Auto-queue may write summary even when GET find is forbidden — check disk log / extract body
         if (extractResult?.ok || extractResult?.cibil_score != null) {
           summaryRow = extractResult;
           break;
         }
-        emit(
-          events,
-          'bureau_extract',
-          `Poll attempt ${attempts}: summary GET not permitted — waiting`
-        );
+        const logStatus = readBureauLogStatus(product, leadId, leadNameStem);
+        if (logStatus.complete) {
+          logHintedComplete = true;
+          emit(
+            events,
+            'bureau_extract',
+            `Poll attempt ${attempts}: bureau log shows Extraction complete — waiting for summary GET`
+          );
+        } else {
+          emit(
+            events,
+            'bureau_extract',
+            `Poll attempt ${attempts}: summary GET not permitted — waiting`
+          );
+        }
       } else if (polled.data) {
         const attrs = polled.data.attributes || polled.data;
         const cibil = attrs.cibilData || attrs.cibil_data;
@@ -550,17 +603,51 @@ export async function runLivePipeline(opts) {
           summaryRow = { ...attrs, id: polled.data.id, cibilData: cibil };
           break;
         }
+      } else {
+        const logStatus = readBureauLogStatus(product, leadId, leadNameStem);
+        if (logStatus.complete) {
+          logHintedComplete = true;
+          emit(
+            events,
+            'bureau_extract',
+            `Poll attempt ${attempts}: Extraction complete in log — waiting for DB summary`
+          );
+        }
       }
+      if (Date.now() >= deadline) break;
       emit(events, 'bureau_extract', `Waiting for extraction… attempt ${attempts}`);
-      await sleep(pollMs);
+      await sleep(Math.min(pollMs, Math.max(0, deadline - Date.now())));
     }
 
     if (!summaryRow && extractResult) {
       summaryRow = extractResult;
     }
 
+    // Auto-queue finished on disk/DB but GET may stay forbidden — accept log evidence
+    if (!summaryRow || !isUsableCibilData(unwrapCibilData(summaryRow))) {
+      const logStatus = readBureauLogStatus(product, leadId, leadNameStem);
+      if (logStatus.complete) {
+        logHintedComplete = true;
+        summaryRow = {
+          cibilData: {
+            cibil_score: logStatus.cibilScore,
+            _extractionMeta: { source: 'bureau-log', logPath: logStatus.logPath },
+          },
+          fromBureauLog: true,
+        };
+        emit(
+          events,
+          'bureau_extract',
+          `Accepted bureau completion from code log (CIBIL ${logStatus.cibilScore ?? 'n/a'})`
+        );
+      }
+    }
+
     if (!summaryRow) {
-      const msg = `Bureau extraction timed out after ${timeoutMs}ms (${attempts} polls). Check disk folder matches applicantName (expected [SUITE-TEST] in folder name).`;
+      const folderHint = logHintedComplete
+        ? 'Bureau log shows Extraction complete but summary was not readable via API before deadline.'
+        : 'Check disk folder matches applicantName (expected [SUITE-TEST] in folder name).';
+      const msg = `Bureau extraction timed out after ${timeoutMs}ms (${attempts} polls). ${folderHint}`;
       errors.push({ stage: 'bureau_extract', message: msg });
       emit(events, 'bureau_extract_error', msg);
       bureau = { ok: false, attempts, cibilScore: null, extracted: null, error: msg };
@@ -568,7 +655,7 @@ export async function runLivePipeline(opts) {
     } else {
       const cibilData = unwrapCibilData(summaryRow);
       const score = cibilData?.cibil_score ?? cibilData?.cibilScore ?? null;
-      if (!isUsableCibilData(cibilData)) {
+      if (!isUsableCibilData(cibilData) && !summaryRow.fromBureauLog) {
         const msg = 'Bureau response present but no usable cibilData';
         errors.push({ stage: 'bureau_extract', message: msg });
         emit(events, 'bureau_extract_error', msg);
@@ -720,6 +807,13 @@ export async function runLivePipeline(opts) {
     errors.push({ stage: 'pipeline', message: err.message });
     emit(events, 'error', err.message, { error: true });
   }
+
+  flushPipelineErrorsToSuiteLog(errors, {
+    productId,
+    runId,
+    leadId,
+    csvRowNumber: opts.csvRowNumber || null,
+  });
 
   const run = {
     meta: {
