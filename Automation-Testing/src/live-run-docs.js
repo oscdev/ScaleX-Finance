@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { uploadCsvPath } from './paths.js';
+import { defaultCibilDir, uploadCsvPath } from './paths.js';
 
 export const CSV_DOCS_PAIR_ERROR =
   'CSV and Documents must be attached together. Leave both empty to run one lead from the default pool.';
@@ -110,13 +110,17 @@ export function assertSafeDocBasename(raw, rowNumber, column) {
 }
 
 function resolveNamedPdf(docsDir, basename, rowNumber, column) {
-  const filePath = path.join(docsDir, basename);
-  if (!fs.existsSync(filePath)) {
-    throw new Error(
-      `CSV row ${rowNumber}: ${column} file "${basename}" was not found in ${docsDir}`
-    );
+  const primary = path.join(docsDir, basename);
+  if (fs.existsSync(primary)) return primary;
+  // Default-pool / CSV Upload: cibil samples live in shared documents/default/CIBIL/
+  if (column === 'cibil') {
+    const shared = path.join(defaultCibilDir(), basename);
+    if (fs.existsSync(shared)) return shared;
   }
-  return filePath;
+  const hint = column === 'cibil' ? ` (also checked ${defaultCibilDir()})` : '';
+  throw new Error(
+    `CSV row ${rowNumber}: ${column} file "${basename}" was not found in ${docsDir}${hint}`
+  );
 }
 
 export function resolveRowDocumentUploads({ product, row, docsDir }) {
