@@ -397,7 +397,7 @@ export function evaluateFoir(
   profile: ApplicantProfile,
   criteria: LenderCriteria
 ): ConditionResult {
-  const formula = 'existingTotalEmi / netMonthlyIncome <= foir';
+  const formula = 'existingTotalEmi / totalMonthlyIncome <= foir';
   if (criteria.foir == null) {
     return skip(step, 'PL-FOIR', 'FOIR', formula, { foir: null });
   }
@@ -407,14 +407,45 @@ export function evaluateFoir(
       ruleId: 'PL-FOIR',
       ruleName: 'FOIR',
       formula,
-      applicantValue: profile.netMonthlyIncome,
+      applicantValue: {
+        netSalary: profile.netMonthlyIncome,
+        hasOtherIncome: profile.hasOtherIncome,
+        otherIncomeAmount: profile.otherIncomeAmount,
+        totalMonthlyIncome: null,
+      },
       threshold: { foir: criteria.foir },
       result: 'FAIL',
       errorCode: PlFail.FOIR,
       reason: 'Missing or zero net salary for FOIR',
     };
   }
-  const foirApplicant = profile.existingTotalEmi / profile.netMonthlyIncome;
+
+  const includeOther = profile.hasOtherIncome === true;
+  const otherAmount = includeOther ? (profile.otherIncomeAmount ?? 0) : 0;
+  const totalMonthlyIncome = includeOther
+    ? profile.netMonthlyIncome + otherAmount
+    : profile.netMonthlyIncome;
+
+  if (totalMonthlyIncome <= 0) {
+    return {
+      step,
+      ruleId: 'PL-FOIR',
+      ruleName: 'FOIR',
+      formula,
+      applicantValue: {
+        netSalary: profile.netMonthlyIncome,
+        hasOtherIncome: profile.hasOtherIncome,
+        otherIncomeAmount: profile.otherIncomeAmount,
+        totalMonthlyIncome,
+      },
+      threshold: { foir: criteria.foir },
+      result: 'FAIL',
+      errorCode: PlFail.FOIR,
+      reason: 'Missing or zero total monthly income for FOIR',
+    };
+  }
+
+  const foirApplicant = profile.existingTotalEmi / totalMonthlyIncome;
   const ok = foirApplicant <= Number(criteria.foir);
   return {
     step,
@@ -424,7 +455,10 @@ export function evaluateFoir(
     applicantValue: {
       foirApplicant,
       existingTotalEmi: profile.existingTotalEmi,
-      netMonthlyIncome: profile.netMonthlyIncome,
+      netSalary: profile.netMonthlyIncome,
+      hasOtherIncome: profile.hasOtherIncome,
+      otherIncomeAmount: profile.otherIncomeAmount,
+      totalMonthlyIncome,
     },
     threshold: { foir: criteria.foir },
     result: ok ? 'PASS' : 'FAIL',

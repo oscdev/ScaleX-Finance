@@ -35,9 +35,16 @@ def extract_reference_date(all_text, pattern):
         return None
 
     try:
-        return datetime.strptime(match.group(1), "%d/%m/%Y").date()
-    except (ValueError, IndexError):
+        raw = match.group(1).strip()
+    except (IndexError, AttributeError):
         return None
+
+    for fmt in ("%d/%m/%Y", "%d-%m-%Y"):
+        try:
+            return datetime.strptime(raw, fmt).date()
+        except ValueError:
+            continue
+    return None
 
 
 def months_back_cutoff(today, months_back):

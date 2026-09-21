@@ -167,10 +167,10 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
   'BL-FOIR': {
     step: 10,
     ruleId: 'BL-FOIR',
-    ruleName: 'FOIR max (non–credit-card)',
-    condition: 'Annualised non-CC EMI vs annual turnover must not exceed foir_max',
+    ruleName: 'FOIR max (non-Card accounts)',
+    condition: 'Annualised non-Card EMI vs annual turnover must not exceed foir_max',
     formula:
-      'applicantFoir = (SUM(emi_amount WHERE account_type != Credit Card) * 12) / (turnover * 100000); PASS ⇔ applicantFoir <= foir_max',
+      'applicantFoir = (SUM(emi_amount WHERE account_type does not contain Card) * 12) / (turnover * 100000); PASS ⇔ applicantFoir <= foir_max',
     applicantSources: [
       { table: 'cibil_report_summary', column: 'cibil_data.open_accounts[].emi_amount' },
       { table: 'cibil_report_summary', column: 'cibil_data.open_accounts[].account_type' },
@@ -181,10 +181,10 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
   'BL-CC-UTIL': {
     step: 11,
     ruleId: 'BL-CC-UTIL',
-    ruleName: 'CCU max (credit card)',
-    condition: 'Aggregated CC utilization must not exceed lender ratio',
+    ruleName: 'CCU max (Card accounts)',
+    condition: 'Aggregated Card utilization must not exceed lender ratio',
     formula:
-      'per CC: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0)',
+      'account_type contains Card → CCU; per card: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio; SKIP when no Card accounts (ccLimit=0 and ccOutstanding=0)',
     applicantSources: [
       { table: 'cibil_report_summary', column: 'cibil_data.open_accounts[].credit_limit' },
       { table: 'cibil_report_summary', column: 'cibil_data.open_accounts[].current_balance' },
@@ -249,13 +249,15 @@ export const RULE_CATALOG: Record<string, RuleCatalogEntry> = {
   'BL-UNSECURED': {
     step: 15,
     ruleId: 'BL-UNSECURED',
-    ruleName: 'Active unsecured count (6 months)',
-    condition: 'Bureau unsecured count must not exceed lender cap',
-    formula: 'cibil_data.active_unsecured_loan_count <= max_active_unsecured_6_months',
+    ruleName: 'Active open account count (6 months)',
+    condition: 'Bureau active open account count must not exceed lender cap',
+    formula:
+      'active_unsecured_loan_count = count of Active/open accounts (all types); count <= max_active_unsecured_6_months',
     applicantSources: [
       {
         table: 'cibil_report_summary',
         column: 'cibil_data.active_unsecured_loan_count',
+        description: 'Count of Active/open bureau accounts of any account_type',
       },
     ],
     thresholdSources: [

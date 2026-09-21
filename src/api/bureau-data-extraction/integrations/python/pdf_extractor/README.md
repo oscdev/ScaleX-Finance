@@ -126,7 +126,8 @@ Configured in YAML — edit configs to add fields without code changes.
 
 | Config | Fields |
 |---|---|
-| [`configs/fields.yaml`](configs/fields.yaml) | PERSONAL: `consumer_name`, `date_of_birth`, `gender`; CONTACT: `telephone_numbers` (top 2); EMAIL: `email_id` (top 1); EMPLOYMENT: `employment_account_type`, `employment_date_reported`, `occupation`; OPEN ACCOUNTS: `open_accounts` (structured, payment history 12 months); ENQUIRY: `enquiries` (structured, last 3 months); plus `cibil_score`, `pan_number`, `permanent_address`, `active_unsecured_loan_count` |
+| [`configs/fields_normal.yaml`](configs/fields_normal.yaml) | **Vendor1_NormalCIBIL** — PERSONAL: `consumer_name`, `date_of_birth`, `gender`; CONTACT: `telephone_numbers` (top 2); EMAIL: `email_id` (top 1); EMPLOYMENT: `employment_account_type`, `employment_date_reported`, `occupation`; OPEN ACCOUNTS: `open_accounts` (structured, payment history 12 months); ENQUIRY: `enquiries` (structured, last 3 months); plus `cibil_score`, `pan_number`, `permanent_address`, `active_unsecured_loan_count` (**all** Active/open account types) |
+| [`configs/fields_policybazaar.yaml`](configs/fields_policybazaar.yaml) | **Vendor2_PolicyBazaar** — same output keys; Paisa/Policy Bazaar layout; DOB/PAN/employment often null; additive `*_policybazaar.py` parsers; empty Active payment-history year rows filled as `0` (paid on time); `active_unsecured_loan_count` = all Active accounts |
 | [`configs/salary_fields.yaml`](configs/salary_fields.yaml) | `net_salary`, `is_pf_deducted` |
 
 Each field supports: aliases, regex patterns, validation type, normalization, and retrieval mode (`one`, `many`, `many_one`, `count`, `telephones`, `accounts`, `enquiries`).
@@ -163,7 +164,8 @@ extracted_fields.json + JSON stdout
 ```
 pdf_extractor/
 ├── configs/
-│   ├── fields.yaml              # Bureau field extraction map
+│   ├── fields_normal.yaml       # Vendor1 Normal CIBIL field map
+│   ├── fields_policybazaar.yaml # Vendor2 Policy Bazaar field map
 │   └── salary_fields.yaml       # Salary field map
 ├── data/
 │   └── outputs/                 # extracted_fields.json, salary_fields.json (gitignored)
@@ -237,7 +239,7 @@ See **[§18 Server deployment](../../../../../../docs/Python-Integration-Bureau-
 | `Directory does not exist` | Lead folder not created — submit loan application first |
 | `ModuleNotFoundError: yaml` / `fitz` | Install requirements into `.venv` |
 | `ModuleNotFoundError: src` | Run from `pdf_extractor/` cwd or set `PYTHONPATH=.` |
-| Empty or wrong fields | Check `logs/personal-loan/pl-bureau-extraction/` or `logs/business-loan/bl-bureau-extraction/` per loan type; adjust patterns in `configs/fields.yaml` |
+| Empty or wrong fields | Check `logs/personal-loan/pl-bureau-extraction/` or `logs/business-loan/bl-bureau-extraction/` per loan type; confirm `_extractionMeta.vendorId`; adjust patterns in `configs/fields_normal.yaml` or `configs/fields_policybazaar.yaml` |
 | Slow extraction | Normal on first run (model download) |
 
 ---

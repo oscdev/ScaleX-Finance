@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-18T12:26:21.603Z",
+  "generatedAt": "2026-09-18T14:56:06.487Z",
   "totalEntries": 182,
   "totalCases": 281,
   "passed": 281,
@@ -510,11 +510,14 @@
         "step": 8,
         "ruleId": "PL-FOIR",
         "ruleName": "FOIR",
-        "formula": "existingTotalEmi / netMonthlyIncome <= foir",
+        "formula": "existingTotalEmi / totalMonthlyIncome <= foir",
         "applicantValue": {
           "foirApplicant": 0.125,
           "existingTotalEmi": 10000,
-          "netMonthlyIncome": 80000
+          "netSalary": 80000,
+          "hasOtherIncome": false,
+          "otherIncomeAmount": 0,
+          "totalMonthlyIncome": 80000
         },
         "threshold": {
           "foir": 60
@@ -535,11 +538,14 @@
         "step": 8,
         "ruleId": "PL-FOIR",
         "ruleName": "FOIR",
-        "formula": "existingTotalEmi / netMonthlyIncome <= foir",
+        "formula": "existingTotalEmi / totalMonthlyIncome <= foir",
         "applicantValue": {
           "foirApplicant": 0.125,
           "existingTotalEmi": 10000,
-          "netMonthlyIncome": 80000
+          "netSalary": 80000,
+          "hasOtherIncome": false,
+          "otherIncomeAmount": 0,
+          "totalMonthlyIncome": 80000
         },
         "threshold": {
           "foir": 0.1
@@ -560,7 +566,7 @@
         "step": 8,
         "ruleId": "PL-FOIR",
         "ruleName": "FOIR",
-        "formula": "existingTotalEmi / netMonthlyIncome <= foir",
+        "formula": "existingTotalEmi / totalMonthlyIncome <= foir",
         "threshold": {
           "foir": null
         },

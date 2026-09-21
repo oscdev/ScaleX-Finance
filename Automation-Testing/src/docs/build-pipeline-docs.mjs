@@ -276,7 +276,7 @@ function buildLeadItems(productId) {
 function parseBureauFields() {
   const yamlPath = join(
     REPO_ROOT,
-    'src/api/bureau-data-extraction/integrations/python/pdf_extractor/configs/fields.yaml'
+    'src/api/bureau-data-extraction/integrations/python/pdf_extractor/configs/fields_normal.yaml'
   );
   const text = readFileSync(yamlPath, 'utf8');
   const extractIdx = text.indexOf('extract:');

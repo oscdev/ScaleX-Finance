@@ -282,37 +282,8 @@ extract:
       active: '(?is)OPEN\s*ACCOUNTS(.*?)(?=CLOSED\s*ACCOUNTS|$)'
       inactive: '(?is)CLOSED\s*ACCOUNTS(.*?)$'
 
-    # Extract the account type text from within the block
-    type_pattern: '(?is)Account\s*Type\s*:?\s*(.{1,60}?)\s*(?:Account\s*Number|Member|Amounts|Ownership|$)'
-
-    # Keyword lists used to classify the extracted type text.
-    # Add/adjust keywords per bureau/report vocabulary - no code
-    # changes needed.
-    type_classification:
-      unsecured:
-        - Personal Loan
-        - Credit Card
-        - Consumer Loan
-        - Business Loan
-        - Microfinance
-        - Overdraft
-        - Education Loan
-      secured:
-        - Housing Loan
-        - Home Loan
-        - Property Loan
-        - Construction Equipment Loan
-        - Gold Loan
-        - Auto Loan
-        - Car Loan
-        - Vehicle Loan
-        - Two-wheeler Loan
-        - Two Wheeler Loan
-        - Commercial Vehicle Loan
-        - Loan Against Property
-
-    # Only count blocks satisfying both of these
+    # Count every Active / OPEN account (any account type).
+    # Type keyword lists removed — PL/BL UNSECURED uses this as active open count.
     count_status: active
-    count_classification: unsecured
 
     value: count

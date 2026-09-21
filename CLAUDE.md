@@ -210,8 +210,9 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 | Step 3 (`PL-CIBIL` / `PL-FTB`) | CIBIL or first-time borrower | FTB when `cibil_score` ∈ `{−1, 0, 1}` or no open accounts → `PL-FTB`; else `PL-CIBIL` (`score >= min_cibil`) |
 | Step 4 (`PL-DPD-LATEST`) | Latest open-account DPD | `latestDpdDays <= max_dpd_days_allowed`; SKIP if threshold null or no history; activity `PL_ELIGIBILITY_RULE` / `_SKIP` + file `logStep` |
 | Step 6 (`PL-INCOME`) | Minimum Monthly Income | Uses `netSalary + otherIncomeAmount` when `hasOtherIncome` is true; otherwise `netSalary` vs `min_monthly_income`; SKIP when threshold null |
+| Step 8 (`PL-FOIR`) | FOIR | `existingTotalEmi / totalMonthlyIncome <= foir`; EMI from accounts whose `account_type` does **not** contain Card; `totalMonthlyIncome` same base as PL-INCOME; FAIL if totalMonthlyIncome null/≤0 |
 | Step 9–10 (`PL-DPD-3M` / `PL-DPD-12M`) | DPD Last 3m / 12m | Per lender: count **account–month delay events** where payment-history `dpdDays > max_dpd_days_allowed` (same month on two accounts = 2), then compare to `max_dpd_count_*months` |
-| Step 12 (`PL-CC-UTIL`) | Credit card utilization | PASS ⇔ `ccUtil <= max_cc_utilization_ratio`; **SKIP** when no CC accounts (`ccLimit=0` and `ccOutstanding=0`) or threshold null; same no-CC SKIP as `BL-CC-UTIL` |
+| Step 12 (`PL-CC-UTIL`) | Credit card utilization | Accounts whose `account_type` contains Card; PASS ⇔ `ccUtil <= max_cc_utilization_ratio`; **SKIP** when no Card accounts (`ccLimit=0` and `ccOutstanding=0`) or threshold null; same no-CC SKIP as `BL-CC-UTIL` |
 | Step 15 (`PL-PF`) | PF Deducted rule | Compares `form_data.incomeDetails.pfDeducted` vs `lenders_criteria_pl.pf_required`; SKIP when PF not required, FAIL when required but not true |
 
 ### Business Loan Eligibility
@@ -344,13 +345,13 @@ The platform has three distinct admin roles:
    - CONTACT / EMAIL / EMPLOYMENT: `telephone_numbers` (top 2), `email_id` (top 1), `employment_account_type`, `employment_date_reported`, `occupation`
    - OPEN ACCOUNTS: structured `open_accounts[]` (ACCOUNT DETAILS + PAYMENT STATUS; payment history last 12 months)
    - ENQUIRY DETAILS: structured `enquiries[]` (member, date, purpose; last 3 months)
-   - Also: `cibil_score`, `pan_number`, `permanent_address`, `active_unsecured_loan_count`
+   - Also: `cibil_score`, `pan_number`, `permanent_address`, `active_unsecured_loan_count` (Active/open accounts of **all** types — Vendor1 + Vendor2)
 5. Service reads JSON outputs and upserts via **`strapi.db.query()`** into `cibil_report_summary` (`cibilData` JSON)
 6. PDF input directory: `public/uploads/api_uploads/{leadId}-{applicantNameNoSpaces}/`
 7. Troubleshooting re-run: `POST /api/cibil-report-summaries/extract` or `npm run extract:bureau`
 8. **Not yet wired:** matching engine consumption; full salary-field pipeline
 
-Config / parsers: [`configs/fields.yaml`](src/api/bureau-data-extraction/integrations/python/pdf_extractor/configs/fields.yaml), `extract_open_accounts.py`, `extract_enquiries.py`, `extract_telephone_numbers.py`. Backups: `pdf_extractor/_backup_20260713_155651/`, `backups/bureau-fields-remove-legacy_*`, `backups/docs-bureau-extract/`.
+Config / parsers: vendor switch in `test_field_extraction.py` via `detect_vendor()` → `Vendor1_NormalCIBIL` ([`configs/fields_normal.yaml`](src/api/bureau-data-extraction/integrations/python/pdf_extractor/configs/fields_normal.yaml) + `extract_open_accounts.py` / `extract_enquiries.py` / `extract_telephone_numbers.py`) or `Vendor2_PolicyBazaar` ([`configs/fields_policybazaar.yaml`](src/api/bureau-data-extraction/integrations/python/pdf_extractor/configs/fields_policybazaar.yaml) + `*_policybazaar.py` parsers). Same `cibilData` keys for PL/BL eligibility/scoring; Vendor2 may leave DOB/PAN/employment null. `vendorId` stored in `cibilData._extractionMeta` and `BUREAU_EXTRACT_COMPLETED` metadata. Backups: `pdf_extractor/_backup_20260713_155651/`, `backups/bureau-fields-remove-legacy_*`, `backups/docs-bureau-extract/`.
 
 Setup: [docs/Python-Integration-Bureau-Data-Extraction.md](docs/Python-Integration-Bureau-Data-Extraction.md)
 

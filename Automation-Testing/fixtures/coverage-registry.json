@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-18T12:26:00.984Z",
+  "generatedAt": "2026-09-21T10:59:25.987Z",
   "entryCount": 182,
   "entries": [
     {
@@ -123,7 +123,7 @@
       "type": "eligibility_rule",
       "product": "pl",
       "ruleId": "PL-FOIR",
-      "formula": "existingTotalEmi / netMonthlyIncome <= foir",
+      "formula": "totalMonthlyIncome = netSalary + otherIncomeAmount when hasOtherIncome; else netSalary; existingTotalEmi / totalMonthlyIncome <= foir",
       "docsHint": "Existing obligation to income ratio must be within lender cap",
       "codeSymbol": "PL-FOIR",
       "ftbBranch": false
@@ -193,8 +193,8 @@
       "type": "eligibility_rule",
       "product": "pl",
       "ruleId": "PL-UNSECURED",
-      "formula": "active_unsecured <= max_active_unsecured_account",
-      "docsHint": "Active unsecured loan count must not exceed lender cap",
+      "formula": "active_unsecured_loan_count = count of Active/open accounts (all types); active_unsecured <= max_active_unsecured_account",
+      "docsHint": "Active open account count must not exceed lender cap",
       "codeSymbol": "PL-UNSECURED",
       "ftbBranch": false
     },
@@ -431,8 +431,8 @@
       "type": "eligibility_rule",
       "product": "bl",
       "ruleId": "BL-FOIR",
-      "formula": "applicantFoir = (SUM(emi_amount WHERE account_type != Credit Card) * 12) / (turnover * 100000); PASS ⇔ applicantFoir <= foir_max",
-      "docsHint": "Annualised non-CC EMI vs annual turnover must not exceed foir_max",
+      "formula": "applicantFoir = (SUM(emi_amount WHERE account_type does not contain Card) * 12) / (turnover * 100000); PASS ⇔ applicantFoir <= foir_max",
+      "docsHint": "Annualised non-Card EMI vs annual turnover must not exceed foir_max",
       "codeSymbol": "BL-FOIR",
       "ftbBranch": false
     },
@@ -445,8 +445,8 @@
       "type": "eligibility_rule",
       "product": "bl",
       "ruleId": "BL-CC-UTIL",
-      "formula": "per CC: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio; SKIP when no CC accounts (ccLimit=0 and ccOutstanding=0)",
-      "docsHint": "Aggregated CC utilization must not exceed lender ratio",
+      "formula": "account_type contains Card → CCU; per card: utilize = credit_limit - current_balance; ccOutstanding = SUM(utilize); ccLimit = SUM(credit_limit); ccUtil = ccOutstanding / ccLimit; PASS ⇔ ccUtil <= max_cc_utilization_ratio; SKIP when no Card accounts (ccLimit=0 and ccOutstanding=0)",
+      "docsHint": "Aggregated Card utilization must not exceed lender ratio",
       "codeSymbol": "BL-CC-UTIL",
       "ftbBranch": false
     },
@@ -501,8 +501,8 @@
       "type": "eligibility_rule",
       "product": "bl",
       "ruleId": "BL-UNSECURED",
-      "formula": "cibil_data.active_unsecured_loan_count <= max_active_unsecured_6_months",
-      "docsHint": "Bureau unsecured count must not exceed lender cap",
+      "formula": "active_unsecured_loan_count = count of Active/open accounts (all types); count <= max_active_unsecured_6_months",
+      "docsHint": "Bureau active open account count must not exceed lender cap",
       "codeSymbol": "BL-UNSECURED",
       "ftbBranch": false
     },
