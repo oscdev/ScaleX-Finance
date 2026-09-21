@@ -1310,17 +1310,17 @@
   var LIVE_SAMPLES = {
     'personal-loan': {
       pdfs:
-        'PDFs to attach: aadhaar_front.pdf, aadhaar_back.pdf, pan.pdf, Ganga_CIBIL_Report.pdf, bank_statement.pdf, salary_slip.pdf',
+        'PDFs to attach: aadhaar_front.pdf, aadhaar_back.pdf, pan.pdf, normal_cibil1.pdf (or other files from documents/default/CIBIL/), bank_statement.pdf, salary_slip.pdf',
       csv:
         'fullName,email,mobileNumber,requiredAmount,pinCode,aadharCard,panCard,employmentType,dob,maritalStatus,motherName,line1,landmark,state,district,city,residenceType,companyName,designation,netSalary,salaryMode,jobStability,pfDeducted,hasOtherIncome,aadhaar_front,aadhaar_back,pan,cibil,bank_statement,salary_slip\n' +
-        '[SUITE-TEST] Test User,suite.test@example.com,9876543210,500000,560001,123412341234,ABCDE1234F,Salaried,1990-01-15,Single,Mother Name,12 MG Road,Near Park,Karnataka,Bengaluru Urban,Bengaluru,Owned,Acme Pvt Ltd,Engineer,75000,Account Transfer,24,Yes,No,aadhaar_front.pdf,aadhaar_back.pdf,pan.pdf,Ganga_CIBIL_Report.pdf,bank_statement.pdf,salary_slip.pdf',
+        '[SUITE-TEST] Test User,suite.test@example.com,9876543210,500000,560001,123412341234,ABCDE1234F,Salaried,1990-01-15,Single,Mother Name,12 MG Road,Near Park,Karnataka,Bengaluru Urban,Bengaluru,Owned,Acme Pvt Ltd,Engineer,75000,Account Transfer,24,Yes,No,aadhaar_front.pdf,aadhaar_back.pdf,pan.pdf,normal_cibil1.pdf,bank_statement.pdf,salary_slip.pdf',
     },
     'business-loan': {
       pdfs:
-        'PDFs to attach: aadhaar_front.pdf, aadhaar_back.pdf, pan.pdf, Ganga_CIBIL_Report.pdf, bank_statement.pdf, proprietorship.pdf, itr_year1.pdf, gst_certificate.pdf (plus audited_books.pdf when Audited Books = Yes)',
+        'PDFs to attach: aadhaar_front.pdf, aadhaar_back.pdf, pan.pdf, normal_cibil1.pdf (or other files from documents/default/CIBIL/), bank_statement.pdf, proprietorship.pdf, itr_year1.pdf, gst_certificate.pdf (plus audited_books.pdf when Audited Books = Yes)',
       csv:
         'fullName,email,mobileNumber,requiredAmount,pinCode,aadharCard,panCard,employmentType,dob,maritalStatus,motherName,line1,landmark,state,district,city,residenceType,businessName,premises,businessType,turnover,age,regProofs,auditedBooks,businessAddress,aadhaar_front,aadhaar_back,pan,cibil,bank_statement,proprietorship,itr_year1,business_reg_proof,audited_books_doc\n' +
-        '[SUITE-TEST] Test Business,suite.biz@example.com,9876543211,800000,560001,123412341235,ABCDE1234G,Self Employed,1985-06-20,Married,Mother Name,12 MG Road,Near Park,Karnataka,Bengaluru Urban,Bengaluru,Owned,Test Traders,Rented,Proprietorship,5000000,5,GST Certificate,No,45 Industrial Layout,aadhaar_front.pdf,aadhaar_back.pdf,pan.pdf,Ganga_CIBIL_Report.pdf,bank_statement.pdf,proprietorship.pdf,itr_year1.pdf,gst_certificate.pdf,',
+        '[SUITE-TEST] Test Business,suite.biz@example.com,9876543211,2500000,560001,123412341235,ABCDE1234G,Self Employed,1985-06-20,Married,Mother Name,12 MG Road,Near Park,Karnataka,Bengaluru Urban,Bengaluru,Owned,Test Traders,Rented,Proprietorship,12000000,5,GST,No,45 Industrial Layout,aadhaar_front.pdf,aadhaar_back.pdf,pan.pdf,normal_cibil1.pdf,bank_statement.pdf,proprietorship.pdf,itr_year1.pdf,gst_certificate.pdf,',
     },
   };
 

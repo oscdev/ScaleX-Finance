@@ -25,6 +25,11 @@ export function defaultProductDir(productId) {
   return path.join(DOCUMENTS_DIR, 'default', assertProductId(productId));
 }
 
+/** Shared CIBIL PDFs for default Live Run (Normal + Policy Bazaar samples). */
+export function defaultCibilDir() {
+  return path.join(DOCUMENTS_DIR, 'default', 'CIBIL');
+}
+
 export function defaultCsvPath(productId) {
   return path.join(defaultProductDir(productId), `sample-default-${productId}.csv`);
 }
