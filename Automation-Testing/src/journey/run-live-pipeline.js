@@ -20,6 +20,7 @@ import {
   capturedRequest,
   getStrapiUrl,
   getBureauTimeoutMs,
+  getBureauPollGraceMs,
 } from '../http-client.js';
 import {
   getProduct,
@@ -530,7 +531,8 @@ export async function runLivePipeline(opts) {
     const leadNameStem = stemName(customer.fullName);
     const timeoutMs = getBureauTimeoutMs();
     const pollMs = Number(process.env.BUREAU_POLL_MS || 3000);
-    // One shared deadline for POST + poll (not 120s axios + another 300s after abort)
+    const pollGraceMs = getBureauPollGraceMs();
+    // Initial budget for POST + poll; after POST we extend with poll grace so 0-poll cannot happen
     const deadline = Date.now() + timeoutMs;
     let extractResult = null;
     try {
@@ -561,10 +563,12 @@ export async function runLivePipeline(opts) {
       errors.push({ stage: 'bureau_extract', message: err.message, severity: 'warning' });
     }
 
+    // If POST burned the full budget, still poll at least BUREAU_POLL_GRACE_MS
+    const pollDeadline = Math.max(deadline, Date.now() + pollGraceMs);
     let attempts = 0;
     let summaryRow = null;
     let logHintedComplete = false;
-    while (Date.now() < deadline) {
+    while (Date.now() < pollDeadline) {
       attempts += 1;
       const polled = await getBureauSummary(leadId, httpCapture);
       if (polled.forbidden) {
@@ -614,9 +618,9 @@ export async function runLivePipeline(opts) {
           );
         }
       }
-      if (Date.now() >= deadline) break;
+      if (Date.now() >= pollDeadline) break;
       emit(events, 'bureau_extract', `Waiting for extraction… attempt ${attempts}`);
-      await sleep(Math.min(pollMs, Math.max(0, deadline - Date.now())));
+      await sleep(Math.min(pollMs, Math.max(0, pollDeadline - Date.now())));
     }
 
     if (!summaryRow && extractResult) {

@@ -240,10 +240,16 @@ export async function uploadFile(filePath, capture) {
   return { id: Number(id), name: list[0]?.name || path.basename(filePath), raw: res.data };
 }
 
-/** Max wait for bureau extract POST + Live Run poll (default 5 minutes). */
+/** Max wait for bureau extract POST + Live Run poll (default 15 minutes — large PolicyBazaar PDFs). */
 export function getBureauTimeoutMs() {
-  const n = Number(process.env.BUREAU_TIMEOUT_MS || 300000);
-  return Number.isFinite(n) && n > 0 ? n : 300000;
+  const n = Number(process.env.BUREAU_TIMEOUT_MS || 900000);
+  return Number.isFinite(n) && n > 0 ? n : 900000;
+}
+
+/** Extra poll window after extract POST returns/aborts so 0-poll false FAIL cannot happen (default 2 min). */
+export function getBureauPollGraceMs() {
+  const n = Number(process.env.BUREAU_POLL_GRACE_MS || 120000);
+  return Number.isFinite(n) && n > 0 ? n : 120000;
 }
 
 export async function extractBureau({ leadId, leadName, loanApplicationId }, capture) {

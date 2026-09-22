@@ -250,13 +250,21 @@ async function loadCatalogAndCriteria(
 async function loadZipRows(
   strapi: any,
   lenderCode: string,
+  pinCode: string | null | undefined,
   connectionFailures: ConnectionFailure[]
 ): Promise<any[]> {
   try {
-    return await strapi.db.query('api::lender-master.zip-code').findMany({
-      where: { lenderCode, isActive: true, loanType: 'PL' },
-      limit: 5000,
-    });
+    const pin = pinCode != null ? String(pinCode).trim() : '';
+    const zipMatch =
+      pin && /^\d+$/.test(pin) ? { zipCode: Number(pin) } : pin ? { zipCode: pin } : null;
+    const where: Record<string, unknown> = {
+      lenderCode,
+      isActive: true,
+      loanType: 'PL',
+      $or: [{ coversAllPincodes: true }, ...(zipMatch ? [zipMatch] : [])],
+    };
+    // Pin-scoped (or covers-all) only — do not cap at 5000; large lenders exceed that and false-fail PINCODE
+    return await strapi.db.query('api::lender-master.zip-code').findMany({ where });
   } catch (err: any) {
     connectionFailures.push({
       code: PlErr.CONN_ZIP,
@@ -424,7 +432,9 @@ export async function runEligibilityMatch(
   try {
   for (const cat of catalog) {
     const criteria = criteriaByCode.get(cat.lenderCode);
-    const zipRows = criteria ? await loadZipRows(strapi, cat.lenderCode, connectionFailures) : [];
+    const zipRows = criteria
+      ? await loadZipRows(strapi, cat.lenderCode, profile.pinCode, connectionFailures)
+      : [];
     const evalResult = evaluateLenderSteps(
       cat,
       criteria,
