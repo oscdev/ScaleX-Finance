@@ -10,4 +10,4 @@ documents/upload/business-loan/live-run.csv
 CSV document columns are **filenames only** (no paths). They must match an attached PDF’s basename.
 On Start Live Run, attach PDFs under the multipart field **`documents`** (max **60**); reuse the same basenames across CSV rows when possible.
 
-Default-pool row cursor stays at `upload/.last-doc-hashes.json` (shared).
+Default-pool row cursor stays at `upload/.last-doc-hashes.json` (shared)..
