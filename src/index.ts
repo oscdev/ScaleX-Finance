@@ -1,5 +1,4 @@
 import type { Core } from '@strapi/strapi';
-import { getEmailTemplate } from './email-templates';
 import { ensurePythonEnvironment } from './api/bureau-data-extraction/services/python-bridge';
 
 function classifyAdminRoleKind(roles: Array<{ code?: string; name?: string }> | null | undefined): string {
@@ -19,7 +18,7 @@ function classifyAdminRoleKind(roles: Array<{ code?: string; name?: string }> | 
 
 async function logUserRegistrationEvent(strapi: Core.Strapi, params: Record<string, unknown>) {
   try {
-    const logger: any = strapi.service('api::activity-log.activity-log');
+    const logger: any = strapi.service('api::system-events.activity-log');
     if (logger?.logEvent) {
       await logger.logEvent({
         category: 'USER_REGISTRATION',
@@ -482,7 +481,7 @@ export default {
     router.get('/admin/activity-logs/by-lead', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       try {
-        const service = strapi.service('api::activity-log.activity-log') as any;
+        const service = strapi.service('api::system-events.activity-log') as any;
         ctx.body = await service.listByLead({
           search: ctx.query.search,
           page: ctx.query.page,
@@ -503,7 +502,7 @@ export default {
           ctx.body = { error: { message: 'leadId is required' } };
           return;
         }
-        const service = strapi.service('api::activity-log.activity-log') as any;
+        const service = strapi.service('api::system-events.activity-log') as any;
         ctx.body = await service.listForLead(leadId, {
           category: ctx.query.category,
           page: ctx.query.page,
@@ -519,7 +518,7 @@ export default {
       if (!requireAuth(ctx)) return;
       try {
         const pageSize = Math.min(100, Math.max(1, Number(ctx.query.pageSize) || 50));
-        const results = await strapi.db.query('api::activity-log.activity-log').findMany({
+        const results = await strapi.db.query('api::system-events.activity-log').findMany({
           where: {
             $or: [{ category: 'SYSTEM' }, { leadId: null }],
           },
@@ -536,7 +535,7 @@ export default {
     router.get('/admin/activity-logs/events', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       try {
-        const service = strapi.service('api::activity-log.activity-log') as any;
+        const service = strapi.service('api::system-events.activity-log') as any;
         ctx.body = await service.listEvents({
           search: ctx.query.search,
           category: ctx.query.category,
@@ -544,6 +543,49 @@ export default {
           page: ctx.query.page,
           pageSize: ctx.query.pageSize,
         });
+      } catch (e: any) {
+        ctx.status = 500;
+        ctx.body = { error: { message: e?.message || 'Internal server error' } };
+      }
+    });
+
+    // Role-scoped notification bell (Admin = all; Advisor/Staff/Banker = associated leads)
+    router.get('/admin/activity-logs/notifications', async (ctx: any) => {
+      if (!requireAuth(ctx)) return;
+      try {
+        const service = strapi.service('api::system-events.activity-log') as any;
+        const adminUser = await service.resolveAdminUserFromAuthHeader(
+          ctx.headers.authorization
+        );
+        if (!adminUser) {
+          ctx.status = 401;
+          ctx.body = { error: 'Unauthorized' };
+          return;
+        }
+        const scope = await service.resolveAccessibleLeadIds(adminUser);
+        ctx.body = await service.listForBell(scope, {
+          limit: ctx.query.limit,
+        });
+      } catch (e: any) {
+        ctx.status = 500;
+        ctx.body = { error: { message: e?.message || 'Internal server error' } };
+      }
+    });
+
+    // Active PL/BL criteria lender codes for Activity Logs (resolve product via leadId)
+    router.get('/admin/activity-logs/active-lenders', async (ctx: any) => {
+      if (!requireAuth(ctx)) return;
+      try {
+        const service = strapi.service('api::system-events.activity-log') as any;
+        const leadIdRaw = ctx.query.leadId;
+        const leadId =
+          leadIdRaw != null && String(leadIdRaw).trim() !== ''
+            ? Number(leadIdRaw)
+            : null;
+        ctx.body = await service.listActiveCriteriaLenderCodes(
+          ctx.query.loanType as string | undefined,
+          Number.isFinite(leadId as number) ? leadId : null
+        );
       } catch (e: any) {
         ctx.status = 500;
         ctx.body = { error: { message: e?.message || 'Internal server error' } };
@@ -832,7 +874,7 @@ export default {
           { action: 'api::lender-master.lenders-catalog.find', role: publicRole.id },
           { action: 'api::about-us-page.about-us-page.find', role: publicRole.id },
           { action: 'api::contact-us-page.contact-us-page.find', role: publicRole.id },
-          { action: 'api::activity-log.activity-log.createLog', role: publicRole.id },
+          { action: 'api::system-events.activity-log.createLog', role: publicRole.id },
           { action: 'api::lead.lead.logSubmissionAudit', role: publicRole.id },
           { action: 'api::advisor.advisor.find', role: publicRole.id },
           { action: 'api::lead-remark.lead-remark.find', role: publicRole.id },
@@ -1036,8 +1078,8 @@ export default {
       const authRole = await strapi.db.query('plugin::users-permissions.role').findOne({ where: { type: 'authenticated' } });
 
       const actions = [
-        'api::activity-log.activity-log.find',
-        'api::activity-log.activity-log.findOne',
+        'api::system-events.activity-log.find',
+        'api::system-events.activity-log.findOne',
         'api::global-setting.global-setting.find'
       ];
 
@@ -1121,207 +1163,156 @@ export default {
           }
         }
       },
+      async beforeCreate(event) {
+        const data = event.params?.data as Record<string, unknown> | undefined;
+        if (!data) return;
+
+        const existingReferral = String(data.advisorReferralId ?? '').trim();
+        if (existingReferral) return;
+
+        try {
+          const requestContext = (strapi as any).requestContext?.get();
+          const user =
+            requestContext?.state?.user || requestContext?.state?.auth?.credentials;
+          if (!user?.email) return;
+
+          const roles = user.roles || [];
+          const isAdvisor = roles.some(
+            (r: any) =>
+              ['strapi-advisor', 'Advisor', 'advisor', 'Advisior'].includes(r.code) ||
+              ['strapi-advisor', 'Advisor', 'advisor', 'Advisior'].includes(r.name)
+          );
+          if (!isAdvisor) return;
+
+          const advisorEntry = await strapi.db.query('api::advisor.advisor').findOne({
+            where: { email: user.email },
+            select: ['id'],
+          });
+          if (advisorEntry?.id) {
+            data.advisorReferralId = String(advisorEntry.id);
+          }
+        } catch {
+          // non-fatal — create continues without stamp
+        }
+      },
       async afterCreate(event) {
         const { result } = event;
-        const logger: any = strapi.service('api::activity-log.activity-log');
+        const logger: any = strapi.service('api::system-events.activity-log');
         if (logger) {
+          const meta: Record<string, unknown> = {
+            leadId: result.id,
+            leadName: result.fullName,
+          };
+          if (result.advisorReferralId != null && result.advisorReferralId !== '') {
+            meta.advisorReferralId = result.advisorReferralId;
+          }
+          if (result.parentAdvisorId != null && result.parentAdvisorId !== '') {
+            meta.parentAdvisorId = result.parentAdvisorId;
+          }
           await logger.logEvent({
             action: 'LEAD_CREATED',
             description: `New lead created: ${result.fullName}`,
             severity: 'info',
             model: 'api::lead.lead',
+            category: 'LEAD_FORM',
             leadId: result.id,
             leadName: result.fullName,
-            metadata: { leadId: result.id, leadName: result.fullName },
+            metadata: meta,
           });
-        }
-
-        let emailsEnabled = true;
-        try {
-          const globalSetting = await strapi.db.query('api::global-setting.global-setting').findOne({});
-          if (globalSetting && globalSetting.emailsIsEnabled === false) {
-            emailsEnabled = false;
-          }
-        } catch (err) {
-          // Proceed with default true if global settings fail to load
-        }
-
-        if (!emailsEnabled) {
-          if (logger) {
-            await logger.logEvent({
-              action: 'EMAIL_SKIPPED',
-              description: `Emails are globally disabled. System bypassed email notifications for Lead ${result.fullName}.`,
-              severity: 'info',
-              model: 'global-setting',
-              leadId: result.id,
-              leadName: result.fullName,
-              metadata: { leadId: result.id, leadName: result.fullName },
-            });
-          }
-          return;
-        }
-
-        // ✉️ 1. Send Welcome Email to Lead (Only if opted in)
-        try {
-          if (result.email && result.getEmailNotification === true) {
-            const welcomeHtml = getEmailTemplate('welcome-lead', {
-              fullName: result.fullName,
-              requiredAmount: result.requiredAmount || 'TBD',
-              productType: result.selectedProduct || 'TBD',
-              leadId: result.id
-            });
-
-            const subject = 'Your Loan Inquiry with ScaleX Finance';
-            await strapi.plugins['email'].services.email.send({
-              to: result.email,
-              subject: subject,
-              html: welcomeHtml,
-            });
-
-            if (logger) {
-              await logger.logEvent({
-                action: 'EMAIL_DISPATCHED',
-                description: `Welcome email dispatched to lead: ${result.email}`,
-                severity: 'info',
-                model: 'email-service',
-                leadId: result.id,
-                leadName: result.fullName,
-                metadata: {
-                  leadId: result.id,
-                  leadName: result.fullName,
-                  template: 'welcome-lead',
-                  recipient: result.email,
-                  status: 'success',
-                  subject,
-                },
-              });
-            }
-          } else if (result.email && result.getEmailNotification === false) {
-             if (logger) {
-              await logger.logEvent({
-                action: 'EMAIL_SKIPPED',
-                description: `Lead opted out of email notifications: ${result.fullName}`,
-                severity: 'info',
-                model: 'lead',
-                leadId: result.id,
-                leadName: result.fullName,
-                metadata: { leadId: result.id, leadName: result.fullName },
-              });
-            }
-          }
-        } catch (emailError: any) {
-          if (logger) {
-            await logger.logEvent({
-              action: 'EMAIL_FAILED',
-              description: `CRITICAL: Welcome email failed for ${result.email}`,
-              severity: 'error',
-              model: 'email-service',
-              leadId: result.id,
-              leadName: result.fullName,
-              metadata: {
-                leadId: result.id,
-                leadName: result.fullName,
-                template: 'welcome-lead',
-                recipient: result.email,
-                status: 'failure',
-                error: emailError.message,
-              },
-            });
-          }
-        }
-
-        // ✉️ 2. Notify the Advisor
-        try {
-          if (result.advisorReferralId) {
-            const advisor = await strapi.db.query('api::advisor.advisor').findOne({
-              where: { id: result.advisorReferralId }
-            });
-
-            if (advisor && advisor.email) {
-              const notifyHtml = getEmailTemplate('advisor-notification', {
-                advisorName: advisor.fullName || 'Advisor',
-                leadName: result.fullName,
-                amount: result.requiredAmount || 'N/A',
-                productType: result.selectedProduct || 'TBD',
-                mobile: result.mobileNumber || 'N/A',
-                city: result.pinCode || 'N/A'
-              });
-
-              const subject = `New Lead Assigned: ${result.fullName}`;
-              await strapi.plugins['email'].services.email.send({
-                to: advisor.email,
-                subject: subject,
-                html: notifyHtml,
-              });
-
-              if (logger) {
-                await logger.logEvent({
-                  action: 'EMAIL_DISPATCHED',
-                  description: `Advisor notification dispatched for lead: ${result.fullName}`,
-                  severity: 'info',
-                  model: 'email-service',
-                  leadId: result.id,
-                  leadName: result.fullName,
-                  metadata: {
-                    leadId: result.id,
-                    leadName: result.fullName,
-                    template: 'advisor-notification',
-                    recipient: advisor.email,
-                    advisorId: advisor.id,
-                    status: 'success',
-                    subject,
-                  },
-                });
-              }
-            }
-          }
-        } catch (err: any) {
-          if (logger) {
-            await logger.logEvent({
-              action: 'EMAIL_FAILED',
-              description: `CRITICAL: Advisor notification failed for lead: ${result.fullName}`,
-              severity: 'error',
-              model: 'email-service',
-              leadId: result.id,
-              leadName: result.fullName,
-              metadata: {
-                leadId: result.id,
-                leadName: result.fullName,
-                template: 'advisor-notification',
-                status: 'failure',
-                error: err.message,
-              },
-            });
-          }
         }
       },
       async beforeUpdate(event) {
         const { params } = event;
         const { where, data } = params;
+        if (!data) return;
 
-        if (data.leadStatus) {
-          const oldLead = await strapi.db.query('api::lead.lead').findOne({ where });
-          if (oldLead && oldLead.leadStatus !== data.leadStatus) {
-            const logger: any = strapi.service('api::activity-log.activity-log');
-            if (logger) {
-              await logger.logEvent({
-                action: 'LEAD_STATUS_CHANGED',
-                description: `Lead status updated from ${oldLead.leadStatus} to ${data.leadStatus} for ${oldLead.fullName}`,
-                severity: 'info',
-                model: 'api::lead.lead',
+        const touchesStatus = Object.prototype.hasOwnProperty.call(data, 'leadStatus');
+        const touchesReferral = Object.prototype.hasOwnProperty.call(
+          data,
+          'advisorReferralId'
+        );
+        const touchesParent = Object.prototype.hasOwnProperty.call(
+          data,
+          'parentAdvisorId'
+        );
+        if (!touchesStatus && !touchesReferral && !touchesParent) return;
+
+        const oldLead = await strapi.db.query('api::lead.lead').findOne({ where });
+        if (!oldLead) return;
+
+        const logger: any = strapi.service('api::system-events.activity-log');
+        if (!logger?.logEvent) return;
+
+        if (touchesStatus && oldLead.leadStatus !== data.leadStatus) {
+          await logger.logEvent({
+            action: 'LEAD_STATUS_CHANGED',
+            description: `Lead status updated from ${oldLead.leadStatus} to ${data.leadStatus} for ${oldLead.fullName}`,
+            severity: 'info',
+            model: 'api::lead.lead',
+            leadId: oldLead.id,
+            leadName: oldLead.fullName,
+            metadata: {
+              leadId: oldLead.id,
+              leadName: oldLead.fullName,
+              oldStatus: oldLead.leadStatus,
+              newStatus: data.leadStatus,
+            },
+          });
+        }
+
+        const norm = (v: unknown) =>
+          v == null || v === '' ? '' : String(v).trim();
+
+        if (touchesReferral) {
+          const oldVal = norm(oldLead.advisorReferralId);
+          const newVal = norm(data.advisorReferralId);
+          if (oldVal !== newVal) {
+            await logger.logEventDeduped({
+              action: 'LEAD_ADVISOR_ASSIGNED',
+              description: newVal
+                ? `Advisor assigned to Lead #${oldLead.id} (${oldLead.fullName || 'Unknown'})`
+                : `Advisor cleared on Lead #${oldLead.id} (${oldLead.fullName || 'Unknown'})`,
+              severity: 'info',
+              model: 'api::lead.lead',
+              category: 'LEAD_FORM',
+              leadId: oldLead.id,
+              leadName: oldLead.fullName,
+              metadata: {
                 leadId: oldLead.id,
                 leadName: oldLead.fullName,
-                metadata: {
-                  leadId: oldLead.id,
-                  leadName: oldLead.fullName,
-                  oldStatus: oldLead.leadStatus,
-                  newStatus: data.leadStatus
-                }
-              });
-            }
+                field: 'advisorReferralId',
+                oldValue: oldVal || null,
+                newValue: newVal || null,
+              },
+            });
           }
         }
-      }
+
+        if (touchesParent) {
+          const oldVal = norm(oldLead.parentAdvisorId);
+          const newVal = norm(data.parentAdvisorId);
+          if (oldVal !== newVal) {
+            await logger.logEventDeduped({
+              action: 'LEAD_ADVISOR_ASSIGNED',
+              description: newVal
+                ? `Parent advisor assigned to Lead #${oldLead.id} (${oldLead.fullName || 'Unknown'})`
+                : `Parent advisor cleared on Lead #${oldLead.id} (${oldLead.fullName || 'Unknown'})`,
+              severity: 'info',
+              model: 'api::lead.lead',
+              category: 'LEAD_FORM',
+              leadId: oldLead.id,
+              leadName: oldLead.fullName,
+              metadata: {
+                leadId: oldLead.id,
+                leadName: oldLead.fullName,
+                field: 'parentAdvisorId',
+                oldValue: oldVal || null,
+                newValue: newVal || null,
+              },
+            });
+          }
+        }
+      },
     });
 
     // Lead remarks → activity timeline
@@ -1334,7 +1325,7 @@ export default {
           const lead = await strapi.db.query('api::lead.lead').findOne({
             where: { id: result.leadId },
           });
-          const logger: any = strapi.service('api::activity-log.activity-log');
+          const logger: any = strapi.service('api::system-events.activity-log');
           if (logger?.logEvent) {
             await logger.logEvent({
               action: 'LEAD_REMARK_ADDED',
@@ -1362,7 +1353,7 @@ export default {
           const lead = await strapi.db.query('api::lead.lead').findOne({
             where: { id: result.leadId },
           });
-          const logger: any = strapi.service('api::activity-log.activity-log');
+          const logger: any = strapi.service('api::system-events.activity-log');
           if (logger?.logEvent) {
             await logger.logEvent({
               action: 'LEAD_REMARK_ADDED',
@@ -1475,7 +1466,7 @@ export default {
             .findOne({ where });
           if (!existing) return;
 
-          const logger: any = strapi.service('api::activity-log.activity-log');
+          const logger: any = strapi.service('api::system-events.activity-log');
           if (!logger?.logEvent) return;
 
           let leadName: string | null = null;
@@ -1517,9 +1508,33 @@ export default {
             (staffChanging && oldStaff !== newStaff) ||
             (bankerChanging && oldBanker !== newBanker)
           ) {
-            await logger.logEvent({
+            const who =
+              leadId != null
+                ? `Lead #${leadId}${leadName ? ` (${leadName})` : ''}`
+                : `loan application ${existing.id}`;
+            const parts: string[] = [];
+            if (staffChanging && oldStaff !== newStaff) {
+              parts.push(
+                newStaff
+                  ? `Staff assigned to ${who}`
+                  : `Staff cleared on ${who}`
+              );
+            }
+            if (bankerChanging && oldBanker !== newBanker) {
+              parts.push(
+                newBanker
+                  ? `Banker assigned to ${who}`
+                  : `Banker cleared on ${who}`
+              );
+            }
+            const description =
+              parts.length > 0
+                ? parts.join(' · ')
+                : `Assignment updated on ${who}`;
+
+            await logger.logEventDeduped({
               action: 'LOAN_ASSIGNMENT_CHANGED',
-              description: `Loan application ${existing.id} assignment updated`,
+              description,
               severity: 'info',
               model: 'api::loan-application.loan-application',
               leadId,
@@ -1557,7 +1572,7 @@ export default {
           if (!existing) return;
           if (existing.maintenanceModeIsEnabled === data.maintenanceModeIsEnabled) return;
 
-          const logger: any = strapi.service('api::activity-log.activity-log');
+          const logger: any = strapi.service('api::system-events.activity-log');
           if (logger?.logEvent) {
             await logger.logEvent({
               action: 'MAINTENANCE_TOGGLED',

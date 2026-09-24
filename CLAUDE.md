@@ -6,11 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # STARTUP INSTRUCTIONS — ALWAYS FOLLOW
 
-Before starting **every prompt/task**:
+Before starting **every prompt/task** (order: Graphify → Obsidian → Caveman → then implement):
 
-* **Graphify** — Review/update the project graph and dependencies before making changes. See **graphify** at the end of this file for `query` / `path` / `explain` / `update`.
-* **Obsidian** — Review relevant project documentation/knowledge before implementation; keep documentation in sync after changes.
-* **Caveman** — Prefer simple, clear, maintainable solutions. Avoid unnecessary complexity, duplication, abstractions, or over-engineering.
+* **Graphify** — Before exploring or editing code, run `graphify query "<task>"` when `graphify-out/graph.json` exists; use `graphify path "<A>" "<B>"` and `graphify explain "<concept>"` when needed. Prefer `graphify-out/wiki/` for broad navigation. After code changes, run `graphify update .` (AST-only). Do not skip Graphify because files “feel known.” See **graphify** at the end of this file.
+* **Obsidian** — Before implementing, review relevant vault / project knowledge notes for the feature area. After changes, sync notes so documentation matches behavior.
+* **Caveman** — Prefer the simplest correct fix. Avoid unnecessary complexity, duplication, abstractions, speculative refactors, or over-engineering.
 
 ## Development Standards
 
@@ -21,24 +21,31 @@ Before starting **every prompt/task**:
 * Prefer clean, modular, testable, and maintainable code.
 * Do not change existing business logic, API contracts, scoring rules, or data behavior unless explicitly required.
 * Before modifying code, understand existing flow, dependencies, and side effects.
+* Apply **proper try/catch** around async I/O, DB/API calls, file/Python bridges, and other failure-prone paths.
+  * Catch at the right layer (service/helper preferred; keep controllers thin).
+  * Log safely — no secrets, PII, or raw stack dumps to clients.
+  * Return Strapi-friendly / user-safe errors; never leak internals in production responses.
+  * Prefer existing project logging helpers (`activity-log`, `code-file-logger`, etc.) over ad-hoc `console.log`.
+  * Backend: use [`src/utils/safe-http-error.ts`](src/utils/safe-http-error.ts) (`safeUnexpectedMessage`) for unexpected 500s; keep known domain/validation status, code, and message unchanged.
+  * Frontend: use [`frontend/src/lib/safeFetch.ts`](frontend/src/lib/safeFetch.ts) (`parseJsonSafe` / `fetchJson` / `userFacingError`) on form fail-paths; do not change success UX.
 
 ## Security & Reliability
 
 For every change, check and address where applicable:
 
-* **CSP/security headers** and browser console security errors/warnings.
+* **CSP / security headers** — when changing scripts, inline handlers, uploads, or admin UI, verify Content-Security-Policy and related headers still hold. Prefer CSP-safe patterns (e.g. `addEventListener` instead of HTML `onclick` in admin UI). Treat new browser console **CSP/security** errors as blockers for the change that introduced them — fix headers/config; do not ignore.
+* **CORS** — when touching frontend↔Strapi calls or Next rewrites, verify CORS and allowed origins; treat new browser console **CORS** errors as blockers for that change.
 * Authentication, authorization, permissions, and role-based access.
 * Input validation, sanitization, and safe error handling.
 * SQL/ORM injection and unsafe database queries.
 * XSS, CSRF, SSRF, open redirects, and unsafe file uploads.
 * Sensitive data exposure, secrets, credentials, tokens, and PII in logs/responses.
-* CORS configuration and API exposure.
 * Rate limiting and abuse protection where applicable.
 * Secure HTTP/HTTPS, cookies, sessions, and environment configuration.
 * Dependency vulnerabilities and unsafe packages.
 * Path traversal and filesystem access.
 * Logging/auditing without exposing sensitive information.
-* Production error handling — never expose stack traces or internal implementation details.
+* Production error handling — never expose stack traces or internal implementation details in client-facing responses.
 * Strapi security configuration and secure API permissions.
 
 ## Quality Gate
@@ -46,12 +53,13 @@ For every change, check and address where applicable:
 Before completing every task:
 
 * Check for regressions and unintended side effects.
-* Check relevant logs and console errors.
+* Check relevant logs and browser/server **console errors** — especially CSP, CORS, and other security warnings introduced by the change.
+* Confirm **try/catch** and safe, non-leaking errors on new or changed failure-prone paths.
 * Run appropriate linting, formatting, type checks, tests, and build checks.
 * Verify security implications of the change.
 * Remove dead code, temporary files, debug logs, and unnecessary changes.
-* Update relevant documentation and Graphify/Obsidian knowledge.
-* Keep the implementation **simple, secure, Strapi-standard, SRP-compliant, and production-ready**.
+* Update relevant documentation; run `graphify update .` after code changes; sync Obsidian/project knowledge when behavior or architecture changed.
+* Keep the implementation **simple (Caveman), secure, Strapi-standard, SRP-compliant, and production-ready**.
 
 ## Project Overview
 
@@ -67,9 +75,9 @@ Before completing every task:
 ```
 ├── src/                     # Strapi backend (API, CMS admin panel)
 │   ├── api/                 # Content collections (see full list below)
+│   │   ├── system-events/       # Activity logs + admin notifications bell + outbound email
 │   │   └── bureau-data-extraction/  # Bureau PDF extraction + cibil-report-summary storage
 │   ├── admin/               # Custom admin panel extensions
-│   ├── email-templates/     # Email templates
 │   ├── extensions/          # Plugin customizations
 │   ├── middlewares/         # Request/response middlewares
 │   └── index.ts             # Bootstrap logic (advisor role setup, admin user sync)
@@ -189,7 +197,8 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 | `product` | Financial product definitions | `title`, `description`, `logo`, `isActive` (boolean, default true) |
 | `user-product-mapping` | Maps admin users (staff/bankers) to products | `adminUserId`, `user_role` (staff/banker), `product` |
 | `loan-app-section-permission` | Controls which sections a role can see in loan forms | `roleId`, `roleName`, `permissions` |
-| `activity-log` | System audit trail (global Activity Logs) | `action`, `description`, `severity`, `model`, `metadata`, `ipAddress`, `userId`, `leadId`, `leadName`, `category`, `correlationId` — see [docs/Activity-Log.md](docs/Activity-Log.md); admin UI domains: **Lead** \| **Users & Auth** \| **System** |
+| `system-events` | Activity logs + Notifications (admin bell) + outbound Email | UID `api::system-events.activity-log` (table `activity_logs`); REST `/api/activity-logs*`; admin `/admin/activity-logs/*` (incl. role-scoped `GET /admin/activity-logs/notifications`); thin `services/activity-log.ts` facade → `activity/` (log-event, queries, categories), `notifications/` (`bell-dedupe`, `role-scope`, `list-for-bell`), `email/` (`outbound-send`, `email-audit`, `template-loader`, `templates/loan-application.html`); no `emails` entity table — see [docs/Activity-Log.md](docs/Activity-Log.md); admin UI domains: **Lead** \| **Email** \| **Users & Auth** \| **System** |
+
 
 ### Lender Master
 
@@ -283,7 +292,7 @@ These are single-type or collection-type entries managed via Strapi admin for fr
   - Grants Advisor Media Library `plugin::upload.read` + `plugin::upload.assets.create` so Lead View **Add Document** can call `/upload/folders` and `/upload` (Document Details View/Edit only gates UI via `loan-app-section-permission`)
   - Links Advisor, Staff, and Banker to loan-application CM `explorer.read|create|update` via **per-role** permission rows (incl. `form_data`), healed on every boot so Settings → Roles save for one role does not permanently orphan the others
   - Starts the Automation Testing dashboard on `:4100` (`SUITE_DASHBOARD=false` skips; no-ops if the port is already in use; installs `Automation-Testing` npm deps on first boot if missing; waits until the port listens before logging started). Live Run report files under `Automation-Testing/` do not reload Admin (`watchIgnoreFiles` in [`config/admin.ts`](config/admin.ts)).
-- **Email Templates** (`src/email-templates/`): Used by Strapi for notifications
+- **System events** (`src/api/system-events/`): One module for Activity logs, Notifications (admin bell over `activity_logs`), and outbound Email. Content-type UID `api::system-events.activity-log` (table `activity_logs`; REST `/api/activity-logs*`). Thin Strapi facade [`services/activity-log.ts`](src/api/system-events/services/activity-log.ts) delegates to `activity/` (write + queries), `notifications/` (`bell-dedupe`, `role-scope`, `list-for-bell`), and `email/` (SMTP + audit). Admin bell loads `GET /admin/activity-logs/notifications` (JWT): **Admin** = all recent info/warning rows; **Advisor** = leads where `advisorReferralId` / `parentAdvisorId` match; **Staff/Banker** = leads on loan apps where `assignedStaffId` / `assignedBankerId` match; bell allowlists summary actions only (Eligibility Created / Scoring Created / AI Match generated / Bureau Extracted — no per-lender eligibility/scoring). Activity Logs Lead timeline collapses bureau to Started+Completed per day; dedupes eligibility/scoring/AI Match run summaries **once per action+lead+UTC-day** (ignores `correlationId`); lender chips via `GET /admin/activity-logs/active-lenders?leadId=` (server resolves PL/BL; exclusive active criteria table); Eligibility tab shows **Lenders (N)** (active PL/BL criteria only) with Show/Hide JSON from `metadata.conditions[]`; Scoring tab **Lenders (N)** = scored banks only (`PL_/BL_SCORE_LENDER`), score-desc, SCORED+Score badge + criterion JSON (incl. `SCORED`); `PL_/BL_SCORE_RUN_DONE` shows **N lenders scored** after Timestamp; Eligibility/Scoring parent badges exclude per-lender rows. Activity Logs page is not role-filtered in this pass. Lead create logs `LEAD_CREATED` (metadata includes referral/parent when set); Add New Lead as Advisor auto-stamps `advisorReferralId`; Lead View Advisor/Parent saves log `LEAD_ADVISOR_ASSIGNED` (one event per changed field). Loan-application create in [`loan-application` controller](src/api/loan-application/controllers/loan-application.ts) calls `strapi.service('api::system-events.activity-log').onLoanApplicationCreated()` (lead create does **not** send mail). Recipients: every active Super Admin user with email + one advisor (`notifyingAdvisorId` from loan-form session `strapiAdvisorId`, else lead `advisorReferralId`) + applicant (`lead.email` from Lead Form). One flat HTML per event under `email/templates/<event>.html` (loan-app: `email/templates/loan-application.html` — same body for all three roles via `{{recipientName}}`). SMTP via Nodemailer in [`config/plugins.ts`](config/plugins.ts) (`SMTP_*` env); send logic in [`email/outbound-send.ts`](src/api/system-events/email/outbound-send.ts). Kill switch: Global Setting `emailsIsEnabled` (independent of bell `notificationsIsEnabled`). `EMAIL_*` audit helpers in [`email/email-audit.ts`](src/api/system-events/email/email-audit.ts). Logs `EMAIL_DISPATCHED` / `EMAIL_FAILED` / `EMAIL_SKIPPED` with category `EMAIL`; skips set `metadata.skipReason`. Activity Logs **Email** tab: event sub-tabs All/Dispatched/Failed/Skipped; collapsible lead cards (header lead id/name + recipients when expanded; Failed/Skipped show short reason on the person line; **no Loan app ID** in header or Show details); dark **Show details** (no Template / loanApplicationId lines); no severity dropdown. `EMAIL_FAILED` with `535 Incorrect authentication data` → fix `SMTP_USERNAME` / `SMTP_PASSWORD` (and allowed From) in `.env`, then **restart Strapi** so the email plugin reloads env.
 - **Admin Extensions** (`src/admin/`): Custom admin panel UI overrides; **Lead View Dashboard** (`LeadViewDashboard/`) for loan-app list + `currentLeadId`; **list overview banners** — Leads (status counts), Advisors / Lenders Catalog / Products / Admin Users (Total · Active · Inactive) use CM/admin `pagination.total` via [`cmCount.ts`](src/admin/shared/cmCount.ts) (`pageSize=1`, not capped at 100); mounts in table overrides + [`activeInactiveOverviewMounts.tsx`](src/admin/bootstrap/overrides/activeInactiveOverviewMounts.tsx). **Loan Application CM edit** (`LoanForm/LoanApplicationEditForm.tsx`) replaces native flat CM form on record edit with funnel-scoped fields matching the public loan form (select/radio/checkbox/state→district). Admin always shows every field in the Product → Funnel → Step schema for that record (`getFieldsForFunnel(..., { ignoreShowWhen: true })`); visibility does not depend on `form_data` completion. **Step field values** use `getAdminLoanFormDisplayData()` — saved funnel `form_data` stays visible after reload (Live Run / public submit is not blanked when `LOAN_APP_SUBMITTED` is missing from activity). **Tick saves** merge via `getAdminLoanFormSaveBase()`. Loan-app lookup in Lead View is **leadId-only** (no email/phone fallback). Shared field schema in `src/shared/loan-form/`. CM dashboard lists force newest-first IDs for all roles (`id:DESC` leads/lenders/admin users; `advisorId:DESC` advisors) via [`enforceListSettings.ts`](src/admin/LeadOverview/enforceListSettings.ts) + fetch interceptor. Footer and **Configure the view** “Entries per page” share one page size per collection ([`pageSizeSync.ts`](src/admin/bootstrap/pageSizeSync.ts)); a config-save lock prevents the stale list URL from wiping a Configure the view save, while footer dropdown clicks clear the lock so list pagination still works. **Advisors list Login** ([`advisorTableOverride.tsx`](src/admin/bootstrap/overrides/advisorTableOverride.tsx)) logs in via `/admin/login` with `deviceId` + `rememberMe`, then clears prior `jwtToken` cookie/storage + ScaleX role keys only on success (avoids `/admin/users/me` 401 mid-swap) so Loan Application Section permissions match a normal Advisor login; contact icons use `addEventListener` (not HTML `onclick`) for CSP; section-perm role resolve uses [`resolveSectionRoleId.ts`](src/admin/bootstrap/resolveSectionRoleId.ts).
 - **Direct DB access**: Uses `strapi.db.query()` API (Strapi v5 pattern), not raw SQL
 
@@ -370,6 +379,8 @@ Recent migrations:
 - `2026.09.11` — Zip `loan_type` + partial UNIQUE indexes (`2026.09.11T12.00.00.zip-codes-loan-type.js`)
 - `2026.09.11` — Additive indexes for all `src/api/` custom tables (`2026.09.11T18.00.00.custom-table-indexes.js`) — `CREATE INDEX IF NOT EXISTS`; UNIQUE only after duplicate preflight (skip + warn if dirty); covers lookups on `loan_applications`, `leads`, `lead_remark`, zip PINCODE, `activity_logs`, scoring/catalog/`is_active`, mappings, CMS `published_at`, etc.
 - `2026.09.14` — Canonical `loan_type` codes `PL|BL|HL|LAP` on `loan_applications`, `zip_codes_to_lenders`, `lender_scoring_criteria` (+ coerce `leads.selected_product` / mappings when matched) (`2026.09.14T12.00.00.loan-type-codes.js`)
+- `2026.09.23` — Drop orphan `email_notifications` after rename to `api::email.email` (`2026.09.23T12.00.00.drop-email-notifications-table.js`)
+- `2026.09.24` — Drop unused `emails` scaffolding table after email absorbed into `system-events` (`2026.09.24T12.00.00.drop-emails-table.js`)
 
 ## Environment Setup
 
@@ -390,6 +401,8 @@ Admin **Global Setting** single type:
 |-------|------------|----------|
 | `activityLoggingIsEnabled` | Activity Logs | DB `activity_logs` (errors/critical still write when off) |
 | `codeLevelLoggingIsEnabled` | Code-level logs | Disk files under `logs/<module>/` (per-lead when lead known) |
+| `emailsIsEnabled` | Emails | SMTP via `system-events` `email/outbound-send` (OFF → no send + `EMAIL_SKIPPED` in Activity Logs **Email** tab) |
+| `notificationsIsEnabled` | Notifications | Admin bell only (independent of Emails); feed is role-scoped via `GET /admin/activity-logs/notifications` — Admin = all; Advisor/Staff/Banker = associated leads only; allowlisted bell actions (pipeline + assignment with Lead ID + role); no View All Logs; dedupe action+lead |
 | `loggingRetentionDays` | Log retention (days) | Midnight cron deletes Activity Log rows **and** code-level files under `logs/` older than this (default 30) |
 
 File log convention (lead runs): `logs/<product>/<module>/<leadId>-<NameNoSpaces>_YYYY-MM-DD.log`  
@@ -436,7 +449,8 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - **[frontend/src/lib/safeStorage.ts](frontend/src/lib/safeStorage.ts)** — SSR-safe localStorage/sessionStorage wrappers
 - **[src/api/](src/api/)** — All Strapi collections
 - **[frontend/src/app/](frontend/src/app/)** — All frontend routes and pages
-- **[src/api/activity-log/](src/api/activity-log/)** — Activity audit; `logEvent` promotes `leadId`/`leadName`/`category`/`correlationId`; admin **Activity Logs** (**Lead** \| **Users & Auth** \| **System**); shared `/admin` login → `LOGIN_*` with `roleKind`; coverage in [docs/Activity-Log.md](docs/Activity-Log.md) (most `PL_ELIGIBILITY_RULE*` file-only; `PL-DPD-LATEST` also writes DB `PL_ELIGIBILITY_RULE` / `_SKIP`)
+- **[src/api/system-events/](src/api/system-events/)** — Activity logs + Notifications (admin bell) + Email; UID `api::system-events.activity-log`; thin `services/activity-log.ts` → `activity/`, `notifications/` (`bell-dedupe`, `role-scope`, `list-for-bell`), `email/` (`outbound-send`, `email-audit`, `templates/<event>.html`); bell via `GET /admin/activity-logs/notifications` (Admin = all; Advisor/Staff/Banker = lead association); `logEvent` / `logEventDeduped`; `onLoanApplicationCreated` → Super Admins + advisor + applicant; SMTP [`config/plugins.ts`](config/plugins.ts); gated by `emailsIsEnabled`; Activity Email tab = event sub-tabs + collapsible lead groups + `skipReason` (no severity filter); coverage in [docs/Activity-Log.md](docs/Activity-Log.md)
+
 - **[src/api/lead/](src/api/lead/)** — Lead API; on create logs `LEAD_SUBMIT_SUCCESS` / `LEAD_SUBMIT_ERROR` to `logs/personal-loan/pl-lead-submission/<leadId>-<Name>_YYYY-MM-DD.log`; exposes `POST /api/pl-submission-audit/log` for client validation errors
 - **[docs/business-loan/business-loan-flow/business-loan-flow.md](docs/business-loan/business-loan-flow/business-loan-flow.md)** — Business Loan funnel steps, Business Details layout, documents UI, funnel-scoped `form_data` shape (turnover in Lakh; no unused sections), and database schema
 - **[docs/business-loan/business-loan-eligibility/Database-Schema.md](docs/business-loan/business-loan-eligibility/Database-Schema.md)** — Planned `lenders_criteria_bl` SQL column map; `min_annual_turnover` / loan amounts in ₹ (absolute)

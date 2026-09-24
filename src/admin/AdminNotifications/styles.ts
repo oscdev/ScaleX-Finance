@@ -57,7 +57,4 @@ export const styles: Record<string, CSSProperties> = {
         fontWeight: 500,
         color: '#1e293b', // Explicit Dark Slate
     },
-    viewAllBox: {
-        textAlign: 'center',
-    },
 };

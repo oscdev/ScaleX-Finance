@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { userFacingError } from '@/lib/safeFetch';
 import './data-import-manager.css';
 
 type ImporterInfo = {
@@ -88,25 +89,29 @@ export default function DataImportManagerPage() {
 
   const openLog = useCallback(
     async (name: string, importerName: string) => {
-      setActiveLog(name);
-      activeLogRef.current = name;
-      const res = await fetch(
-        `/data-import-manager/api/logs/${encodeURIComponent(name)}?importer=${encodeURIComponent(importerName)}`,
-        { cache: 'no-store' }
-      );
-      if (!res.ok) {
-        const contentType = res.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          const data = (await res.json().catch(() => ({}))) as {
-            error?: string;
-          };
-          setLogText(data.error || 'Failed to load log');
-        } else {
-          setLogText(`Failed to load log (HTTP ${res.status})`);
+      try {
+        setActiveLog(name);
+        activeLogRef.current = name;
+        const res = await fetch(
+          `/data-import-manager/api/logs/${encodeURIComponent(name)}?importer=${encodeURIComponent(importerName)}`,
+          { cache: 'no-store' }
+        );
+        if (!res.ok) {
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data = (await res.json().catch(() => ({}))) as {
+              error?: string;
+            };
+            setLogText(data.error || 'Failed to load log');
+          } else {
+            setLogText(`Failed to load log (HTTP ${res.status})`);
+          }
+          return;
         }
-        return;
+        setLogText(await res.text());
+      } catch (err) {
+        setLogText(userFacingError(err, 'Failed to load log'));
       }
-      setLogText(await res.text());
     },
     []
   );
@@ -158,7 +163,7 @@ export default function DataImportManagerPage() {
       });
       setLogsMessage('Log list updated.');
     } catch (err) {
-      setLogsMessage(err instanceof Error ? err.message : String(err));
+      setLogsMessage(userFacingError(err, 'Failed to refresh logs'));
     } finally {
       setRefreshing(false);
     }
@@ -185,7 +190,7 @@ export default function DataImportManagerPage() {
       } catch (err) {
         if (!cancelled) {
           setStatusKind('error');
-          setStatus(err instanceof Error ? err.message : String(err));
+          setStatus(userFacingError(err, 'Failed to load importers'));
         }
       }
     })();
@@ -226,7 +231,7 @@ export default function DataImportManagerPage() {
       }
     } catch (err) {
       setStatusKind('error');
-      setStatus(err instanceof Error ? err.message : String(err));
+      setStatus(userFacingError(err, 'Import failed'));
     } finally {
       setBusy(false);
     }
@@ -260,7 +265,7 @@ export default function DataImportManagerPage() {
                   setLogsMessage('');
                   void refreshLogs(v, { openNewest: true }).catch((err) => {
                     setStatusKind('error');
-                    setStatus(err instanceof Error ? err.message : String(err));
+                    setStatus(userFacingError(err, 'Failed to refresh logs'));
                   });
                 }}
               >

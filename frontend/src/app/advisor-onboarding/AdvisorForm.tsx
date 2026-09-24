@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { logEvent } from '@/lib/logger';
 import { strapiPublicApi, withStrapiPublicUrl } from '@/lib/strapi';
+import { userFacingError } from '@/lib/safeFetch';
 import Link from 'next/link';
 import './AdvisorOnboarding.css';
 
@@ -132,7 +133,10 @@ export default function AdvisorForm({ pageInfo }: { pageInfo: any }) {
 
                 setIsSuccess(true);
             } catch (err: any) {
-                let errorMessage = err.message || 'An unexpected error occurred. Please try again later.';
+                let errorMessage = userFacingError(
+                    err,
+                    'An unexpected error occurred. Please try again later.'
+                );
                 if (errorMessage.toLowerCase().includes('must be unique')) {
                     errorMessage = 'This email is already registered.';
                 }

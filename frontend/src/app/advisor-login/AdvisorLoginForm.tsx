@@ -6,6 +6,7 @@ import { strapiPublicApi } from '@/lib/strapi';
 
 import { logEvent } from '@/lib/logger';
 import { safeLocalStorage } from '@/lib/safeStorage';
+import { parseJsonSafe, userFacingError } from '@/lib/safeFetch';
 import './AdvisorLogin.css';
 
 export default function AdvisorLoginForm() {
@@ -41,7 +42,7 @@ export default function AdvisorLoginForm() {
             });
 
             if (!res.ok) {
-                const errorData = await res.json();
+                const errorData = await parseJsonSafe<{ error?: { message?: string } }>(res);
                 const failMsg = errorData?.error?.message || 'Invalid email or password';
 
                 await logEvent({
@@ -58,7 +59,10 @@ export default function AdvisorLoginForm() {
                 throw new Error(failMsg);
             }
 
-            const data = await res.json();
+            const data = await parseJsonSafe<{ jwt?: string; user?: { id?: number } }>(res);
+            if (!data?.jwt) {
+                throw new Error('Login failed. Please try again.');
+            }
 
             await logEvent({
                 action: 'ADVISOR_LOGIN_SUCCESS',
@@ -72,7 +76,7 @@ export default function AdvisorLoginForm() {
             router.push('/advisor-dashboard');
 
         } catch (err: any) {
-            setError(err.message || 'Login failed. Please try again.');
+            setError(userFacingError(err, 'Login failed. Please try again.'));
         } finally {
             setIsSubmitting(false);
         }

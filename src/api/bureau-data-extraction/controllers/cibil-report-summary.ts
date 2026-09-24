@@ -1,5 +1,6 @@
 import { factories } from '@strapi/strapi';
 import { randomUUID } from 'crypto';
+import { safeUnexpectedMessage } from '../../../utils/safe-http-error';
 
 async function logBureauExtract(
   strapi: any,
@@ -15,7 +16,7 @@ async function logBureauExtract(
   }
 ) {
   try {
-    const logger: any = strapi.service('api::activity-log.activity-log');
+    const logger: any = strapi.service('api::system-events.activity-log');
     if (!logger?.logEventDeduped) return;
     await logger.logEventDeduped({
       action: params.action,
@@ -105,7 +106,7 @@ export default factories.createCoreController(
           correlationId,
           loanApplicationId: loanAppId,
         });
-        return ctx.internalServerError(message);
+        return ctx.internalServerError(safeUnexpectedMessage());
       }
     },
   })

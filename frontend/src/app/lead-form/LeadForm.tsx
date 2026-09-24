@@ -6,6 +6,7 @@ import { strapiPublicApi } from '@/lib/strapi';
 import { logEvent } from '@/lib/logger';
 import { logPlSubmission } from '@/lib/plSubmissionLogger';
 import { safeSessionStorage } from '@/lib/safeStorage';
+import { parseJsonSafe, userFacingError } from '@/lib/safeFetch';
 import './LeadForm.css';
 import BusinessLoanFunnel from './funnels/BusinessLoanFunnel';
 import PersonalLoanFunnel from './funnels/PersonalLoanFunnel';
@@ -171,7 +172,7 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
                 });
 
                 if (!res.ok) {
-                    const errorData = await res.json();
+                    const errorData = await parseJsonSafe<{ error?: { message?: string } }>(res);
                     const failMsg = errorData?.error?.message || 'Failed to submit application';
 
                     void logPlSubmission({
@@ -192,7 +193,10 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
                     throw new Error(failMsg);
                 }
 
-                const responseData = await res.json();
+                const responseData = await parseJsonSafe<{ data?: { id?: number } }>(res);
+                if (!responseData) {
+                    throw new Error('Failed to submit application');
+                }
                 const leadId = responseData?.data?.id;
 
                 await logEvent({
@@ -219,14 +223,18 @@ export default function LeadForm({ pageInfo }: { pageInfo: any }) {
 
                 setIsSuccess(true);
             } catch (err: any) {
+                const safeMsg = userFacingError(
+                    err,
+                    'An unexpected error occurred. Please try again later.'
+                );
                 void logPlSubmission({
                     form: 'lead',
                     event: 'CLIENT_ERROR',
                     leadName: formData.fullName,
                     fields: formData,
-                    errors: err.message || 'An unexpected error occurred',
+                    errors: safeMsg,
                 });
-                setSubmitError(err.message || 'An unexpected error occurred. Please try again later.');
+                setSubmitError(safeMsg);
             } finally {
                 setIsSubmitting(false);
             }

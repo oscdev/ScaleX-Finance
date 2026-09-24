@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>New Loan Application: ScaleX Finance</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.6; background-color: #f3f4f6; padding: 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 8px; border-top: 4px solid #2563eb;">
+        <h2 style="color: #1d4ed8; margin-top: 0;">New Loan Application</h2>
+        <p>Hello <strong>{{recipientName}}</strong>,</p>
+        <p>A loan application was submitted on ScaleX Finance. Summary:</p>
+
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; background: #f9fafb; border-radius: 4px;">
+            <tr>
+                <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold; width: 40%;">Applicant / Lead:</td>
+                <td style="padding: 12px; border: 1px solid #e5e7eb;">{{applicantName}}</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Lead ID:</td>
+                <td style="padding: 12px; border: 1px solid #e5e7eb;">{{leadId}}</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Loan Application ID:</td>
+                <td style="padding: 12px; border: 1px solid #e5e7eb;">{{loanApplicationId}}</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Amount:</td>
+                <td style="padding: 12px; border: 1px solid #e5e7eb;">INR {{amount}}</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Product:</td>
+                <td style="padding: 12px; border: 1px solid #e5e7eb;">{{productType}}</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Mobile:</td>
+                <td style="padding: 12px; border: 1px solid #e5e7eb;">{{mobile}}</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">City / PIN:</td>
+                <td style="padding: 12px; border: 1px solid #e5e7eb;">{{city}}</td>
+            </tr>
+        </table>
+
+        <p style="font-size: 14px; color: #6b7280;">ScaleX Finance</p>
+    </div>
+</body>
+</html>

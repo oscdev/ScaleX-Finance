@@ -3,6 +3,7 @@ import {
   appendPlLeadSubmissionLog,
   extractErrorMessage,
 } from '../../../utils/pl-lead-submission-logger';
+import { safeUnexpectedMessage } from '../../../utils/safe-http-error';
 
 export default factories.createCoreController('api::lead.lead', ({ strapi }) => ({
   async create(ctx: any) {
@@ -66,7 +67,7 @@ export default factories.createCoreController('api::lead.lead', ({ strapi }) => 
     } catch (err: unknown) {
       const message = extractErrorMessage(err);
       strapi.log.warn(`[pl-lead-submission] Audit log failed: ${message}`);
-      return ctx.badRequest(message);
+      return ctx.badRequest(safeUnexpectedMessage());
     }
   },
 }));

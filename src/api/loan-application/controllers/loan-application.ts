@@ -13,6 +13,7 @@ import {
 import { validateBusinessLoanPayload } from '../utils/validate-business-loan';
 import { LOAN_APP_MEDIA_FIELDS } from '../utils/media-fields';
 import { isBusinessLoanType } from '../../../utils/loan-type';
+import { safeUnexpectedMessage } from '../../../utils/safe-http-error';
 
 const MEDIA_FIELDS = [...LOAN_APP_MEDIA_FIELDS];
 
@@ -71,6 +72,12 @@ export default factories.createCoreController(
     async create(ctx: any) {
       const { data } = ctx.request.body ?? {};
       const requestData = (data ?? {}) as Record<string, unknown>;
+      const notifyingAdvisorId =
+        requestData.notifyingAdvisorId ?? requestData.advisorReferralId ?? null;
+      // Not a schema field — strip before Strapi create
+      if (data && 'notifyingAdvisorId' in data) {
+        delete data.notifyingAdvisorId;
+      }
 
       if (isBusinessLoanType(requestData.loanType as string | null | undefined)) {
         const blErrors = validateBusinessLoanPayload(requestData);
@@ -225,7 +232,7 @@ export default factories.createCoreController(
         });
 
         try {
-          const logger: any = strapi.service('api::activity-log.activity-log');
+          const logger: any = strapi.service('api::system-events.activity-log');
           if (logger?.logEvent) {
             await logger.logEvent({
               action: 'LOAN_APP_SUBMITTED',
@@ -245,6 +252,57 @@ export default factories.createCoreController(
           }
         } catch {
           // non-fatal
+        }
+
+        try {
+          const emailService: any = strapi.service('api::system-events.activity-log');
+          if (emailService?.onLoanApplicationCreated) {
+            await emailService.onLoanApplicationCreated({
+              loanApplication: {
+                id: loanApplicationId,
+                leadId,
+                applicantName:
+                  (requestData.applicantName as string) ??
+                  createdRecord?.applicantName,
+                loanType:
+                  (requestData.loanType as string) ?? createdRecord?.loanType,
+                loanAmount:
+                  (requestData.loanAmount as string | number) ??
+                  createdRecord?.loanAmount,
+                email: (requestData.email as string) ?? createdRecord?.email,
+                phone: (requestData.phone as string) ?? createdRecord?.phone,
+              },
+              leadId,
+              notifyingAdvisorId,
+            });
+          }
+        } catch (emailErr: unknown) {
+          const message =
+            emailErr instanceof Error ? emailErr.message : String(emailErr);
+          strapi.log.error('[email] onLoanApplicationCreated failed', emailErr);
+          try {
+            const logger: any = strapi.service('api::system-events.activity-log');
+            if (logger?.logEvent) {
+              await logger.logEvent({
+                action: 'EMAIL_FAILED',
+                description: `CRITICAL: Email side-effects failed for loan application ${loanApplicationId}`,
+                severity: 'error',
+                model: 'email-service',
+                category: 'EMAIL',
+                leadId,
+                leadName,
+                metadata: {
+                  leadId,
+                  leadName,
+                  loanApplicationId,
+                  status: 'failure',
+                  error: message,
+                },
+              });
+            }
+          } catch {
+            // non-fatal
+          }
         }
 
         return result;
@@ -268,7 +326,7 @@ export default factories.createCoreController(
         });
 
         try {
-          const logger: any = strapi.service('api::activity-log.activity-log');
+          const logger: any = strapi.service('api::system-events.activity-log');
           if (logger?.logEvent) {
             await logger.logEvent({
               action: 'LOAN_APP_SUBMIT_FAILED',
@@ -309,9 +367,8 @@ export default factories.createCoreController(
         });
         return ctx.send({ data: { ok: true, folderName } });
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
         strapi.log.error('[LoanApp] prepareDocumentUpload failed:', err);
-        return ctx.internalServerError(message);
+        return ctx.internalServerError(safeUnexpectedMessage());
       }
     },
 
@@ -474,9 +531,8 @@ export default factories.createCoreController(
 
         return ctx.send({ data: result });
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
         strapi.log.error('[LoanApp] syncDocuments failed:', err);
-        return ctx.internalServerError(message);
+        return ctx.internalServerError(safeUnexpectedMessage());
       }
     },
   })

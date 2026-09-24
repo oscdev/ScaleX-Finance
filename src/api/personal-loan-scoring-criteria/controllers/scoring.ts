@@ -1,5 +1,6 @@
 import { PlScoreError } from '../utils/error-codes';
 import type { ScoringRunResult } from '../utils/types';
+import { safeUnexpectedMessage } from '../../../utils/safe-http-error';
 
 function sendError(ctx: any, err: unknown) {
   if (err instanceof PlScoreError) {
@@ -13,12 +14,12 @@ function sendError(ctx: any, err: unknown) {
     };
     return;
   }
-  const message = err instanceof Error ? err.message : String(err);
+  console.error('[PL scoring] unexpected error', err);
   ctx.status = 500;
   ctx.body = {
     error: {
       code: 'PL_SCORE_ERR_INTERNAL',
-      message,
+      message: safeUnexpectedMessage(),
       details: {},
     },
   };

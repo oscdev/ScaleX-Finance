@@ -22,7 +22,7 @@ import type {
 async function logActivity(strapi: any, params: Record<string, unknown>) {
   try {
     const meta = (params.metadata || {}) as Record<string, unknown>;
-    await strapi.service('api::activity-log.activity-log').log({
+    await strapi.service('api::system-events.activity-log').log({
       ...params,
       leadId: params.leadId ?? meta.leadId,
       leadName: params.leadName ?? meta.leadName,

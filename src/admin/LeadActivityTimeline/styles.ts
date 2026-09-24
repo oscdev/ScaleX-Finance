@@ -66,7 +66,7 @@ export const styles: Record<string, CSSProperties> = {
   },
   viewTabActive: {
     background: '#4f46e5',
-    borderColor: '#4f46e5',
+    border: '1px solid #4f46e5',
     color: '#fff',
   },
   ghostBtn: {
@@ -81,7 +81,7 @@ export const styles: Record<string, CSSProperties> = {
   },
   ghostBtnActive: {
     background: '#312e81',
-    borderColor: '#312e81',
+    border: '1px solid #312e81',
     color: '#fff',
   },
   linkBtn: {
@@ -163,7 +163,7 @@ export const styles: Record<string, CSSProperties> = {
     transition: 'box-shadow 0.15s ease, border-color 0.15s ease',
   },
   cardOpen: {
-    borderColor: '#c7d2fe',
+    border: '1px solid #c7d2fe',
     boxShadow: '0 8px 24px rgba(79, 70, 229, 0.08)',
   },
   cardHeader: {
@@ -261,7 +261,7 @@ export const styles: Record<string, CSSProperties> = {
   },
   tabActive: {
     background: '#4f46e5',
-    borderColor: '#4f46e5',
+    border: '1px solid #4f46e5',
     color: '#fff',
   },
   eventList: {
@@ -312,6 +312,100 @@ export const styles: Record<string, CSSProperties> = {
     fontSize: 13,
     color: '#475569',
     lineHeight: 1.45,
+  },
+  lenderChipBlock: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTop: '1px dashed #e2e8f0',
+  },
+  lenderList: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: 10,
+  },
+  lenderCard: {
+    background: '#fff',
+    border: '1px solid #e2e8f0',
+    borderRadius: 10,
+    padding: '12px 14px',
+  },
+  lenderCardName: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: '#1e293b',
+  },
+  lenderStatusRow: {
+    marginTop: 6,
+  },
+  lenderStatusPill: {
+    display: 'inline-block',
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: '0.04em',
+    padding: '2px 8px',
+    borderRadius: 999,
+    border: '1px solid transparent',
+  },
+  lenderStatusPass: {
+    background: '#ecfdf5',
+    color: '#047857',
+    border: '1px solid #a7f3d0',
+  },
+  lenderStatusFail: {
+    background: '#fef2f2',
+    color: '#b91c1c',
+    border: '1px solid #fecaca',
+  },
+  lenderStatusSkip: {
+    background: '#fffbeb',
+    color: '#b45309',
+    border: '1px solid #fde68a',
+  },
+  lenderStatusReason: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#64748b',
+    lineHeight: 1.4,
+  },
+  lenderSummary: {
+    marginTop: 8,
+  },
+  lenderSummaryTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: '0.03em',
+    color: '#64748b',
+    textTransform: 'uppercase' as const,
+    marginBottom: 4,
+  },
+  lenderSummaryLine: {
+    fontSize: 12,
+    color: '#475569',
+    lineHeight: 1.45,
+    marginTop: 2,
+  },
+  detailJsonBox: {
+    marginTop: 8,
+    margin: '8px 0 0',
+    fontSize: 11,
+    lineHeight: 1.55,
+    fontFamily:
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+    background: '#0f172a',
+    color: '#e2e8f0',
+    padding: 10,
+    borderRadius: 8,
+    overflowX: 'auto' as const,
+    whiteSpace: 'pre-wrap' as const,
+    wordBreak: 'break-word' as const,
+  },
+  lenderChipLabel: {
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase' as const,
+    color: '#64748b',
+    marginBottom: 8,
   },
   empty: {
     padding: '48px 16px',

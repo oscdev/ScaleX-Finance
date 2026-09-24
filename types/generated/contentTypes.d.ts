@@ -510,121 +510,6 @@ export interface ApiAboutUsPageAboutUsPage extends Struct.SingleTypeSchema {
   };
 }
 
-export interface ApiActivityLogActivityLog extends Struct.CollectionTypeSchema {
-  collectionName: 'activity_logs';
-  info: {
-    description: 'Centralized system logs for ScaleX Finance';
-    displayName: 'Activity Log';
-    pluralName: 'activity-logs';
-    singularName: 'activity-log';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    action: Schema.Attribute.Enumeration<
-      [
-        'LEAD_CREATED',
-        'EMAIL_DISPATCHED',
-        'EMAIL_FAILED',
-        'EMAIL_SKIPPED',
-        'ADVISOR_LOGIN_SUCCESS',
-        'ADVISOR_LOGIN_FAILURE',
-        'ADVISOR_REGISTRATION_SUCCESS',
-        'ADVISOR_REGISTRATION_FAILURE',
-        'ADVISOR_APPROVED',
-        'ADMIN_USER_CREATED',
-        'LOGIN_SUCCESS',
-        'LOGIN_FAILURE',
-        'MAINTENANCE_TOGGLED',
-        'LOGS_PURGED',
-        'LOG_CLEANUP_CRON',
-        'LEAD_SUBMISSION_SUCCESS',
-        'LEAD_SUBMISSION_FAILURE',
-        'LEAD_STATUS_CHANGED',
-        'LEAD_REMARK_ADDED',
-        'AI_MATCH_GENERATED',
-        'LOAN_STATUS_CHANGED',
-        'LOAN_ASSIGNMENT_CHANGED',
-        'LOAN_APP_SUBMITTED',
-        'LOAN_APP_SUBMIT_FAILED',
-        'BUREAU_EXTRACT_STARTED',
-        'BUREAU_EXTRACT_COMPLETED',
-        'BUREAU_EXTRACT_FAILED',
-        'PL_ELIGIBILITY_RUN_START',
-        'PL_ELIGIBILITY_BLOCKED',
-        'PL_ELIGIBILITY_RULE',
-        'PL_ELIGIBILITY_RULE_SKIP',
-        'PL_ELIGIBILITY_LENDER',
-        'PL_ELIGIBILITY_RUN_COMPLETE',
-        'PL_ELIGIBILITY_CONNECTION_FAILED',
-        'BL_ELIGIBILITY_RUN_START',
-        'BL_ELIGIBILITY_BLOCKED',
-        'BL_ELIGIBILITY_RULE',
-        'BL_ELIGIBILITY_RULE_SKIP',
-        'BL_ELIGIBILITY_LENDER',
-        'BL_ELIGIBILITY_RUN_COMPLETE',
-        'BL_ELIGIBILITY_CONNECTION_FAILED',
-        'PL_SCORE_RUN_START',
-        'PL_SCORE_CRITERION',
-        'PL_SCORE_CRITERION_SKIP',
-        'PL_SCORE_CRITERION_INACTIVE',
-        'PL_SCORE_LENDER',
-        'PL_SCORE_RANK_COMPLETE',
-        'PL_SCORE_RUN_DONE',
-        'PL_SCORE_BLOCKED',
-        'BL_SCORE_RUN_START',
-        'BL_SCORE_CRITERION',
-        'BL_SCORE_CRITERION_SKIP',
-        'BL_SCORE_CRITERION_INACTIVE',
-        'BL_SCORE_LENDER',
-        'BL_SCORE_RANK_COMPLETE',
-        'BL_SCORE_RUN_DONE',
-        'BL_SCORE_BLOCKED',
-      ]
-    > &
-      Schema.Attribute.Required;
-    category: Schema.Attribute.Enumeration<
-      [
-        'LEAD_FORM',
-        'LOAN_APPLICATION',
-        'EMAIL',
-        'STATUS_REMARKS',
-        'BUREAU_EXTRACTION',
-        'LENDER_ELIGIBILITY',
-        'LENDER_SCORING',
-        'USER_REGISTRATION',
-        'SYSTEM',
-      ]
-    >;
-    correlationId: Schema.Attribute.String;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    description: Schema.Attribute.Text;
-    ipAddress: Schema.Attribute.String;
-    leadId: Schema.Attribute.Integer;
-    leadName: Schema.Attribute.String;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::activity-log.activity-log'
-    > &
-      Schema.Attribute.Private;
-    metadata: Schema.Attribute.JSON;
-    model: Schema.Attribute.String;
-    publishedAt: Schema.Attribute.DateTime;
-    severity: Schema.Attribute.Enumeration<
-      ['info', 'warning', 'error', 'critical']
-    > &
-      Schema.Attribute.DefaultTo<'info'>;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    userId: Schema.Attribute.String;
-  };
-}
-
 export interface ApiAdvisorRegistrationPageAdvisorRegistrationPage
   extends Struct.SingleTypeSchema {
   collectionName: 'advisor_registration_page';
@@ -1990,6 +1875,123 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiSystemEventsActivityLog
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'activity_logs';
+  info: {
+    description: 'System events module \u2014 activity audit trail (also feeds admin notifications + email audit)';
+    displayName: 'Activity Log';
+    pluralName: 'activity-logs';
+    singularName: 'activity-log';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    action: Schema.Attribute.Enumeration<
+      [
+        'LEAD_CREATED',
+        'LEAD_ADVISOR_ASSIGNED',
+        'EMAIL_DISPATCHED',
+        'EMAIL_FAILED',
+        'EMAIL_SKIPPED',
+        'ADVISOR_LOGIN_SUCCESS',
+        'ADVISOR_LOGIN_FAILURE',
+        'ADVISOR_REGISTRATION_SUCCESS',
+        'ADVISOR_REGISTRATION_FAILURE',
+        'ADVISOR_APPROVED',
+        'ADMIN_USER_CREATED',
+        'LOGIN_SUCCESS',
+        'LOGIN_FAILURE',
+        'MAINTENANCE_TOGGLED',
+        'LOGS_PURGED',
+        'LOG_CLEANUP_CRON',
+        'LEAD_SUBMISSION_SUCCESS',
+        'LEAD_SUBMISSION_FAILURE',
+        'LEAD_STATUS_CHANGED',
+        'LEAD_REMARK_ADDED',
+        'AI_MATCH_GENERATED',
+        'LOAN_STATUS_CHANGED',
+        'LOAN_ASSIGNMENT_CHANGED',
+        'LOAN_APP_SUBMITTED',
+        'LOAN_APP_SUBMIT_FAILED',
+        'BUREAU_EXTRACT_STARTED',
+        'BUREAU_EXTRACT_COMPLETED',
+        'BUREAU_EXTRACT_FAILED',
+        'PL_ELIGIBILITY_RUN_START',
+        'PL_ELIGIBILITY_BLOCKED',
+        'PL_ELIGIBILITY_RULE',
+        'PL_ELIGIBILITY_RULE_SKIP',
+        'PL_ELIGIBILITY_LENDER',
+        'PL_ELIGIBILITY_RUN_COMPLETE',
+        'PL_ELIGIBILITY_CONNECTION_FAILED',
+        'BL_ELIGIBILITY_RUN_START',
+        'BL_ELIGIBILITY_BLOCKED',
+        'BL_ELIGIBILITY_RULE',
+        'BL_ELIGIBILITY_RULE_SKIP',
+        'BL_ELIGIBILITY_LENDER',
+        'BL_ELIGIBILITY_RUN_COMPLETE',
+        'BL_ELIGIBILITY_CONNECTION_FAILED',
+        'PL_SCORE_RUN_START',
+        'PL_SCORE_CRITERION',
+        'PL_SCORE_CRITERION_SKIP',
+        'PL_SCORE_CRITERION_INACTIVE',
+        'PL_SCORE_LENDER',
+        'PL_SCORE_RANK_COMPLETE',
+        'PL_SCORE_RUN_DONE',
+        'PL_SCORE_BLOCKED',
+        'BL_SCORE_RUN_START',
+        'BL_SCORE_CRITERION',
+        'BL_SCORE_CRITERION_SKIP',
+        'BL_SCORE_CRITERION_INACTIVE',
+        'BL_SCORE_LENDER',
+        'BL_SCORE_RANK_COMPLETE',
+        'BL_SCORE_RUN_DONE',
+        'BL_SCORE_BLOCKED',
+      ]
+    > &
+      Schema.Attribute.Required;
+    category: Schema.Attribute.Enumeration<
+      [
+        'LEAD_FORM',
+        'LOAN_APPLICATION',
+        'EMAIL',
+        'STATUS_REMARKS',
+        'BUREAU_EXTRACTION',
+        'LENDER_ELIGIBILITY',
+        'LENDER_SCORING',
+        'USER_REGISTRATION',
+        'SYSTEM',
+      ]
+    >;
+    correlationId: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    ipAddress: Schema.Attribute.String;
+    leadId: Schema.Attribute.Integer;
+    leadName: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::system-events.activity-log'
+    > &
+      Schema.Attribute.Private;
+    metadata: Schema.Attribute.JSON;
+    model: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    severity: Schema.Attribute.Enumeration<
+      ['info', 'warning', 'error', 'critical']
+    > &
+      Schema.Attribute.DefaultTo<'info'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    userId: Schema.Attribute.String;
+  };
+}
+
 export interface ApiUserProductMappingUserProductMapping
   extends Struct.CollectionTypeSchema {
   collectionName: 'user_product_mappings';
@@ -2540,7 +2542,6 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::about-us-page.about-us-page': ApiAboutUsPageAboutUsPage;
-      'api::activity-log.activity-log': ApiActivityLogActivityLog;
       'api::advisor-registration-page.advisor-registration-page': ApiAdvisorRegistrationPageAdvisorRegistrationPage;
       'api::advisor.advisor': ApiAdvisorAdvisor;
       'api::bureau-data-extraction.cibil-report-summary': ApiBureauDataExtractionCibilReportSummary;
@@ -2562,6 +2563,7 @@ declare module '@strapi/strapi' {
       'api::personal-loan-eligibility.lenders-criteria-pl': ApiPersonalLoanEligibilityLendersCriteriaPl;
       'api::product-page.product-page': ApiProductPageProductPage;
       'api::product.product': ApiProductProduct;
+      'api::system-events.activity-log': ApiSystemEventsActivityLog;
       'api::user-product-mapping.user-product-mapping': ApiUserProductMappingUserProductMapping;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
