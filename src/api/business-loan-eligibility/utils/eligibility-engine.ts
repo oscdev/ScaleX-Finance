@@ -301,7 +301,7 @@ async function loadZipRows(
 
 async function logActivity(strapi: any, params: Record<string, unknown>) {
   try {
-    const logger: any = strapi.service('api::activity-log.activity-log');
+    const logger: any = strapi.service('api::system-events.activity-log');
     if (!logger?.logEvent) return;
     const meta = (params.metadata || {}) as Record<string, unknown>;
     await logger.logEvent({
@@ -523,12 +523,26 @@ export async function runBlEligibilityMatch(
           leadId,
           runId,
           lenderCode: cat.lenderCode,
+          lenderName: cat.lenderName,
           result: evalResult.eligible ? 'PASS' : 'FAIL',
           passed: evalResult.passed,
           failed: evalResult.failed,
           skipped: evalResult.skipped,
           notEvaluated: evalResult.notEvaluated,
           errorCodes: evalResult.errorCodes,
+          conditions: (evalResult.conditions || []).map((c) => {
+            const catalog = getRuleCatalog(c.ruleId);
+            return {
+              ruleId: c.ruleId,
+              ruleName: c.ruleName || catalog?.ruleName || c.ruleId,
+              result: c.result,
+              errorCode: c.errorCode ?? null,
+              applicantValue: c.applicantValue ?? null,
+              threshold: c.threshold ?? null,
+              formula: c.formula || catalog?.formula || null,
+              reason: c.reason ?? null,
+            };
+          }),
         },
       });
     }

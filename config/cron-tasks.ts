@@ -10,7 +10,7 @@ export default {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - loggingRetentionDays);
 
-      const deleted = await strapi.db.query('api::activity-log.activity-log').deleteMany({
+      const deleted = await strapi.db.query('api::system-events.activity-log').deleteMany({
         where: {
           createdAt: {
             $lt: cutoffDate,
@@ -23,7 +23,7 @@ export default {
       const codeDeleted = codePurge.deleted;
 
       if (activityDeleted > 0 || codeDeleted > 0) {
-        const logger: any = strapi.service('api::activity-log.activity-log');
+        const logger: any = strapi.service('api::system-events.activity-log');
         await logger.logEvent({
           action: 'LOGS_PURGED',
           description: `Automatically deleted ${activityDeleted} activity log row(s) and ${codeDeleted} code log file(s) older than ${loggingRetentionDays} days.`,

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { strapiPublicApi } from '@/lib/strapi';
 import { safeLocalStorage, safeSessionStorage } from '@/lib/safeStorage';
+import { userFacingError } from '@/lib/safeFetch';
 import './AdvisorDashboard.css';
 
 interface Lead {
@@ -75,7 +76,7 @@ export default function AdvisorDashboard() {
             }
 
         } catch (err: any) {
-            setError(err.message);
+            setError(userFacingError(err, 'Unable to load advisor profile'));
             safeLocalStorage().removeItem('advisorToken');
             router.push('/advisor-login');
         }
@@ -98,7 +99,7 @@ export default function AdvisorDashboard() {
             setLoading(false);
 
         } catch (err: any) {
-            setError(err.message);
+            setError(userFacingError(err, 'Failed to fetch leads'));
             setLoading(false);
         }
     };

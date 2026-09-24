@@ -1,5 +1,3 @@
-const DEDUPE_WINDOW_MS = 120_000;
-
 type ActivityLogRow = {
   id?: number;
   action?: string;
@@ -14,21 +12,15 @@ function readLeadId(log: ActivityLogRow): string {
   return String(value);
 }
 
+/** Newest-first: one row per action+lead (or action+id when no lead). */
 function dedupeKey(log: ActivityLogRow): string {
   const action = String(log.action ?? '');
   const leadId = readLeadId(log);
-  const correlationId = log.correlationId ? String(log.correlationId) : '';
-
-  if (correlationId) {
-    return `${action}|${leadId}|${correlationId}`;
-  }
-
-  const createdAt = log.createdAt ? new Date(log.createdAt).getTime() : 0;
-  const bucket = Math.floor(createdAt / DEDUPE_WINDOW_MS);
-  return `${action}|${leadId}|${bucket}`;
+  if (leadId) return `${action}|${leadId}`;
+  return `${action}|id:${log.id ?? ''}`;
 }
 
-/** Collapse duplicate bell rows (same action/lead/run) while preserving order. */
+/** Collapse duplicate bell rows (same action/lead) while preserving newest-first order. */
 export function dedupeNotifications<T extends ActivityLogRow>(logs: T[]): T[] {
   const seen = new Set<string>();
   const out: T[] = [];

@@ -56,32 +56,37 @@ export async function syncCibilReportForLoanApplication(
   strapi: Core.Strapi,
   params: SyncCibilReportParams
 ) {
-  const leadId = params.leadId;
-  const applicantName = String(params.applicantName ?? '').trim();
-  const cibilFileId = params.cibilFileId;
+  try {
+    const leadId = params.leadId;
+    const applicantName = String(params.applicantName ?? '').trim();
+    const cibilFileId = params.cibilFileId;
 
-  if (leadId == null || String(leadId).trim() === '') {
-    strapi.log.warn('[LeadDocSync] Skipping CIBIL sync — missing leadId');
-    return null;
-  }
-  if (!applicantName) {
-    strapi.log.warn('[LeadDocSync] Skipping CIBIL sync — missing applicantName');
-    return null;
-  }
-  if (!cibilFileId) {
-    return null;
-  }
+    if (leadId == null || String(leadId).trim() === '') {
+      strapi.log.warn('[LeadDocSync] Skipping CIBIL sync — missing leadId');
+      return null;
+    }
+    if (!applicantName) {
+      strapi.log.warn('[LeadDocSync] Skipping CIBIL sync — missing applicantName');
+      return null;
+    }
+    if (!cibilFileId) {
+      return null;
+    }
 
-  await linkFilesToLeadUploadFolder(strapi, leadId, applicantName, [cibilFileId]);
+    await linkFilesToLeadUploadFolder(strapi, leadId, applicantName, [cibilFileId]);
 
-  return syncLeadDocumentsToDisk(
-    strapi,
-    leadId,
-    applicantName,
-    [cibilFileId],
-    { [cibilFileId]: 'cibilReport' },
-    { loanApplicationId: params.loanApplicationId }
-  );
+    return syncLeadDocumentsToDisk(
+      strapi,
+      leadId,
+      applicantName,
+      [cibilFileId],
+      { [cibilFileId]: 'cibilReport' },
+      { loanApplicationId: params.loanApplicationId }
+    );
+  } catch (err: unknown) {
+    strapi.log.error('[LeadDocSync] syncCibilReportForLoanApplication failed', err);
+    throw err;
+  }
 }
 
 export async function syncLeadDocumentsToDisk(
@@ -92,22 +97,30 @@ export async function syncLeadDocumentsToDisk(
   fileFieldById: Record<number, string> = {},
   options: SyncLeadDocumentsOptions = {}
 ) {
-  const folderName = buildLeadUploadFolderName(leadId, applicantName);
-  const ids = [...fileIds];
+  try {
+    const folderName = buildLeadUploadFolderName(leadId, applicantName);
+    const ids = [...fileIds];
 
-  await linkFilesToLeadUploadFolder(strapi, leadId, applicantName, ids);
+    await linkFilesToLeadUploadFolder(strapi, leadId, applicantName, ids);
 
-  const { targetDir, results } = await mirrorLeadDocumentsToDisk(
-    strapi,
-    folderName,
-    ids,
-    fileFieldById,
-    { loanApplicationId: options.loanApplicationId }
-  );
+    const { targetDir, results } = await mirrorLeadDocumentsToDisk(
+      strapi,
+      folderName,
+      ids,
+      fileFieldById,
+      { loanApplicationId: options.loanApplicationId }
+    );
 
-  strapi.log.info(
-    `[LeadDocSync] Moved ${results.filter((r) => r.ok).length}/${results.length} file(s) to public/uploads/api_uploads/${folderName}/`
-  );
+    strapi.log.info(
+      `[LeadDocSync] Moved ${results.filter((r) => r.ok).length}/${results.length} file(s) to public/uploads/api_uploads/${folderName}/`
+    );
 
-  return { folderName, targetDir, results };
+    return { folderName, targetDir, results };
+  } catch (err: unknown) {
+    strapi.log.error(
+      `[LeadDocSync] syncLeadDocumentsToDisk failed leadId=${leadId}`,
+      err
+    );
+    throw err;
+  }
 }

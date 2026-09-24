@@ -111,23 +111,31 @@ export default factories.createCoreService(UID, ({ strapi }) => ({
     dataSource = 'PDF_EXTRACTION',
     loanType,
   }: ExtractionParams) {
-    const extraction = await runPython(leadId, leadName, strapi.log, strapi, {
-      loanApplicationId,
-      loanType,
-    });
-    const { cibilData, salarySlipData } = await this.readExtractionOutputs();
-    const pdfStats = await getCibilPdfMtimeMs(leadId, leadName);
-    const database = await this.saveFromExtraction({
-      leadId,
-      leadName,
-      loanApplicationId,
-      dataSource,
-      cibilData,
-      salarySlipData,
-      sourcePdfMtimeMs: pdfStats?.mtimeMs,
-      sourcePdfRelPath: pdfStats?.relPath ?? buildCibilReportRelPath(leadId, leadName),
-    });
+    try {
+      const extraction = await runPython(leadId, leadName, strapi.log, strapi, {
+        loanApplicationId,
+        loanType,
+      });
+      const { cibilData, salarySlipData } = await this.readExtractionOutputs();
+      const pdfStats = await getCibilPdfMtimeMs(leadId, leadName);
+      const database = await this.saveFromExtraction({
+        leadId,
+        leadName,
+        loanApplicationId,
+        dataSource,
+        cibilData,
+        salarySlipData,
+        sourcePdfMtimeMs: pdfStats?.mtimeMs,
+        sourcePdfRelPath: pdfStats?.relPath ?? buildCibilReportRelPath(leadId, leadName),
+      });
 
-    return { extraction, database };
+      return { extraction, database };
+    } catch (err: unknown) {
+      strapi.log.error(
+        `[CIBIL] runExtraction failed leadId=${leadId} leadName=${leadName}`,
+        err
+      );
+      throw err;
+    }
   },
 }));

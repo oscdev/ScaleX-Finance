@@ -255,12 +255,13 @@ export async function runPython(
       }
       if (code !== 0) {
         const detail = stderr.trim();
+        if (detail) {
+          log.error(
+            `[Python Bridge] Python exited with code ${code}; stderr logged above`
+          );
+        }
         return reject(
-          new Error(
-            detail
-              ? `Python exited with code ${code}: ${detail}`
-              : `Python exited with code ${code}`
-          )
+          new Error(`Bureau extraction failed (Python exited with code ${code})`)
         );
       }
       try {
@@ -268,7 +269,8 @@ export async function runPython(
       } catch (err: unknown) {
         log.error(`[Python Bridge] stdout: ${stdout}`);
         const message = err instanceof Error ? err.message : String(err);
-        reject(new Error(`Invalid JSON from Python: ${message}`));
+        log.error(`[Python Bridge] Invalid JSON parse: ${message}`);
+        reject(new Error('Bureau extraction failed (invalid Python output)'));
       }
     });
   });

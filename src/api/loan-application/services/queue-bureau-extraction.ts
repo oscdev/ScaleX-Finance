@@ -304,7 +304,7 @@ async function logBureau(
   }
 ) {
   try {
-    const logger: any = strapi.service('api::activity-log.activity-log');
+    const logger: any = strapi.service('api::system-events.activity-log');
     if (!logger?.logEventDeduped) return;
     await logger.logEventDeduped({
       action: params.action,

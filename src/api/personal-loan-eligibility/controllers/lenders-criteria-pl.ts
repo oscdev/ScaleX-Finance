@@ -7,6 +7,7 @@ import {
   loanLogProduct,
   resolveLeadLoanTypeFromDb,
 } from '../../../utils/code-file-logger';
+import { safeUnexpectedMessage } from '../../../utils/safe-http-error';
 
 function sendError(ctx: any, err: unknown) {
   if (err instanceof PlEligibilityError || err instanceof BlEligibilityError) {
@@ -25,12 +26,12 @@ function sendError(ctx: any, err: unknown) {
     };
     return;
   }
-  const message = err instanceof Error ? err.message : String(err);
+  console.error('[PL eligibility] unexpected error', err);
   ctx.status = 500;
   ctx.body = {
     error: {
       code: 'PL_ERR_INTERNAL',
-      message,
+      message: safeUnexpectedMessage(),
       details: {},
     },
   };

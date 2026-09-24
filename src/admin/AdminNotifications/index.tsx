@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, Flex, Badge, Button } from '@strapi/design-system';
 import { useAdminNotifications } from './useAdminNotifications';
+import { bellActionLabel, formatBellDescription } from './bellLabels';
 import { styles } from './styles';
 
 export const AdminNotifications = () => {
@@ -59,9 +60,14 @@ export const AdminNotifications = () => {
                                 <Flex direction="column" alignItems="start" gap={1}>
                                     <Box style={styles.notifHeader}>
                                         <Badge
-                                            variant={notif.severity === 'warning' ? 'danger' : 'success'}
+                                            variant={
+                                                notif.severity === 'warning' ||
+                                                notif.action === 'BUREAU_EXTRACT_FAILED'
+                                                    ? 'danger'
+                                                    : 'success'
+                                            }
                                         >
-                                            {notif.action}
+                                            {bellActionLabel(notif.action, notif.metadata)}
                                         </Badge>
                                         <Typography
                                             variant="pi"
@@ -71,31 +77,17 @@ export const AdminNotifications = () => {
                                             {new Date(notif.createdAt).toLocaleTimeString()}
                                         </Typography>
                                     </Box>
-                                    <Typography 
-                                        variant="omega" 
+                                    <Typography
+                                        variant="omega"
                                         textColor="neutral800"
                                         style={styles.descText}
                                     >
-                                        {notif.description}
+                                        {formatBellDescription(notif)}
                                     </Typography>
                                 </Flex>
                             </Box>
                         ))
                     )}
-
-                    <Box paddingTop={3} style={styles.viewAllBox}>
-                        <Button
-                            variant="ghost"
-                            size="S"
-                            fullWidth
-                            onClick={() =>
-                                (window.location.href =
-                                    '/admin/content-manager/collection-types/api::activity-log.activity-log')
-                            }
-                        >
-                            View All Logs
-                        </Button>
-                    </Box>
                 </Box>
             )}
         </Box>

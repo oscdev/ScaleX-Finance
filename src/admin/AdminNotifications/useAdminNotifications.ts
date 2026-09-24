@@ -1,6 +1,32 @@
 import { useState, useEffect, useRef } from 'react';
 import { dedupeNotifications } from './dedupeNotifications';
 
+function authHeaders(): HeadersInit {
+    const captured = (window as any)._strapi_last_token as string | undefined;
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (captured) {
+        headers.Authorization = captured.startsWith('Bearer ')
+            ? captured
+            : `Bearer ${captured}`;
+    } else {
+        try {
+            const raw =
+                localStorage.getItem('jwtToken') ||
+                sessionStorage.getItem('jwtToken') ||
+                '';
+            const token = raw.startsWith('"') ? JSON.parse(raw) : raw;
+            if (token && typeof token === 'string') {
+                headers.Authorization = token.startsWith('Bearer ')
+                    ? token
+                    : `Bearer ${token}`;
+            }
+        } catch {
+            // ignore
+        }
+    }
+    return headers;
+}
+
 export const useAdminNotifications = () => {
     const [notifications, setNotifications] = useState<any[]>([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -19,14 +45,25 @@ export const useAdminNotifications = () => {
                 if (!enabled) return;
             }
 
-            const res = await fetch(
-                '/api/activity-logs?sort=createdAt:DESC&pagination[limit]=10&filters[severity][$in][0]=info&filters[severity][$in][1]=warning'
-            );
+            const res = await fetch('/admin/activity-logs/notifications?limit=20', {
+                headers: authHeaders(),
+                credentials: 'include',
+            });
+            if (res.status === 401) {
+                setNotifications([]);
+                setUnreadCount(0);
+                return;
+            }
             if (res.ok) {
                 const data = await res.json();
                 const logs = dedupeNotifications(data.data || []);
-                const lastSeenId = parseInt(localStorage.getItem('last_seen_notification_id') || '0');
-                const newUnreadCount = logs.filter((log: any) => log.id > lastSeenId).length;
+                const lastSeenId = parseInt(
+                    localStorage.getItem('last_seen_notification_id') || '0',
+                    10
+                );
+                const newUnreadCount = logs.filter(
+                    (log: any) => log.id > lastSeenId
+                ).length;
                 setNotifications(logs);
                 setUnreadCount(newUnreadCount);
             }
@@ -54,7 +91,10 @@ export const useAdminNotifications = () => {
     const toggleOpen = () => {
         setIsOpen(!isOpen);
         if (!isOpen && notifications.length > 0) {
-            localStorage.setItem('last_seen_notification_id', notifications[0].id.toString());
+            localStorage.setItem(
+                'last_seen_notification_id',
+                notifications[0].id.toString()
+            );
             setUnreadCount(0);
         }
     };

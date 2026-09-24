@@ -3,7 +3,7 @@ export default {
     {
       method: 'POST',
       path: '/activity-logs/log',
-      handler: 'api::activity-log.activity-log.createLog',
+      handler: 'api::system-events.activity-log.createLog',
       config: {
         policies: [],
         middlewares: [],
@@ -13,7 +13,7 @@ export default {
     {
       method: 'GET',
       path: '/activity-logs/by-lead',
-      handler: 'api::activity-log.activity-log.byLead',
+      handler: 'api::system-events.activity-log.byLead',
       config: {
         policies: [],
         middlewares: [],
@@ -23,7 +23,7 @@ export default {
     {
       method: 'GET',
       path: '/activity-logs/by-lead/:leadId',
-      handler: 'api::activity-log.activity-log.forLead',
+      handler: 'api::system-events.activity-log.forLead',
       config: {
         policies: [],
         middlewares: [],

@@ -5,7 +5,7 @@
     "singularName": "activity-log",
     "pluralName": "activity-logs",
     "displayName": "Activity Log",
-    "description": "Centralized system logs for ScaleX Finance"
+    "description": "System events module — activity audit trail (also feeds admin notifications + email audit)"
   },
   "options": {
     "draftAndPublish": false
@@ -15,6 +15,7 @@
       "type": "enumeration",
       "enum": [
         "LEAD_CREATED",
+        "LEAD_ADVISOR_ASSIGNED",
         "EMAIL_DISPATCHED",
         "EMAIL_FAILED",
         "EMAIL_SKIPPED",

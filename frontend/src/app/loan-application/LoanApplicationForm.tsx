@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { strapiPublicApi } from '@/lib/strapi';
 import { logPlSubmission } from '@/lib/plSubmissionLogger';
 import { safeSessionStorage } from '@/lib/safeStorage';
+import { parseJsonSafe, userFacingError } from '@/lib/safeFetch';
 import './LoanApplication.css';
 import BusinessLoanFunnel from './funnels/BusinessLoanFunnel';
 import HomeLoanFunnel from './funnels/HomeLoanFunnel';
@@ -578,13 +579,14 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
                     ...uploadedFileIds,
                     status: 'Pending',
                     declarationAccepted: formData.declarationAccepted,
+                    ...(ss.getItem('strapiAdvisorId')
+                        ? { notifyingAdvisorId: ss.getItem('strapiAdvisorId') }
+                        : {}),
                     ...(ss.getItem('strapiUserRole') === 'staff' && ss.getItem('strapiAdminUserId')
                         ? { assignedStaffId: Number(ss.getItem('strapiAdminUserId')) }
                         : {})
                 }
             };
-
-            console.log('Sending Loan Application Payload:', JSON.stringify(payload, null, 2));
 
             const res = await fetch(strapiPublicApi('/strapi-api/loan-applications'), {
                 method: 'POST',
@@ -595,11 +597,9 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
             if (!res.ok) {
                 const contentType = res.headers.get('content-type');
                 if (contentType && contentType.includes('application/json')) {
-                    const errorData = await res.json();
+                    const errorData = await parseJsonSafe<{ error?: { message?: string } }>(res);
                     throw new Error(errorData?.error?.message || 'Submission failed');
                 } else {
-                    const errorText = await res.text();
-                    console.error('Non-JSON Error Response:', errorText.substring(0, 500));
                     throw new Error(`Server Error (${res.status}): Please check if Strapi is accessible.`);
                 }
             }
@@ -613,15 +613,16 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
         } catch (err: any) {
             console.error('Submission Error:', err);
             const ss = safeSessionStorage();
+            const safeMsg = userFacingError(err, 'Submission failed. Please try again.');
             void logPlSubmission({
                 form: 'loan-application',
                 event: 'CLIENT_ERROR',
                 leadId: ss.getItem('lastLeadId'),
                 leadName: ss.getItem('leadName'),
                 fields: formData as unknown as Record<string, unknown>,
-                errors: err.message,
+                errors: safeMsg,
             });
-            setSubmitError(err.message);
+            setSubmitError(safeMsg);
         } finally {
             setIsSubmitting(false);
         }

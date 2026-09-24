@@ -269,8 +269,8 @@ const clearCustomPageOverlays = () => {
     const path = window.location.pathname;
     const wantRaw = new URLSearchParams(window.location.search).get('raw') === '1';
     const isActivityLogList =
-        path.includes('api::activity-log.activity-log') &&
-        !/\/api::activity-log\.activity-log\/[^/?]+/.test(path);
+        path.includes('api::system-events.activity-log') &&
+        !/\/api::system-events\.activity-log\/[^/?]+/.test(path);
     const wantTimeline = isActivityLogList && !wantRaw;
 
     const isLoanPage = path.includes('api::loan-application.loan-application');
@@ -428,8 +428,8 @@ const ensureAdminNotifications = () => {
 const applyLeadActivityTimelineOverride = () => {
     const path = window.location.pathname;
     const isActivityLog =
-        path.includes('api::activity-log.activity-log') &&
-        !/\/api::activity-log\.activity-log\/[^/?]+/.test(path);
+        path.includes('api::system-events.activity-log') &&
+        !/\/api::system-events\.activity-log\/[^/?]+/.test(path);
     const wantRaw = new URLSearchParams(window.location.search).get('raw') === '1';
 
     if (!isActivityLog || wantRaw) {
@@ -506,7 +506,7 @@ const initOverrides = () => {
         const isAdvisorsPage = path.includes('api::advisor.advisor');
         const isLeadsPage = path.includes('api::lead.lead');
         const isLoanPage = path.includes('api::loan-application.loan-application');
-        const isActivityLogPage = path.includes('api::activity-log.activity-log');
+        const isActivityLogPage = path.includes('api::system-events.activity-log');
         const isAdminUsersListPage = path.replace(/\/+$/, '') === '/admin/settings/users';
         const isAdminUserEditPage = /\/admin\/settings\/users\/\d+/.test(path);
         const isRoleEditPage = /\/admin\/settings\/roles\/\d+/.test(path);

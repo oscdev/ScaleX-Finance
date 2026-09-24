@@ -1,7 +1,8 @@
 import { factories } from '@strapi/strapi';
+import { safeUnexpectedMessage } from '../../../utils/safe-http-error';
 
 export default factories.createCoreController(
-  'api::activity-log.activity-log',
+  'api::system-events.activity-log',
   ({ strapi }) => ({
     async createLog(ctx: any) {
       try {
@@ -20,7 +21,7 @@ export default factories.createCoreController(
         const ipAddress = ctx.request.ip;
 
         const loggerService = strapi.service(
-          'api::activity-log.activity-log'
+          'api::system-events.activity-log'
         ) as any;
 
         await loggerService.logEvent({
@@ -39,14 +40,15 @@ export default factories.createCoreController(
 
         return ctx.send({ ok: true });
       } catch (err: any) {
-        return ctx.badRequest(err.message);
+        strapi.log.error('[activity-log] createLog failed', err);
+        return ctx.badRequest(safeUnexpectedMessage());
       }
     },
 
     async byLead(ctx: any) {
       try {
         const service = strapi.service(
-          'api::activity-log.activity-log'
+          'api::system-events.activity-log'
         ) as any;
         const result = await service.listByLead({
           search: ctx.query.search,
@@ -55,8 +57,9 @@ export default factories.createCoreController(
         });
         ctx.body = result;
       } catch (err: any) {
+        strapi.log.error('[activity-log] byLead failed', err);
         ctx.status = 500;
-        ctx.body = { error: { message: err.message } };
+        ctx.body = { error: { message: safeUnexpectedMessage() } };
       }
     },
 
@@ -69,7 +72,7 @@ export default factories.createCoreController(
           return;
         }
         const service = strapi.service(
-          'api::activity-log.activity-log'
+          'api::system-events.activity-log'
         ) as any;
         const result = await service.listForLead(leadId, {
           category: ctx.query.category,
@@ -78,8 +81,9 @@ export default factories.createCoreController(
         });
         ctx.body = result;
       } catch (err: any) {
+        strapi.log.error('[activity-log] forLead failed', err);
         ctx.status = 500;
-        ctx.body = { error: { message: err.message } };
+        ctx.body = { error: { message: safeUnexpectedMessage() } };
       }
     },
   })
