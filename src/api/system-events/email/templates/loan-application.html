@@ -2,46 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Loan Application: ScaleX Finance</title>
 </head>
-<body style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.6; background-color: #f3f4f6; padding: 20px;">
-    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 8px; border-top: 4px solid #2563eb;">
-        <h2 style="color: #1d4ed8; margin-top: 0;">New Loan Application</h2>
-        <p>Hello <strong>{{recipientName}}</strong>,</p>
-        <p>A loan application was submitted on ScaleX Finance. Summary:</p>
+<body style="margin:0; padding:0; background-color:#f3f4f6; font-family:Arial, Helvetica, sans-serif; color:#1f2937; line-height:1.6;">
+    <!-- Outer wrapper: fixed width tables survive forward/reply better than div layouts -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f3f4f6" style="background-color:#f3f4f6; width:100%;">
+        <tr>
+            <td align="center" style="padding:20px 12px;">
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="width:600px; max-width:600px; background-color:#ffffff; border:1px solid #e5e7eb;">
+                    <!-- Accent bar -->
+                    <tr>
+                        <td bgcolor="#2563eb" style="background-color:#2563eb; height:4px; font-size:0; line-height:0;">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:28px 32px;">
+                            <h2 style="color:#1d4ed8; margin:0 0 16px 0; font-size:20px; font-weight:bold;">New Loan Application</h2>
+                            <p style="margin:0 0 12px 0; font-size:15px;">Hello <strong>{{recipientName}}</strong> ({{recipientRole}}),</p>
+                            <p style="margin:0 0 20px 0; font-size:15px;">A loan application was submitted on ScaleX Finance. Summary:</p>
 
-        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; background: #f9fafb; border-radius: 4px;">
-            <tr>
-                <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold; width: 40%;">Applicant / Lead:</td>
-                <td style="padding: 12px; border: 1px solid #e5e7eb;">{{applicantName}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Lead ID:</td>
-                <td style="padding: 12px; border: 1px solid #e5e7eb;">{{leadId}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Loan Application ID:</td>
-                <td style="padding: 12px; border: 1px solid #e5e7eb;">{{loanApplicationId}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Amount:</td>
-                <td style="padding: 12px; border: 1px solid #e5e7eb;">INR {{amount}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Product:</td>
-                <td style="padding: 12px; border: 1px solid #e5e7eb;">{{productType}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">Mobile:</td>
-                <td style="padding: 12px; border: 1px solid #e5e7eb;">{{mobile}}</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;">City / PIN:</td>
-                <td style="padding: 12px; border: 1px solid #e5e7eb;">{{city}}</td>
-            </tr>
-        </table>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f9fafb" style="width:100%; background-color:#f9fafb; border-collapse:collapse;">
+                                <tr>
+                                    <td width="40%" valign="top" style="padding:12px; border:1px solid #e5e7eb; font-weight:bold; width:40%; font-size:14px;">Applicant / Lead:</td>
+                                    <td valign="top" style="padding:12px; border:1px solid #e5e7eb; font-size:14px;">{{applicantName}}</td>
+                                </tr>
+                                <tr>
+                                    <td width="40%" valign="top" style="padding:12px; border:1px solid #e5e7eb; font-weight:bold; width:40%; font-size:14px;">Lead ID:</td>
+                                    <td valign="top" style="padding:12px; border:1px solid #e5e7eb; font-size:14px;">{{leadId}}</td>
+                                </tr>
+                                <tr>
+                                    <td width="40%" valign="top" style="padding:12px; border:1px solid #e5e7eb; font-weight:bold; width:40%; font-size:14px;">Amount:</td>
+                                    <td valign="top" style="padding:12px; border:1px solid #e5e7eb; font-size:14px;">INR {{amount}}</td>
+                                </tr>
+                                <tr>
+                                    <td width="40%" valign="top" style="padding:12px; border:1px solid #e5e7eb; font-weight:bold; width:40%; font-size:14px;">Product:</td>
+                                    <td valign="top" style="padding:12px; border:1px solid #e5e7eb; font-size:14px;">{{productType}}</td>
+                                </tr>
+                                <tr>
+                                    <td width="40%" valign="top" style="padding:12px; border:1px solid #e5e7eb; font-weight:bold; width:40%; font-size:14px;">Mobile:</td>
+                                    <td valign="top" style="padding:12px; border:1px solid #e5e7eb; font-size:14px;">{{mobile}}</td>
+                                </tr>
+                                <tr>
+                                    <td width="40%" valign="top" style="padding:12px; border:1px solid #e5e7eb; font-weight:bold; width:40%; font-size:14px;">City / PIN:</td>
+                                    <td valign="top" style="padding:12px; border:1px solid #e5e7eb; font-size:14px;">{{city}}</td>
+                                </tr>
+                            </table>
 
-        <p style="font-size: 14px; color: #6b7280;">ScaleX Finance</p>
-    </div>
+                            <p style="margin:20px 0 0 0; font-size:14px; color:#6b7280;">ScaleX Finance</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

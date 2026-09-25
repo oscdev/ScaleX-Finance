@@ -137,14 +137,35 @@ export type EmailRunGroup = {
   events: ActivityEvent[];
 };
 
-function roleLabelFromMeta(meta: Record<string, unknown>, template?: string): string {
-  const role = String(meta.role || '').toLowerCase();
-  if (role === 'admin') return 'Super Admin';
+/** Map EMAIL_* metadata.role to Activity Log Email tab label. */
+export function formatEmailAuditRoleLabel(roleRaw: unknown): string {
+  const role = String(roleRaw || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+  if (!role) return 'Recipient';
+  if (role === 'admin' || role === 'super_admin') return 'Super Admin';
   if (role === 'advisor') return 'Advisor';
+  if (role === 'parent_advisor') return 'Parent Advisor';
+  if (role === 'staff') return 'Staff';
+  if (role === 'banker') return 'Banker';
   if (role === 'applicant') return 'Applicant';
-  const t = String(template || meta.template || '');
+  return role
+    .split('_')
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
+function roleLabelFromMeta(meta: Record<string, unknown>, template?: string): string {
+  const fromRole = formatEmailAuditRoleLabel(meta.role);
+  if (fromRole !== 'Recipient') return fromRole;
+
+  const t = String(template || meta.template || '').toLowerCase();
   if (t.includes('admin')) return 'Super Admin';
   if (t.includes('advisor')) return 'Advisor';
+  if (t.includes('staff')) return 'Staff';
+  if (t.includes('banker')) return 'Banker';
   if (t.includes('applicant') || t.includes('welcome')) return 'Applicant';
   return 'Recipient';
 }

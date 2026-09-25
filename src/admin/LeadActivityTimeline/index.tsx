@@ -9,6 +9,7 @@ import {
   categoryLabel,
   groupEmailEvents,
   eventMatchesAuthRole,
+  formatEmailAuditRoleLabel,
   normalizeEventMetadata,
   useLeadActivityTimeline,
   type ActivityEvent,
@@ -107,6 +108,9 @@ function formatMetaValue(key: string, value: unknown): string {
     } catch {
       return String(value);
     }
+  }
+  if (key === 'role') {
+    return formatEmailAuditRoleLabel(value);
   }
   if (key === 'leadId' || key === 'loanApplicationId' || key === 'advisorId' || key === 'adminUserId') {
     return `#${value}`;

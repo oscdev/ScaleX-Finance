@@ -695,6 +695,22 @@ export default {
     // 3. Register Global Lifecycle
     strapi.db.lifecycles.subscribe({
       models: ['api::advisor.advisor'],
+      async beforeUpdate(event) {
+        const { params } = event;
+        const { where, data } = params;
+        if (!data || !Object.prototype.hasOwnProperty.call(data, 'advisorStatus')) {
+          return;
+        }
+        try {
+          const existing = await strapi.db.query('api::advisor.advisor').findOne({ where });
+          (event as { state?: Record<string, unknown> }).state = {
+            ...((event as { state?: Record<string, unknown> }).state || {}),
+            prevAdvisorStatus: existing?.advisorStatus ?? null,
+          };
+        } catch {
+          // non-fatal
+        }
+      },
       async afterCreate(event) {
         const { result } = event;
 
@@ -706,6 +722,26 @@ export default {
               data: { advisorId: `ADV${result.id}` }
             });
           } catch (e) {}
+        }
+
+        try {
+          const emailService: any = strapi.service('api::system-events.activity-log');
+          if (emailService?.onAdvisorRegistrationSubmitted) {
+            await emailService.onAdvisorRegistrationSubmitted({
+              advisor: {
+                id: result.id,
+                fullName: result.fullName,
+                email: result.email,
+                phoneNumber: result.phoneNumber,
+                state: result.state,
+                district: result.district,
+                pinCode: result.pinCode,
+                specialization: result.specialization,
+              },
+            });
+          }
+        } catch {
+          // non-fatal email side-effect
         }
 
         await createAdminUserFromAdvisor(strapi, result, (event.params as any)?.data?.password);
@@ -723,7 +759,102 @@ export default {
           } catch (e) {}
         }
 
+        const prevStatus = String(
+          (event as { state?: { prevAdvisorStatus?: string | null } }).state
+            ?.prevAdvisorStatus || ''
+        );
+        const nowStatus = String(result.advisorStatus || '');
+        if (prevStatus !== 'Approved' && nowStatus === 'Approved') {
+          try {
+            const emailService: any = strapi.service('api::system-events.activity-log');
+            const loginUrl = `${strapi.config.get('admin.absoluteUrl')}/auth/login`;
+            if (emailService?.onRegistrationWelcome && result.email) {
+              await emailService.onRegistrationWelcome({
+                to: result.email,
+                recipientName: result.fullName || 'Advisor',
+                recipientRole: 'Advisor',
+                auditRole: 'advisor',
+                actionUrl: loginUrl,
+                actionLabel: 'Sign in to ScaleX Admin',
+                welcomeMessage:
+                  'Your advisor registration has been approved. Sign in to the ScaleX admin dashboard to start managing leads.',
+                lead: { fullName: result.fullName, email: result.email },
+              });
+            }
+          } catch {
+            // non-fatal email side-effect
+          }
+        }
+
         await createAdminUserFromAdvisor(strapi, result, (event.params as any)?.data?.password);
+      },
+    });
+
+    // Admin user invite → welcome email with registration link (CE has no built-in invite mail)
+    strapi.db.lifecycles.subscribe({
+      models: ['admin::user'],
+      async afterCreate(event) {
+        const result = event.result as {
+          id?: number | string;
+          email?: string;
+          firstname?: string;
+          lastname?: string;
+          registrationToken?: string | null;
+          roles?: Array<{ code?: string; name?: string } | number | string>;
+        };
+        const token = String(result?.registrationToken || '').trim();
+        const email = String(result?.email || '').trim();
+        if (!token || !email) return;
+
+        try {
+          let roles = result.roles;
+          if (!roles || !roles.length || typeof roles[0] !== 'object') {
+            const full = await strapi.db.query('admin::user').findOne({
+              where: { id: result.id },
+              populate: { roles: { select: ['code', 'name'] } },
+            });
+            roles = full?.roles;
+          }
+
+          const roleLabel = (() => {
+            const list = (roles || []) as Array<{ code?: string; name?: string }>;
+            const blob = list
+              .map((r) => `${r.code || ''} ${r.name || ''}`.toLowerCase())
+              .join(' ');
+            if (blob.includes('banker')) return 'Banker' as const;
+            if (blob.includes('staff')) return 'Staff' as const;
+            if (blob.includes('advisor')) return 'Advisor' as const;
+            return 'Staff' as const;
+          })();
+
+          const auditRole =
+            roleLabel === 'Banker'
+              ? 'banker'
+              : roleLabel === 'Advisor'
+                ? 'advisor'
+                : 'staff';
+
+          const name =
+            [result.firstname, result.lastname].filter(Boolean).join(' ').trim() ||
+            roleLabel;
+
+          const actionUrl = `${strapi.config.get('admin.absoluteUrl')}/auth/register?registrationToken=${encodeURIComponent(token)}`;
+          const emailService: any = strapi.service('api::system-events.activity-log');
+          if (emailService?.onRegistrationWelcome) {
+            await emailService.onRegistrationWelcome({
+              to: email,
+              recipientName: name,
+              recipientRole: roleLabel,
+              auditRole,
+              actionUrl,
+              actionLabel: 'Complete registration',
+              welcomeMessage: `You have been invited to ScaleX Finance as ${roleLabel}. Complete registration with the link below to set your password and activate your account.`,
+              lead: { fullName: name, email },
+            });
+          }
+        } catch {
+          // non-fatal email side-effect
+        }
       },
     });
 
@@ -1258,6 +1389,17 @@ export default {
               newStatus: data.leadStatus,
             },
           });
+          if (logger.onLeadStatusChanged) {
+            try {
+              await logger.onLeadStatusChanged({
+                leadId: oldLead.id,
+                oldStatus: String(oldLead.leadStatus || ''),
+                newStatus: String(data.leadStatus || ''),
+              });
+            } catch {
+              // non-fatal email side-effect
+            }
+          }
         }
 
         const norm = (v: unknown) =>
@@ -1285,6 +1427,17 @@ export default {
                 newValue: newVal || null,
               },
             });
+            if (newVal && logger.onLeadAdvisorAssigned) {
+              try {
+                await logger.onLeadAdvisorAssigned({
+                  leadId: oldLead.id,
+                  field: 'advisorReferralId',
+                  newAdvisorKey: newVal,
+                });
+              } catch {
+                // non-fatal email side-effect
+              }
+            }
           }
         }
 
@@ -1310,6 +1463,17 @@ export default {
                 newValue: newVal || null,
               },
             });
+            if (newVal && logger.onLeadAdvisorAssigned) {
+              try {
+                await logger.onLeadAdvisorAssigned({
+                  leadId: oldLead.id,
+                  field: 'parentAdvisorId',
+                  newAdvisorKey: newVal,
+                });
+              } catch {
+                // non-fatal email side-effect
+              }
+            }
           }
         }
       },
@@ -1549,6 +1713,29 @@ export default {
                 newAssignedBankerId: newBanker,
               },
             });
+
+            const emailStaffId =
+              staffChanging && oldStaff !== newStaff && newStaff
+                ? newStaff
+                : null;
+            const emailBankerId =
+              bankerChanging && oldBanker !== newBanker && newBanker
+                ? newBanker
+                : null;
+            if (
+              (emailStaffId || emailBankerId) &&
+              logger.onLoanStaffBankerAssigned
+            ) {
+              try {
+                await logger.onLoanStaffBankerAssigned({
+                  loanApplicationId: existing.id,
+                  staffId: emailStaffId,
+                  bankerId: emailBankerId,
+                });
+              } catch {
+                // non-fatal email side-effect
+              }
+            }
           }
         } catch {
           // non-fatal
