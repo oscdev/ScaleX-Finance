@@ -30,8 +30,8 @@ const cleanUrl = () => {
     let appliedDefaultSort = false;
     const sort = decodeURIComponent(params.get('sort') || '');
 
-    // Hard default: always newest admin user ID first
-    if (normalizeAdminSort(sort) !== 'ID:DESC') {
+    // Soft default: newest admin user ID first only when sort is absent
+    if (!sort || !String(sort).trim()) {
         params.set('sort', 'id:DESC');
         changed = true;
         appliedDefaultSort = true;

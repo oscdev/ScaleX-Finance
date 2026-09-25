@@ -730,6 +730,9 @@ export default {
             await emailService.onAdvisorRegistrationSubmitted({
               advisor: {
                 id: result.id,
+                advisorId:
+                  String(result.advisorId || '').trim() ||
+                  (result.id != null ? `ADV${result.id}` : undefined),
                 fullName: result.fullName,
                 email: result.email,
                 phoneNumber: result.phoneNumber,
@@ -779,6 +782,9 @@ export default {
                 welcomeMessage:
                   'Your advisor registration has been approved. Sign in to the ScaleX admin dashboard to start managing leads.',
                 lead: { fullName: result.fullName, email: result.email },
+                advisorId:
+                  String(result.advisorId || '').trim() ||
+                  (result.id != null ? `ADV${result.id}` : undefined),
               });
             }
           } catch {
@@ -841,7 +847,18 @@ export default {
           const actionUrl = `${strapi.config.get('admin.absoluteUrl')}/auth/register?registrationToken=${encodeURIComponent(token)}`;
           const emailService: any = strapi.service('api::system-events.activity-log');
           if (emailService?.onRegistrationWelcome) {
-            await emailService.onRegistrationWelcome({
+            const invitePayload: {
+              to: string;
+              recipientName: string;
+              recipientRole: typeof roleLabel;
+              auditRole: typeof auditRole;
+              actionUrl: string;
+              actionLabel: string;
+              welcomeMessage: string;
+              lead: { fullName: string; email: string };
+              adminUserId?: number | string;
+              advisorId?: string;
+            } = {
               to: email,
               recipientName: name,
               recipientRole: roleLabel,
@@ -850,7 +867,24 @@ export default {
               actionLabel: 'Complete registration',
               welcomeMessage: `You have been invited to ScaleX Finance as ${roleLabel}. Complete registration with the link below to set your password and activate your account.`,
               lead: { fullName: name, email },
-            });
+              adminUserId: result.id,
+            };
+
+            if (auditRole === 'advisor') {
+              try {
+                const matched = await strapi.db.query('api::advisor.advisor').findOne({
+                  where: { email },
+                });
+                if (matched) {
+                  const code = String(matched.advisorId || '').trim();
+                  invitePayload.advisorId = code || `ADV${matched.id}`;
+                }
+              } catch {
+                // keep adminUserId only
+              }
+            }
+
+            await emailService.onRegistrationWelcome(invitePayload);
           }
         } catch {
           // non-fatal email side-effect
@@ -1848,6 +1882,11 @@ export default {
       './api/loan-application/services/api-uploads-mirror'
     );
     await bootstrapApiUploadsMirror(strapi);
+
+    const { installAdminForgotPasswordAudit } = await import(
+      './api/system-events/email/forgot-password-audit'
+    );
+    installAdminForgotPasswordAudit(strapi);
 
     const { startAutomationTestingSuite } = await import('./utils/start-suite-dashboard');
     await startAutomationTestingSuite(strapi);

@@ -121,6 +121,8 @@ export function normalizeEventMetadata(raw: unknown): Record<string, unknown> {
 export type EmailPersonLine = {
   eventId: number;
   roleLabel: string;
+  userIdLabel?: string;
+  templateLabel?: string;
   recipient: string;
   statusLabel: string;
   reasonShort?: string;
@@ -129,9 +131,13 @@ export type EmailPersonLine = {
 
 export type EmailRunGroup = {
   key: string;
+  kind: 'lead' | 'user';
   leadId: number | null;
   leadName: string | null;
   loanApplicationId: string | number | null;
+  userRoleLabel?: string;
+  userIdLabel?: string;
+  userRecipient?: string;
   latestAt: string;
   persons: EmailPersonLine[];
   events: ActivityEvent[];
@@ -157,6 +163,25 @@ export function formatEmailAuditRoleLabel(roleRaw: unknown): string {
     .join(' ');
 }
 
+/** Friendly label for EMAIL_* metadata.template. */
+export function formatEmailTemplateLabel(templateRaw: unknown): string {
+  const t = String(templateRaw || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\.html$/i, '');
+  if (!t) return '';
+  if (t === 'loan-application') return 'Loan Application';
+  if (t === 'lead-status-update') return 'Lead Status Update';
+  if (t === 'advisor-registration') return 'Advisor Registration';
+  if (t === 'registration-welcome') return 'Registration Welcome';
+  if (t === 'forgot-password') return 'Forgot Password';
+  return t
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
 function roleLabelFromMeta(meta: Record<string, unknown>, template?: string): string {
   const fromRole = formatEmailAuditRoleLabel(meta.role);
   if (fromRole !== 'Recipient') return fromRole;
@@ -168,6 +193,58 @@ function roleLabelFromMeta(meta: Record<string, unknown>, template?: string): st
   if (t.includes('banker')) return 'Banker';
   if (t.includes('applicant') || t.includes('welcome')) return 'Applicant';
   return 'Recipient';
+}
+
+/**
+ * Normalize advisors.advisor_id for display/grouping.
+ * `56` → `ADV56`; `adv56` / `ADV56` → `ADV56`.
+ */
+export function normalizeAdvisorDashboardId(raw: unknown): string {
+  const s = String(raw ?? '').trim();
+  if (!s) return '';
+  if (/^\d+$/.test(s)) return `ADV${s}`;
+  const m = /^adv[-_]?(.+)$/i.exec(s);
+  if (m) {
+    const rest = String(m[1] || '').trim();
+    return rest ? `ADV${rest}` : '';
+  }
+  return s;
+}
+
+/**
+ * Advisor / Parent Advisor → Advisor Dashboard ID (#ADV56).
+ * Staff / Banker → Users id (#42).
+ * Super Admin → never show an ID.
+ */
+export function formatEmailUserIdLabel(meta: Record<string, unknown>): string {
+  const role = String(meta.role || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+  if (role === 'admin' || role === 'super_admin') {
+    return '';
+  }
+  if (role === 'advisor' || role === 'parent_advisor') {
+    const code = normalizeAdvisorDashboardId(
+      meta.advisorId ?? meta.regardingAdvisorId
+    );
+    return code ? `#${code}` : '';
+  }
+  if (role === 'staff' || role === 'banker') {
+    const userId = String(
+      meta.adminUserId ?? meta.userId ?? ''
+    ).trim();
+    return userId ? `#${userId}` : '';
+  }
+  // Role missing but Users id present (legacy rows)
+  const userId = String(meta.adminUserId ?? meta.userId ?? '').trim();
+  if (userId && role !== 'applicant') return `#${userId}`;
+  const adv = normalizeAdvisorDashboardId(meta.advisorId);
+  return adv ? `#${adv}` : '';
+}
+
+function advisorThreadKey(advCode: string): string {
+  return `user-adv-${advCode.toLowerCase()}-advisor`;
 }
 
 /** Resolve Users & Auth event role for filter tabs (Advisor|Staff|Banker|Admin). */
@@ -232,6 +309,54 @@ function dayKey(iso: string): string {
   }
 }
 
+function preferDisplayName(
+  ...candidates: Array<string | null | undefined>
+): string {
+  for (const c of candidates) {
+    const s = String(c || '').trim();
+    if (!s || s === '—') continue;
+    if (s.includes('@')) continue; // skip bare emails when a name exists later
+    return s;
+  }
+  for (const c of candidates) {
+    const s = String(c || '').trim();
+    if (s && s !== '—') return s;
+  }
+  return '—';
+}
+
+function buildAdvisorEmailToAdvMap(
+  events: ActivityEvent[]
+): Map<string, string> {
+  const map = new Map<string, string>();
+  const remember = (email: string, code: string) => {
+    const e = email.trim().toLowerCase();
+    if (!e || !code) return;
+    if (!map.has(e)) map.set(e, code);
+  };
+
+  for (const event of events) {
+    const meta = normalizeEventMetadata(event.metadata);
+    const code = normalizeAdvisorDashboardId(
+      meta.regardingAdvisorId ?? meta.advisorId
+    );
+    if (!code) continue;
+
+    const role = String(meta.role || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[\s-]+/g, '_');
+    const regardingEmail = String(meta.regardingEmail || '').trim();
+    if (regardingEmail) remember(regardingEmail, code);
+
+    if (role === 'advisor' || role === 'parent_advisor') {
+      const recipient = String(meta.recipient || '').trim();
+      if (recipient) remember(recipient, code);
+    }
+  }
+  return map;
+}
+
 export function groupEmailEvents(
   events: ActivityEvent[],
   actionFilter: string
@@ -241,6 +366,7 @@ export function groupEmailEvents(
       ? events.filter((e) => e.action === actionFilter)
       : events;
 
+  const emailToAdv = buildAdvisorEmailToAdvMap(filtered);
   const map = new Map<string, EmailRunGroup>();
 
   for (const event of filtered) {
@@ -249,30 +375,174 @@ export function groupEmailEvents(
       meta.loanApplicationId != null && meta.loanApplicationId !== ''
         ? meta.loanApplicationId
         : null;
-    const leadId =
+    const leadIdRaw =
       event.leadId != null
         ? Number(event.leadId)
         : meta.leadId != null
           ? Number(meta.leadId)
           : null;
+    const leadId =
+      leadIdRaw != null && Number.isFinite(leadIdRaw) ? leadIdRaw : null;
     const leadName =
       event.leadName ||
       (meta.leadName != null ? String(meta.leadName) : null);
 
-    const key =
-      loanAppId != null
-        ? `loan-${loanAppId}`
-        : leadId != null
-          ? `lead-${leadId}-${dayKey(event.createdAt)}`
-          : `evt-${event.id}`;
+    const roleRaw = String(meta.role || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[\s-]+/g, '_');
+    const roleLabel = roleLabelFromMeta(meta, String(meta.template || ''));
+    const roleForId =
+      roleRaw ||
+      (roleLabel === 'Banker'
+        ? 'banker'
+        : roleLabel === 'Staff'
+          ? 'staff'
+          : roleLabel === 'Advisor' || roleLabel === 'Parent Advisor'
+            ? 'advisor'
+            : roleLabel === 'Super Admin'
+              ? 'admin'
+              : '');
+    const personUserIdLabel =
+      formatEmailUserIdLabel(
+        roleForId && !meta.role ? { ...meta, role: roleForId } : meta
+      ) || undefined;
+    const templateLabel = formatEmailTemplateLabel(meta.template) || undefined;
+    const recipient = String(meta.recipient || '—');
+    const recipientKey = String(meta.recipient || '')
+      .trim()
+      .toLowerCase();
+
+    const regardingEmail = String(meta.regardingEmail || '')
+      .trim()
+      .toLowerCase();
+    const recipientName = String(meta.recipientName || '').trim();
+    const regardingName = String(meta.regardingName || '').trim();
+
+    let advisorCode = normalizeAdvisorDashboardId(
+      meta.regardingAdvisorId ?? meta.advisorId
+    );
+    const isAdvisorRole =
+      roleRaw === 'advisor' ||
+      roleRaw === 'parent_advisor' ||
+      roleForId === 'advisor';
+    const isAdminRegardingAdvisor =
+      (roleRaw === 'admin' ||
+        roleRaw === 'super_admin' ||
+        roleForId === 'admin') &&
+      Boolean(
+        advisorCode ||
+          regardingEmail ||
+          meta.regardingAdvisorId ||
+          meta.advisorId
+      );
+
+    if (!advisorCode && (isAdvisorRole || isAdminRegardingAdvisor)) {
+      advisorCode =
+        (regardingEmail && emailToAdv.get(regardingEmail)) ||
+        (isAdvisorRole && recipientKey
+          ? emailToAdv.get(recipientKey)
+          : undefined) ||
+        '';
+    }
+
+    const isStaffBanker =
+      roleRaw === 'staff' ||
+      roleRaw === 'banker' ||
+      roleForId === 'staff' ||
+      roleForId === 'banker';
+    const adminUserId = String(meta.adminUserId ?? meta.userId ?? '').trim();
+
+    let key: string;
+    let kind: 'lead' | 'user';
+    let headerRoleLabel: string | undefined;
+    let headerUserIdLabel: string | undefined;
+    let headerRecipient: string | undefined;
+
+    if (loanAppId != null) {
+      key = `loan-${loanAppId}`;
+      kind = 'lead';
+    } else if (leadId != null) {
+      key = `lead-${leadId}-${dayKey(event.createdAt)}`;
+      kind = 'lead';
+    } else if (
+      isAdminRegardingAdvisor ||
+      (isAdvisorRole && (advisorCode || recipientKey))
+    ) {
+      kind = 'user';
+      headerRoleLabel = 'Advisor';
+      headerUserIdLabel = advisorCode ? `#${advisorCode}` : undefined;
+      headerRecipient = preferDisplayName(
+        regardingName,
+        recipientName,
+        leadName,
+        regardingEmail,
+        isAdvisorRole ? recipient : undefined
+      );
+      if (advisorCode) {
+        key = advisorThreadKey(advisorCode);
+      } else if (regardingEmail) {
+        key = `user-${regardingEmail}-advisor`;
+      } else if (recipientKey) {
+        key = `user-${recipientKey}-advisor`;
+      } else {
+        key = `evt-${event.id}`;
+      }
+    } else if (isStaffBanker) {
+      kind = 'user';
+      headerRoleLabel =
+        roleForId === 'banker' || roleRaw === 'banker' ? 'Banker' : 'Staff';
+      headerUserIdLabel = adminUserId ? `#${adminUserId}` : personUserIdLabel;
+      headerRecipient = preferDisplayName(
+        recipientName,
+        regardingName,
+        leadName,
+        recipient
+      );
+      if (adminUserId) {
+        const rb =
+          roleForId === 'banker' || roleRaw === 'banker' ? 'banker' : 'staff';
+        key = `user-id-${adminUserId}-${rb}`;
+      } else if (recipientKey) {
+        key = `user-${recipientKey}-${roleForId || roleRaw || 'unknown'}`;
+      } else {
+        key = `evt-${event.id}`;
+      }
+    } else if (recipientKey) {
+      key = `user-${recipientKey}-${roleRaw || roleForId || 'unknown'}`;
+      kind = 'user';
+      headerRoleLabel = roleLabel;
+      headerUserIdLabel = personUserIdLabel;
+      headerRecipient = preferDisplayName(
+        recipientName,
+        regardingName,
+        leadName,
+        recipient
+      );
+    } else {
+      key = `evt-${event.id}`;
+      kind = 'user';
+      headerRoleLabel = roleLabel;
+      headerUserIdLabel = personUserIdLabel;
+      headerRecipient = preferDisplayName(
+        recipientName,
+        regardingName,
+        leadName,
+        recipient
+      );
+    }
 
     let group = map.get(key);
     if (!group) {
       group = {
         key,
-        leadId: Number.isFinite(leadId as number) ? (leadId as number) : null,
-        leadName,
+        kind,
+        leadId: kind === 'lead' ? leadId : null,
+        leadName: kind === 'lead' ? leadName : null,
         loanApplicationId: loanAppId,
+        userRoleLabel: kind === 'user' ? headerRoleLabel : undefined,
+        userIdLabel: kind === 'user' ? headerUserIdLabel : undefined,
+        userRecipient: kind === 'user' ? headerRecipient : undefined,
         latestAt: event.createdAt,
         persons: [],
         events: [],
@@ -283,20 +553,128 @@ export function groupEmailEvents(
     if (new Date(event.createdAt) > new Date(group.latestAt)) {
       group.latestAt = event.createdAt;
     }
-    if (!group.leadName && leadName) group.leadName = leadName;
-    if (group.loanApplicationId == null && loanAppId != null) {
-      group.loanApplicationId = loanAppId;
+    if (group.kind === 'lead') {
+      if (!group.leadName && leadName) group.leadName = leadName;
+      if (group.loanApplicationId == null && loanAppId != null) {
+        group.loanApplicationId = loanAppId;
+      }
+    } else {
+      if (!group.userRoleLabel && headerRoleLabel) {
+        group.userRoleLabel = headerRoleLabel;
+      }
+      if (headerUserIdLabel) {
+        if (
+          !group.userIdLabel ||
+          (headerUserIdLabel.startsWith('#ADV') &&
+            !String(group.userIdLabel).startsWith('#ADV'))
+        ) {
+          group.userIdLabel = headerUserIdLabel;
+        }
+      }
+      if (headerRecipient && headerRecipient !== '—') {
+        const cur = group.userRecipient || '';
+        const curIsEmail = cur.includes('@');
+        const nextIsName = !headerRecipient.includes('@');
+        if (!cur || cur === '—' || (curIsEmail && nextIsName)) {
+          group.userRecipient = headerRecipient;
+        }
+      }
+      if (isAdminRegardingAdvisor || (isAdvisorRole && advisorCode)) {
+        group.userRoleLabel = 'Advisor';
+        if (advisorCode) group.userIdLabel = `#${advisorCode}`;
+      }
+      if (isStaffBanker && adminUserId) {
+        group.userIdLabel = `#${adminUserId}`;
+      }
     }
 
     group.events.push(event);
     group.persons.push({
       eventId: event.id,
-      roleLabel: roleLabelFromMeta(meta, String(meta.template || '')),
-      recipient: String(meta.recipient || '—'),
+      roleLabel,
+      userIdLabel: personUserIdLabel,
+      templateLabel,
+      recipient,
       statusLabel: statusLabelFromAction(event.action, meta),
       reasonShort: reasonForEmailEvent(event, meta),
       event,
     });
+  }
+
+  // Merge leftover email-only advisor cards into ADV threads that share the email
+  const groups = [...map.values()];
+  const advGroups = groups.filter((g) => g.key.startsWith('user-adv-'));
+  const emailAdvisorGroups = groups.filter(
+    (g) =>
+      g.kind === 'user' &&
+      g.key.startsWith('user-') &&
+      !g.key.startsWith('user-adv-') &&
+      !g.key.startsWith('user-id-') &&
+      g.key.endsWith('-advisor')
+  );
+
+  for (const emailGroup of emailAdvisorGroups) {
+    const emailFromKey = emailGroup.key
+      .replace(/^user-/, '')
+      .replace(/-advisor$/, '')
+      .toLowerCase();
+    const emails = new Set<string>();
+    if (emailFromKey) emails.add(emailFromKey);
+    const hdr = String(emailGroup.userRecipient || '')
+      .trim()
+      .toLowerCase();
+    if (hdr.includes('@')) emails.add(hdr);
+    for (const p of emailGroup.persons) {
+      const r = String(p.recipient || '')
+        .trim()
+        .toLowerCase();
+      if (r.includes('@')) emails.add(r);
+    }
+
+    let target: EmailRunGroup | undefined;
+    for (const adv of advGroups) {
+      const advEmails = new Set<string>();
+      const ah = String(adv.userRecipient || '')
+        .trim()
+        .toLowerCase();
+      if (ah.includes('@')) advEmails.add(ah);
+      for (const p of adv.persons) {
+        const r = String(p.recipient || '')
+          .trim()
+          .toLowerCase();
+        if (r.includes('@')) advEmails.add(r);
+      }
+      const advCode = adv.key
+        .replace(/^user-adv-/, '')
+        .replace(/-advisor$/, '');
+      for (const e of emails) {
+        if (emailToAdv.get(e)?.toLowerCase() === advCode) {
+          target = adv;
+          break;
+        }
+        if (advEmails.has(e)) {
+          target = adv;
+          break;
+        }
+      }
+      if (target) break;
+    }
+
+    if (!target) continue;
+
+    target.events.push(...emailGroup.events);
+    target.persons.push(...emailGroup.persons);
+    if (new Date(emailGroup.latestAt) > new Date(target.latestAt)) {
+      target.latestAt = emailGroup.latestAt;
+    }
+    if (
+      emailGroup.userRecipient &&
+      !String(emailGroup.userRecipient).includes('@') &&
+      (!target.userRecipient || String(target.userRecipient).includes('@'))
+    ) {
+      target.userRecipient = emailGroup.userRecipient;
+    }
+    map.delete(emailGroup.key);
   }
 
   return [...map.values()].sort(
