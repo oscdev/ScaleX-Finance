@@ -8,8 +8,18 @@ import {
 } from '../email/email-audit';
 import {
   isEmailsEnabled,
+  onAdvisorRegistrationSubmitted,
+  onLeadAdvisorAssigned,
+  onLeadStatusChanged,
   onLoanApplicationCreated,
+  onLoanStaffBankerAssigned,
+  onRegistrationWelcome,
+  type OnAdvisorRegistrationSubmittedParams,
+  type OnLeadAdvisorAssignedParams,
+  type OnLeadStatusChangedParams,
   type OnLoanApplicationCreatedParams,
+  type OnLoanStaffBankerAssignedParams,
+  type OnRegistrationWelcomeParams,
 } from '../email/outbound-send';
 import { logEventDeduped } from '../notifications/bell-dedupe';
 import { listForBell } from '../notifications/list-for-bell';
@@ -71,6 +81,22 @@ export default factories.createCoreService(
 
     onLoanApplicationCreated: (params: OnLoanApplicationCreatedParams) =>
       onLoanApplicationCreated(strapi, params),
+
+    onLeadAdvisorAssigned: (params: OnLeadAdvisorAssignedParams) =>
+      onLeadAdvisorAssigned(strapi, params),
+
+    onLoanStaffBankerAssigned: (params: OnLoanStaffBankerAssignedParams) =>
+      onLoanStaffBankerAssigned(strapi, params),
+
+    onLeadStatusChanged: (params: OnLeadStatusChangedParams) =>
+      onLeadStatusChanged(strapi, params),
+
+    onAdvisorRegistrationSubmitted: (
+      params: OnAdvisorRegistrationSubmittedParams
+    ) => onAdvisorRegistrationSubmitted(strapi, params),
+
+    onRegistrationWelcome: (params: OnRegistrationWelcomeParams) =>
+      onRegistrationWelcome(strapi, params),
 
     logEmailDispatched: (params: Parameters<typeof logEmailDispatched>[1]) =>
       logEmailDispatched(strapi, params),

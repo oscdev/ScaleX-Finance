@@ -271,6 +271,10 @@ export default factories.createCoreController(
                   createdRecord?.loanAmount,
                 email: (requestData.email as string) ?? createdRecord?.email,
                 phone: (requestData.phone as string) ?? createdRecord?.phone,
+                form_data:
+                  (requestData.form_data as Record<string, unknown>) ??
+                  createdRecord?.form_data ??
+                  null,
               },
               leadId,
               notifyingAdvisorId,

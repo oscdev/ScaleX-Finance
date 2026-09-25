@@ -6,11 +6,20 @@ export const EMAIL_SKIP_REASONS = {
   NO_SUPER_ADMIN: 'No active Super Admin with email',
   NO_ADVISOR_ID: 'No advisor session id or lead referral',
   ADVISOR_NO_EMAIL: 'Advisor has no email address',
+  ASSIGNEE_NO_EMAIL: 'Assignee has no email address',
   LEAD_NO_EMAIL: 'Lead has no email address',
 } as const;
 
 export type EmailSkipReason =
   (typeof EMAIL_SKIP_REASONS)[keyof typeof EMAIL_SKIP_REASONS];
+
+export type EmailAuditRole =
+  | 'admin'
+  | 'advisor'
+  | 'parent_advisor'
+  | 'staff'
+  | 'banker'
+  | 'applicant';
 
 type LeadRef = {
   id?: number | string | null;
@@ -21,7 +30,7 @@ type EmailAuditBase = {
   lead: LeadRef;
   description: string;
   loanApplicationId?: number | string | null;
-  role?: 'admin' | 'advisor' | 'applicant';
+  role?: EmailAuditRole;
   extraMeta?: Record<string, unknown>;
 };
 
