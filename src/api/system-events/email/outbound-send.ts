@@ -63,6 +63,7 @@ export type OnLeadStatusChangedParams = {
 export type OnAdvisorRegistrationSubmittedParams = {
   advisor: {
     id?: number | string;
+    advisorId?: string | null;
     fullName?: string | null;
     email?: string | null;
     phoneNumber?: string | null;
@@ -89,6 +90,10 @@ export type OnRegistrationWelcomeParams = {
   actionLabel: string;
   welcomeMessage?: string;
   lead?: LeadRecord;
+  /** Advisor Dashboard ID (e.g. ADV123) when recipient is an advisor. */
+  advisorId?: string | number | null;
+  /** Admin Users table id for Staff / Banker / Super Admin. */
+  adminUserId?: string | number | null;
 };
 
 type SendEmailParams = {
@@ -107,6 +112,19 @@ type AdminRecipient = {
   email: string;
   name: string;
 };
+
+/** Advisor Dashboard ID (ADV#) for EMAIL_* metadata — not admin Users id. */
+function advisorDashboardCode(advisor: {
+  id?: number | string | null;
+  advisorId?: string | null;
+}): string | undefined {
+  const code = String(advisor.advisorId || '').trim();
+  if (code) return code;
+  if (advisor.id != null && String(advisor.id).trim() !== '') {
+    return `ADV${advisor.id}`;
+  }
+  return undefined;
+}
 
 /** Same needles as classifyAdminRoleKind in src/index.ts — Super Admin only. */
 function isSuperAdminRoles(
@@ -312,7 +330,12 @@ function buildLoanNotifySubject(
 async function resolveAdvisorForEmail(
   strapi: Core.Strapi,
   key: string | number
-): Promise<{ id: number | string; email: string; fullName: string } | null> {
+): Promise<{
+  id: number | string;
+  advisorCode: string;
+  email: string;
+  fullName: string;
+} | null> {
   const trimmed = String(key ?? '').trim();
   if (!trimmed) return null;
 
@@ -329,8 +352,10 @@ async function resolveAdvisorForEmail(
   const email = String(advisor.email || '').trim();
   if (!email) return null;
 
+  const code = String(advisor.advisorId || '').trim();
   return {
     id: advisor.id,
+    advisorCode: code || `ADV${advisor.id}`,
     email,
     fullName: String(advisor.fullName || '').trim() || 'Advisor',
   };
@@ -542,7 +567,7 @@ export async function onLoanApplicationCreated(
         auditRole: 'advisor',
         successDescription: `Advisor loan-application email dispatched to ${advisor.email}`,
         failureDescription: `CRITICAL: Advisor loan-application email failed for lead ${leadLabel}`,
-        extraMeta: { advisorId: advisor.id },
+        extraMeta: { advisorId: advisor.advisorCode, recipientName: advisor.fullName },
       });
     } else {
       await logEmailSkipped(strapi, {
@@ -629,7 +654,7 @@ export async function onLeadAdvisorAssigned(
       auditRole,
       successDescription: `${recipientRole} assignment email dispatched to ${advisor.email}`,
       failureDescription: `CRITICAL: ${recipientRole} assignment email failed for ${advisor.email}`,
-      extraMeta: { advisorId: advisor.id, field },
+      extraMeta: { advisorId: advisor.advisorCode, field, recipientName: advisor.fullName },
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
@@ -718,7 +743,7 @@ export async function onLoanStaffBankerAssigned(
         auditRole,
         successDescription: `${recipientRole} assignment email dispatched to ${user.email}`,
         failureDescription: `CRITICAL: ${recipientRole} assignment email failed for ${user.email}`,
-        extraMeta: { adminUserId: user.id },
+        extraMeta: { adminUserId: user.id, recipientName: user.name },
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
@@ -866,7 +891,7 @@ export async function onLeadStatusChanged(
           recipientName: advisor.fullName,
           recipientRole: roleLabel,
           auditRole,
-          extraMeta: { advisorId: advisor.id, field },
+          extraMeta: { advisorId: advisor.advisorCode, field, recipientName: advisor.fullName },
         });
       } else {
         await logEmailSkipped(strapi, {
@@ -902,7 +927,7 @@ export async function onLeadStatusChanged(
           recipientName: user.name,
           recipientRole: roleLabel,
           auditRole,
-          extraMeta: { adminUserId: user.id },
+          extraMeta: { adminUserId: user.id, recipientName: user.name },
         });
       } else {
         await logEmailSkipped(strapi, {
@@ -975,6 +1000,7 @@ export async function onAdvisorRegistrationSubmitted(
   };
 
   const applicantEmail = String(advisor.email || '').trim();
+  const advisorCode = advisorDashboardCode(advisor);
   if (applicantEmail) {
     await sendNamedTemplate(strapi, {
       lead,
@@ -991,7 +1017,11 @@ export async function onAdvisorRegistrationSubmitted(
       },
       successDescription: `Advisor registration confirmation dispatched to ${applicantEmail}`,
       failureDescription: `CRITICAL: Advisor registration confirmation failed for ${applicantEmail}`,
-      extraMeta: { role: 'advisor', advisorId: advisor.id },
+      extraMeta: {
+        role: 'advisor',
+        recipientName: advisor.fullName || 'Advisor',
+        ...(advisorCode != null ? { advisorId: advisorCode } : {}),
+      },
     });
   } else {
     await logEmailSkipped(strapi, {
@@ -999,7 +1029,10 @@ export async function onAdvisorRegistrationSubmitted(
       skipReason: EMAIL_SKIP_REASONS.ADVISOR_NO_EMAIL,
       description: 'Advisor registration has no applicant email.',
       role: 'advisor',
-      extraMeta: { advisorId: advisor.id },
+      extraMeta: {
+        recipientName: advisor.fullName || 'Advisor',
+        ...(advisorCode != null ? { advisorId: advisorCode } : {}),
+      },
     });
   }
 
@@ -1029,7 +1062,17 @@ export async function onAdvisorRegistrationSubmitted(
           },
           successDescription: `Advisor registration admin email dispatched to ${admin.email}`,
           failureDescription: `CRITICAL: Advisor registration admin email failed for ${admin.email}`,
-          extraMeta: { role: 'admin', adminUserId: admin.id, advisorId: advisor.id },
+          extraMeta: {
+            role: 'admin',
+            adminUserId: admin.id,
+            ...(advisorCode != null ? { advisorId: advisorCode } : {}),
+            ...(applicantEmail
+              ? { regardingEmail: applicantEmail }
+              : {}),
+            ...(advisor.fullName
+              ? { regardingName: String(advisor.fullName).trim() }
+              : {}),
+          },
         });
       }
     }
@@ -1039,7 +1082,14 @@ export async function onAdvisorRegistrationSubmitted(
       lead,
       error: message,
       description: 'CRITICAL: Admin notify failed for advisor registration',
-      extraMeta: { role: 'admin', advisorId: advisor.id },
+      extraMeta: {
+        role: 'admin',
+        ...(advisorCode != null ? { advisorId: advisorCode } : {}),
+        ...(applicantEmail ? { regardingEmail: applicantEmail } : {}),
+        ...(advisor.fullName
+          ? { regardingName: String(advisor.fullName).trim() }
+          : {}),
+      },
     });
   }
 }
@@ -1067,6 +1117,15 @@ export async function onRegistrationWelcome(
     params.welcomeMessage ||
     `Your ${params.recipientRole} account on ScaleX Finance is ready. Use the button below to continue.`;
 
+  const advisorCode =
+    params.advisorId != null && String(params.advisorId).trim() !== ''
+      ? String(params.advisorId).trim()
+      : undefined;
+  const adminUserId =
+    params.adminUserId != null && String(params.adminUserId).trim() !== ''
+      ? params.adminUserId
+      : undefined;
+
   await sendNamedTemplate(strapi, {
     lead,
     to,
@@ -1081,6 +1140,11 @@ export async function onRegistrationWelcome(
     },
     successDescription: `Welcome email dispatched to ${to} (${params.recipientRole})`,
     failureDescription: `CRITICAL: Welcome email failed for ${to}`,
-    extraMeta: { role: params.auditRole },
+    extraMeta: {
+      role: params.auditRole,
+      recipientName: params.recipientName || 'User',
+      ...(advisorCode != null ? { advisorId: advisorCode } : {}),
+      ...(adminUserId != null ? { adminUserId } : {}),
+    },
   });
 }

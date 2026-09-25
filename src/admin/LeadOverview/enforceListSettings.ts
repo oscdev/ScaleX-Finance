@@ -1,19 +1,12 @@
 /**
- * Force newest-first ID sort on CM dashboard lists for every role
- * (Admin / Advisor / Staff / Banker). Soft mode was not enough — saved URL
- * sorts (e.g. createdAt:ASC / id:ASC) left oldest leads on top.
+ * Soft-default newest-first ID sort on CM dashboard lists.
+ * Apply default only when `sort` is missing so column ASC/DESC clicks stick.
  */
 const DEFAULT_SORTS: Record<string, string> = {
     'api::lead.lead': 'id:DESC',
     'api::lender-master.lenders-catalog': 'id:DESC',
     'api::advisor.advisor': 'advisorId:DESC',
 };
-
-const normalizeSort = (s: string | null | undefined): string =>
-    decodeURIComponent(String(s || ''))
-        .trim()
-        .toUpperCase()
-        .replace(/\s+/g, '');
 
 export const enforceDefaultListSettings = () => {
     if ((window as any)._doingDefaultSortReplace) return;
@@ -34,8 +27,8 @@ export const enforceDefaultListSettings = () => {
 
     const params = new URLSearchParams(window.location.search);
     const currentSort = params.get('sort');
-    // Hard force: always newest ID first (ignore stale URL / Configure View sorts)
-    if (normalizeSort(currentSort) === normalizeSort(defaultSort)) return;
+    // Soft default: only when sort is absent (do not overwrite column clicks)
+    if (currentSort != null && String(currentSort).trim() !== '') return;
 
     params.set('sort', defaultSort);
     const qs = params.toString();
@@ -46,14 +39,13 @@ export const enforceDefaultListSettings = () => {
         history.replaceState(history.state, '', nextUrl);
         window.dispatchEvent(new PopStateEvent('popstate', { state: history.state }));
     } finally {
-        // Clear on next tick so nested history wrappers settle first
         setTimeout(() => {
             (window as any)._doingDefaultSortReplace = false;
         }, 0);
     }
 };
 
-/** Ensure a CM collection-types list fetch URL uses the forced ID DESC sort. */
+/** Ensure a CM collection-types list fetch URL has a sort — default only if missing. */
 export const ensureDashboardListSortUrl = (url: string): string => {
     if (!url || typeof url !== 'string') return url;
     if (!url.includes('/content-manager/collection-types/')) return url;
@@ -74,7 +66,8 @@ export const ensureDashboardListSortUrl = (url: string): string => {
     try {
         const absolute = url.startsWith('http') ? url : `${window.location.origin}${url.startsWith('/') ? '' : '/'}${url}`;
         const u = new URL(absolute);
-        if (normalizeSort(u.searchParams.get('sort')) === normalizeSort(defaultSort)) {
+        const existing = u.searchParams.get('sort');
+        if (existing != null && String(existing).trim() !== '') {
             return url;
         }
         u.searchParams.set('sort', defaultSort);

@@ -3,8 +3,9 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Load forgot-password.html and convert {{placeholders}} to lodash <%= %>
- * for Strapi admin auth.sendTemplatedEmail.
+ * Load forgot-password.html and convert {{placeholders}} to lodash <%= %>.
+ * Strapi sendTemplatedEmail uses strict interpolate — only bare paths like
+ * <%= user.firstname %> / <%= url %> (no expressions such as || "there").
  */
 function loadForgotPasswordEmailTemplate(): {
   subject: string;
@@ -22,16 +23,13 @@ function loadForgotPasswordEmailTemplate(): {
   );
 
   let html =
-    '<p>Hello <%= user.firstname || "there" %>,</p><p>Reset your password: <%= url %></p>';
+    '<p>Hello <%= user.firstname %>,</p><p>Reset your password: <%= url %></p>';
   try {
     if (fs.existsSync(htmlPath)) {
       html = fs.readFileSync(htmlPath, 'utf8');
       html = html
         .replace(/\{\{url\}\}/g, '<%= url %>')
-        .replace(
-          /\{\{userFirstname\}\}/g,
-          '<%= user.firstname || "there" %>'
-        );
+        .replace(/\{\{userFirstname\}\}/g, '<%= user.firstname %>');
     }
   } catch {
     // fall back to inline html above
@@ -40,7 +38,7 @@ function loadForgotPasswordEmailTemplate(): {
   return {
     subject: 'Reset your ScaleX Finance password',
     html,
-    text: `Hello <%= user.firstname || "there" %>,\n\nReset your ScaleX Finance password:\n<%= url %>\n\nIf you did not request this, ignore this email.\n\nScaleX Finance`,
+    text: `Hello <%= user.firstname %>,\n\nReset your ScaleX Finance password:\n<%= url %>\n\nIf you did not request this, ignore this email.\n\nScaleX Finance`,
   };
 }
 

@@ -10,6 +10,8 @@ import {
   groupEmailEvents,
   eventMatchesAuthRole,
   formatEmailAuditRoleLabel,
+  formatEmailTemplateLabel,
+  normalizeAdvisorDashboardId,
   normalizeEventMetadata,
   useLeadActivityTimeline,
   type ActivityEvent,
@@ -61,6 +63,7 @@ const METADATA_LABELS: Record<string, string> = {
   status: 'Status',
   recipient: 'Recipient',
   subject: 'Subject',
+  template: 'Template',
   leadId: 'Lead',
   leadName: 'Lead name',
   loanApplicationId: 'Loan application',
@@ -68,14 +71,15 @@ const METADATA_LABELS: Record<string, string> = {
   smtpPort: 'SMTP port',
   error: 'Error',
   skipReason: 'Reason',
-  advisorId: 'Advisor',
-  adminUserId: 'Admin user',
+  advisorId: 'Advisor ID',
+  adminUserId: 'User ID',
   role: 'Role',
   raw: 'Raw',
 };
 
 const METADATA_ORDER = [
   'status',
+  'template',
   'recipient',
   'subject',
   'leadId',
@@ -90,7 +94,7 @@ const METADATA_ORDER = [
   'error',
 ];
 
-const METADATA_SKIP_KEYS = new Set(['template', 'loanApplicationId']);
+const METADATA_SKIP_KEYS = new Set(['loanApplicationId']);
 
 function humanizeKey(key: string): string {
   if (METADATA_LABELS[key]) return METADATA_LABELS[key];
@@ -112,7 +116,14 @@ function formatMetaValue(key: string, value: unknown): string {
   if (key === 'role') {
     return formatEmailAuditRoleLabel(value);
   }
-  if (key === 'leadId' || key === 'loanApplicationId' || key === 'advisorId' || key === 'adminUserId') {
+  if (key === 'template') {
+    return formatEmailTemplateLabel(value) || String(value);
+  }
+  if (key === 'advisorId' || key === 'regardingAdvisorId') {
+    const code = normalizeAdvisorDashboardId(value);
+    return code ? `#${code}` : String(value);
+  }
+  if (key === 'leadId' || key === 'loanApplicationId' || key === 'adminUserId') {
     return `#${value}`;
   }
   return String(value);
@@ -264,12 +275,27 @@ function EmailRunCard({ group }: { group: EmailRunGroup }) {
           <span style={styles.chevron}>{expanded ? '▾' : '▸'}</span>
           <div>
             <div style={styles.leadTitle}>
-              {group.leadId != null ? (
-                <span style={styles.leadIdPill}>#{group.leadId}</span>
+              {group.kind === 'user' ? (
+                <>
+                  <span style={styles.leadIdPill}>User</span>
+                  <span>
+                    {group.userRoleLabel || 'Recipient'}
+                    {group.userIdLabel ? ` ${group.userIdLabel}` : ''}
+                    {' — '}
+                    {group.userRecipient || '—'}
+                  </span>
+                </>
+              ) : group.leadId != null ? (
+                <>
+                  <span style={styles.leadIdPill}>#{group.leadId}</span>
+                  <span>{group.leadName || 'Unknown lead'}</span>
+                </>
               ) : (
-                <span style={styles.leadIdPill}>No lead</span>
+                <>
+                  <span style={styles.leadIdPill}>No lead</span>
+                  <span>{group.leadName || 'Unknown lead'}</span>
+                </>
               )}
-              <span>{group.leadName || 'Unknown lead'}</span>
             </div>
             <div style={styles.metaRow}>
               <span>{formatTime(group.latestAt)}</span>
@@ -305,6 +331,20 @@ function EmailRunCard({ group }: { group: EmailRunGroup }) {
               >
                 <div>
                   <strong>{person.roleLabel}</strong>
+                  {person.userIdLabel ? (
+                    <>
+                      {' '}
+                      <span style={{ color: '#64748b', fontWeight: 600 }}>
+                        {person.userIdLabel}
+                      </span>
+                    </>
+                  ) : null}
+                  {person.templateLabel ? (
+                    <>
+                      {' — '}
+                      <span style={{ color: '#475569' }}>{person.templateLabel}</span>
+                    </>
+                  ) : null}
                   {' — '}
                   {person.recipient}
                   {' — '}
