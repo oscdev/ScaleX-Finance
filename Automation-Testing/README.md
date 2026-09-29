@@ -132,7 +132,7 @@ npm run journey -- personal-loan --fail-lab
 
 | Method | Path | Notes |
 |--------|------|-------|
-| GET | `/api/health` | `{ strapiReachable }` |
+| GET | `/api/health` | `{ apiReachable }` |
 | GET | `/api/pipeline-docs` | `product` + `section` (lead-submission \| bureau \| eligibility \| scoring) |
 | GET | `/api/journey-demo` | Offline lead log viewer (errors if leadId belongs to the other product type) |
 | POST | `/api/live-run` | JSON `{ product, confirm: true }` for one lead from the default 25-row pool, or `multipart/form-data` (`product`, `confirm`, `csv`, `documents` PDFs — max **60** on `documents`) for 1–5 rows. Only file fields `csv` and `documents` are accepted. CSV and Documents must both be present or both omitted. **400** before any POST if the pair is incomplete, fields/docs fail, upload field names/counts are wrong, or CSV has more than 5 rows |

@@ -236,9 +236,11 @@
       .then(function (h) {
         var el = document.getElementById('apiStatus');
         var banner = document.getElementById('offlineBanner');
-        window.__apiReachable = !!h.apiReachable;
+        // Accept legacy strapiReachable while a stale suite process still serves old health JSON.
+        var reachable = !!(h.apiReachable || h.strapiReachable);
+        window.__apiReachable = reachable;
         if (!el) return;
-        if (h.apiReachable) {
+        if (reachable) {
           el.textContent = 'API online';
           el.className = 'status-pill online';
           if (banner) banner.hidden = true;
