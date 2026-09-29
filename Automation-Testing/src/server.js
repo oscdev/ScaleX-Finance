@@ -25,6 +25,7 @@ import { parseAndPreflightLiveRunCsv } from './csv-live-run.js';
 import { saveUploadedLiveRunFiles, removeStagedLiveRunFiles, CSV_DOCS_PAIR_ERROR } from './live-run-docs.js';
 import { takeNextDefaultRow } from './doc-hash-ring.js';
 import { logSuiteError, logSuiteHttpError } from './utils/suite-error-log.js';
+import { createLenderPincodeTesterRouter } from '../lender-pincode-tester/routes.js';
 
 const thisFile = fileURLToPath(import.meta.url);
 const invoked = process.argv[1] ? path.resolve(process.argv[1]) : '';
@@ -466,6 +467,9 @@ export function createApp() {
 
   app.use(BASE_PATH, express.static(PUBLIC_DIR, { index: false }));
   app.use(`${BASE_PATH}/reports`, express.static(REPORTS_DIR));
+
+  // Same port as /suite — feature code lives in Automation-Testing/lender-pincode-tester/
+  app.use('/lender-pincode-tester', createLenderPincodeTesterRouter());
 
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {

@@ -1,0 +1,8 @@
+{
+  "name": "lender-pincode-tester",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser form to check zip_codes_to_lenders coverage for PL/BL lenders. Uses root package pg via createRequire.",
+  "dependencies": {}
+}

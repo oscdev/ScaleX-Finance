@@ -44,6 +44,14 @@ const nextConfig: NextConfig = {
         source: '/suite/:path*',
         destination: `${suiteOrigin}/suite/:path*`,
       },
+      {
+        source: '/lender-pincode-tester',
+        destination: `${suiteOrigin}/lender-pincode-tester`,
+      },
+      {
+        source: '/lender-pincode-tester/:path*',
+        destination: `${suiteOrigin}/lender-pincode-tester/:path*`,
+      },
     ];
   },
 };
