@@ -90,13 +90,30 @@ function isFocusInsideOverlayUi(): boolean {
   );
 }
 
-/** Pause MutationObserver-driven overrides while a menu/select is opening or open. */
+/** Pause MutationObserver-driven overrides while a menu/select is opening or open,
+ *  or briefly during Refresh Stats soft refresh (avoids mid-rebuild table transforms). */
 export function shouldPauseAdminOverrides(): boolean {
   return (
+    isSoftRefreshPaused() ||
     isAdminDropdownInteractionLocked() ||
     isAdminOverlayOpen() ||
     isFocusInsideOverlayUi()
   );
+}
+
+let softRefreshPauseUntil = 0;
+
+/** Pause DOM overrides while Refresh Stats soft-refreshes the CM list. */
+export function beginSoftRefreshPause(ms = 500): void {
+  softRefreshPauseUntil = Date.now() + ms;
+}
+
+export function endSoftRefreshPause(): void {
+  softRefreshPauseUntil = 0;
+}
+
+export function isSoftRefreshPaused(): boolean {
+  return Date.now() < softRefreshPauseUntil;
 }
 
 function isFiltersNamedButton(el: Element): boolean {

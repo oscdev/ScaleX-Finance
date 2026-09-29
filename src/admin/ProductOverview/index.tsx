@@ -5,7 +5,7 @@ import { useActiveInactiveCounts } from '../shared/useActiveInactiveCounts';
 const PRODUCTS_UID = 'api::product.product';
 
 export const ProductOverviewDashboard = () => {
-    const { stats, loading } = useActiveInactiveCounts({
+    const { stats, loading, refreshing, refresh } = useActiveInactiveCounts({
         kind: 'cm',
         uid: PRODUCTS_UID,
         activeFilterQs: 'filters[isActive][$eq]=true',
@@ -20,6 +20,8 @@ export const ProductOverviewDashboard = () => {
             inactiveLabel="Inactive Products"
             stats={stats}
             loading={loading}
+            refreshing={refreshing}
+            onRefresh={refresh}
         />
     );
 };

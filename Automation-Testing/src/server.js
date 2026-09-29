@@ -105,11 +105,11 @@ export function createApp() {
   const router = express.Router();
 
   router.get('/api/health', async (_req, res) => {
-    const strapiReachable = await checkStrapiReachable();
+    const apiReachable = await checkStrapiReachable();
     res.json({
       ok: true,
-      strapiReachable,
-      strapiUrl: process.env.STRAPI_URL || 'http://127.0.0.1:1337',
+      apiReachable,
+      apiUrl: process.env.STRAPI_URL || 'http://127.0.0.1:1337',
       basePath: BASE_PATH,
       port: PORT,
     });
@@ -298,8 +298,8 @@ export function createApp() {
     if (!reachable) {
       removeStagedLiveRunFiles(stagedDocsDir);
       return res.status(503).json({
-        error: 'Strapi is not reachable — start npm run dev in the project root',
-        strapiReachable: false,
+        error: 'API is not reachable — start npm run dev in the project root',
+        apiReachable: false,
       });
     }
 

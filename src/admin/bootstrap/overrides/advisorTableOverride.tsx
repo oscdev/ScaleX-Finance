@@ -1,7 +1,5 @@
-import { createRoot } from 'react-dom/client';
-import { DesignSystemProvider } from '@strapi/design-system';
 import { AdvisorOverviewDashboard } from '../../AdvisorOverview';
-import { reactRoots, unmountAndRemove } from './reactRoots';
+import { applyListOverviewMount, isCmCollectionListPath } from './listOverviewMount';
 import { advisorLabelMap } from './constants';
 import { getStrapiToken } from './strapiToken';
 import {
@@ -480,30 +478,23 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
 // ─── Public entry point ───────────────────────────────────────────────────────
 
 export const applyAdvisorTableOverride = () => {
-    if (!window.location.pathname.includes('api::advisor.advisor')) {
-        unmountAndRemove('advisor-overview-root');
+    const ADVISOR_UID = 'api::advisor.advisor';
+
+    if (!window.location.pathname.includes(ADVISOR_UID)) {
         (window as any)._advisor_status_loaded = false;
         (window as any).advisorDocumentIdMap = {};
-        return;
     }
+
+    applyListOverviewMount({
+        rootId: 'advisor-overview-root',
+        matchPath: () => isCmCollectionListPath(ADVISOR_UID),
+        Dashboard: AdvisorOverviewDashboard,
+    });
+
+    if (!isCmCollectionListPath(ADVISOR_UID)) return;
 
     const table = document.querySelector('table');
     if (!table || !table.querySelector('thead tr')) return;
-
-    // Mount AdvisorOverviewDashboard above the table
-    const tableContainer = table.closest('div');
-    if (tableContainer?.parentElement && !document.getElementById('advisor-overview-root')) {
-        const overviewRoot = document.createElement('div');
-        overviewRoot.id = 'advisor-overview-root';
-        tableContainer.parentNode?.insertBefore(overviewRoot, tableContainer);
-        const root = createRoot(overviewRoot);
-        reactRoots.set('advisor-overview-root', root);
-        root.render(
-            <DesignSystemProvider>
-                <AdvisorOverviewDashboard />
-            </DesignSystemProvider>
-        );
-    }
 
     table.classList.add('adv-table');
 

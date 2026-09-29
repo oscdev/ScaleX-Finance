@@ -1,4 +1,5 @@
 import type { Core } from '@strapi/strapi';
+import { buildAdminResetPasswordUrl } from '../../../utils/resolve-admin-public-url';
 import {
   logEmailDispatched,
   logEmailFailed,
@@ -60,7 +61,13 @@ export function installAdminForgotPasswordAudit(strapi: Core.Strapi): void {
     const resetPasswordToken = tokenService.createToken();
     await userService.updateById(user.id, { resetPasswordToken });
 
-    const url = `${strapi.config.get('admin.absoluteUrl')}/auth/reset-password?code=${resetPasswordToken}`;
+    const url = buildAdminResetPasswordUrl(strapi, resetPasswordToken);
+    if (!url) {
+      strapi.log.warn(
+        '[email] Skip forgot-password mail — PUBLIC_URL / admin public base URL is unset'
+      );
+      return;
+    }
     const emailTemplate = strapi.config.get(
       'admin.forgotPassword.emailTemplate'
     ) as { subject?: string; html?: string; text?: string };

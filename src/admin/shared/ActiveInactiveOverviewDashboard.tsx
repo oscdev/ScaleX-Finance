@@ -68,6 +68,8 @@ type Props = {
     inactiveLabel: string;
     stats: ActiveInactiveStats;
     loading: boolean;
+    refreshing?: boolean;
+    onRefresh: () => void;
 };
 
 export const ActiveInactiveOverviewDashboard = ({
@@ -78,6 +80,8 @@ export const ActiveInactiveOverviewDashboard = ({
     inactiveLabel,
     stats,
     loading,
+    refreshing = false,
+    onRefresh,
 }: Props) => {
     if (loading) {
         return (
@@ -108,7 +112,9 @@ export const ActiveInactiveOverviewDashboard = ({
                 </Box>
                 <Button
                     variant="default"
-                    onClick={() => window.location.reload()}
+                    onClick={() => void onRefresh()}
+                    disabled={refreshing}
+                    loading={refreshing}
                     style={styles.refreshButton}
                 >
                     Refresh Stats

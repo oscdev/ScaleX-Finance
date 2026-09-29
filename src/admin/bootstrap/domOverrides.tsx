@@ -659,9 +659,18 @@ export const startDomOverrides = () => {
     // Re-run when the URL changes (SPA navigation) or when Strapi finishes rendering
     // a route. We watch history events + a narrowly-scoped observer on the main
     // content area only, so we don't thrash on every nested DOM mutation.
-    let lastPath = window.location.pathname + window.location.search;
+    // Soft CM list refetch bumps `_scalexR` (or legacy `_r`) — ignore those so
+    // overview dashboards stay mounted while ListView re-fetches via AJAX.
+    const stablePathKey = (): string => {
+        const params = new URLSearchParams(window.location.search);
+        params.delete('_r');
+        params.delete('_scalexR');
+        const qs = params.toString();
+        return qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+    };
+    let lastPath = stablePathKey();
     const onUrlChange = () => {
-        const now = window.location.pathname + window.location.search;
+        const now = stablePathKey();
         if (now === lastPath) return;
         lastPath = now;
         // Strapi's list page renders the table asynchronously after the URL

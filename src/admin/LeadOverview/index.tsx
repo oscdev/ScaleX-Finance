@@ -43,7 +43,7 @@ const StatCard = ({
 );
 
 export const LeadOverviewDashboard = () => {
-    const { stats, loading } = useLeadOverview();
+    const { stats, loading, refreshing, refresh } = useLeadOverview();
 
     if (loading) {
         return (
@@ -74,7 +74,9 @@ export const LeadOverviewDashboard = () => {
                 </Box>
                 <Button
                     variant="default"
-                    onClick={() => window.location.reload()}
+                    onClick={() => void refresh()}
+                    disabled={refreshing}
+                    loading={refreshing}
                     style={styles.refreshButton}
                 >
                     Refresh Stats

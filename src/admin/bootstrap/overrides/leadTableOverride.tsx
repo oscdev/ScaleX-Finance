@@ -1,7 +1,5 @@
-import { createRoot } from 'react-dom/client';
-import { DesignSystemProvider } from '@strapi/design-system';
 import { LeadOverviewDashboard } from '../../LeadOverview';
-import { reactRoots, unmountAndRemove } from './reactRoots';
+import { applyListOverviewMount, isCmCollectionListPath } from './listOverviewMount';
 import { leadLabelMap } from './constants';
 import { lendersPageUrl, getFrontendBaseUrl } from '../frontendUrl';
 import { shouldPauseAdminOverrides } from '../overlayGuard';
@@ -601,28 +599,19 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
 // ─── Public entry point ───────────────────────────────────────────────────────
 
 export const applyLeadTableOverride = () => {
-    if (!window.location.pathname.includes('api::lead.lead')) {
-        unmountAndRemove('lead-overview-root');
+    const LEAD_UID = 'api::lead.lead';
+    applyListOverviewMount({
+        rootId: 'lead-overview-root',
+        matchPath: () => isCmCollectionListPath(LEAD_UID),
+        Dashboard: LeadOverviewDashboard,
+    });
+
+    if (!isCmCollectionListPath(LEAD_UID)) {
         return;
     }
 
     const table = document.querySelector('table');
     if (!table || !table.querySelector('thead tr')) return;
-
-    // Mount LeadOverviewDashboard above the table
-    const tableContainer = table.closest('div');
-    if (tableContainer?.parentElement && !document.getElementById('lead-overview-root')) {
-        const overviewRoot = document.createElement('div');
-        overviewRoot.id = 'lead-overview-root';
-        tableContainer.parentNode?.insertBefore(overviewRoot, tableContainer);
-        const root = createRoot(overviewRoot);
-        reactRoots.set('lead-overview-root', root);
-        root.render(
-            <DesignSystemProvider>
-                <LeadOverviewDashboard />
-            </DesignSystemProvider>
-        );
-    }
 
     const headerRow = table.querySelector('thead tr')!;
     const bodyRows = table.querySelectorAll('tbody tr');

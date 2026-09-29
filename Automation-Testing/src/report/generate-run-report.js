@@ -396,7 +396,7 @@ function buildScoringSection(scoring) {
     : '<span id="score-badge" class="badge no">No / low score</span>';
 
   const warn = !hasScores
-    ? `<p class="elig-callout danger">Scoring totals were missing from matched-lenders. Re-run Live Run after Strapi is healthy, or check Errors &amp; warnings.</p>`
+    ? `<p class="elig-callout danger">Scoring totals were missing from matched-lenders. Re-run Live Run after the API is healthy, or check Errors &amp; warnings.</p>`
     : '';
 
   return `<div class="card" id="sec-scoring-card">

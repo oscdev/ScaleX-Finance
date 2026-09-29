@@ -136,6 +136,10 @@ export const styles: Record<string, CSSProperties> = {
     fontWeight: 600,
     whiteSpace: 'nowrap',
   },
+  primaryBtnDisabled: {
+    opacity: 0.65,
+    cursor: 'not-allowed',
+  },
   errorBanner: {
     background: '#fef2f2',
     border: '1px solid #fecaca',
