@@ -5,7 +5,7 @@ import { useActiveInactiveCounts } from '../shared/useActiveInactiveCounts';
 const LENDERS_UID = 'api::lender-master.lenders-catalog';
 
 export const LendersOverviewDashboard = () => {
-    const { stats, loading } = useActiveInactiveCounts({
+    const { stats, loading, refreshing, refresh } = useActiveInactiveCounts({
         kind: 'cm',
         uid: LENDERS_UID,
         activeFilterQs: 'filters[isActive][$eq]=true',
@@ -20,6 +20,8 @@ export const LendersOverviewDashboard = () => {
             inactiveLabel="Inactive Lenders"
             stats={stats}
             loading={loading}
+            refreshing={refreshing}
+            onRefresh={refresh}
         />
     );
 };

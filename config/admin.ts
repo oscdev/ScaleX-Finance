@@ -74,6 +74,8 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Admin => 
     '**/__pycache__/**',
     '**/Automation-Testing/**',
     '**/graphify-out/**',
+    '**/Data-Import-Manager/**',
+    '**/types/**',
     '**/CLAUDE.md',
   ],
 });

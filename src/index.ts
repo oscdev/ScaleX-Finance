@@ -1,5 +1,10 @@
 import type { Core } from '@strapi/strapi';
 import { ensurePythonEnvironment } from './api/bureau-data-extraction/services/python-bridge';
+import {
+  buildAdminLoginUrl,
+  buildAdminRegisterUrl,
+  warnIfAdminPublicUrlMisconfigured,
+} from './utils/resolve-admin-public-url';
 
 function classifyAdminRoleKind(roles: Array<{ code?: string; name?: string }> | null | undefined): string {
   const list = roles || [];
@@ -770,8 +775,12 @@ export default {
         if (prevStatus !== 'Approved' && nowStatus === 'Approved') {
           try {
             const emailService: any = strapi.service('api::system-events.activity-log');
-            const loginUrl = `${strapi.config.get('admin.absoluteUrl')}/auth/login`;
-            if (emailService?.onRegistrationWelcome && result.email) {
+            const loginUrl = buildAdminLoginUrl(strapi);
+            if (!loginUrl) {
+              strapi.log.warn(
+                '[email] Skip advisor welcome — PUBLIC_URL / admin public base URL is unset'
+              );
+            } else if (emailService?.onRegistrationWelcome && result.email) {
               await emailService.onRegistrationWelcome({
                 to: result.email,
                 recipientName: result.fullName || 'Advisor',
@@ -844,7 +853,13 @@ export default {
             [result.firstname, result.lastname].filter(Boolean).join(' ').trim() ||
             roleLabel;
 
-          const actionUrl = `${strapi.config.get('admin.absoluteUrl')}/auth/register?registrationToken=${encodeURIComponent(token)}`;
+          const actionUrl = buildAdminRegisterUrl(strapi, token);
+          if (!actionUrl) {
+            strapi.log.warn(
+              '[email] Skip admin invite welcome — PUBLIC_URL / admin public base URL is unset'
+            );
+            return;
+          }
           const emailService: any = strapi.service('api::system-events.activity-log');
           if (emailService?.onRegistrationWelcome) {
             const invitePayload: {
@@ -1882,6 +1897,8 @@ export default {
       './api/loan-application/services/api-uploads-mirror'
     );
     await bootstrapApiUploadsMirror(strapi);
+
+    warnIfAdminPublicUrlMisconfigured(strapi);
 
     const { installAdminForgotPasswordAudit } = await import(
       './api/system-events/email/forgot-password-audit'

@@ -234,25 +234,25 @@
   function refreshHealth() {
     api('/api/health')
       .then(function (h) {
-        var el = document.getElementById('strapiStatus');
+        var el = document.getElementById('apiStatus');
         var banner = document.getElementById('offlineBanner');
-        window.__strapiReachable = !!h.strapiReachable;
+        window.__apiReachable = !!h.apiReachable;
         if (!el) return;
-        if (h.strapiReachable) {
-          el.textContent = 'Strapi online';
+        if (h.apiReachable) {
+          el.textContent = 'API online';
           el.className = 'status-pill online';
           if (banner) banner.hidden = true;
         } else {
-          el.textContent = 'Strapi offline — offline modes OK';
+          el.textContent = 'API offline — offline modes OK';
           el.className = 'status-pill offline';
           if (banner) banner.hidden = false;
         }
         updateLiveRunEnabled();
       })
       .catch(function (err) {
-        window.__strapiReachable = false;
+        window.__apiReachable = false;
         updateLiveRunEnabled();
-        var el = document.getElementById('strapiStatus');
+        var el = document.getElementById('apiStatus');
         if (el) {
           el.textContent = 'Suite API error';
           el.className = 'status-pill offline';
@@ -265,7 +265,7 @@
     var btn = document.getElementById('runLive');
     var box = document.getElementById('liveConfirm');
     if (!btn || !box) return;
-    btn.disabled = !!(activeLiveRunId || !(window.__strapiReachable && box.checked));
+    btn.disabled = !!(activeLiveRunId || !(window.__apiReachable && box.checked));
   }
 
   function clearLiveRunUploads() {

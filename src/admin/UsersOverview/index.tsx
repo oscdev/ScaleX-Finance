@@ -3,7 +3,7 @@ import { ActiveInactiveOverviewDashboard } from '../shared/ActiveInactiveOvervie
 import { useActiveInactiveCounts } from '../shared/useActiveInactiveCounts';
 
 export const UsersOverviewDashboard = () => {
-    const { stats, loading } = useActiveInactiveCounts({ kind: 'admin-users' });
+    const { stats, loading, refreshing, refresh } = useActiveInactiveCounts({ kind: 'admin-users' });
 
     return (
         <ActiveInactiveOverviewDashboard
@@ -14,6 +14,8 @@ export const UsersOverviewDashboard = () => {
             inactiveLabel="Inactive Users"
             stats={stats}
             loading={loading}
+            refreshing={refreshing}
+            onRefresh={refresh}
         />
     );
 };

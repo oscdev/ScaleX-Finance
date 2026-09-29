@@ -389,7 +389,7 @@ function mergeLenderDetails(matchBody, evaluations, logParsed) {
 export async function runLivePipeline(opts) {
   const { product: productId } = opts;
   if (!opts.confirm) {
-    throw new Error('Live Run requires confirm: true — this writes to Strapi');
+    throw new Error('Live Run requires confirm: true — this writes to the database');
   }
   if (!['personal-loan', 'business-loan'].includes(productId)) {
     throw new Error('product must be personal-loan or business-loan');

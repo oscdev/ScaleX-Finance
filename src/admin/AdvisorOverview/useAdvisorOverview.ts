@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     authHeadersFromToken,
     cmCollectionUrl,
     fetchPaginationTotal,
 } from '../shared/cmCount';
+import { triggerCmListRefetch } from '../shared/triggerCmListRefetch';
+import { consumeSkipOverviewLoader, stashOverviewStats, takeStashedOverviewStats } from '../shared/overviewSoftRemount';
 
 export interface AdvisorStats {
     total: number;
@@ -50,43 +52,71 @@ const getToken = (): string => {
 const UID = 'api::advisor.advisor';
 
 export const useAdvisorOverview = () => {
-    const [stats, setStats] = useState<AdvisorStats>(initialStats);
-    const [loading, setLoading] = useState(true);
+    const softRemountRef = useRef(consumeSkipOverviewLoader());
+    const [stats, setStats] = useState<AdvisorStats>(
+        () => takeStashedOverviewStats<AdvisorStats>('advisor') || initialStats
+    );
+    const [loading, setLoading] = useState(!softRemountRef.current);
+    const [refreshing, setRefreshing] = useState(false);
+    const retryCountRef = useRef(0);
 
-    useEffect(() => {
-        let retryCount = 0;
-        const fetchStats = async () => {
-            try {
-                const token = getToken();
-                if (!token && retryCount < 5) {
-                    retryCount++;
-                    setTimeout(fetchStats, 1000);
-                    return;
-                }
+    const fetchStats = useCallback(async (isRefresh = false) => {
+        if (isRefresh) {
+            setRefreshing(true);
+            retryCountRef.current = 0;
+        } else if (retryCountRef.current === 0 && !softRemountRef.current) {
+            setLoading(true);
+        }
 
-                const headers = authHeadersFromToken(token);
-                const [total, active] = await Promise.all([
-                    fetchPaginationTotal(cmCollectionUrl(UID), headers),
-                    fetchPaginationTotal(
-                        cmCollectionUrl(UID, 'filters[advisorStatus][$eq]=Approved'),
-                        headers
-                    ),
-                ]);
-
-                setStats({
-                    total,
-                    active,
-                    inactive: Math.max(0, total - active),
-                });
-            } catch (err) {
-                console.error('Advisor Dashboard Fetch Error:', err);
-            } finally {
-                setLoading(false);
+        let scheduledRetry = false;
+        try {
+            const token = getToken();
+            if (!token && retryCountRef.current < 5) {
+                retryCountRef.current += 1;
+                scheduledRetry = true;
+                setTimeout(() => void fetchStats(isRefresh), 1000);
+                return;
             }
-        };
 
-        fetchStats();
+            const headers = authHeadersFromToken(token);
+            const [total, active] = await Promise.all([
+                fetchPaginationTotal(cmCollectionUrl(UID), headers),
+                fetchPaginationTotal(
+                    cmCollectionUrl(UID, 'filters[advisorStatus][$eq]=Approved'),
+                    headers
+                ),
+            ]);
+
+            setStats({
+                total,
+                active,
+                inactive: Math.max(0, total - active),
+            });
+            stashOverviewStats('advisor', {
+                total,
+                active,
+                inactive: Math.max(0, total - active),
+            });
+            if (isRefresh) {
+                triggerCmListRefetch();
+            }
+        } catch (err) {
+            console.error('Advisor Dashboard Fetch Error:', err);
+        } finally {
+            if (!scheduledRetry) {
+                softRemountRef.current = false;
+                if (!isRefresh) setLoading(false);
+                if (isRefresh) setRefreshing(false);
+            }
+        }
     }, []);
 
-    return { stats, loading };
+    useEffect(() => {
+        retryCountRef.current = 0;
+        void fetchStats(false);
+    }, [fetchStats]);
+
+    const refresh = useCallback(() => fetchStats(true), [fetchStats]);
+
+    return { stats, loading, refreshing, refresh };
 };

@@ -709,9 +709,10 @@ export function useLeadActivityTimeline() {
   const [leadProductFilter, setLeadProductFilter] = useState('ALL');
   const [authRoleFilter, setAuthRoleFilter] = useState('ALL');
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const loadLeads = useCallback(async (q?: string) => {
-    setLoading(true);
+  const loadLeads = useCallback(async (q?: string, soft = false) => {
+    if (!soft) setLoading(true);
     setError(null);
     try {
       const qs = new URLSearchParams({ pageSize: '50' });
@@ -726,7 +727,7 @@ export function useLeadActivityTimeline() {
     } catch (err: any) {
       setError(err?.message || 'Failed to load activity');
     } finally {
-      setLoading(false);
+      if (!soft) setLoading(false);
     }
   }, []);
 
@@ -748,8 +749,8 @@ export function useLeadActivityTimeline() {
     }
   }, []);
 
-  const loadEvents = useCallback(async (leadId: number, category: string) => {
-    setEventsLoading(true);
+  const loadEvents = useCallback(async (leadId: number, category: string, soft = false) => {
+    if (!soft) setEventsLoading(true);
     try {
       const qs = new URLSearchParams({ pageSize: '500' });
       if (category && category !== 'ALL') {
@@ -765,13 +766,17 @@ export function useLeadActivityTimeline() {
     } catch {
       setEvents([]);
     } finally {
-      setEventsLoading(false);
+      if (!soft) setEventsLoading(false);
     }
   }, []);
 
   const loadDomainEvents = useCallback(
-    async (domain: 'email' | 'user-registration' | 'system', q: string) => {
-      setDomainLoading(true);
+    async (
+      domain: 'email' | 'user-registration' | 'system',
+      q: string,
+      soft = false
+    ) => {
+      if (!soft) setDomainLoading(true);
       setError(null);
       try {
         const qs = new URLSearchParams({
@@ -791,7 +796,7 @@ export function useLeadActivityTimeline() {
         setError(err?.message || 'Failed to load events');
         setDomainEvents([]);
       } finally {
-        setDomainLoading(false);
+        if (!soft) setDomainLoading(false);
       }
     },
     []
@@ -838,17 +843,36 @@ export function useLeadActivityTimeline() {
     setExpandedLeadId(leadId);
   };
 
-  const reload = () => {
-    if (
-      viewMode === 'email' ||
-      viewMode === 'user-registration' ||
-      viewMode === 'system'
-    ) {
-      loadDomainEvents(viewMode, search);
-    } else {
-      loadLeads(search);
+  const reload = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      if (
+        viewMode === 'email' ||
+        viewMode === 'user-registration' ||
+        viewMode === 'system'
+      ) {
+        await loadDomainEvents(viewMode, search, true);
+        return;
+      }
+      const tasks: Promise<unknown>[] = [loadLeads(search, true)];
+      if (expandedLeadId != null) {
+        tasks.push(loadEvents(expandedLeadId, activeCategory, true));
+        tasks.push(loadActiveLenders(expandedLeadId));
+      }
+      await Promise.all(tasks);
+    } finally {
+      setRefreshing(false);
     }
-  };
+  }, [
+    viewMode,
+    search,
+    expandedLeadId,
+    activeCategory,
+    loadDomainEvents,
+    loadLeads,
+    loadEvents,
+    loadActiveLenders,
+  ]);
 
   const changeViewMode = (mode: ViewMode) => {
     setViewMode(mode);
@@ -870,6 +894,7 @@ export function useLeadActivityTimeline() {
     search,
     setSearch,
     reload,
+    refreshing,
     expandedLeadId,
     toggleLead,
     activeCategory,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getStrapiToken } from '../bootstrap/overrides/strapiToken';
 import {
     authHeadersFromToken,
@@ -7,6 +7,12 @@ import {
     parsePaginationTotal,
 } from './cmCount';
 import type { ActiveInactiveStats } from './ActiveInactiveOverviewDashboard';
+import { triggerCmListRefetch } from './triggerCmListRefetch';
+import {
+    consumeSkipOverviewLoader,
+    stashOverviewStats,
+    takeStashedOverviewStats,
+} from './overviewSoftRemount';
 
 export type ActiveInactiveCountConfig =
     | { kind: 'cm'; uid: string; activeFilterQs: string }
@@ -15,23 +21,39 @@ export type ActiveInactiveCountConfig =
 const emptyStats: ActiveInactiveStats = { total: 0, active: 0, inactive: 0 };
 
 export const useActiveInactiveCounts = (config: ActiveInactiveCountConfig) => {
-    const [stats, setStats] = useState<ActiveInactiveStats>(emptyStats);
-    const [loading, setLoading] = useState(true);
+    const stashKey =
+        config.kind === 'cm' ? `cm:${config.uid}` : 'admin-users';
+    const softRemountRef = useRef(consumeSkipOverviewLoader());
+    const [stats, setStats] = useState<ActiveInactiveStats>(
+        () => takeStashedOverviewStats<ActiveInactiveStats>(stashKey) || emptyStats
+    );
+    const [loading, setLoading] = useState(!softRemountRef.current);
+    const [refreshing, setRefreshing] = useState(false);
+    const retryCountRef = useRef(0);
+    const cancelledRef = useRef(false);
 
     const kind = config.kind;
     const uid = config.kind === 'cm' ? config.uid : '';
     const activeFilterQs = config.kind === 'cm' ? config.activeFilterQs : '';
 
-    useEffect(() => {
-        let cancelled = false;
-        let retryCount = 0;
+    const load = useCallback(
+        async (isRefresh = false) => {
+            if (isRefresh) {
+                setRefreshing(true);
+                retryCountRef.current = 0;
+            } else if (retryCountRef.current === 0 && !softRemountRef.current) {
+                setLoading(true);
+            }
 
-        const load = async () => {
+            let scheduledRetry = false;
             try {
                 const token = getStrapiToken();
-                if (!token && retryCount < 5) {
-                    retryCount++;
-                    setTimeout(load, 1000);
+                if (!token && retryCountRef.current < 5) {
+                    retryCountRef.current += 1;
+                    scheduledRetry = true;
+                    setTimeout(() => {
+                        if (!cancelledRef.current) void load(isRefresh);
+                    }, 1000);
                     return;
                 }
 
@@ -56,25 +78,41 @@ export const useActiveInactiveCounts = (config: ActiveInactiveCountConfig) => {
                     if (activeRes.ok) active = parsePaginationTotal(await activeRes.json());
                 }
 
-                if (!cancelled) {
-                    setStats({
+                if (!cancelledRef.current) {
+                    const next = {
                         total,
                         active,
                         inactive: Math.max(0, total - active),
-                    });
+                    };
+                    setStats(next);
+                    stashOverviewStats(stashKey, next);
+                    if (isRefresh) {
+                        triggerCmListRefetch();
+                    }
                 }
             } catch (err) {
                 console.error('Active/Inactive metrics fetch error:', err);
             } finally {
-                if (!cancelled) setLoading(false);
+                if (!scheduledRetry && !cancelledRef.current) {
+                    softRemountRef.current = false;
+                    if (!isRefresh) setLoading(false);
+                    if (isRefresh) setRefreshing(false);
+                }
             }
-        };
+        },
+        [kind, uid, activeFilterQs, stashKey]
+    );
 
-        load();
+    useEffect(() => {
+        cancelledRef.current = false;
+        retryCountRef.current = 0;
+        void load(false);
         return () => {
-            cancelled = true;
+            cancelledRef.current = true;
         };
-    }, [kind, uid, activeFilterQs]);
+    }, [load]);
 
-    return { stats, loading };
+    const refresh = useCallback(() => load(true), [load]);
+
+    return { stats, loading, refreshing, refresh };
 };

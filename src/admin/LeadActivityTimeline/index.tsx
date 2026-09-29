@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import {
   CATEGORY_TABS,
   DOMAIN_TABS,
@@ -24,6 +24,8 @@ import {
   type LenderBucket,
 } from './groupLenderPipelineEvents';
 import { styles } from './styles';
+
+const ACTIVITY_AUTO_REFRESH_MS = 15_000;
 
 function formatTime(iso?: string) {
   if (!iso) return '—';
@@ -954,6 +956,7 @@ export const LeadActivityTimeline = () => {
     search,
     setSearch,
     reload,
+    refreshing,
     expandedLeadId,
     toggleLead,
     activeCategory,
@@ -971,6 +974,26 @@ export const LeadActivityTimeline = () => {
     setAuthRoleFilter,
     error,
   } = useLeadActivityTimeline();
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        reload();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    const id = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        reload();
+      }
+    }, ACTIVITY_AUTO_REFRESH_MS);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.clearInterval(id);
+    };
+  }, [reload]);
 
   const isDomainView =
     viewMode === 'email' ||
@@ -1002,6 +1025,17 @@ export const LeadActivityTimeline = () => {
           </p>
         </div>
         <div style={styles.headerActions}>
+          <button
+            type="button"
+            onClick={() => void reload()}
+            disabled={refreshing}
+            style={{
+              ...styles.primaryBtn,
+              ...(refreshing ? styles.primaryBtnDisabled : {}),
+            }}
+          >
+            {refreshing ? 'Refreshing…' : 'Refresh Stats'}
+          </button>
           <a
             href="/admin/content-manager/collection-types/api::system-events.activity-log?sort=createdAt:DESC&raw=1"
             style={{ ...styles.ghostBtn, textDecoration: 'none' }}

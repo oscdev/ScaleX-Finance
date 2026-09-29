@@ -43,7 +43,7 @@ const StatCard = ({
 );
 
 export const AdvisorOverviewDashboard = () => {
-    const { stats, loading } = useAdvisorOverview();
+    const { stats, loading, refreshing, refresh } = useAdvisorOverview();
 
     if (loading) {
         return (
@@ -74,7 +74,9 @@ export const AdvisorOverviewDashboard = () => {
                 </Box>
                 <Button
                     variant="default"
-                    onClick={() => window.location.reload()}
+                    onClick={() => void refresh()}
+                    disabled={refreshing}
+                    loading={refreshing}
                     style={styles.refreshButton}
                 >
                     Refresh Stats
