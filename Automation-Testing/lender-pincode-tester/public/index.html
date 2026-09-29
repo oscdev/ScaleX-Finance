@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lender Pincode Tester</title>
+    <base href="/lender-pincode-tester/" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <h1>Lender Pincode Tester</h1>
+        <p class="sub">
+          Check whether a pincode is covered for a product and lender in
+          <code>zip_codes_to_lenders</code>.
+        </p>
+      </header>
+
+      <form id="checkForm" class="form" novalidate>
+        <label class="field">
+          <span id="productLabel" class="label">Product Type (0)</span>
+          <select id="productSelect" name="product" required>
+            <option value="">Loading products…</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span id="lenderLabel" class="label">Lenders (0)</span>
+          <select id="lenderSelect" name="lender" required disabled>
+            <option value="">Select a product first</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="label">ZipCodes</span>
+          <input
+            id="zipInput"
+            name="zipCode"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            placeholder="e.g. 400001"
+            autocomplete="off"
+            required
+            disabled
+          />
+        </label>
+
+        <button type="submit" id="checkBtn" class="btn" disabled>Check coverage</button>
+      </form>
+
+      <div id="resultBox" class="result" hidden role="status" aria-live="polite"></div>
+    </main>
+    <script src="app.js" defer></script>
+  </body>
+</html>
