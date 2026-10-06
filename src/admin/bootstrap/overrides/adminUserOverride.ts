@@ -1,7 +1,7 @@
 // Handles the admin user edit page (/admin/settings/users/:id).
-// 1. Pre-fills password fields from the advisor record.
-// 2. Injects a "Product" dropdown, visible when Staff or Banker role is selected,
-//    pre-filled from user_product_mappings and saved via fetchInterceptor on PUT.
+// Injects a "Product" dropdown, visible when Staff or Banker role is selected,
+// pre-filled from user_product_mappings and saved via fetchInterceptor on PUT.
+// Passwords are bcrypt-only — no advisor password prefill/reveal.
 
 const EDIT_PRODUCT_ID = 'scalex-edit-product-field';
 
@@ -247,55 +247,11 @@ const injectProductFieldOnEditPage = async (
     if (!show) (window as any)._pendingEditProduct = undefined;
 };
 
-// ─── Password pre-fill ────────────────────────────────────────────────────────
-
-const prefillPassword = async (adminId: string, commonHeaders: Record<string, string>) => {
-    try {
-        const res = await fetch(
-            `/content-manager/collection-types/api::advisor.advisor?filters[id][$eq]=${adminId}`,
-            { headers: commonHeaders }
-        );
-        if (!res.ok) return;
-        const data = await res.json();
-        const advisorData = (data.results || data.data || [])[0];
-        if (!advisorData) return;
-
-        const pass = advisorData.password || advisorData.attributes?.password;
-        if (!pass) return;
-
-        let attempts = 0;
-        const interval = setInterval(() => {
-            attempts++;
-            const passInputs = Array.from(document.querySelectorAll('input')).filter(
-                (i) =>
-                    i.type === 'password' ||
-                    i.name?.toLowerCase().includes('password') ||
-                    i.id?.toLowerCase().includes('password')
-            );
-
-            if (passInputs.length >= 2) {
-                passInputs.forEach((input) => {
-                    if (input.value !== pass) {
-                        input.value = pass;
-                        input.type = 'text';
-                        input.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-                });
-                if (attempts > 50) clearInterval(interval);
-            }
-            if (attempts > 150) clearInterval(interval);
-        }, 500);
-    } catch (e) {
-        console.error('[Admin Pass Override]', e);
-    }
-};
-
 // ─── Public entry point ───────────────────────────────────────────────────────
 
 export const applyAdminUserOverride = (commonHeaders: Record<string, string>) => {
     const match = window.location.pathname.match(/\/admin\/settings\/users\/(\d+)/);
     if (!match) {
-        (window as any)._admin_user_pass_loaded = false;
         // Cleanup product state when leaving the edit page
         _editInnerObserver?.disconnect();
         _editInnerObserver = null;
@@ -308,15 +264,8 @@ export const applyAdminUserOverride = (commonHeaders: Record<string, string>) =>
 
     const adminId = match[1];
 
-    // Password prefill — run once per user
-    if (
-        !(window as any)._admin_user_pass_loaded ||
-        (window as any)._current_admin_edit_id !== adminId
-    ) {
-        (window as any)._admin_user_pass_loaded = true;
-        (window as any)._current_admin_edit_id = adminId;
-        prefillPassword(adminId, commonHeaders);
-    }
+    // Passwords are bcrypt-only — never prefill/reveal stored values.
+    // Native Show/Hide only applies to a newly typed password.
 
     // Product field — always attempt; has internal getElementById guard so it
     // only injects once, but keeps retrying until the form DOM is ready.

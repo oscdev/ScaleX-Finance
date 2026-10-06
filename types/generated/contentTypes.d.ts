@@ -655,7 +655,9 @@ export interface ApiAdvisorAdvisor extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     panNumber: Schema.Attribute.String & Schema.Attribute.Required;
-    password: Schema.Attribute.String & Schema.Attribute.Required;
+    password: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private;
     phoneNumber: Schema.Attribute.String & Schema.Attribute.Required;
     pinCode: Schema.Attribute.String & Schema.Attribute.Required;
     publishedAt: Schema.Attribute.DateTime;

@@ -85,7 +85,7 @@ Before completing every task:
 │   ├── src/
 │   │   ├── app/             # Next.js App Router routes
 │   │   │   ├── advisor-dashboard/        # Advisor dashboard (leads + loan apps)
-│   │   │   ├── advisor-onboarding/       # Advisor registration
+│   │   │   ├── advisor-onboarding/       # Advisor registration (State→District cascading selects via india-states-districts)
 │   │   │   ├── advisor-login/            # Advisor auth
 │   │   │   ├── lead-form/                # Lead capture form
 │   │   │   ├── loan-application/         # Loan application flow
@@ -190,7 +190,7 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 
 | Collection | Purpose | Key Fields |
 |---|---|---|
-| `advisor` | Advisor accounts (DSAs) | `advisorId`, `fullName`, `email`, `password`, `advisorStatus`, `state`, `district`, `pinCode`, `panNumber`, `specialization`, `earnings` |
+| `advisor` | Advisor accounts (DSAs) | `advisorId`, `fullName`, `email`, `password` (bcrypt, `private`), `advisorStatus`, `state`, `district`, `pinCode`, `panNumber`, `specialization`, `earnings` |
 | `lead` | Customer leads submitted via advisor referral | `fullName`, `email`, `mobileNumber`, `requiredAmount`, `selectedProduct`, `leadType`, `leadStatus`, `advisorReferralId`, `parentAdvisorId`, `employmentType`, `propertyType`, `pinCode`, `panCard`, `aadharCard` |
 | `loan-application` | Full loan application tied to a lead | `leadId`, `applicantName`, `loanType`, `loanAmount`, `status`, `form_data`, `assignedStaffId`, `assignedBankerId`, docs fields (panCard, aadharCardFront/Back, salarySlips, itrYear1/2/3, auditedBooksDoc, businessRegProofDoc multiple, etc.) |
 | `lead-remark` | Conversation/remarks history on a lead | `leadId`, `advisor_admin_staff_remark`, `banker_admin_staff_remark` |
@@ -288,7 +288,7 @@ These are single-type or collection-type entries managed via Strapi admin for fr
 - **Bootstrap Logic** (`src/index.ts`):
   - Creates a `strapi-advisor` admin role on startup
   - Syncs approved advisors to Strapi admin users (enables dashboard login)
-  - When an advisor is approved, an admin account is auto-created with their email/password
+  - When an advisor is approved, an admin account is auto-created/synced with their email; `advisors.password` is Strapi-standard bcrypt (`admin::auth.hashPassword`) and the same hash is copied to `admin_users.password` (never double-hashed). Advisors list **Login** uses `POST /admin/advisors/impersonate` (Super Admin only) — not plaintext `/admin/login`
   - Grants Advisor Media Library `plugin::upload.read` + `plugin::upload.assets.create` so Lead View **Add Document** can call `/upload/folders` and `/upload` (Document Details View/Edit only gates UI via `loan-app-section-permission`)
   - Links Advisor, Staff, and Banker to loan-application CM `explorer.read|create|update` via **per-role** permission rows (incl. `form_data`), healed on every boot so Settings → Roles save for one role does not permanently orphan the others
   - Starts the Automation Testing dashboard on `:4100` (`SUITE_DASHBOARD=false` skips; no-ops if the port is already in use; installs `Automation-Testing` npm deps on first boot if missing; waits until the port listens before logging started). Live Run / import / upload / type-regen disk writes must not bounce Admin: chokidar server restart is gated by `watchIgnoreFiles` in [`config/admin.ts`](config/admin.ts) (`Automation-Testing`, `graphify-out`, `Data-Import-Manager`, `types`, CLAUDE, bureau python); Vite Admin full reload is gated by `server.watch.ignored` in [`src/admin/vite.config.ts`](src/admin/vite.config.ts) (same plus `logs`, `public`, `frontend`, `docs`, `scratch`, `venv` / `.venv`). Form/admin document uploads under `public/` are covered by the Vite list.
@@ -323,6 +323,8 @@ The platform has three distinct admin roles:
 - Approved advisors are synced to Strapi admin users on bootstrap (`advisorStatus: 'Approved'`)
 - Staff and Bankers are admin users with `user-product-mapping` records determining which products they handle
 - `loan-app-section-permission` (Settings → Users → Roles → Loan Application Section) controls which steps/fields are viewable/editable in Lead View / loan form UI for Advisor, Staff, and Banker
+- **Passwords (bcrypt-only):** Advisor `password` is hashed on create/update ([`hash-advisor-password.ts`](src/api/advisor/utils/hash-advisor-password.ts)); Approved sync copies that hash to `admin_users` ([`sync-admin-user.ts`](src/api/advisor/utils/sync-admin-user.ts)). Existing plaintext rows are migrated by [`database/migrations/2026.10.06T12.00.00.hash-advisor-passwords.js`](database/migrations/2026.10.06T12.00.00.hash-advisor-passwords.js). Stored passwords cannot be revealed — Show/Hide only applies to a newly typed password. Super Admin **Login as Advisor** → [`POST /admin/advisors/impersonate`](src/api/advisor/utils/impersonate-advisor.ts).
+- **Custom Actions** (Settings → Roles → Collection Types tab, injected row): `addNewLead: { show }` (default on) gates nav “Add New Lead”; `showHidePassword: { show }` (default off) gates the eye for **typing** a new password (Advisor ScaleX eye / Users native eye) — not decryption; `dashboardWidgets: { show }` (default off) gates Strapi homepage widgets and **Add Widget** on `/admin`. Super Admin always allowed for these gates; other roles opt-in for password eye and dashboard widgets. UI in [`addNewLeadPermission.ts`](src/admin/bootstrap/overrides/addNewLeadPermission.ts); [`passwordRevealOverride.ts`](src/admin/bootstrap/overrides/passwordRevealOverride.ts); [`dashboardWidgetsOverride.ts`](src/admin/bootstrap/overrides/dashboardWidgetsOverride.ts)
 - Bootstrap grants Content Manager `explorer.read|create|update` on `api::loan-application.loan-application` (including `form_data`) to Advisor, Staff, and Banker as **per-role permission rows** (healed on every boot). Settings → Roles save for one role must not be treated as shared RBAC — it can orphan other roles until bootstrap re-creates their rows. Advisor/Staff/Banker GET/PUT 403 after editing another role’s CM checkboxes → restart Strapi + re-login
 - Staff/Banker loan-app CM **list** views are scoped client-side via `fetchInterceptor` GET filters on `assignedStaffId` / `assignedBankerId` (not applied to PUT/POST saves)
 
@@ -381,6 +383,7 @@ Recent migrations:
 - `2026.09.14` — Canonical `loan_type` codes `PL|BL|HL|LAP` on `loan_applications`, `zip_codes_to_lenders`, `lender_scoring_criteria` (+ coerce `leads.selected_product` / mappings when matched) (`2026.09.14T12.00.00.loan-type-codes.js`)
 - `2026.09.23` — Drop orphan `email_notifications` after rename to `api::email.email` (`2026.09.23T12.00.00.drop-email-notifications-table.js`)
 - `2026.09.24` — Drop unused `emails` scaffolding table after email absorbed into `system-events` (`2026.09.24T12.00.00.drop-emails-table.js`)
+- `2026.10.06` — Hash plaintext `advisors.password` to bcrypt (cost 10) and sync matching `admin_users.password` (`2026.10.06T12.00.00.hash-advisor-passwords.js`)
 
 ## Environment Setup
 

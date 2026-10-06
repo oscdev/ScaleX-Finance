@@ -232,76 +232,41 @@ async function resolveAdminRoleByCodesOrNames(
   }) || null;
 }
 
-const createAdminUserFromAdvisor = async (strapi: Core.Strapi, advisor: any, rawPassword?: string) => {
+const createAdminUserFromAdvisor = async (strapi: Core.Strapi, advisor: any, _rawPassword?: string) => {
   if (advisor.advisorStatus !== 'Approved') return;
 
-  const { email, fullName, password } = advisor;
+  const { email } = advisor;
 
   try {
-    const adminUserService = strapi.service('admin::user');
-    const existingUser = await adminUserService.findOneByEmail(email);
-
-    if (existingUser) {
-      let adminUserUpdated = false;
-      if (!existingUser.isActive) {
-        await adminUserService.updateById(existingUser.id, { isActive: true });
-        adminUserUpdated = true;
-      }
-      if (adminUserUpdated) {
-        await logUserRegistrationEvent(strapi, {
-          action: 'ADVISOR_APPROVED',
-          description: `Advisor approved (Advisor): admin user reactivated for ${email}`,
-          severity: 'info',
-          model: 'api::advisor.advisor',
-          metadata: {
-            advisorId: advisor.id,
-            email,
-            roleKind: 'Advisor',
-            adminUserCreated: false,
-            adminUserUpdated: true,
-          },
-        });
-      }
-      return;
+    // Prefer DB row so password is the stored bcrypt (never re-hash via admin::user.create).
+    let row = advisor;
+    if (advisor?.id != null) {
+      const fresh = await strapi.db.query('api::advisor.advisor').findOne({
+        where: { id: advisor.id },
+      });
+      if (fresh) row = fresh;
     }
 
-    const advisorRole = await strapi.db.query('admin::role').findOne({
-      where: { code: 'strapi-advisor' },
-    });
+    const { syncApprovedAdvisorToAdmin } = await import('./api/advisor/utils/sync-admin-user');
+    const { created, updated } = await syncApprovedAdvisorToAdmin(strapi, row);
 
-    if (!advisorRole) {
-      return;
+    if (created || updated) {
+      await logUserRegistrationEvent(strapi, {
+        action: 'ADVISOR_APPROVED',
+        description: created
+          ? `Advisor approved (Advisor): admin user created for ${email}`
+          : `Advisor approved (Advisor): admin user synced for ${email}`,
+        severity: 'info',
+        model: 'api::advisor.advisor',
+        metadata: {
+          advisorId: advisor.id,
+          email,
+          roleKind: 'Advisor',
+          adminUserCreated: created,
+          adminUserUpdated: updated,
+        },
+      });
     }
-
-    const names = (fullName || '').trim().split(/\s+/);
-    const firstname = names[0] || 'Advisor';
-    const lastname = names.length > 1 ? names.slice(1).join(' ') : names[0] || 'User';
-
-    const passToUse = rawPassword || password || 'Welcome@Scalex123';
-
-    await adminUserService.create({
-      email,
-      firstname,
-      lastname,
-      password: passToUse,
-      roles: [advisorRole.id],
-      isActive: true,
-      registrationToken: null,
-    });
-
-    await logUserRegistrationEvent(strapi, {
-      action: 'ADVISOR_APPROVED',
-      description: `Advisor approved (Advisor): admin user created for ${email}`,
-      severity: 'info',
-      model: 'api::advisor.advisor',
-      metadata: {
-        advisorId: advisor.id,
-        email,
-        roleKind: 'Advisor',
-        adminUserCreated: true,
-        adminUserUpdated: false,
-      },
-    });
   } catch (err: any) {
     // non-fatal
   }
@@ -381,6 +346,77 @@ export default {
         data: { roleId, roleName, permissions },
       });
       ctx.body = { data: updated };
+    });
+
+    // Super Admin → Login as Advisor (session impersonation; no plaintext password)
+    router.post('/admin/advisors/impersonate', async (ctx: any) => {
+      try {
+        const {
+          resolveCallerAdminFromBearer,
+          impersonateAdvisorAsAdmin,
+          REFRESH_COOKIE_NAME,
+        } = await import('./api/advisor/utils/impersonate-advisor');
+
+        const callerResult = await resolveCallerAdminFromBearer(
+          strapi,
+          ctx.headers.authorization
+        );
+        if (callerResult.ok === false) {
+          ctx.status = callerResult.status;
+          ctx.body = { error: callerResult.error };
+          return;
+        }
+
+        let body: any = ctx.request.body;
+        if (!body || typeof body !== 'object' || !Object.keys(body).length) {
+          const raw = await new Promise<string>((resolve) => {
+            if ((ctx.req as any).complete) {
+              resolve('');
+              return;
+            }
+            let d = '';
+            ctx.req.on('data', (c: Buffer) => {
+              d += c.toString();
+            });
+            ctx.req.on('end', () => resolve(d));
+            ctx.req.on('error', () => resolve(''));
+          });
+          try {
+            body = JSON.parse(raw);
+          } catch {
+            body = {};
+          }
+        }
+
+        const result = await impersonateAdvisorAsAdmin(strapi, {
+          caller: callerResult.user,
+          advisorId: body.advisorId ?? body.id,
+          documentId: body.documentId,
+          deviceId: body.deviceId,
+          rememberMe: body.rememberMe !== false,
+          secureRequest: Boolean(ctx.request.secure),
+        });
+
+        if (result.ok === false) {
+          ctx.status = result.status;
+          ctx.body = { error: result.error };
+          return;
+        }
+
+        const { name: cookieName, ...cookieOpts } = result.cookieOptions as any;
+        ctx.cookies.set(cookieName || REFRESH_COOKIE_NAME, result.refreshToken, cookieOpts);
+        ctx.body = {
+          data: {
+            token: result.accessToken,
+            accessToken: result.accessToken,
+            user: result.user,
+          },
+        };
+      } catch (e: any) {
+        strapi.log.error('[Advisor Impersonate]', e);
+        ctx.status = 500;
+        ctx.body = { error: 'Impersonation failed' };
+      }
     });
 
     // Advisor name/contact list — accessible to any authenticated admin (including Advisor role)

@@ -184,6 +184,15 @@
     background-size: 0.65em auto;
 }
 
+.input-wrapper .onboarding-select {
+    padding-left: 2.8rem;
+}
+
+.input-wrapper .onboarding-select:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
 .onboarding-input-icon {
     position: absolute;
     left: 1rem;

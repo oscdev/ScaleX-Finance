@@ -389,50 +389,30 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
                 }
 
                 if (!advisorData) throw new Error('Could not fetch advisor data');
-                const advEmail = (advisorData.email || advisorData.attributes?.email || '').toLowerCase();
-                const advPassword = advisorData.password || advisorData.attributes?.password;
 
-                if (!advEmail) throw new Error('Advisor email not found in record');
-                if (!advPassword) throw new Error('Advisor password not found in record');
+                const documentId =
+                    advisorData.documentId ||
+                    advisorData.attributes?.documentId ||
+                    docId ||
+                    undefined;
+                const numericId =
+                    advisorData.id ??
+                    advisorData.attributes?.id ??
+                    (/^\d+$/.test(rawId) ? rawId : undefined);
 
-                // 2. Verify admin user with matching email
-                const adminUsersRes = await fetch(`/admin/users?pageSize=100&_q=${advEmail}`, {
-                    headers: token ? { Authorization: `Bearer ${token}` } : {},
-                });
-                if (!adminUsersRes.ok) throw new Error('Could not fetch admin users');
-                const adminUsersData = await adminUsersRes.json();
-                const adminUsers = adminUsersData.data?.results || adminUsersData.data || [];
-                const matchingAdmin = adminUsers.find(
-                    (u: any) => u.email.toLowerCase() === advEmail
-                );
-
-                if (!matchingAdmin) {
-                    alert(`Login Failed:\nNo admin account found for email: ${advEmail}\nMake sure this advisor is Approved.`);
-                    return;
-                }
-
-                // 3. Confirm Advisor role
-                const hasAdvisorRole = (matchingAdmin.roles || []).some(
-                    (r: any) =>
-                        r.code === 'strapi-advisor' ||
-                        r.name.toLowerCase() === 'advisor'
-                );
-                if (!hasAdvisorRole) {
-                    alert(`Login Failed:\nAdmin account found for ${advEmail} but does not have the Advisor role.`);
-                    return;
-                }
-
-                // 4. Full session swap — login first, clear prior tokens only on success
-                // (avoids /admin/users/me 401 from clearing JWT while the SPA is still live)
+                // Super Admin impersonation — no plaintext password (bcrypt-only storage)
                 const deviceId = getOrCreateAdminDeviceId();
-
-                const loginRes = await fetch('/admin/login', {
+                const loginRes = await fetch('/admin/advisors/impersonate', {
                     method: 'POST',
                     credentials: 'include',
-                    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                    },
                     body: JSON.stringify({
-                        email: advEmail,
-                        password: advPassword,
+                        advisorId: numericId,
+                        documentId,
                         deviceId,
                         rememberMe: true,
                     }),
@@ -443,7 +423,6 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
                     const jwt = loginData.data?.token || loginData.token;
                     if (jwt) {
                         clearPriorAdminSession();
-                        // Remember-me style storage — same as Strapi login reducer with persist:true
                         localStorage.setItem('jwtToken', JSON.stringify(jwt));
                         localStorage.setItem('isLoggedIn', 'true');
                         sessionStorage.setItem('jwtToken', jwt);
@@ -453,8 +432,8 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
                     }
                 } else {
                     const errorData = await loginRes.json().catch(() => ({}));
-                    const errMsg = errorData.error?.message || errorData.message || 'Bad Request';
-                    alert(`Login failed (${loginRes.status}): ${errMsg}\nDetails: ${JSON.stringify(errorData)}`);
+                    const errMsg = errorData.error || errorData.message || 'Bad Request';
+                    alert(`Login failed (${loginRes.status}): ${errMsg}`);
                 }
             } catch (err) {
                 console.error('[Login As Advisor]', err);
