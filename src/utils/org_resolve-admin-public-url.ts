@@ -2,14 +2,14 @@ import type { Core } from '@strapi/strapi';
 
 /**
  * Public Admin origin for email CTAs (welcome / invite / forgot-password).
- * Uses PUBLIC_URL as the external Admin origin.
+ * Prefers live PUBLIC_URL, then Strapi server.url, then admin.absoluteUrl.
  * Returns '' when no absolute http(s) base is available.
  */
 export function resolveAdminPublicBaseUrl(strapi: Core.Strapi): string {
   const candidates = [
+    process.env.PUBLIC_URL,
     strapi.config.get('server.url'),
     strapi.config.get('admin.absoluteUrl'),
-    process.env.PUBLIC_URL,
   ];
 
   for (const raw of candidates) {

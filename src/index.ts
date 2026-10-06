@@ -102,6 +102,132 @@ async function linkAdminPermissionToRole(
   return true;
 }
 
+
+/** Standard Media Library admin actions (plugin::upload). */
+const UPLOAD_ML_ACTIONS_ALL = [
+  'plugin::upload.read',
+  'plugin::upload.assets.create',
+  'plugin::upload.assets.update',
+  'plugin::upload.assets.download',
+  'plugin::upload.assets.copy-link',
+  'plugin::upload.configure-view',
+  'plugin::upload.settings.read',
+] as const;
+
+/** Lead View Add Document needs read + create on /upload + /upload/folders. */
+const UPLOAD_ML_ACTIONS_ADVISOR = [
+  'plugin::upload.read',
+  'plugin::upload.assets.create',
+] as const;
+
+/**
+ * Find a null-subject plugin permission already linked to this role.
+ * Never reuse another role's shared row — Settings → Roles saves delete
+ * unlisted permission rows and would strip Super Admin Media Library access.
+ */
+async function findRoleLinkedNullSubjectPermission(
+  strapi: Core.Strapi,
+  roleId: number | string,
+  action: string
+) {
+  const knex = strapi.db.connection;
+  const row = await knex('admin_permissions as p')
+    .join('admin_permissions_role_lnk as l', 'l.permission_id', 'p.id')
+    .where('l.role_id', roleId)
+    .andWhere('p.action', action)
+    .where(function nullOrEmptySubject() {
+      this.whereNull('p.subject').orWhere('p.subject', '');
+    })
+    .select('p.id')
+    .first();
+  if (!row?.id) return null;
+  return { id: row.id };
+}
+
+/** Insert a brand-new null-subject permission row (knex — avoids adopting another role's row). */
+async function insertNullSubjectPermissionRow(
+  strapi: Core.Strapi,
+  action: string
+): Promise<{ id: number } | null> {
+  const knex = strapi.db.connection;
+  const documentId = `upl_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  const now = new Date();
+  const inserted = await knex('admin_permissions')
+    .insert({
+      document_id: documentId,
+      action,
+      action_parameters: JSON.stringify({}),
+      subject: null,
+      properties: JSON.stringify({}),
+      conditions: JSON.stringify([]),
+      created_at: now,
+      updated_at: now,
+      published_at: now,
+    })
+    .returning('id');
+  const id = Array.isArray(inserted) ? (inserted[0]?.id ?? inserted[0]) : inserted;
+  if (id == null) return null;
+  return { id: Number(id) };
+}
+
+/**
+ * Ensure Media Library actions via per-role permission rows (same pattern as loan-app CM).
+ * Super Admin needs plugin::upload.read for GET /upload/files (Media Library list).
+ */
+async function ensureUploadPermissionsForRoles(
+  strapi: Core.Strapi,
+  grants: Array<{ roleCode: string; actions: readonly string[] }>
+): Promise<void> {
+  for (const { roleCode, actions } of grants) {
+    const role = await strapi.db.query('admin::role').findOne({
+      where: { code: roleCode },
+    });
+    if (!role) {
+      strapi.log.warn(`[Permission Sync] Role ${roleCode} not found — skip upload grants`);
+      continue;
+    }
+
+    for (const action of actions) {
+      try {
+        const knex = strapi.db.connection;
+        const existing = await findRoleLinkedNullSubjectPermission(strapi, role.id, action);
+        if (existing) {
+          const otherRoleLink = await knex('admin_permissions_role_lnk')
+            .where({ permission_id: existing.id })
+            .whereNot({ role_id: role.id })
+            .first();
+          if (!otherRoleLink) {
+            strapi.log.info(`[Permission Sync] ${action} → ${roleCode} (already linked)`);
+            continue;
+          }
+          // Shared with another role — unlink us, then create an exclusive row below.
+          await knex('admin_permissions_role_lnk')
+            .where({ permission_id: existing.id, role_id: role.id })
+            .del();
+          strapi.log.warn(
+            `[Permission Sync] ${action} was shared (perm ${existing.id}); unlinked ${roleCode} to create exclusive row`
+          );
+        }
+
+        // Knex insert always yields a role-owned row (db.query create can return/reuse another role's row).
+        const uploadPerm = await insertNullSubjectPermissionRow(strapi, action);
+        if (!uploadPerm) {
+          strapi.log.warn(`[Permission Sync] Could not create ${action} for ${roleCode}`);
+          continue;
+        }
+        const linked = await linkAdminPermissionToRole(strapi, uploadPerm.id, role.id);
+        if (linked) {
+          strapi.log.info(`[Permission Sync] ${action} → ${roleCode} (new per-role row id=${uploadPerm.id})`);
+        }
+      } catch (e) {
+        strapi.log.warn(
+          `[Permission Sync] Failed to grant ${action} to ${roleCode}: ${(e as Error)?.message || e}`
+        );
+      }
+    }
+  }
+}
+
 async function ensurePermissionFields(
   strapi: Core.Strapi,
   perm: { id: number | string; properties?: { fields?: string[] } },
@@ -1113,6 +1239,18 @@ export default {
       }
     } catch (err) { }
 
+    // 5b. Media Library: Super Admin needs upload.read for GET /upload/files; Advisor needs read+create for Add Document
+    try {
+      await ensureUploadPermissionsForRoles(strapi, [
+        { roleCode: 'strapi-super-admin', actions: UPLOAD_ML_ACTIONS_ALL },
+        { roleCode: 'strapi-advisor', actions: UPLOAD_ML_ACTIONS_ADVISOR },
+      ]);
+    } catch (err) {
+      strapi.log.warn(
+        `[Permission Sync] Upload permission heal failed: ${(err as Error)?.message || err}`
+      );
+    }
+
     // 6. Ensure Advisor Role has field-level permissions for Leads
     try {
       const dbAdvisorRole = await strapi.db.query('admin::role').findOne({
@@ -1138,42 +1276,7 @@ export default {
 
           // console.log(`[Permission Sync] Found ${permissions.length} lead permissions for Advisor role ID: ${dbAdvisorRole.id}`);
 
-          // Media Library: Lead View Add Document uses GET/POST /upload/folders + POST /upload
-          // (Document Details View/Edit alone only gates UI — these actions are required to avoid Policy Failed)
-          const uploadActions = [
-            'plugin::upload.read',
-            'plugin::upload.assets.create',
-          ];
-          for (const action of uploadActions) {
-            try {
-              let uploadPerm = await strapi.db.query('admin::permission').findOne({
-                where: { action, subject: { $null: true } },
-              });
-              if (!uploadPerm) {
-                const candidates = await strapi.db.query('admin::permission').findMany({
-                  where: { action },
-                });
-                uploadPerm = (candidates || []).find(
-                  (p) => p.subject == null || p.subject === ''
-                ) || null;
-              }
-              if (!uploadPerm) {
-                uploadPerm = await strapi.db.query('admin::permission').create({
-                  data: {
-                    action,
-                    subject: null,
-                    properties: {},
-                    conditions: [],
-                  },
-                });
-              }
-              if (uploadPerm) {
-                await linkAdminPermissionToRole(strapi, uploadPerm.id, dbAdvisorRole.id);
-              }
-            } catch (e) {
-              strapi.log.warn(`[Permission Sync] Failed to grant ${action} to strapi-advisor: ${(e as Error)?.message || e}`);
-            }
-          }
+          // Media Library grants moved to ensureUploadPermissionsForRoles (Super Admin + Advisor)
 
           for (const permission of permissions) {
             if (permission.properties && permission.properties.fields) {

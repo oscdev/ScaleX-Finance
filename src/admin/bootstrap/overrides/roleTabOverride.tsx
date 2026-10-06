@@ -13,18 +13,38 @@ const getRoleIdFromUrl = (): number | null => {
     return m ? parseInt(m[1], 10) : null;
 };
 
-const fetchRoleName = async (roleId: number): Promise<string> => {
+type RoleMeta = { name: string; code: string };
+
+const fetchRoleMeta = async (roleId: number): Promise<RoleMeta> => {
     try {
         const rawToken: string = (window as any)._strapi_last_token || '';
         const token = rawToken.startsWith('Bearer ') ? rawToken.slice(7).trim() : rawToken;
         const res = await fetch(`/admin/roles/${roleId}`, {
             headers: { Authorization: `Bearer ${token}` },
         });
-        if (!res.ok) return `Role ${roleId}`;
+        if (!res.ok) return { name: `Role ${roleId}`, code: '' };
         const data = await res.json();
-        return data.data?.name || data.name || `Role ${roleId}`;
+        const role = data.data || data;
+        return {
+            name: role?.name || `Role ${roleId}`,
+            code: String(role?.code || ''),
+        };
     } catch {
-        return `Role ${roleId}`;
+        return { name: `Role ${roleId}`, code: '' };
+    }
+};
+
+const fetchRoleName = async (roleId: number): Promise<string> => {
+    const meta = await fetchRoleMeta(roleId);
+    return meta.name;
+};
+
+const clearCustomLoanAppTab = () => {
+    unmountAndRemove(CUSTOM_PANEL_ID);
+    document.getElementById(CUSTOM_TAB_ID)?.remove();
+    if (cleanupListeners) {
+        cleanupListeners();
+        cleanupListeners = null;
     }
 };
 
@@ -112,17 +132,7 @@ const activateCustomTab = async (roleId: number) => {
     mountPanel(roleId, roleName);
 };
 
-export const applyRoleTabOverride = () => {
-    const roleId = getRoleIdFromUrl();
-
-    if (!roleId) {
-        // Clean up if we navigated away
-        unmountAndRemove(CUSTOM_PANEL_ID);
-        document.getElementById(CUSTOM_TAB_ID)?.remove();
-        if (cleanupListeners) { cleanupListeners(); cleanupListeners = null; }
-        return;
-    }
-
+const injectLoanAppTab = (roleId: number) => {
     const tablist = document.querySelector('[role="tablist"]');
     if (!tablist) return;
 
@@ -207,4 +217,23 @@ export const applyRoleTabOverride = () => {
         document.removeEventListener('click', saveBtnFn as EventListener, true);
         document.getElementById(CUSTOM_TAB_ID)?.remove();
     };
+};
+
+export const applyRoleTabOverride = () => {
+    const roleId = getRoleIdFromUrl();
+
+    if (!roleId) {
+        clearCustomLoanAppTab();
+        return;
+    }
+
+    // Super Admin always has full Lead View / loan-form access — section rules do not apply.
+    void fetchRoleMeta(roleId).then((meta) => {
+        if (getRoleIdFromUrl() !== roleId) return; // navigated away while fetching
+        if (meta.code === 'strapi-super-admin') {
+            clearCustomLoanAppTab();
+            return;
+        }
+        injectLoanAppTab(roleId);
+    });
 };
