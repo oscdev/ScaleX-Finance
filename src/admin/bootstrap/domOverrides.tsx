@@ -11,6 +11,8 @@ import { patchHistoryMethods } from './overrides/historyPatch';
 import { applyLoginPageOverride } from './overrides/loginPageOverride';
 import { applyNavOverride, updateNavActiveStates, updateAddNewLeadNavVisibility } from './overrides/navOverride';
 import { applyAddNewLeadPermissionRow } from './overrides/addNewLeadPermission';
+import { applyPasswordRevealOverride } from './overrides/passwordRevealOverride';
+import { applyDashboardWidgetsOverride } from './overrides/dashboardWidgetsOverride';
 import { applyAdminUserOverride } from './overrides/adminUserOverride';
 import { applyAdminUsersListOverride } from './overrides/adminUsersListOverride';
 import { applyButtonHardening } from './overrides/buttonHardening';
@@ -544,6 +546,8 @@ const initOverrides = () => {
             // Ensure users banner unmounts when leaving Settings → Users
             safe(() => applyUsersOverviewMount());
             safe(() => ensureAdminNotifications());
+            // Homepage widgets gated by Custom Actions → Dashboard Widgets
+            safe(() => applyDashboardWidgetsOverride());
             return;
         }
 
@@ -557,6 +561,7 @@ const initOverrides = () => {
 
         safe(() => applyAdminUserOverride(commonHeaders));
         safe(() => applyAdminUsersListOverride(commonHeaders));
+        safe(() => applyPasswordRevealOverride());
         // Re-enters dashboard-mode + mounts #custom-dashboard-root only when loan+leadId
         safe(() => applyLeadDashboardOverride(token));
         safe(() => applyLoanApplicationEditOverride());
@@ -585,7 +590,7 @@ const initOverrides = () => {
     }
 };
 
-// ─── Add New Lead nav permission loader ───────────────────────────────────────
+// ─── Custom Actions permission loader (Add New Lead + Password + Dashboard Widgets) ─
 
 const applyNavPermissionWhenReady = (attempt = 0) => {
     // Wait for strapiUserRole — it is stored LAST in syncSessionRole, so once it
@@ -598,9 +603,20 @@ const applyNavPermissionWhenReady = (attempt = 0) => {
         return;
     }
 
+    const reapplyPasswordReveal = () => {
+        try { applyPasswordRevealOverride(); } catch (e) { console.warn('[ScaleX override error]', e); }
+    };
+    const reapplyDashboardWidgets = () => {
+        try { applyDashboardWidgetsOverride(); } catch (e) { console.warn('[ScaleX override error]', e); }
+    };
+
     if (!strapiRole || strapiRole === 'admin') {
         (window as any)._addNewLeadNavAllowed = true;
+        (window as any)._showHidePasswordAllowed = true;
+        (window as any)._dashboardWidgetsAllowed = true;
         updateAddNewLeadNavVisibility();
+        reapplyPasswordReveal();
+        reapplyDashboardWidgets();
         return;
     }
 
@@ -608,7 +624,11 @@ const applyNavPermissionWhenReady = (attempt = 0) => {
     try { roleIds = JSON.parse(roleIdsRaw || '[]'); } catch {}
     if (roleIds.length === 0) {
         (window as any)._addNewLeadNavAllowed = true;
+        (window as any)._showHidePasswordAllowed = true;
+        (window as any)._dashboardWidgetsAllowed = true;
         updateAddNewLeadNavVisibility();
+        reapplyPasswordReveal();
+        reapplyDashboardWidgets();
         return;
     }
 
@@ -620,17 +640,31 @@ const applyNavPermissionWhenReady = (attempt = 0) => {
     fetch(`/admin/loan-app-permissions?roleId=${roleId}`, { headers })
         .then(r => r.ok ? r.json() : null)
         .then((data: any) => {
-            if (!data) { (window as any)._addNewLeadNavAllowed = true; }
-            else {
+            if (!data) {
+                (window as any)._addNewLeadNavAllowed = true;
+                // Opt-in: deny reveal when permissions cannot be loaded
+                (window as any)._showHidePasswordAllowed = false;
+                (window as any)._dashboardWidgetsAllowed = false;
+            } else {
                 const results: any[] = data.data || [];
-                const allowed = results.length === 0 || results[0].permissions?.addNewLead?.show !== false;
-                (window as any)._addNewLeadNavAllowed = allowed;
+                const perms = results[0]?.permissions;
+                const addLeadAllowed = results.length === 0 || perms?.addNewLead?.show !== false;
+                (window as any)._addNewLeadNavAllowed = addLeadAllowed;
+                // Default false unless explicitly enabled for this role
+                (window as any)._showHidePasswordAllowed = perms?.showHidePassword?.show === true;
+                (window as any)._dashboardWidgetsAllowed = perms?.dashboardWidgets?.show === true;
             }
             updateAddNewLeadNavVisibility();
+            reapplyPasswordReveal();
+            reapplyDashboardWidgets();
         })
         .catch(() => {
             (window as any)._addNewLeadNavAllowed = true;
+            (window as any)._showHidePasswordAllowed = false;
+            (window as any)._dashboardWidgetsAllowed = false;
             updateAddNewLeadNavVisibility();
+            reapplyPasswordReveal();
+            reapplyDashboardWidgets();
         });
 };
 

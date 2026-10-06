@@ -32,7 +32,8 @@
         },
         "password": {
             "type": "string",
-            "required": true
+            "required": true,
+            "private": true
         },
         "state": {
             "type": "string",

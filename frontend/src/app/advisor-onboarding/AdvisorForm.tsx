@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { logEvent } from '@/lib/logger';
 import { strapiPublicApi, withStrapiPublicUrl } from '@/lib/strapi';
 import { userFacingError } from '@/lib/safeFetch';
+import { INDIA_STATES_DISTRICTS } from '@/data/india-states-districts';
 import Link from 'next/link';
 import './AdvisorOnboarding.css';
 
@@ -35,8 +36,12 @@ export default function AdvisorForm({ pageInfo }: { pageInfo: any }) {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+        if (name === 'state') {
+            setFormData(prev => ({ ...prev, state: value, district: '' }));
+            setErrors((prev: any) => ({ ...prev, state: undefined, district: undefined }));
+            return;
+        }
         setFormData(prev => ({ ...prev, [name]: value }));
-
         if (errors[name]) {
             setErrors((prev: any) => ({ ...prev, [name]: undefined }));
         }
@@ -163,9 +168,9 @@ export default function AdvisorForm({ pageInfo }: { pageInfo: any }) {
     const passwordLabel = pi.passwordLabel || "Create Password";
     const passwordPlaceholder = pi.passwordPlaceholder || "********";
     const stateLabel = pi.stateLabel || "State";
-    const statePlaceholder = pi.statePlaceholder || "Maharashtra";
     const districtLabel = pi.districtLabel || "District";
-    const districtPlaceholder = pi.districtPlaceholder || "Mumbai";
+    const districtOptions =
+        INDIA_STATES_DISTRICTS.find((s) => s.state === formData.state)?.districts ?? [];
     const pinCodeLabel = pi.pinCodeLabel || "Pin Code";
     const pinCodePlaceholder = pi.pinCodePlaceholder || "400001";
     const licenseLabel = pi.licenseLabel || "Professional License (Optional)";
@@ -351,11 +356,17 @@ export default function AdvisorForm({ pageInfo }: { pageInfo: any }) {
                                                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                                                 <circle cx="12" cy="10" r="3"></circle>
                                             </svg>
-                                            <input
-                                                className={`onboarding-input ${errors.state ? 'is-error' : ''}`}
-                                                type="text" name="state" placeholder={statePlaceholder}
-                                                value={formData.state} onChange={handleChange}
-                                            />
+                                            <select
+                                                className={`onboarding-input onboarding-select ${errors.state ? 'is-error' : ''} ${!formData.state ? 'text-gray-400' : ''}`}
+                                                name="state"
+                                                value={formData.state}
+                                                onChange={handleChange}
+                                            >
+                                                <option value="">Select State</option>
+                                                {INDIA_STATES_DISTRICTS.map((s) => (
+                                                    <option key={s.state} value={s.state}>{s.state}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                         {errors.state && <div className="onboarding-error">{errors.state}</div>}
                                     </div>
@@ -367,11 +378,18 @@ export default function AdvisorForm({ pageInfo }: { pageInfo: any }) {
                                                 <line x1="2" y1="12" x2="22" y2="12"></line>
                                                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
                                             </svg>
-                                            <input
-                                                className={`onboarding-input ${errors.district ? 'is-error' : ''}`}
-                                                type="text" name="district" placeholder={districtPlaceholder}
-                                                value={formData.district} onChange={handleChange}
-                                            />
+                                            <select
+                                                className={`onboarding-input onboarding-select ${errors.district ? 'is-error' : ''} ${!formData.district ? 'text-gray-400' : ''}`}
+                                                name="district"
+                                                value={formData.district}
+                                                onChange={handleChange}
+                                                disabled={!formData.state}
+                                            >
+                                                <option value="">Select District</option>
+                                                {districtOptions.map((d) => (
+                                                    <option key={d} value={d}>{d}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                         {errors.district && <div className="onboarding-error">{errors.district}</div>}
                                     </div>
