@@ -195,7 +195,7 @@ All collections live in `src/api/`. Each has `controllers/`, `services/`, `route
 | `loan-application` | Full loan application tied to a lead | `leadId`, `applicantName`, `loanType`, `loanAmount`, `status`, `form_data`, `assignedStaffId`, `assignedBankerId`, docs fields (panCard, aadharCardFront/Back, salarySlips, itrYear1/2/3, auditedBooksDoc, businessRegProofDoc multiple, etc.) |
 | `lead-remark` | Conversation/remarks history on a lead | `leadId`, `advisor_admin_staff_remark`, `banker_admin_staff_remark` |
 | `product` | Financial product definitions | `title`, `description`, `logo`, `isActive` (boolean, default true) |
-| `user-product-mapping` | Maps admin users (staff/bankers) to products | `adminUserId`, `user_role` (staff/banker), `product` |
+| `user-product-mapping` | Maps admin users (staff/bankers) to products | `adminUserId`, `user_role` (staff/banker), `product` (known loan titles stored as `PL` \| `BL` \| `HL` \| `LAP`; other product titles unchanged). Invite dropdown still shows the product title; create/update lifecycle coerces the code. Lead assignment matches `lead.selectedProduct` to this code |
 | `loan-app-section-permission` | Controls which sections Advisor/Staff/Banker can see in loan forms (Super Admin always full access; no Loan Application rules tab on Super Admin role) | `roleId`, `roleName`, `permissions` |
 | `system-events` | Activity logs + Notifications (admin bell) + outbound Email | UID `api::system-events.activity-log` (table `activity_logs`); REST `/api/activity-logs*`; admin `/admin/activity-logs/*` (incl. role-scoped `GET /admin/activity-logs/notifications`); thin `services/activity-log.ts` facade → `activity/` (log-event, queries, categories), `notifications/` (`bell-dedupe`, `role-scope`, `list-for-bell`), `email/` (`outbound-send`, `email-audit`, `template-loader`, `templates/*.html` — loan-application, lead-status-update, advisor-registration, registration-welcome, forgot-password); no `emails` entity table — see [docs/Activity-Log.md](docs/Activity-Log.md) and [docs/Email-Templates-Guide.md](docs/Email-Templates-Guide.md); admin UI domains: **Lead** \| **Email** \| **Users & Auth** \| **System** |
 
@@ -393,6 +393,7 @@ Recent migrations:
 - `2026.09.23` — Drop orphan `email_notifications` after rename to `api::email.email` (`2026.09.23T12.00.00.drop-email-notifications-table.js`)
 - `2026.09.24` — Drop unused `emails` scaffolding table after email absorbed into `system-events` (`2026.09.24T12.00.00.drop-emails-table.js`)
 - `2026.10.06` — Hash plaintext `advisors.password` to bcrypt (cost 10) and sync matching `admin_users.password` (`2026.10.06T12.00.00.hash-advisor-passwords.js`)
+- `2026.10.07` — Rewrite full loan names on `user_product_mappings.product` only to `PL|BL|HL|LAP` (`2026.10.07T18.00.00.user-product-mapping-loan-codes.js`). Rows already coded, and other product titles, are unchanged
 
 ## Environment Setup
 

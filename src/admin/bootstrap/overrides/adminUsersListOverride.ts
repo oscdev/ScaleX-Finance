@@ -2,6 +2,7 @@
 // controls INTO the existing Strapi search/filter toolbar row, and sorts by ID desc.
 
 import { markAdminDropdownInteraction, shouldPauseAdminOverrides } from '../overlayGuard';
+import { loanTypeLabel } from '../../../utils/loan-type';
 
 const FETCH_FLAG = '_admin_users_id_loaded';
 
@@ -623,7 +624,7 @@ const ensureProductCell = (row: Element, insertIdx: number, product: string) => 
         const ref = row.children[insertIdx] ?? null;
         row.insertBefore(cell, ref);
     }
-    cell.textContent = product || '—';
+    cell.textContent = product ? loanTypeLabel(product) : '—';
 };
 
 
