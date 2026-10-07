@@ -8,9 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Before starting **every prompt/task** (order: Graphify → Obsidian → Caveman → then implement):
 
-* **Graphify** — Before exploring or editing code, run `graphify query "<task>"` when `graphify-out/graph.json` exists; use `graphify path "<A>" "<B>"` and `graphify explain "<concept>"` when needed. Prefer `graphify-out/wiki/` for broad navigation. After code changes, run `graphify update .` (AST-only). Do not skip Graphify because files “feel known.” See **graphify** at the end of this file.
-* **Obsidian** — Before implementing, review relevant vault / project knowledge notes for the feature area. After changes, sync notes so documentation matches behavior.
-* **Caveman** — Prefer the simplest correct fix. Avoid unnecessary complexity, duplication, abstractions, speculative refactors, or over-engineering.
+* **Graphify** — Before exploring or editing code, run `graphify query "<task>"` when `graphify-out/graph.json` exists; use `graphify path "<A>" "<B>"` and `graphify explain "<concept>"` when needed. Prefer `graphify-out/wiki/` for broad navigation (`graphify export wiki` after a graph rebuild). After code changes, run `graphify update .` (AST-only). Do not skip Graphify because files “feel known.” Cursor also loads [`.cursor/rules/graphify.mdc`](.cursor/rules/graphify.mdc). See **graphify** at the end of this file.
+* **Obsidian** — Vault: `/var/www/vhosts/obsidianvault`. The folder `ScaleX-Finance` inside it is a symlink to this repo (live docs and this file). Before implementing, review relevant notes for the feature area (`docs/`, this file). After changes, update those notes in the repo. Do not edit the 24 Sep backup `ScaleX-Finance.bak-2026-09-24`. Obsidian Git `basePath` is this repo; leave auto-commit, auto-push, and auto-pull at `0`.
+* **Caveman** — Prefer the simplest correct fix. Avoid unnecessary complexity, duplication, abstractions, speculative refactors, or over-engineering. Same rule in [`.cursor/rules/caveman.mdc`](.cursor/rules/caveman.mdc). Speech mode (`/caveman`, “be brief”) is opt-in and is not the project default.
 
 ## Development Standards
 
@@ -400,7 +400,7 @@ Copy `.env.example` to `.env` and update:
 - `HOST`, `PORT` (Strapi server)
 - `APP_KEYS`, `API_TOKEN_SALT`, `ADMIN_JWT_SECRET` (Strapi security)
 - `JWT_SECRET`, `ENCRYPTION_KEY` (API auth)
-- **`PUBLIC_URL`** — public Admin origin (no trailing slash); drives `server.url` / `admin.absoluteUrl` and email CTAs (welcome `/auth/login`, invite `/auth/register`, forgot-password). Resolved at send time via [`src/utils/resolve-admin-public-url.ts`](src/utils/resolve-admin-public-url.ts). Production must set this or links default to `https://scalex.local`
+- **`PUBLIC_URL`** — optional pin for the public Admin origin (no trailing slash); still drives `server.url` / `admin.absoluteUrl`. Email CTAs (welcome `/auth/login`, invite `/auth/register`, forgot-password) are built at send time in [`src/utils/resolve-admin-public-url.ts`](src/utils/resolve-admin-public-url.ts) from the triggering request (`X-Forwarded-Host` / `Host`, then `PUBLIC_URL` if set). No code default domain. Links are skipped only when both are missing.
 - Database connection details (if not using default localhost)
 - **Python extraction:** bootstrap `ensurePythonEnvironment()` auto-creates `.venv` and installs deps on first `npm run dev`; optional `PYTHON_PATH` in `.env`
 - **API Uploads mirror:** `API_UPLOADS_MIRROR_WATCH=false` disables the disk → Media Library `chokidar` watcher (default on); run watcher on one Strapi instance only in multi-node deploys
@@ -509,10 +509,10 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 
 ## graphify
 
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships. Rebuild code with `graphify update .`, then refresh navigation with `graphify export wiki` (`graphify-out/wiki/index.md`). Cursor loads the same steps from [`.cursor/rules/graphify.mdc`](.cursor/rules/graphify.mdc).
 
 Rules:
 - For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost). Doc-only edits are not picked up by that command.
