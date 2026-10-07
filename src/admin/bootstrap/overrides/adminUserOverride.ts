@@ -3,6 +3,8 @@
 // pre-filled from user_product_mappings and saved via fetchInterceptor on PUT.
 // Passwords are bcrypt-only — no advisor password prefill/reveal.
 
+import { normalizeLoanTypeCode } from '../../../utils/loan-type';
+
 const EDIT_PRODUCT_ID = 'scalex-edit-product-field';
 
 // ─── Role detection ───────────────────────────────────────────────────────────
@@ -237,7 +239,13 @@ const injectProductFieldOnEditPage = async (
         opt.textContent = p;
         select.appendChild(opt);
     });
-    if (existing?.product) select.value = existing.product;
+    if (existing?.product) {
+        const storedCode = normalizeLoanTypeCode(existing.product);
+        const matchedTitle = storedCode
+            ? products.find((p) => normalizeLoanTypeCode(p) === storedCode)
+            : undefined;
+        select.value = matchedTitle || existing.product;
+    }
 
     // Initial visibility
     const initialRole = getSelectedRoleOnEditPage();
