@@ -121,7 +121,7 @@ export function resolveAdminPublicBaseUrl(strapi: Core.Strapi): string {
 
 export function buildAdminLoginUrl(strapi: Core.Strapi): string {
   const base = resolveAdminPublicBaseUrl(strapi);
-  return base ? `${base}/auth/login` : '';
+  return base ? `${base}/admin/auth/login` : '';
 }
 
 export function buildAdminRegisterUrl(
@@ -131,7 +131,7 @@ export function buildAdminRegisterUrl(
   const base = resolveAdminPublicBaseUrl(strapi);
   const token = String(registrationToken || '').trim();
   if (!base || !token) return '';
-  return `${base}/auth/register?registrationToken=${encodeURIComponent(token)}`;
+  return `${base}/admin/auth/register?registrationToken=${encodeURIComponent(token)}`;
 }
 
 export function buildAdminResetPasswordUrl(
@@ -141,7 +141,7 @@ export function buildAdminResetPasswordUrl(
   const base = resolveAdminPublicBaseUrl(strapi);
   const code = String(resetCode || '').trim();
   if (!base || !code) return '';
-  return `${base}/auth/reset-password?code=${encodeURIComponent(code)}`;
+  return `${base}/admin/auth/reset-password?code=${encodeURIComponent(code)}`;
 }
 
 /** True when host looks like local/dev (emails would use a non-production origin). */

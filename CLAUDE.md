@@ -400,7 +400,7 @@ Copy `.env.example` to `.env` and update:
 - `HOST`, `PORT` (Strapi server)
 - `APP_KEYS`, `API_TOKEN_SALT`, `ADMIN_JWT_SECRET` (Strapi security)
 - `JWT_SECRET`, `ENCRYPTION_KEY` (API auth)
-- **`PUBLIC_URL`** — optional pin for the public Admin origin (no trailing slash); still drives `server.url` / `admin.absoluteUrl`. Email CTAs (welcome `/auth/login`, invite `/auth/register`, forgot-password) are built at send time in [`src/utils/resolve-admin-public-url.ts`](src/utils/resolve-admin-public-url.ts) from the triggering request (`X-Forwarded-Host` / `Host`, then `PUBLIC_URL` if set). No code default domain. Links are skipped only when both are missing.
+- **`PUBLIC_URL`** — optional pin for the public Admin origin (no trailing slash); still drives `server.url` / `admin.absoluteUrl`. Email CTAs (welcome `/admin/auth/login`, invite `/admin/auth/register`, forgot-password `/admin/auth/reset-password`) are built at send time in [`src/utils/resolve-admin-public-url.ts`](src/utils/resolve-admin-public-url.ts) from the triggering request (`X-Forwarded-Host` / `Host`, then `PUBLIC_URL` if set). No code default domain. Links are skipped only when both are missing.
 - Database connection details (if not using default localhost)
 - **Python extraction:** bootstrap `ensurePythonEnvironment()` auto-creates `.venv` and installs deps on first `npm run dev`; optional `PYTHON_PATH` in `.env`
 - **API Uploads mirror:** `API_UPLOADS_MIRROR_WATCH=false` disables the disk → Media Library `chokidar` watcher (default on); run watcher on one Strapi instance only in multi-node deploys
