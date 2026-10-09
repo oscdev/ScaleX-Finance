@@ -43,7 +43,7 @@ export default async function Homepage() {
   const heroTitle = content?.heroTitle || 'Welcome to ScaleX Finance';
   const heroSubtitle = content?.heroSubtitle || 'The next generation financial platform for advisors and clients.';
   const becomeAnAdvisorText = content?.becomeAnAdvisorButtonText || 'Become an Advisor';
-  const becomeAnAdvisorLink = content?.becomeAnAdvisorButtonLink || '/admin/auth/login';
+  const becomeAnAdvisorLink = content?.becomeAnAdvisorButtonLink || '/FinanCe-21x08k19G/auth/login';
   const applyNowText = content?.applyNowButtonText || 'Apply Now';
   const applyNowLink = content?.applyNowButtonLink || '/products';
   const vpTitle = content?.valuePropositionTitle || 'Why Choose ScaleX?';

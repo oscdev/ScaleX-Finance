@@ -553,7 +553,7 @@ export default function AdvisorForm({ pageInfo }: { pageInfo: any }) {
                 <div className="signin-prompt">
                     <p className="signin-text">
                         {signInPromptText}{" "}
-                        <a href="/admin/auth/login" className="signin-link">
+                        <a href="/FinanCe-21x08k19G/auth/login" className="signin-link">
                             {signInLinkText}
                         </a>
                     </p>

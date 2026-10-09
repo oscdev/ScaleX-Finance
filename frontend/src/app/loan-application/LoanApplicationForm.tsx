@@ -606,7 +606,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
 
             const strapiRole = ss.getItem('strapiUserRole');
             if (strapiRole === 'admin' || strapiRole === 'staff' || strapiRole === 'advisor') {
-                router.push('/admin/content-manager/collection-types/api::lead.lead');
+                router.push('/FinanCe-21x08k19G/content-manager/collection-types/api::lead.lead');
             } else {
                 router.push('/loan-application-success');
             }

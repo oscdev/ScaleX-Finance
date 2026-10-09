@@ -42,7 +42,7 @@ export default async function Header() {
     const advisorRegistrationLabel = headerInfo.advisorRegistrationLabel || 'Advisor Registration';
     const advisorRegistrationLink = headerInfo.advisorRegistrationLink || '/advisor-onboarding';
     const advisorLoginLabel = headerInfo.advisorLoginLabel || 'Advisor Login';
-    const advisorLoginLink = headerInfo.advisorLoginLink || '/admin/auth/login';
+    const advisorLoginLink = headerInfo.advisorLoginLink || '/FinanCe-21x08k19G/auth/login';
 
     const fullLogoUrl = logoImageUrl ? withStrapiPublicUrl(logoImageUrl) : null;
 
