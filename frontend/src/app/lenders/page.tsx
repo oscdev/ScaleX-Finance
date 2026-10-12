@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import Link from 'next/link';
-import { strapiInternalApi } from '@/lib/strapi';
+import { strapiInternalApi, withStrapiPublicUrl } from '@/lib/strapi';
 import { DEFAULT_LOAN_TYPE, isBusinessLoanType } from '@/lib/loanType';
 import './Lenders.css';
 
@@ -11,6 +11,7 @@ type MatchedLender = {
     code: string;
     score?: number | null;
     rank?: number | null;
+    logoUrl?: string | null;
 };
 
 function formatMatchScore(score: number): string {
@@ -78,6 +79,7 @@ async function getMatchedLenders(
                     code: l.lenderCode || l.code || '',
                     score: l.score ?? null,
                     rank: l.rank ?? null,
+                    logoUrl: l.logoUrl || null,
                 };
             }),
         };
@@ -127,7 +129,15 @@ export default async function LendersPage({
                         lenders.map((lender) => (
                             <div key={String(lender.id)} className="lender-card">
                                 <div className="lender-logo-container" title={lender.code}>
-                                    <span className="lender-code-badge">{lender.code}</span>
+                                    {lender.logoUrl ? (
+                                        <img
+                                            src={withStrapiPublicUrl(lender.logoUrl)}
+                                            alt={lender.name}
+                                            className="lender-logo-img"
+                                        />
+                                    ) : (
+                                        <span className="lender-code-badge">{lender.code}</span>
+                                    )}
                                 </div>
                                 <h3 className="lender-name">{lender.name}</h3>
                                 {lender.rank != null ? (
