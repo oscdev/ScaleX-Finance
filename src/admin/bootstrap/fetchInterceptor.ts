@@ -467,6 +467,15 @@ export const installFetchInterceptor = () => {
             'advisorStatus',
         ];
 
+        const lendersCatalogSequence = ['id', 'logo', 'lenderName', 'lenderType', 'lenderCode'];
+        const lendersCatalogLabels: Record<string, string> = {
+            id: 'ID',
+            logo: 'LOGO',
+            lendername: 'LENDERNAME',
+            lendertype: 'LENDERTYPE',
+            lendercode: 'LENDERCODE',
+        };
+
         /** ListView crashes if layouts.list has a schema field without metadatas[f].list.label. */
         const ensureListFieldMetadatas = (
             target: any,
@@ -663,6 +672,15 @@ export const installFetchInterceptor = () => {
                             modified = true;
                         }
                     }
+
+                    const lendersCT = data.find((ct: any) => ct.uid === 'api::lender-master.lenders-catalog');
+                    if (lendersCT?.layouts) {
+                        lendersCT.layouts.list = lendersCatalogSequence;
+                        modified = true;
+                        if (ensureListFieldMetadatas(lendersCT, lendersCatalogSequence, lendersCatalogLabels)) {
+                            modified = true;
+                        }
+                    }
                 }
 
                 // 3. Intercept advisor configuration endpoint
@@ -695,6 +713,19 @@ export const installFetchInterceptor = () => {
                             });
                         }
                         if (ensureListFieldMetadatas(target, advisorSequence, advisorLabelMap)) {
+                            modified = true;
+                        }
+                    }
+                }
+
+                if (url.includes('configuration') && url.includes('api::lender-master.lenders-catalog')) {
+                    if (json?.data) {
+                        const target = json.data.contentType || json.data;
+                        if (target.layouts) {
+                            target.layouts.list = lendersCatalogSequence;
+                            modified = true;
+                        }
+                        if (ensureListFieldMetadatas(target, lendersCatalogSequence, lendersCatalogLabels)) {
                             modified = true;
                         }
                     }

@@ -1258,6 +1258,7 @@ export interface ApiLenderMasterLendersCatalog
       'api::lender-master.lenders-catalog'
     > &
       Schema.Attribute.Private;
+    logo: Schema.Attribute.Media<'images'>;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

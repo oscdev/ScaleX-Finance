@@ -2037,6 +2037,11 @@ export default {
     );
     await bootstrapApiUploadsMirror(strapi);
 
+    const { bootstrapLendersLogosMirror } = await import(
+      './api/lender-master/services/lenders-logos-mirror'
+    );
+    await bootstrapLendersLogosMirror(strapi);
+
     warnIfAdminPublicUrlMisconfigured(strapi);
 
     const { installAdminForgotPasswordAudit } = await import(

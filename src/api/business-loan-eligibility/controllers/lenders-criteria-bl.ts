@@ -6,6 +6,7 @@ import {
   resolveLeadLoanTypeFromDb,
 } from '../../../utils/code-file-logger';
 import { safeUnexpectedMessage } from '../../../utils/safe-http-error';
+import { withLenderLogos } from '../../lender-master/utils/catalog-logo-urls';
 
 function sendError(ctx: any, err: unknown) {
   if (err instanceof BlEligibilityError || err instanceof PlEligibilityError) {
@@ -165,7 +166,9 @@ export default factories.createCoreController(
             'api::personal-loan-eligibility.matching-engine'
           ) as any;
           const result = await plService.runMatch(leadId, { source });
-          ctx.body = formatPlMatchedBody(result);
+          const body = formatPlMatchedBody(result);
+          body.lenders = await withLenderLogos(strapi, body.lenders);
+          ctx.body = body;
           return;
         }
 
@@ -173,7 +176,9 @@ export default factories.createCoreController(
           'api::business-loan-eligibility.matching-engine'
         ) as any;
         const result = await service.runMatch(leadId, { source });
-        ctx.body = formatBlMatchedBody(result, String(source));
+        const formattedBody = formatBlMatchedBody(result, String(source));
+        formattedBody.lenders = await withLenderLogos(strapi, formattedBody.lenders);
+        ctx.body = formattedBody;
       } catch (err) {
         strapi.log.error('[BL Eligibility matchedLenders]', err);
         sendError(ctx, err);
