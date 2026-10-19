@@ -6,8 +6,6 @@ module.exports = async ({ strapi }) => {
     'api::homepage.homepage',
     'api::product-page.product-page',
     'api::lenders-page.lenders-page',
-    'api::about-us-page.about-us-page',
-    'api::contact-us-page.contact-us-page',
     'api::advisor-registration-page.advisor-registration-page',
     'api::footer.footer',
     'api::header.header',
