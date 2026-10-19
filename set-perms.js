@@ -18,9 +18,7 @@ async function run() {
             'api::lender.lender.find',
             'api::lenders-page.lenders-page.find',
             'api::lead-form-page.lead-form-page.find',
-            'api::loan-application-page.loan-application-page.find',
-            'api::about-us-page.about-us-page.find',
-            'api::contact-us-page.contact-us-page.find'
+            'api::loan-application-page.loan-application-page.find'
         ];
 
         const existingPermissions = await app.db.query('plugin::users-permissions.permission').findMany({
