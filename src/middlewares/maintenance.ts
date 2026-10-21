@@ -1,4 +1,5 @@
 import type { Core } from '@strapi/strapi';
+import { adminPanelPath } from '../utils/resolve-admin-public-url';
 
 /**
  * Maintenance Shield Middleware
@@ -9,15 +10,20 @@ import type { Core } from '@strapi/strapi';
 export default (config, { strapi }: { strapi: Core.Strapi }) => {
   return async (ctx, next) => {
     // 1. Always allow Admin Panel, internal tools, and the Global Setting check
-    const isInternal = ctx.url.startsWith('/admin') || 
-                       ctx.url.startsWith('/content-manager') ||
-                       ctx.url.startsWith('/content-type-builder') ||
-                       ctx.url.startsWith('/upload') ||
-                       ctx.url.startsWith('/api/global-setting') ||
-                       ctx.url.startsWith('/api/activity-logs/log');
-    
+    const panel = adminPanelPath(strapi);
+    const url = ctx.url || '';
+    const referer = ctx.get('referer') || '';
+    const isInternal = url.startsWith('/admin') ||
+                       url.startsWith(`${panel}/`) ||
+                       url === panel ||
+                       url.startsWith('/content-manager') ||
+                       url.startsWith('/content-type-builder') ||
+                       url.startsWith('/upload') ||
+                       url.startsWith('/api/global-setting') ||
+                       url.startsWith('/api/activity-logs/log');
+
     // Safety check: If the request comes from the admin origin/referer, let it through
-    const isFromAdmin = ctx.get('referer')?.includes('/admin');
+    const isFromAdmin = referer.includes('/admin') || referer.includes(`${panel}/`);
 
     if (isInternal || isFromAdmin) {
       return next();

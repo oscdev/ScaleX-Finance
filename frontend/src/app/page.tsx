@@ -3,6 +3,7 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 import { strapiInternalApi, withStrapiPublicUrl } from '@/lib/strapi';
+import { publicAdminUrl, withPublicAdminPath } from '@/lib/adminPublicPath';
 import './Homepage.css';
 
 async function getHomepageData() {
@@ -43,7 +44,9 @@ export default async function Homepage() {
   const heroTitle = content?.heroTitle || 'Welcome to ScaleX Finance';
   const heroSubtitle = content?.heroSubtitle || 'The next generation financial platform for advisors and clients.';
   const becomeAnAdvisorText = content?.becomeAnAdvisorButtonText || 'Become an Advisor';
-  const becomeAnAdvisorLink = content?.becomeAnAdvisorButtonLink || '/FinanCe-21x08k19G/auth/login';
+  const becomeAnAdvisorLink = withPublicAdminPath(
+    content?.becomeAnAdvisorButtonLink || publicAdminUrl('/auth/login')
+  );
   const applyNowText = content?.applyNowButtonText || 'Apply Now';
   const applyNowLink = content?.applyNowButtonLink || '/products';
   const vpTitle = content?.valuePropositionTitle || 'Why Choose ScaleX?';

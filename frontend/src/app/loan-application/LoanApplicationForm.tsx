@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { strapiPublicApi } from '@/lib/strapi';
+import { publicAdminUrl } from '@/lib/adminPublicPath';
 import { logPlSubmission } from '@/lib/plSubmissionLogger';
 import { safeSessionStorage } from '@/lib/safeStorage';
 import { parseJsonSafe, userFacingError } from '@/lib/safeFetch';
@@ -606,7 +607,7 @@ export default function LoanApplicationForm({ pageInfo = {} }: { pageInfo: any }
 
             const strapiRole = ss.getItem('strapiUserRole');
             if (strapiRole === 'admin' || strapiRole === 'staff' || strapiRole === 'advisor') {
-                router.push('/FinanCe-21x08k19G/content-manager/collection-types/api::lead.lead');
+                router.push(publicAdminUrl('/content-manager/collection-types/api::lead.lead'));
             } else {
                 router.push('/loan-application-success');
             }

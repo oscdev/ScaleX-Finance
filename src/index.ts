@@ -413,7 +413,26 @@ export default {
       return true;
     };
 
-    router.get('/admin/loan-app-permissions', async (ctx: any) => {
+    const adminRouteBase = (): string => {
+      const raw = String(strapi.config.get('admin.url') || '/admin');
+      let pathname = raw;
+      try {
+        if (/^https?:\/\//i.test(raw)) pathname = new URL(raw).pathname;
+      } catch {
+        pathname = raw;
+      }
+      if (!pathname.startsWith('/')) pathname = `/${pathname}`;
+      return pathname.replace(/\/$/, '') || '/admin';
+    };
+    const adminBase = adminRouteBase();
+    const routeOnAdmin = (method: 'get' | 'post' | 'put', path: string, handler: (ctx: any) => any) => {
+      router[method](path, handler);
+      if (adminBase !== '/admin' && path.startsWith('/admin/')) {
+        router[method](`${adminBase}${path.slice('/admin'.length)}`, handler);
+      }
+    };
+
+    routeOnAdmin('get', '/admin/loan-app-permissions', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       const roleId = Number(ctx.query.roleId);
       const where = roleId ? { roleId } : {};
@@ -422,7 +441,7 @@ export default {
       ctx.body = { data: results };
     });
 
-    router.post('/admin/loan-app-permissions', async (ctx: any) => {
+    routeOnAdmin('post', '/admin/loan-app-permissions', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       try {
         // Safely read body — ctx.request.body may be empty if body-parser hasn't run
@@ -464,7 +483,7 @@ export default {
       }
     });
 
-    router.put('/admin/loan-app-permissions/:id', async (ctx: any) => {
+    routeOnAdmin('put', '/admin/loan-app-permissions/:id', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       const { roleId, roleName, permissions } = ctx.request.body as any;
       const updated = await strapi.db.query(UID).update({
@@ -475,7 +494,7 @@ export default {
     });
 
     // Super Admin → Login as Advisor (session impersonation; no plaintext password)
-    router.post('/admin/advisors/impersonate', async (ctx: any) => {
+    routeOnAdmin('post', '/admin/advisors/impersonate', async (ctx: any) => {
       try {
         const {
           resolveCallerAdminFromBearer,
@@ -546,7 +565,7 @@ export default {
     });
 
     // Advisor name/contact list — accessible to any authenticated admin (including Advisor role)
-    router.get('/admin/product-users', async (ctx: any) => {
+    routeOnAdmin('get', '/admin/product-users', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       const product: string = (ctx.query.product as string) || '';
       if (!product) { ctx.body = { staff: [], bankers: [] }; return; }
@@ -595,7 +614,7 @@ export default {
       ctx.body = { staff, bankers };
     });
 
-    router.get('/admin/advisors-list', async (ctx: any) => {
+    routeOnAdmin('get', '/admin/advisors-list', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       const advisors = await strapi.db.query('api::advisor.advisor').findMany({
         select: ['id', 'fullName', 'email', 'phoneNumber'],
@@ -604,7 +623,7 @@ export default {
       ctx.body = { data: advisors };
     });
 
-    router.post('/admin/api-uploads/reconcile', async (ctx: any) => {
+    routeOnAdmin('post', '/admin/api-uploads/reconcile', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       try {
         const { reconcileApiUploads } = await import(
@@ -618,7 +637,7 @@ export default {
       }
     });
 
-    router.get('/admin/api-uploads/lead-files', async (ctx: any) => {
+    routeOnAdmin('get', '/admin/api-uploads/lead-files', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       const leadId = ctx.query.leadId;
       const applicantName = String(ctx.query.applicantName ?? '').trim();
@@ -645,7 +664,7 @@ export default {
     });
 
     // Lead Activity Timeline aggregations (admin JWT — not Users & Permissions /api)
-    router.get('/admin/activity-logs/by-lead', async (ctx: any) => {
+    routeOnAdmin('get', '/admin/activity-logs/by-lead', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       try {
         const service = strapi.service('api::system-events.activity-log') as any;
@@ -660,7 +679,7 @@ export default {
       }
     });
 
-    router.get('/admin/activity-logs/by-lead/:leadId', async (ctx: any) => {
+    routeOnAdmin('get', '/admin/activity-logs/by-lead/:leadId', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       try {
         const leadId = Number(ctx.params.leadId);
@@ -681,7 +700,7 @@ export default {
       }
     });
 
-    router.get('/admin/activity-logs/system', async (ctx: any) => {
+    routeOnAdmin('get', '/admin/activity-logs/system', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       try {
         const pageSize = Math.min(100, Math.max(1, Number(ctx.query.pageSize) || 50));
@@ -699,7 +718,7 @@ export default {
       }
     });
 
-    router.get('/admin/activity-logs/events', async (ctx: any) => {
+    routeOnAdmin('get', '/admin/activity-logs/events', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       try {
         const service = strapi.service('api::system-events.activity-log') as any;
@@ -717,7 +736,7 @@ export default {
     });
 
     // Role-scoped notification bell (Admin = all; Advisor/Staff/Banker = associated leads)
-    router.get('/admin/activity-logs/notifications', async (ctx: any) => {
+    routeOnAdmin('get', '/admin/activity-logs/notifications', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       try {
         const service = strapi.service('api::system-events.activity-log') as any;
@@ -740,7 +759,7 @@ export default {
     });
 
     // Active PL/BL criteria lender codes for Activity Logs (resolve product via leadId)
-    router.get('/admin/activity-logs/active-lenders', async (ctx: any) => {
+    routeOnAdmin('get', '/admin/activity-logs/active-lenders', async (ctx: any) => {
       if (!requireAuth(ctx)) return;
       try {
         const service = strapi.service('api::system-events.activity-log') as any;
@@ -1214,6 +1233,8 @@ export default {
           { action: 'api::product.product.find', role: publicRole.id },
           { action: 'api::loan-application-page.loan-application-page.find', role: publicRole.id },
           { action: 'api::lender-master.lenders-catalog.find', role: publicRole.id },
+          { action: 'api::about-us-page.about-us-page.find', role: publicRole.id },
+          { action: 'api::contact-us-page.contact-us-page.find', role: publicRole.id },
           { action: 'api::system-events.activity-log.createLog', role: publicRole.id },
           { action: 'api::lead.lead.logSubmissionAudit', role: publicRole.id },
           { action: 'api::advisor.advisor.find', role: publicRole.id },
@@ -1971,6 +1992,8 @@ export default {
         'api::loan-application-page.loan-application-page',
         'api::homepage.homepage',
         'api::product-page.product-page',
+        'api::about-us-page.about-us-page',
+        'api::contact-us-page.contact-us-page',
         'api::advisor-registration-page.advisor-registration-page',
         'api::footer.footer',
         'api::header.header',

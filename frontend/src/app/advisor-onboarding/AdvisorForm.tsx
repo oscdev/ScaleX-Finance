@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { logEvent } from '@/lib/logger';
 import { strapiPublicApi, withStrapiPublicUrl } from '@/lib/strapi';
+import { publicAdminUrl } from '@/lib/adminPublicPath';
 import { userFacingError } from '@/lib/safeFetch';
 import { INDIA_STATES_DISTRICTS } from '@/data/india-states-districts';
 import Link from 'next/link';
@@ -553,7 +554,7 @@ export default function AdvisorForm({ pageInfo }: { pageInfo: any }) {
                 <div className="signin-prompt">
                     <p className="signin-text">
                         {signInPromptText}{" "}
-                        <a href="/FinanCe-21x08k19G/auth/login" className="signin-link">
+                        <a href={publicAdminUrl('/auth/login')} className="signin-link">
                             {signInLinkText}
                         </a>
                     </p>

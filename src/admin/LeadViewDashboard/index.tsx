@@ -13,6 +13,7 @@ import {
     isLoanApplicationSubmitted,
 } from './useLeadViewDashboard';
 import { LoanFormSections } from '../LoanForm/LoanFormSections';
+import { adminUrl } from '../bootstrap/adminPath';
 import { LeadInfoSummary } from '../LoanForm/LeadInfoSummary';
 import { buildLeadUploadFolderName } from '../../api/loan-application/utils/lead-upload-folder';
 import { renameFileForDocumentField } from '../../shared/loan-form/document-filenames';
@@ -643,7 +644,7 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                     <Button
                         variant="ghost"
                         size="S"
-                        onClick={() => window.open('/admin/content-manager/collection-types/api::lead.lead', '_self')}
+                        onClick={() => window.open(adminUrl('/content-manager/collection-types/api::lead.lead'), '_self')}
                         style={{ padding: '0 4px' }}
                     >
                         <Typography variant="pi" textColor="primary600" fontWeight="bold">← BACK TO LEADS</Typography>

@@ -5,6 +5,7 @@ import { coerceLoanTypeCode, loanTypeLabel } from '../../utils/loan-type';
 import { styles } from '../LeadViewDashboard/styles';
 import { EditableField } from './EditableField';
 import { SearchableEditableField, type SearchableOption } from './SearchableEditableField';
+import { adminUrl } from '../bootstrap/adminPath';
 
 type AdvisorListItem = { id: number; fullName?: string; email?: string };
 
@@ -74,7 +75,7 @@ export const LeadInfoSummary = ({
     useEffect(() => {
         const fetchAdvisors = async () => {
             try {
-                const res = await fetch('/admin/advisors-list', { headers: authHeaders() });
+                const res = await fetch(adminUrl('/advisors-list'), { headers: authHeaders() });
                 if (!res.ok) return;
                 const data = await res.json();
                 setAdvisors(data.data || []);

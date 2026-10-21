@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Box, Typography } from '@strapi/design-system';
+import { adminUrl } from '../bootstrap/adminPath';
 
 // ─── Tree Definition ─────────────────────────────────────────────────────────
 
@@ -176,7 +177,7 @@ const FIELD_PERMS = [
     { key: 'view' as const, label: 'VIEW', color: '#2563eb' },
 ];
 
-const API_BASE = '/admin/loan-app-permissions';
+const apiBase = () => adminUrl('/loan-app-permissions');
 const getToken = () => {
     const t: string = (window as any)._strapi_last_token || '';
     return t.startsWith('Bearer ') ? t.slice(7).trim() : t;
@@ -207,7 +208,7 @@ export const LoanAppPermissions = ({ roleId, roleName }: { roleId: number; roleN
     useEffect(() => {
         const token = getToken();
         if (!token || !roleId) return;
-        fetch(`${API_BASE}?roleId=${roleId}`, {
+        fetch(`${apiBase()}?roleId=${roleId}`, {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then((r) => r.json())
@@ -245,7 +246,7 @@ export const LoanAppPermissions = ({ roleId, roleName }: { roleId: number; roleN
         // Preserve keys outside SECTION_TREE (e.g. addNewLead) so they survive this save
         let extraKeys: Record<string, any> = {};
         try {
-            const existingRes = await fetch(`${API_BASE}?roleId=${roleId}`, {
+            const existingRes = await fetch(`${apiBase()}?roleId=${roleId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (existingRes.ok) {
@@ -266,7 +267,7 @@ export const LoanAppPermissions = ({ roleId, roleName }: { roleId: number; roleN
             Authorization: `Bearer ${token}`,
         };
         try {
-            const res = await fetch(API_BASE, { method: 'POST', headers, body });
+            const res = await fetch(apiBase(), { method: 'POST', headers, body });
             const resData = await res.json().catch(() => ({}));
             if (res.ok) {
                 setRecordId(resData.data?.id ?? recordId);
