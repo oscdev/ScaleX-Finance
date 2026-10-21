@@ -392,6 +392,8 @@ Recent migrations:
 - `2026.09.24` — Drop unused `emails` scaffolding table after email absorbed into `system-events` (`2026.09.24T12.00.00.drop-emails-table.js`)
 - `2026.10.06` — Hash plaintext `advisors.password` to bcrypt (cost 10) and sync matching `admin_users.password` (`2026.10.06T12.00.00.hash-advisor-passwords.js`)
 - `2026.10.07` — Rewrite full loan names on `user_product_mappings.product` only to `PL|BL|HL|LAP` (`2026.10.07T18.00.00.user-product-mapping-loan-codes.js`). Rows already coded, and other product titles, are unchanged
+- `2026.10.19` — Drop `about_us_pages` / `contact_us_pages` after `about-us-page` / `contact-us-page` single types removed from `src/api/` (`2026.10.19T12.00.00.drop-about-and-contact-page-tables.js`)
+- `2026.10.21` — Cleanup About/Contact orphans recreated by stale `dist/` boot: drop tables + `admin_permissions` (subject), `up_permissions` (action prefix), core-store and media-morph rows (`2026.10.21T12.00.00.cleanup-about-contact-orphans.js`). Note: production `strapi start` loads gitignored `dist/` — after deleting any `src/api/` type, do a clean rebuild (`rm -rf dist build && npm run build`), not just `git pull` + restart
 
 ## Environment Setup
 
