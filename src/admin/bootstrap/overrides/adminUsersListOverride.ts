@@ -2,6 +2,7 @@
 // controls INTO the existing Strapi search/filter toolbar row, and sorts by ID desc.
 
 import { markAdminDropdownInteraction, shouldPauseAdminOverrides } from '../overlayGuard';
+import { adminUrl } from '../adminPath';
 import { loanTypeLabel } from '../../../utils/loan-type';
 
 const FETCH_FLAG = '_admin_users_id_loaded';
@@ -13,7 +14,7 @@ interface AdminUserEntry {
 }
 
 const isAdminUsersListPath = () =>
-    window.location.pathname.replace(/\/+$/, '') === '/admin/settings/users';
+    window.location.pathname.replace(/\/+$/, '') === adminUrl('/settings/users');
 
 const normalizeAdminSort = (s: string): string =>
     decodeURIComponent(String(s || ''))
@@ -85,7 +86,7 @@ const fetchAdminUsers = async (commonHeaders: Record<string, string>): Promise<A
     const cached = (window as any).adminUsersFullList as AdminUserEntry[] | undefined;
     if (cached && cached.length > 0) return cached;
     try {
-        const res = await fetch('/admin/users?pageSize=200&sort=id:DESC', { headers: commonHeaders });
+        const res = await fetch(`${adminUrl('/users')}?pageSize=200&sort=id:DESC`, { headers: commonHeaders });
         if (!res.ok) return [];
         const data = await res.json();
         const raw = data?.data?.results || data?.results || (Array.isArray(data?.data) ? data.data : []);

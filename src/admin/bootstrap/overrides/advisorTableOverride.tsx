@@ -2,6 +2,7 @@ import { AdvisorOverviewDashboard } from '../../AdvisorOverview';
 import { applyListOverviewMount, isCmCollectionListPath } from './listOverviewMount';
 import { advisorLabelMap } from './constants';
 import { getStrapiToken } from './strapiToken';
+import { adminPath, adminUrl } from '../adminPath';
 import {
     buildAdvisorStatusBadgeHtml,
     buildVerifiedBadgeHtml,
@@ -303,7 +304,7 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
             const docId = numericId ? ((window as any).advisorDocumentIdMap || {})[numericId] : null;
             const urlId = docId || numericId;
             if (urlId) {
-                window.location.href = `/admin/content-manager/collection-types/api::advisor.advisor/${urlId}`;
+                window.location.href = adminUrl(`/content-manager/collection-types/api::advisor.advisor/${urlId}`);
             }
         };
 
@@ -402,7 +403,7 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
 
                 // Super Admin impersonation — no plaintext password (bcrypt-only storage)
                 const deviceId = getOrCreateAdminDeviceId();
-                const loginRes = await fetch('/admin/advisors/impersonate', {
+                const loginRes = await fetch(adminUrl('/advisors/impersonate'), {
                     method: 'POST',
                     credentials: 'include',
                     headers: {
@@ -426,7 +427,7 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
                         localStorage.setItem('jwtToken', JSON.stringify(jwt));
                         localStorage.setItem('isLoggedIn', 'true');
                         sessionStorage.setItem('jwtToken', jwt);
-                        window.location.href = '/admin';
+                        window.location.href = adminPath();
                     } else {
                         alert('Login failed: Token missing from response.');
                     }

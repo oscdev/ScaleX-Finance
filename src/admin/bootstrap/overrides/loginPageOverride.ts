@@ -1,5 +1,7 @@
+import { adminUrl } from '../adminPath';
+
 export const applyLoginPageOverride = () => {
-    const isLoginPage = window.location.pathname.includes('/admin/auth/login');
+    const isLoginPage = window.location.pathname.includes(adminUrl('/auth/login'));
 
     // "Register as a partner" link beneath the sign-in heading
     // All styling is handled by #custom-partner-link-container and #custom-partner-link in CSS

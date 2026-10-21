@@ -3,6 +3,7 @@
  */
 
 import crypto from 'crypto';
+import { adminPanelPath } from '../../../utils/resolve-admin-public-url';
 
 const REFRESH_COOKIE_NAME = 'strapi_admin_refresh';
 
@@ -25,7 +26,7 @@ const getRefreshCookieOptions = (secureRequest: boolean) => {
   const isProduction = process.env.NODE_ENV === 'production';
   const domain =
     strapi.config.get('admin.auth.cookie.domain') || strapi.config.get('admin.auth.domain');
-  const path = strapi.config.get('admin.auth.cookie.path', '/admin');
+  const path = strapi.config.get('admin.auth.cookie.path') || adminPanelPath(strapi);
   const sameSite = strapi.config.get('admin.auth.cookie.sameSite') ?? 'lax';
   const isSecure =
     typeof configuredSecure === 'boolean'

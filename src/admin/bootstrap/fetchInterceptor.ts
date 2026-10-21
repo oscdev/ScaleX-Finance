@@ -1,4 +1,5 @@
 import { ensureDashboardListSortUrl } from '../LeadOverview/enforceListSettings';
+import { adminUrl } from './adminPath';
 import {
     applyConfiguredPageSize,
     ensureDashboardListPageSizeUrl,
@@ -289,10 +290,12 @@ export const installFetchInterceptor = () => {
         // When the custom ID / Role filter controls are active, inject the matching
         // filter params into Strapi's own paginated GET /admin/users request so that
         // filtering works across ALL pages, not just the currently visible rows.
+        const usersRoot = adminUrl('/users');
+        const usersItem = new RegExp(`${usersRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/\\d+`);
         if (
             requestMethod === 'GET' &&
-            url.includes('/admin/users') &&
-            !url.match(/\/admin\/users\/\d+/)   // skip individual user GETs like /admin/users/16
+            url.includes(usersRoot) &&
+            !usersItem.test(url)
         ) {
             // Read filter values from the page URL (_fid / _frole params written by
             // triggerStrapiRefetch so the URL always changes and React Router re-renders).
@@ -323,7 +326,7 @@ export const installFetchInterceptor = () => {
         // the edit page resets _pendingEditProduct to undefined when Strapi re-renders
         // during save (loading spinner etc.), which happens mid-await and races with
         // the response handler below.
-        const _preEditMatch = url.match(/\/admin\/users\/(\d+)$/);
+        const _preEditMatch = url.match(new RegExp(`${usersRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/(\\d+)$`));
         const _snappedProduct = (_preEditMatch && requestMethod === 'PUT')
             ? (window as any)._pendingEditProduct as string | undefined
             : undefined;
@@ -344,7 +347,7 @@ export const installFetchInterceptor = () => {
         // We intercept the successful response, grab the new user's ID, and save the
         // product selection (set by inviteUserOverride.ts) to user-product-mappings.
         if (
-            (url === '/admin/users' || url.endsWith('/admin/users')) &&
+            (url === usersRoot || url.endsWith(usersRoot)) &&
             requestMethod === 'POST' &&
             response.ok
         ) {

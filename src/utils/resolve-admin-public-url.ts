@@ -119,9 +119,21 @@ export function resolveAdminPublicBaseUrl(strapi: Core.Strapi): string {
   return resolveRequestPublicOrigin(strapi) || resolveExplicitPublicUrl();
 }
 
+export function adminPanelPath(strapi: Core.Strapi): string {
+  const raw = String(strapi.config.get('admin.url') || '/admin');
+  let pathname = raw;
+  try {
+    if (/^https?:\/\//i.test(raw)) pathname = new URL(raw).pathname;
+  } catch {
+    pathname = raw;
+  }
+  if (!pathname.startsWith('/')) pathname = `/${pathname}`;
+  return pathname.replace(/\/$/, '') || '/admin';
+}
+
 export function buildAdminLoginUrl(strapi: Core.Strapi): string {
   const base = resolveAdminPublicBaseUrl(strapi);
-  return base ? `${base}/admin/auth/login` : '';
+  return base ? `${base}${adminPanelPath(strapi)}/auth/login` : '';
 }
 
 export function buildAdminRegisterUrl(
@@ -131,7 +143,7 @@ export function buildAdminRegisterUrl(
   const base = resolveAdminPublicBaseUrl(strapi);
   const token = String(registrationToken || '').trim();
   if (!base || !token) return '';
-  return `${base}/admin/auth/register?registrationToken=${encodeURIComponent(token)}`;
+  return `${base}${adminPanelPath(strapi)}/auth/register?registrationToken=${encodeURIComponent(token)}`;
 }
 
 export function buildAdminResetPasswordUrl(
@@ -141,7 +153,7 @@ export function buildAdminResetPasswordUrl(
   const base = resolveAdminPublicBaseUrl(strapi);
   const code = String(resetCode || '').trim();
   if (!base || !code) return '';
-  return `${base}/admin/auth/reset-password?code=${encodeURIComponent(code)}`;
+  return `${base}${adminPanelPath(strapi)}/auth/reset-password?code=${encodeURIComponent(code)}`;
 }
 
 /** True when host looks like local/dev (emails would use a non-production origin). */

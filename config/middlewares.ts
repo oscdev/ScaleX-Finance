@@ -3,6 +3,7 @@ import type { Core } from '@strapi/strapi';
 const config: Core.Config.Middlewares = [
   'strapi::logger',
   'strapi::errors',
+  'global::vite-raw-query',
   'global::maintenance',
   'strapi::security',
   {

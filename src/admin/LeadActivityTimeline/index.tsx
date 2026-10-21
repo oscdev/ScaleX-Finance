@@ -17,6 +17,7 @@ import {
   type ActivityEvent,
   type EmailRunGroup,
 } from './useLeadActivityTimeline';
+import { adminUrl } from '../bootstrap/adminPath';
 import {
   groupLenderPipelineEvents,
   buildActiveLenderBuckets,
@@ -1037,7 +1038,7 @@ export const LeadActivityTimeline = () => {
             {refreshing ? 'Refreshing…' : 'Refresh Stats'}
           </button>
           <a
-            href="/admin/content-manager/collection-types/api::system-events.activity-log?sort=createdAt:DESC&raw=1"
+            href={adminUrl('/content-manager/collection-types/api::system-events.activity-log?sort=createdAt:DESC&raw=1')}
             style={{ ...styles.ghostBtn, textDecoration: 'none' }}
           >
             Raw dump

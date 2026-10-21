@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getToken } from '../LeadViewDashboard/useLeadViewDashboard';
 import { resolveSectionRoleId } from '../bootstrap/resolveSectionRoleId';
+import { adminUrl } from '../bootstrap/adminPath';
 
 export type SectionPerms = Record<
     string,
@@ -36,7 +37,7 @@ export const useSectionPermissions = () => {
             try {
                 const token = getToken();
                 if (!token) return;
-                const res = await fetch('/admin/users/me', {
+                const res = await fetch(adminUrl('/users/me'), {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!res.ok) return;

@@ -271,6 +271,8 @@ These are single-type or collection-type entries managed via Strapi admin for fr
 | Collection | Purpose |
 |---|---|
 | `homepage` | Home page content |
+| `about-us-page` | About Us page content |
+| `contact-us-page` | Contact Us page content |
 | `header` | Global header content |
 | `footer` | Global footer content |
 | `global-setting` | Site-wide settings |
@@ -392,8 +394,6 @@ Recent migrations:
 - `2026.09.24` — Drop unused `emails` scaffolding table after email absorbed into `system-events` (`2026.09.24T12.00.00.drop-emails-table.js`)
 - `2026.10.06` — Hash plaintext `advisors.password` to bcrypt (cost 10) and sync matching `admin_users.password` (`2026.10.06T12.00.00.hash-advisor-passwords.js`)
 - `2026.10.07` — Rewrite full loan names on `user_product_mappings.product` only to `PL|BL|HL|LAP` (`2026.10.07T18.00.00.user-product-mapping-loan-codes.js`). Rows already coded, and other product titles, are unchanged
-- `2026.10.19` — Drop `about_us_pages` / `contact_us_pages` after `about-us-page` / `contact-us-page` single types removed from `src/api/` (`2026.10.19T12.00.00.drop-about-and-contact-page-tables.js`)
-- `2026.10.21` — Cleanup About/Contact orphans recreated by stale `dist/` boot: drop tables + `admin_permissions` (subject), `up_permissions` (action prefix), core-store and media-morph rows (`2026.10.21T12.00.00.cleanup-about-contact-orphans.js`). Note: production `strapi start` loads gitignored `dist/` — after deleting any `src/api/` type, do a clean rebuild (`rm -rf dist build && npm run build`), not just `git pull` + restart
 
 ## Environment Setup
 
@@ -402,6 +402,7 @@ Copy `.env.example` to `.env` and update:
 - `APP_KEYS`, `API_TOKEN_SALT`, `ADMIN_JWT_SECRET` (Strapi security)
 - `JWT_SECRET`, `ENCRYPTION_KEY` (API auth)
 - **`PUBLIC_URL`** — optional pin for the public Admin origin (no trailing slash); still drives `server.url` / `admin.absoluteUrl`. Email CTAs (welcome `/admin/auth/login`, invite `/admin/auth/register`, forgot-password `/admin/auth/reset-password`) are built at send time in [`src/utils/resolve-admin-public-url.ts`](src/utils/resolve-admin-public-url.ts) from the triggering request (`X-Forwarded-Host` / `Host`, then `PUBLIC_URL` if set). No code default domain. Links are skipped only when both are missing.
+- **`ADMIN_PATH`** — admin panel path in [`config/admin.ts`](config/admin.ts) `url` (default `/admin`). Set it in the server `.env` (no trailing slash); do not commit the path. Admin fetches, page checks, and custom routes use [`src/admin/bootstrap/adminPath.ts`](src/admin/bootstrap/adminPath.ts) (`adminUrl`). Email CTAs, the maintenance shield, and the advisor impersonate cookie path use `admin.url` via [`adminPanelPath`](src/utils/resolve-admin-public-url.ts). The public site reads the same env through `NEXT_PUBLIC_ADMIN_PATH` in [`frontend/src/lib/adminPublicPath.ts`](frontend/src/lib/adminPublicPath.ts) (Next reads root `.env` when its own env is unset). [`frontend/next.config.ts`](frontend/next.config.ts) also rewrites that path to Strapi when it is not `/admin`, so a vhost that still sends unknown paths to Next keeps the panel reachable. Rebuild the admin and the frontend after changing `ADMIN_PATH`. Prefer an Apache proxy for that path as well.
 - Database connection details (if not using default localhost)
 - **Python extraction:** bootstrap `ensurePythonEnvironment()` auto-creates `.venv` and installs deps on first `npm run dev`; optional `PYTHON_PATH` in `.env`
 - **API Uploads mirror:** `API_UPLOADS_MIRROR_WATCH=false` disables the disk → Media Library `chokidar` watcher (default on); run watcher on one Strapi instance only in multi-node deploys
@@ -509,6 +510,7 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - Bureau extraction auto-triggers when `cibil_report.pdf` lands in `public/uploads/api_uploads/` or Media Library `API Uploads/` (mirror + `syncLeadDocumentsToDisk`); PL scoring and BL scoring run after A.1 eligibility in `matched-lenders` pipeline
 
 ## graphify
+
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships. Rebuild code with `graphify update .`, then refresh navigation with `graphify export wiki` (`graphify-out/wiki/index.md`). Cursor loads the same steps from [`.cursor/rules/graphify.mdc`](.cursor/rules/graphify.mdc).
 
 Rules:

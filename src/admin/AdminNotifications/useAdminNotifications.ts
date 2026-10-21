@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { dedupeNotifications } from './dedupeNotifications';
+import { adminUrl } from '../bootstrap/adminPath';
 
 function authHeaders(): HeadersInit {
     const captured = (window as any)._strapi_last_token as string | undefined;
@@ -45,7 +46,7 @@ export const useAdminNotifications = () => {
                 if (!enabled) return;
             }
 
-            const res = await fetch('/admin/activity-logs/notifications?limit=20', {
+            const res = await fetch(`${adminUrl('/activity-logs/notifications')}?limit=20`, {
                 headers: authHeaders(),
                 credentials: 'include',
             });
