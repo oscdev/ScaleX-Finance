@@ -18,7 +18,6 @@ import { applyAdminUsersListOverride } from './overrides/adminUsersListOverride'
 import { applyButtonHardening } from './overrides/buttonHardening';
 import { applyLeadTableOverride } from './overrides/leadTableOverride';
 import { applyAdvisorTableOverride } from './overrides/advisorTableOverride';
-import { adminUrl, matchAdminPath } from './adminPath';
 import { applyRoleTabOverride } from './overrides/roleTabOverride';
 import { startInviteUserOverride } from './overrides/inviteUserOverride';
 import {
@@ -115,7 +114,7 @@ const prefetchLeadsData = () => {
     whenAuthed(() => {
         // Try custom endpoint first (works for all roles including Advisor).
         // If it returns 404 (Strapi not yet restarted), fall back to content-manager (works for super admin).
-        authedFetch(adminUrl('/advisors-list'))
+        authedFetch('/admin/advisors-list')
             .then((r) => {
                 if (r.ok) return r.json().then((d: any) => ({ source: 'custom', data: d }));
                 return authedFetch('/content-manager/collection-types/api::advisor.advisor?pageSize=100')
@@ -475,15 +474,6 @@ const applyLeadActivityTimelineOverride = () => {
     }
 };
 
-const ensureDebugBadge = () => {
-    if (!document.getElementById('strapi-custom-debug')) {
-        const debugDiv = document.createElement('div');
-        debugDiv.id = 'strapi-custom-debug';
-        debugDiv.textContent = 'Strapi Custom Script Active';
-        document.body.prepend(debugDiv);
-    }
-};
-
 // ─── Main orchestrator ────────────────────────────────────────────────────────
 
 const initOverrides = () => {
@@ -510,9 +500,9 @@ const initOverrides = () => {
         const isLeadsPage = path.includes('api::lead.lead');
         const isLoanPage = path.includes('api::loan-application.loan-application');
         const isActivityLogPage = path.includes('api::system-events.activity-log');
-        const isAdminUsersListPage = path.replace(/\/+$/, '') === adminUrl('/settings/users');
-        const isAdminUserEditPage = matchAdminPath('/settings/users/\\d+') !== null;
-        const isRoleEditPage = matchAdminPath('/settings/roles/\\d+') !== null;
+        const isAdminUsersListPage = path.replace(/\/+$/, '') === '/admin/settings/users';
+        const isAdminUserEditPage = /\/admin\/settings\/users\/\d+/.test(path);
+        const isRoleEditPage = /\/admin\/settings\/roles\/\d+/.test(path);
 
         // Activity Log → custom Lead Activity Timeline (unless ?raw=1)
         if (isActivityLogPage) {
@@ -585,7 +575,6 @@ const initOverrides = () => {
         if (isRoleEditPage) safe(() => { applyAddNewLeadPermissionRow().catch(() => {}); });
 
         safe(() => ensureAdminNotifications());
-        safe(() => ensureDebugBadge());
     } finally {
         (window as any)._is_running_overrides = false;
     }
@@ -638,7 +627,7 @@ const applyNavPermissionWhenReady = (attempt = 0) => {
     const headers: Record<string, string> = { Accept: 'application/json' };
     if (captured) headers.Authorization = captured.startsWith('Bearer ') ? captured : `Bearer ${captured}`;
 
-    fetch(`${adminUrl('/loan-app-permissions')}?roleId=${roleId}`, { headers })
+    fetch(`/admin/loan-app-permissions?roleId=${roleId}`, { headers })
         .then(r => r.ok ? r.json() : null)
         .then((data: any) => {
             if (!data) {
