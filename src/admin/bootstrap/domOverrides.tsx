@@ -474,15 +474,6 @@ const applyLeadActivityTimelineOverride = () => {
     }
 };
 
-const ensureDebugBadge = () => {
-    if (!document.getElementById('strapi-custom-debug')) {
-        const debugDiv = document.createElement('div');
-        debugDiv.id = 'strapi-custom-debug';
-        debugDiv.textContent = 'Strapi Custom Script Active';
-        document.body.prepend(debugDiv);
-    }
-};
-
 // ─── Main orchestrator ────────────────────────────────────────────────────────
 
 const initOverrides = () => {
@@ -584,7 +575,6 @@ const initOverrides = () => {
         if (isRoleEditPage) safe(() => { applyAddNewLeadPermissionRow().catch(() => {}); });
 
         safe(() => ensureAdminNotifications());
-        safe(() => ensureDebugBadge());
     } finally {
         (window as any)._is_running_overrides = false;
     }
