@@ -507,7 +507,6 @@ PII in `fields` is masked server-side (PAN/Aadhaar); `pdfPasswords` values are o
 - Bureau extraction auto-triggers when `cibil_report.pdf` lands in `public/uploads/api_uploads/` or Media Library `API Uploads/` (mirror + `syncLeadDocumentsToDisk`); PL scoring and BL scoring run after A.1 eligibility in `matched-lenders` pipeline
 
 ## graphify
-
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships. Rebuild code with `graphify update .`, then refresh navigation with `graphify export wiki` (`graphify-out/wiki/index.md`). Cursor loads the same steps from [`.cursor/rules/graphify.mdc`](.cursor/rules/graphify.mdc).
 
 Rules:
