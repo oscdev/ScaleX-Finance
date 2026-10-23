@@ -2,6 +2,7 @@ import { createRoot } from 'react-dom/client';
 import { DesignSystemProvider } from '@strapi/design-system';
 import { LoanAppPermissions } from '../../LoanAppPermissions';
 import { reactRoots, unmountAndRemove } from './reactRoots';
+import { adminUrl, matchAdminPath } from '../adminPath';
 
 const CUSTOM_TAB_ID = 'scalex-loan-app-tab';
 const CUSTOM_PANEL_ID = 'scalex-loan-app-panel';
@@ -19,7 +20,7 @@ const fetchRoleMeta = async (roleId: number): Promise<RoleMeta> => {
     try {
         const rawToken: string = (window as any)._strapi_last_token || '';
         const token = rawToken.startsWith('Bearer ') ? rawToken.slice(7).trim() : rawToken;
-        const res = await fetch(`/admin/roles/${roleId}`, {
+        const res = await fetch(adminUrl(`/roles/${roleId}`), {
             headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) return { name: `Role ${roleId}`, code: '' };

@@ -1,3 +1,5 @@
+import { adminPath } from '../adminPath';
+
 /**
  * Homepage (admin SPA basename): gate Strapi widgets + Add Widget via Custom Actions
  * `dashboardWidgets: { show }` → window._dashboardWidgetsAllowed.

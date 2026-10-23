@@ -1,4 +1,5 @@
 import type { Core } from '@strapi/strapi';
+import { adminPanelPath } from '../utils/resolve-admin-public-url';
 
 import { getAdminSpaPath } from '../utils/admin-spa-path';
 
@@ -26,6 +27,7 @@ export default (config, { strapi }: { strapi: Core.Strapi }) => {
     const isFromAdmin =
       referer.includes('/admin') ||
       (adminSpaPath !== '/admin' && referer.includes(adminSpaPath));
+
 
     if (isInternal || isFromAdmin) {
       return next();

@@ -6,6 +6,7 @@ import {
 } from '../shared/cmCount';
 import { triggerCmListRefetch } from '../shared/triggerCmListRefetch';
 import { consumeSkipOverviewLoader, stashOverviewStats, takeStashedOverviewStats } from '../shared/overviewSoftRemount';
+import { adminUrl } from '../bootstrap/adminPath';
 
 export interface LeadStats {
     total: number;
@@ -82,7 +83,7 @@ export const useLeadOverview = () => {
             const token = getToken();
             const headers = authHeadersFromToken(token);
 
-            const userRes = await fetch('/admin/users/me', { headers, credentials: 'include' });
+            const userRes = await fetch(adminUrl('/users/me'), { headers, credentials: 'include' });
             if (!userRes.ok) return;
             const userData = await userRes.json();
             const roles = userData?.data?.roles || [];

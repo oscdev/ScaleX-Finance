@@ -1,4 +1,6 @@
-const API_BASE = '/admin/loan-app-permissions';
+import { adminUrl, matchAdminPath } from '../adminPath';
+
+const apiBase = () => adminUrl('/loan-app-permissions');
 const ROW_ID = 'scalex-add-new-lead-row';
 let _savingAddLead = false;
 let _savingShowHide = false;
@@ -12,7 +14,7 @@ const getToken = (): string => {
 const fetchRecord = async (roleId: number): Promise<{ id: number | null; permissions: any }> => {
     try {
         const token = getToken();
-        const res = await fetch(`${API_BASE}?roleId=${roleId}`, {
+        const res = await fetch(`${apiBase()}?roleId=${roleId}`, {
             headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) return { id: null, permissions: {} };
@@ -32,7 +34,7 @@ export const saveAddNewLeadShow = async (roleId: number, show: boolean): Promise
         const token = getToken();
         const record = await fetchRecord(roleId);
         const newPerms = { ...record.permissions, addNewLead: { show } };
-        await fetch(API_BASE, {
+        await fetch(apiBase(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ id: record.id, roleId, permissions: newPerms }),
@@ -54,7 +56,7 @@ export const saveShowHidePasswordShow = async (roleId: number, show: boolean): P
         const token = getToken();
         const record = await fetchRecord(roleId);
         const newPerms = { ...record.permissions, showHidePassword: { show } };
-        await fetch(API_BASE, {
+        await fetch(apiBase(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ id: record.id, roleId, permissions: newPerms }),
@@ -76,7 +78,7 @@ export const saveDashboardWidgetsShow = async (roleId: number, show: boolean): P
         const token = getToken();
         const record = await fetchRecord(roleId);
         const newPerms = { ...record.permissions, dashboardWidgets: { show } };
-        await fetch(API_BASE, {
+        await fetch(apiBase(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ id: record.id, roleId, permissions: newPerms }),

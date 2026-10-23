@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { adminUrl } from '../bootstrap/adminPath';
 
 export type LeadActivityRow = {
   leadId: number;
@@ -717,7 +718,7 @@ export function useLeadActivityTimeline() {
     try {
       const qs = new URLSearchParams({ pageSize: '50' });
       if (q?.trim()) qs.set('search', q.trim());
-      const res = await fetch(`/admin/activity-logs/by-lead?${qs}`, {
+      const res = await fetch(`${adminUrl('/activity-logs/by-lead')}?${qs}`, {
         headers: authHeaders(),
         credentials: 'include',
       });
@@ -734,7 +735,7 @@ export function useLeadActivityTimeline() {
   const loadActiveLenders = useCallback(async (leadId: number) => {
     try {
       const qs = new URLSearchParams({ leadId: String(leadId) });
-      const res = await fetch(`/admin/activity-logs/active-lenders?${qs}`, {
+      const res = await fetch(`${adminUrl('/activity-logs/active-lenders')}?${qs}`, {
         headers: authHeaders(),
         credentials: 'include',
       });
@@ -756,7 +757,7 @@ export function useLeadActivityTimeline() {
       if (category && category !== 'ALL') {
         qs.set('category', category);
       }
-      const res = await fetch(`/admin/activity-logs/by-lead/${leadId}?${qs}`, {
+      const res = await fetch(`${adminUrl(`/activity-logs/by-lead/${leadId}`)}?${qs}`, {
         headers: authHeaders(),
         credentials: 'include',
       });
@@ -785,7 +786,7 @@ export function useLeadActivityTimeline() {
         });
         const trimmed = q.trim();
         if (trimmed) qs.set('search', trimmed);
-        const res = await fetch(`/admin/activity-logs/events?${qs}`, {
+        const res = await fetch(`${adminUrl('/activity-logs/events')}?${qs}`, {
           headers: authHeaders(),
           credentials: 'include',
         });

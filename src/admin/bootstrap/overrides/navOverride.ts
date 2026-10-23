@@ -196,6 +196,7 @@ export const applyNavOverride = () => {
                 '',
                 adminAppUrl('content-manager/collection-types/api::lead.lead')
             );
+
             window.dispatchEvent(new PopStateEvent('popstate'));
             setTimeout(updateNavActiveStates, 50);
         }

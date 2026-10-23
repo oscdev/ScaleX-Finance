@@ -4,6 +4,7 @@
 // Passwords are bcrypt-only — no advisor password prefill/reveal.
 
 import { normalizeLoanTypeCode } from '../../../utils/loan-type';
+import { matchAdminPath } from '../adminPath';
 
 const EDIT_PRODUCT_ID = 'scalex-edit-product-field';
 

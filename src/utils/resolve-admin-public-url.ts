@@ -121,6 +121,18 @@ export function resolveAdminPublicBaseUrl(strapi: Core.Strapi): string {
   return resolveRequestPublicOrigin(strapi) || resolveExplicitPublicUrl();
 }
 
+export function adminPanelPath(strapi: Core.Strapi): string {
+  const raw = String(strapi.config.get('admin.url') || '/admin');
+  let pathname = raw;
+  try {
+    if (/^https?:\/\//i.test(raw)) pathname = new URL(raw).pathname;
+  } catch {
+    pathname = raw;
+  }
+  if (!pathname.startsWith('/')) pathname = `/${pathname}`;
+  return pathname.replace(/\/$/, '') || '/admin';
+}
+
 export function buildAdminLoginUrl(strapi: Core.Strapi): string {
   const base = resolveAdminPublicBaseUrl(strapi);
   return base ? `${base}${getAdminSpaPath(strapi)}/auth/login` : '';

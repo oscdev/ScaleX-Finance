@@ -467,6 +467,49 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiAboutUsPageAboutUsPage extends Struct.SingleTypeSchema {
+  collectionName: 'about_us_pages';
+  info: {
+    description: 'Manage content for the About Us page';
+    displayName: 'About Us Page';
+    pluralName: 'about-us-pages';
+    singularName: 'about-us-page';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    content: Schema.Attribute.RichText;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    heroBanner: Schema.Attribute.Media<'images'>;
+    heroSubtitle: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'Empowering financial advisor to grow their business with cutting-edge technology and seamless lender integrations.'>;
+    heroTitle: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'About ScaleX Finance'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::about-us-page.about-us-page'
+    > &
+      Schema.Attribute.Private;
+    missionContent: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'To bridge the gap between financial advisors and lenders through a transparent, efficient, and AI-driven platform.'>;
+    missionTitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Our Mission'>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    visionContent: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'To become the global standard for financial advisor empowerment and credit accessibility.'>;
+    visionTitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Our Vision'>;
+  };
+}
+
 export interface ApiAdvisorRegistrationPageAdvisorRegistrationPage
   extends Struct.SingleTypeSchema {
   collectionName: 'advisor_registration_page';
@@ -747,6 +790,52 @@ export interface ApiBusinessLoanEligibilityLendersCriteriaBl
     settledWriteOff36Months: Schema.Attribute.Boolean &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<true>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiContactUsPageContactUsPage extends Struct.SingleTypeSchema {
+  collectionName: 'contact_us_pages';
+  info: {
+    description: 'Manage content for the Contact Us page';
+    displayName: 'Contact Us Page';
+    pluralName: 'contact-us-pages';
+    singularName: 'contact-us-page';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    address: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'ScaleX Finance Tower, Financial District, Mumbai, Maharashtra 400001'>;
+    contactFormSubtitle: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'Fill out the form below and our team will get back to you within 24 hours.'>;
+    contactFormTitle: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Send us a Message'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'support@scalexfinance.com'>;
+    googleMapUrl: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d113228.47161208035!2d72.8222384!3d19.0760906!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c6306644edc1%3A0x5da4ed8f8d648c69!2sMumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1711181234567!5m2!1sen!2sin'>;
+    heroBanner: Schema.Attribute.Media<'images'>;
+    heroSubtitle: Schema.Attribute.Text &
+      Schema.Attribute.DefaultTo<'Have questions about our financial services or advisor network? Reach out to us today.'>;
+    heroTitle: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'Get in Touch'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::contact-us-page.contact-us-page'
+    > &
+      Schema.Attribute.Private;
+    phone: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'+91 1800 123 4567'>;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2455,10 +2544,12 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::about-us-page.about-us-page': ApiAboutUsPageAboutUsPage;
       'api::advisor-registration-page.advisor-registration-page': ApiAdvisorRegistrationPageAdvisorRegistrationPage;
       'api::advisor.advisor': ApiAdvisorAdvisor;
       'api::bureau-data-extraction.cibil-report-summary': ApiBureauDataExtractionCibilReportSummary;
       'api::business-loan-eligibility.lenders-criteria-bl': ApiBusinessLoanEligibilityLendersCriteriaBl;
+      'api::contact-us-page.contact-us-page': ApiContactUsPageContactUsPage;
       'api::footer.footer': ApiFooterFooter;
       'api::global-setting.global-setting': ApiGlobalSettingGlobalSetting;
       'api::header.header': ApiHeaderHeader;

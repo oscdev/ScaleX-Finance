@@ -1,3 +1,5 @@
+import { adminUrl } from '../adminPath';
+
 export const applyLoginPageOverride = () => {
     // Prefix-agnostic: works for /admin/auth/login and custom admin.path
     const isLoginPage = window.location.pathname.replace(/\/+$/, '').endsWith('/auth/login');

@@ -5,6 +5,8 @@
  *   - Denied: force mask + hide native eye buttons.
  */
 
+import { matchAdminPath } from '../adminPath';
+
 const WRAP_ATTR = 'data-scalex-pw-wrap';
 const BTN_ATTR = 'data-scalex-pw-toggle';
 const NATIVE_HIDDEN_ATTR = 'data-scalex-native-pw-hidden';
@@ -18,12 +20,10 @@ const EYE_OFF_SVG =
 const isShowHideAllowed = (): boolean => (window as any)._showHidePasswordAllowed === true;
 
 const isAdvisorCmEditPath = (): boolean =>
-    /\/content-manager\/collection-types\/api::advisor\.advisor(\/|$)/.test(
-        window.location.pathname
-    );
+    matchAdminPath('/content-manager/collection-types/api::advisor\\.advisor(\\/|$)') !== null;
 
 const isUsersEditPath = (): boolean =>
-    /\/settings\/users\/\d+/.test(window.location.pathname);
+    matchAdminPath('/settings/users/\\d+') !== null;
 
 /** Label text owned by this input only (never scan sibling fields in the form). */
 const getOwnFieldLabelText = (input: HTMLInputElement): string => {
