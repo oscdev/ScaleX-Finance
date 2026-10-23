@@ -1,5 +1,6 @@
 import type { Core } from '@strapi/strapi';
 import { ensurePythonEnvironment } from './api/bureau-data-extraction/services/python-bridge';
+import { warnIfAdminSpaPathMisconfigured } from './utils/admin-spa-path';
 import {
   buildAdminLoginUrl,
   buildAdminRegisterUrl,
@@ -2038,6 +2039,7 @@ export default {
     );
     await bootstrapLendersLogosMirror(strapi);
 
+    warnIfAdminSpaPathMisconfigured(strapi);
     warnIfAdminPublicUrlMisconfigured(strapi);
 
     const { installAdminForgotPasswordAudit } = await import(

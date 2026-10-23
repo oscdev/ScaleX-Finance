@@ -43,11 +43,12 @@ function loadForgotPasswordEmailTemplate(): {
 }
 
 const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Admin => ({
-  url: '/FinanCe-21x08k19G',
+  // SPA path only — set ADMIN_PATH in .env (no trailing slash). Admin APIs stay at /admin.
+  url: env('ADMIN_PATH', '/admin'),
   auth: {
     secret: env('ADMIN_JWT_SECRET'),
-  },  
-forgotPassword: {
+  },
+  forgotPassword: {
     // Strapi types say `string`; runtime sendTemplatedEmail expects { subject, html, text }.
     emailTemplate: loadForgotPasswordEmailTemplate() as unknown as string,
   },
