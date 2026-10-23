@@ -414,23 +414,10 @@ export default {
       return true;
     };
 
-    const adminRouteBase = (): string => {
-      const raw = String(strapi.config.get('admin.url') || '/admin');
-      let pathname = raw;
-      try {
-        if (/^https?:\/\//i.test(raw)) pathname = new URL(raw).pathname;
-      } catch {
-        pathname = raw;
-      }
-      if (!pathname.startsWith('/')) pathname = `/${pathname}`;
-      return pathname.replace(/\/$/, '') || '/admin';
-    };
-    const adminBase = adminRouteBase();
+    // Custom ScaleX admin APIs stay under `/admin` (Strapi API prefix).
+    // SPA path (ADMIN_PATH) is browser-only — do not dual-mount these under the SPA basename.
     const routeOnAdmin = (method: 'get' | 'post' | 'put', path: string, handler: (ctx: any) => any) => {
       router[method](path, handler);
-      if (adminBase !== '/admin' && path.startsWith('/admin/')) {
-        router[method](`${adminBase}${path.slice('/admin'.length)}`, handler);
-      }
     };
 
     routeOnAdmin('get', '/admin/loan-app-permissions', async (ctx: any) => {

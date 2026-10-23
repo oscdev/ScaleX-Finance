@@ -10,7 +10,7 @@ import { buildLeadUploadFolderName } from '../../api/loan-application/utils/lead
 
 import { coerceLoanTypeCode } from '../../utils/loan-type';
 import { resolveSectionRoleId } from '../bootstrap/resolveSectionRoleId';
-import { adminUrl } from '../bootstrap/adminPath';
+import { adminApiUrl } from '../bootstrap/adminPath';
 import {
   isLoanApplicationSubmitted,
   getAdminLoanFormDisplayData,
@@ -460,7 +460,7 @@ export const useLeadViewDashboard = (leadId: string) => {
         try {
             const headers = authHeaders();
             const res = await fetch(
-                `${adminUrl('/api-uploads/lead-files')}?leadId=${numericLeadId}&applicantName=${encodeURIComponent(applicantName)}`,
+                `${adminApiUrl('/api-uploads/lead-files')}?leadId=${numericLeadId}&applicantName=${encodeURIComponent(applicantName)}`,
                 { headers }
             );
             if (!res.ok) return;
@@ -702,7 +702,7 @@ export const useLeadViewDashboard = (leadId: string) => {
                 if (!product) return;
 
                 const res = await fetch(
-                    `${adminUrl('/product-users')}?product=${encodeURIComponent(product)}`,
+                    `${adminApiUrl('/product-users')}?product=${encodeURIComponent(product)}`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
                 if (!res.ok) return;
@@ -766,7 +766,7 @@ export const useLeadViewDashboard = (leadId: string) => {
             try {
                 const token = getToken();
                 if (!token) return;
-                const res = await fetch(adminUrl('/users/me'), {
+                const res = await fetch(adminApiUrl('/users/me'), {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!res.ok) return;

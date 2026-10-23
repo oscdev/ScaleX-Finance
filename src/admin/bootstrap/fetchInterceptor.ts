@@ -1,5 +1,5 @@
 import { ensureDashboardListSortUrl } from '../LeadOverview/enforceListSettings';
-import { adminUrl } from './adminPath';
+import { adminApiUrl } from './adminPath';
 import {
     applyConfiguredPageSize,
     ensureDashboardListPageSizeUrl,
@@ -290,7 +290,7 @@ export const installFetchInterceptor = () => {
         // When the custom ID / Role filter controls are active, inject the matching
         // filter params into Strapi's own paginated GET /admin/users request so that
         // filtering works across ALL pages, not just the currently visible rows.
-        const usersRoot = adminUrl('/users');
+        const usersRoot = adminApiUrl('/users');
         const usersItem = new RegExp(`${usersRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/\\d+`);
         if (
             requestMethod === 'GET' &&

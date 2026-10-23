@@ -1,6 +1,6 @@
-import { adminUrl, matchAdminPath } from '../adminPath';
+import { matchAdminPath, adminApiUrl } from '../adminPath';
 
-const apiBase = () => adminUrl('/loan-app-permissions');
+const apiBase = () => adminApiUrl('/loan-app-permissions');
 const ROW_ID = 'scalex-add-new-lead-row';
 let _savingAddLead = false;
 let _savingShowHide = false;

@@ -17,7 +17,6 @@ import {
   type ActivityEvent,
   type EmailRunGroup,
 } from './useLeadActivityTimeline';
-import { adminUrl } from '../bootstrap/adminPath';
 import {
   groupLenderPipelineEvents,
   buildActiveLenderBuckets,

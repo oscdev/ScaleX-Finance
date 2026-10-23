@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Box, Typography } from '@strapi/design-system';
-import { adminUrl } from '../bootstrap/adminPath';
+import { adminApiUrl } from '../bootstrap/adminPath';
 
 // ─── Tree Definition ─────────────────────────────────────────────────────────
 
@@ -177,7 +177,7 @@ const FIELD_PERMS = [
     { key: 'view' as const, label: 'VIEW', color: '#2563eb' },
 ];
 
-const apiBase = () => adminUrl('/loan-app-permissions');
+const apiBase = () => adminApiUrl('/loan-app-permissions');
 const getToken = () => {
     const t: string = (window as any)._strapi_last_token || '';
     return t.startsWith('Bearer ') ? t.slice(7).trim() : t;

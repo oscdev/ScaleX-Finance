@@ -2,7 +2,6 @@ import { LeadOverviewDashboard } from '../../LeadOverview';
 import { applyListOverviewMount, isCmCollectionListPath } from './listOverviewMount';
 import { leadLabelMap } from './constants';
 import { lendersPageUrl, getFrontendBaseUrl } from '../frontendUrl';
-import { adminUrl } from '../adminPath';
 import { shouldPauseAdminOverrides } from '../overlayGuard';
 import {
     buildNtfBadgeHtml,
