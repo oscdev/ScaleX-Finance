@@ -1,3 +1,5 @@
+import { adminAppUrl } from '../../shared/adminPath';
+
 /** Active CM nav look — matches Leads Overview (solid blue + white bold). */
 const ACTIVE_BG = '#1d4ed8';
 const ACTIVE_FG = '#ffffff';
@@ -185,11 +187,15 @@ export const applyNavOverride = () => {
         'custom-leads-overview-li',
         'custom-leads-overview-link',
         'Leads Overview',
-        '/admin/content-manager/collection-types/api::lead.lead',
+        adminAppUrl('content-manager/collection-types/api::lead.lead'),
         isOverviewActive,
         (e) => {
             e.preventDefault();
-            history.pushState(null, '', '/admin/content-manager/collection-types/api::lead.lead');
+            history.pushState(
+                null,
+                '',
+                adminAppUrl('content-manager/collection-types/api::lead.lead')
+            );
             window.dispatchEvent(new PopStateEvent('popstate'));
             setTimeout(updateNavActiveStates, 50);
         }

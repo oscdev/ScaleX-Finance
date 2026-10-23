@@ -18,12 +18,12 @@ const EYE_OFF_SVG =
 const isShowHideAllowed = (): boolean => (window as any)._showHidePasswordAllowed === true;
 
 const isAdvisorCmEditPath = (): boolean =>
-    /\/admin\/content-manager\/collection-types\/api::advisor\.advisor(\/|$)/.test(
+    /\/content-manager\/collection-types\/api::advisor\.advisor(\/|$)/.test(
         window.location.pathname
     );
 
 const isUsersEditPath = (): boolean =>
-    /\/admin\/settings\/users\/\d+/.test(window.location.pathname);
+    /\/settings\/users\/\d+/.test(window.location.pathname);
 
 /** Label text owned by this input only (never scan sibling fields in the form). */
 const getOwnFieldLabelText = (input: HTMLInputElement): string => {

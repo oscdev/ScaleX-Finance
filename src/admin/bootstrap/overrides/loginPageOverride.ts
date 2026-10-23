@@ -1,5 +1,6 @@
 export const applyLoginPageOverride = () => {
-    const isLoginPage = window.location.pathname.includes('/admin/auth/login');
+    // Prefix-agnostic: works for /admin/auth/login and custom admin.path
+    const isLoginPage = window.location.pathname.replace(/\/+$/, '').endsWith('/auth/login');
 
     // "Register as a partner" link beneath the sign-in heading
     // All styling is handled by #custom-partner-link-container and #custom-partner-link in CSS

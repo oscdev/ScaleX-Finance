@@ -6,6 +6,7 @@ import {
     buildAdvisorStatusBadgeHtml,
     buildVerifiedBadgeHtml,
 } from './statusBadgeHtml';
+import { adminAppUrl } from '../../shared/adminPath';
 
 const ADMIN_DEVICE_ID_KEY = 'strapi.admin.deviceId';
 
@@ -303,7 +304,9 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
             const docId = numericId ? ((window as any).advisorDocumentIdMap || {})[numericId] : null;
             const urlId = docId || numericId;
             if (urlId) {
-                window.location.href = `/admin/content-manager/collection-types/api::advisor.advisor/${urlId}`;
+                window.location.href = adminAppUrl(
+                    `content-manager/collection-types/api::advisor.advisor/${urlId}`
+                );
             }
         };
 
@@ -426,7 +429,7 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
                         localStorage.setItem('jwtToken', JSON.stringify(jwt));
                         localStorage.setItem('isLoggedIn', 'true');
                         sessionStorage.setItem('jwtToken', jwt);
-                        window.location.href = '/admin';
+                        window.location.href = adminAppUrl();
                     } else {
                         alert('Login failed: Token missing from response.');
                     }

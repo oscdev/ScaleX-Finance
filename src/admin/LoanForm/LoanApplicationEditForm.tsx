@@ -13,6 +13,7 @@ import {
 import { coerceLoanTypeCode, DEFAULT_LOAN_TYPE } from '../../utils/loan-type';
 import { normalizeLoanAppRow } from './loanAppRowUtils';
 import type { FormFieldValue } from './FormFieldControl';
+import { adminAppUrl } from '../shared/adminPath';
 
 const authHeaders = (): Record<string, string> => {
     const token = getToken();
@@ -144,7 +145,9 @@ export const LoanApplicationEditForm = ({ documentId }: { documentId: string }) 
     );
 
     const backToList = () => {
-        window.location.href = '/admin/content-manager/collection-types/api::loan-application.loan-application';
+        window.location.href = adminAppUrl(
+            'content-manager/collection-types/api::loan-application.loan-application'
+        );
     };
 
     if (loading) {

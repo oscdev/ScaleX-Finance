@@ -8,6 +8,7 @@ import {
     buildStatusBadgeHtml,
     looksLikeLeadStatus,
 } from './statusBadgeHtml';
+import { adminAppUrl } from '../../shared/adminPath';
 
 // ─── Role helpers ─────────────────────────────────────────────────────────────
 
@@ -581,7 +582,7 @@ const transformLeadRow = (row: Element, headerRow: Element) => {
             const targetId = docId || rId;
             // id= must be a query param — applyLeadDashboardOverride reads window.location.search
             window.open(
-                `/admin/content-manager/collection-types/api::loan-application.loan-application?view=dashboard&id=${targetId}`,
+                `${adminAppUrl('content-manager/collection-types/api::loan-application.loan-application')}?view=dashboard&id=${targetId}`,
                 '_self'
             );
         };

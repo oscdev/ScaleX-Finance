@@ -500,9 +500,9 @@ const initOverrides = () => {
         const isLeadsPage = path.includes('api::lead.lead');
         const isLoanPage = path.includes('api::loan-application.loan-application');
         const isActivityLogPage = path.includes('api::system-events.activity-log');
-        const isAdminUsersListPage = path.replace(/\/+$/, '') === '/admin/settings/users';
-        const isAdminUserEditPage = /\/admin\/settings\/users\/\d+/.test(path);
-        const isRoleEditPage = /\/admin\/settings\/roles\/\d+/.test(path);
+        const isAdminUsersListPage = /\/settings\/users\/?$/.test(path.replace(/\/+$/, ''));
+        const isAdminUserEditPage = /\/settings\/users\/\d+/.test(path);
+        const isRoleEditPage = /\/settings\/roles\/\d+/.test(path);
 
         // Activity Log → custom Lead Activity Timeline (unless ?raw=1)
         if (isActivityLogPage) {
