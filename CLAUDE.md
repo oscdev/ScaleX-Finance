@@ -271,8 +271,6 @@ These are single-type or collection-type entries managed via Strapi admin for fr
 | Collection | Purpose |
 |---|---|
 | `homepage` | Home page content |
-| `about-us-page` | About Us page content |
-| `contact-us-page` | Contact Us page content |
 | `header` | Global header content |
 | `footer` | Global footer content |
 | `global-setting` | Site-wide settings |
