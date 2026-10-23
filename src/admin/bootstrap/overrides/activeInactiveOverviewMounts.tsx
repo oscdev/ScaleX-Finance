@@ -2,7 +2,7 @@ import { LendersOverviewDashboard } from '../../LendersOverview';
 import { ProductOverviewDashboard } from '../../ProductOverview';
 import { UsersOverviewDashboard } from '../../UsersOverview';
 import { applyListOverviewMount, isCmCollectionListPath } from './listOverviewMount';
-import { adminUrl } from '../adminPath';
+import { adminAppUrl } from '../../shared/adminPath';
 
 const LENDERS_UID = 'api::lender-master.lenders-catalog';
 const PRODUCTS_UID = 'api::product.product';
@@ -26,7 +26,8 @@ export const applyProductOverviewMount = () => {
 export const applyUsersOverviewMount = () => {
     applyListOverviewMount({
         rootId: 'users-overview-root',
-        matchPath: () => window.location.pathname.replace(/\/+$/, '') === adminUrl('/settings/users'),
+        matchPath: () =>
+            window.location.pathname.replace(/\/+$/, '') === adminAppUrl('settings/users'),
         Dashboard: UsersOverviewDashboard,
     });
 };

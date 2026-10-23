@@ -1,5 +1,7 @@
 import type { Core } from '@strapi/strapi';
 
+import { getAdminSpaPath } from './admin-spa-path';
+
 type HeaderBag = Record<string, string | string[] | undefined>;
 
 type RequestLike = {
@@ -133,7 +135,7 @@ export function adminPanelPath(strapi: Core.Strapi): string {
 
 export function buildAdminLoginUrl(strapi: Core.Strapi): string {
   const base = resolveAdminPublicBaseUrl(strapi);
-  return base ? `${base}${adminPanelPath(strapi)}/auth/login` : '';
+  return base ? `${base}${getAdminSpaPath(strapi)}/auth/login` : '';
 }
 
 export function buildAdminRegisterUrl(
@@ -143,7 +145,7 @@ export function buildAdminRegisterUrl(
   const base = resolveAdminPublicBaseUrl(strapi);
   const token = String(registrationToken || '').trim();
   if (!base || !token) return '';
-  return `${base}${adminPanelPath(strapi)}/auth/register?registrationToken=${encodeURIComponent(token)}`;
+  return `${base}${getAdminSpaPath(strapi)}/auth/register?registrationToken=${encodeURIComponent(token)}`;
 }
 
 export function buildAdminResetPasswordUrl(
@@ -153,7 +155,7 @@ export function buildAdminResetPasswordUrl(
   const base = resolveAdminPublicBaseUrl(strapi);
   const code = String(resetCode || '').trim();
   if (!base || !code) return '';
-  return `${base}${adminPanelPath(strapi)}/auth/reset-password?code=${encodeURIComponent(code)}`;
+  return `${base}${getAdminSpaPath(strapi)}/auth/reset-password?code=${encodeURIComponent(code)}`;
 }
 
 /** True when host looks like local/dev (emails would use a non-production origin). */

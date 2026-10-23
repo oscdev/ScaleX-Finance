@@ -25,6 +25,7 @@ import {
   type LenderBucket,
 } from './groupLenderPipelineEvents';
 import { styles } from './styles';
+import { adminAppUrl } from '../shared/adminPath';
 
 const ACTIVITY_AUTO_REFRESH_MS = 15_000;
 
@@ -1038,7 +1039,7 @@ export const LeadActivityTimeline = () => {
             {refreshing ? 'Refreshing…' : 'Refresh Stats'}
           </button>
           <a
-            href={adminUrl('/content-manager/collection-types/api::system-events.activity-log?sort=createdAt:DESC&raw=1')}
+            href={`${adminAppUrl('content-manager/collection-types/api::system-events.activity-log')}?sort=createdAt:DESC&raw=1`}
             style={{ ...styles.ghostBtn, textDecoration: 'none' }}
           >
             Raw dump

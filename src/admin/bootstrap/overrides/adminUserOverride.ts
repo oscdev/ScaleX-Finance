@@ -259,7 +259,7 @@ const injectProductFieldOnEditPage = async (
 // ─── Public entry point ───────────────────────────────────────────────────────
 
 export const applyAdminUserOverride = (commonHeaders: Record<string, string>) => {
-    const match = matchAdminPath('/settings/users/(\\d+)');
+    const match = window.location.pathname.match(/\/settings\/users\/(\d+)/);
     if (!match) {
         // Cleanup product state when leaving the edit page
         _editInnerObserver?.disconnect();

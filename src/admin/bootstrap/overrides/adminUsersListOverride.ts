@@ -4,6 +4,7 @@
 import { markAdminDropdownInteraction, shouldPauseAdminOverrides } from '../overlayGuard';
 import { adminUrl } from '../adminPath';
 import { loanTypeLabel } from '../../../utils/loan-type';
+import { adminAppUrl } from '../../shared/adminPath';
 
 const FETCH_FLAG = '_admin_users_id_loaded';
 
@@ -14,7 +15,7 @@ interface AdminUserEntry {
 }
 
 const isAdminUsersListPath = () =>
-    window.location.pathname.replace(/\/+$/, '') === adminUrl('/settings/users');
+    window.location.pathname.replace(/\/+$/, '') === adminAppUrl('settings/users');
 
 const normalizeAdminSort = (s: string): string =>
     decodeURIComponent(String(s || ''))

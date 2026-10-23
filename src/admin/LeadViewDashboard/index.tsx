@@ -19,6 +19,7 @@ import { buildLeadUploadFolderName } from '../../api/loan-application/utils/lead
 import { renameFileForDocumentField } from '../../shared/loan-form/document-filenames';
 import { coerceLoanTypeCode, DEFAULT_LOAN_TYPE, loanTypeLabel } from '../../utils/loan-type';
 import { styles, fileFormatBox, fileFormatText, bubbleStyle, logTextStyle } from './styles';
+import { adminAppUrl } from '../shared/adminPath';
 
 const SearchableDropdown = ({
     label,
@@ -644,7 +645,12 @@ export const LeadDetailDashboard = ({ leadId }: { leadId: string }) => {
                     <Button
                         variant="ghost"
                         size="S"
-                        onClick={() => window.open(adminUrl('/content-manager/collection-types/api::lead.lead'), '_self')}
+                        onClick={() =>
+                            window.open(
+                                adminAppUrl('content-manager/collection-types/api::lead.lead'),
+                                '_self'
+                            )
+                        }
                         style={{ padding: '0 4px' }}
                     >
                         <Typography variant="pi" textColor="primary600" fontWeight="bold">← BACK TO LEADS</Typography>

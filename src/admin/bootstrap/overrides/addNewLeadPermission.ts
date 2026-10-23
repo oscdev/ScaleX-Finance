@@ -94,7 +94,7 @@ export const loadDashboardWidgetsShow = async (roleId: number): Promise<boolean>
 };
 
 const getRoleIdFromUrl = (): number | null => {
-    const m = matchAdminPath('/settings/roles/(\\d+)');
+    const m = window.location.pathname.match(/\/settings\/roles\/(\d+)/);
     return m ? parseInt(m[1], 10) : null;
 };
 

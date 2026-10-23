@@ -43,6 +43,7 @@ function loadForgotPasswordEmailTemplate(): {
 }
 
 const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Admin => ({
+  // SPA path only — set ADMIN_PATH in .env (no trailing slash). Admin APIs stay at /admin.
   url: env('ADMIN_PATH', '/admin'),
   auth: {
     secret: env('ADMIN_JWT_SECRET'),

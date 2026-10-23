@@ -1,15 +1,17 @@
 import { adminPath } from '../adminPath';
 
 /**
- * Homepage: gate Strapi widgets + Add Widget via Custom Actions
+ * Homepage (admin SPA basename): gate Strapi widgets + Add Widget via Custom Actions
  * `dashboardWidgets: { show }` → window._dashboardWidgetsAllowed.
  */
+
+import { getAdminBasename } from '../../shared/adminPath';
 
 const HIDDEN_ATTR = 'data-scalex-widgets-hidden';
 
 const isHomepagePath = (): boolean => {
     const path = window.location.pathname.replace(/\/+$/, '') || '/';
-    return path === adminPath();
+    return path === getAdminBasename();
 };
 
 const isAllowed = (): boolean => (window as any)._dashboardWidgetsAllowed === true;
