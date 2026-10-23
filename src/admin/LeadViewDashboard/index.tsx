@@ -13,7 +13,6 @@ import {
     isLoanApplicationSubmitted,
 } from './useLeadViewDashboard';
 import { LoanFormSections } from '../LoanForm/LoanFormSections';
-import { adminUrl } from '../bootstrap/adminPath';
 import { LeadInfoSummary } from '../LoanForm/LeadInfoSummary';
 import { buildLeadUploadFolderName } from '../../api/loan-application/utils/lead-upload-folder';
 import { renameFileForDocumentField } from '../../shared/loan-form/document-filenames';

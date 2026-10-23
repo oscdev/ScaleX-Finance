@@ -1,4 +1,4 @@
-import { adminUrl } from './adminPath';
+import { adminApiUrl } from './adminPath';
 
 const findJwtInStorage = () => {
     const storages = [localStorage, sessionStorage];
@@ -78,7 +78,7 @@ export const syncSessionRole = async (isRetry = false): Promise<void> => {
             Authorization: `Bearer ${token}`,
         };
 
-        const userRes = await fetch(adminUrl('/users/me'), {
+        const userRes = await fetch(adminApiUrl('/users/me'), {
             headers,
             credentials: 'include',
         });

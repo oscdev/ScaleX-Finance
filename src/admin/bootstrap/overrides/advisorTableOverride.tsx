@@ -2,7 +2,7 @@ import { AdvisorOverviewDashboard } from '../../AdvisorOverview';
 import { applyListOverviewMount, isCmCollectionListPath } from './listOverviewMount';
 import { advisorLabelMap } from './constants';
 import { getStrapiToken } from './strapiToken';
-import { adminPath, adminUrl } from '../adminPath';
+import { adminApiUrl } from '../adminPath';
 import {
     buildAdvisorStatusBadgeHtml,
     buildVerifiedBadgeHtml,
@@ -406,7 +406,7 @@ const transformAdvisorRow = (row: Element, headerRow: Element) => {
 
                 // Super Admin impersonation — no plaintext password (bcrypt-only storage)
                 const deviceId = getOrCreateAdminDeviceId();
-                const loginRes = await fetch(adminUrl('/advisors/impersonate'), {
+                const loginRes = await fetch(adminApiUrl('/advisors/impersonate'), {
                     method: 'POST',
                     credentials: 'include',
                     headers: {

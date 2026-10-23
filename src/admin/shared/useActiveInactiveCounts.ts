@@ -8,7 +8,7 @@ import {
 } from './cmCount';
 import type { ActiveInactiveStats } from './ActiveInactiveOverviewDashboard';
 import { triggerCmListRefetch } from './triggerCmListRefetch';
-import { adminUrl } from '../bootstrap/adminPath';
+import { adminApiUrl } from '../bootstrap/adminPath';
 import {
     consumeSkipOverviewLoader,
     stashOverviewStats,
@@ -69,8 +69,8 @@ export const useActiveInactiveCounts = (config: ActiveInactiveCountConfig) => {
                     ]);
                 } else {
                     const [totalRes, activeRes] = await Promise.all([
-                        fetch(`${adminUrl('/users')}?pageSize=1`, { headers, credentials: 'include' }),
-                        fetch(`${adminUrl('/users')}?pageSize=1&filters[isActive][$eq]=true`, {
+                        fetch(`${adminApiUrl('/users')}?pageSize=1`, { headers, credentials: 'include' }),
+                        fetch(`${adminApiUrl('/users')}?pageSize=1&filters[isActive][$eq]=true`, {
                             headers,
                             credentials: 'include',
                         }),
